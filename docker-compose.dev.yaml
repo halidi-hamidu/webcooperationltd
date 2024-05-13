@@ -9,7 +9,8 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./config:/etc/odoo
-      - ./custom-addons:/mnt/extra-addons/
+      - ./custom-addons:/mnt/extra-addons/custom-addons
+      - ./enterprise-addons:/mnt/extra-addons/enterprise-addons
     environment:
       - HOST=db
       - USER=odoo
@@ -23,8 +24,8 @@ services:
       - POSTGRES_USER=odoo
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ./odoo-db-data:/var/lib/postgresql/data/pgdata
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
 
 volumes:
   odoo-web-data:
-  # odoo-db-data:
+  odoo-db-data:
