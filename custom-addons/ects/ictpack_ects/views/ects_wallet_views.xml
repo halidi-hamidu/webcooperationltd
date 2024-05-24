@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="ects_wallet_form_view" model="ir.ui.view">
+            <field name="name">ects.wallet.form</field>
+            <field name="model">ects.wallet</field>
+            <field name="arch" type="xml">
+                <form string="Ects Wallet">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="wallet_id"/>
+                            <h1>
+                                <field name="wallet_id" />
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id"/>
+                            </group>
+                            <group>
+                                <field name="amount"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="ects_wallet_tree_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.tree</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <tree string="Ects Wallet">
+                    <field name="create_date"/>
+                    <field name="example_field"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ects_wallet_calendar_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.calendar</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <calendar string="Ects Wallet" date_start="example_date_field" color="example_boolean_field">
+                    <field name="example_field"/>
+                    <field name="example_field" widget="monetary"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="ects_wallet_graph_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.graph</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <graph string="Ects Wallet">
+                    <field name="example_field"/>
+                    <field name="example_field" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="ects_wallet_pivot_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.pivot</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <pivot string="Ects Wallet">
+                    <field name="example_field" type="row"/>
+                    <field name="example_field" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record id="ects_wallet_search_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.search</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <search string="Ects Wallet">
+                    <group expand="1" string="Group By">
+                        <filter string="Example Field" name="example_field" domain="[]"
+                                context="{'group_by':'example_field'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="ects_wallet_kanban_view" model="ir.ui.view">
+            <field name="name">ProjectName.ects_wallet.kanban</field>
+            <field name="model">ProjectName.ects_wallet</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="id"/>
+                    <field name="example_field"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click o_res_partner_kanban">
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title oe_partner_heading">
+                                        <field name="example_field"/>
+                                    </strong>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="ects_wallet_act_window" model="ir.actions.act_window">
+            <field name="name">Ects Wallet</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ProjectName.ects_wallet</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form,calendar,graph,pivot</field>
+            <field name="context">{"search_default_example_field":1}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Ects Wallet.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Ects Wallet" id="ects_wallet_menu" parent="your_root_menu" action="ects_wallet_act_window"/>
+
+    </data>
+</odoo>

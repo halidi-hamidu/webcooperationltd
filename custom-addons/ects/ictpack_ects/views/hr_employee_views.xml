@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="hr_employee_form_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.form.ects</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='hr_settings']" position="after">
+                    <page name="ects_settings" string="ECTS Settings">
+                        <group>
+                            <field name="is_ects_employee"/>
+                            <field name="is_ects_tagger"/>
+                            <field name="ects_username"/>
+                            <field name="ects_password" password="1"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="hr_work_location_form_view_inherit" model="ir.ui.view">
+            <field name="name">hr.work.location.view.form.ects</field>
+            <field name="model">hr.work.location</field>
+            <field name="inherit_id" ref="hr.hr_work_location_form_view"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='address_id']" position="after">
+                    <field name="is_ects_location"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>
