@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--Project simple: Form-->
+        <record id="project_project_view_form_simplified" model="ir.ui.view">
+            <field name="name">project.project.view.form.simplified</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.project_project_view_form_simplified"/>
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <field name="business_line"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="placeholder">e.g. Software/T216TAB</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record id="edit_project" model="ir.ui.view">
+            <field name="name">project.project.view.form.simplified</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="business_line"/>
+                </field>
+           		<field name="partner_id" position="attributes">
+               		 <attribute name="context">{'default_customer_rank': 1}</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_project_project_filter" model="ir.ui.view">
+            <field name="name">project.project.select</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.view_project_project_filter"/>
+            <field name="arch" type="xml">
+                <filter name="my_projects" position="after">
+                    <filter name="ictpack" string="ICTPACK" domain="[('business_line', '=', 'ictpack')]"/>
+                    <filter name="atras" string="ATRAS" domain="[('business_line', '=', 'atras')]"/>
+                </filter>
+            </field>
+        </record>
+    
+    	<!--<record id="project_project_view_form" model="ir.ui.view">
+            <field name="name">project.project.form.inherit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="sale_timesheet.project_project_view_form"/>
+            <field name="arch" type="xml">
+                <button name="action_make_billable" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </button>
+            </field>
+        </record>-->
+    
+    </data>
+</odoo>

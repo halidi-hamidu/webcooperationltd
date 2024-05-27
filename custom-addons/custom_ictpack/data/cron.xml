@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="status_check_cron" forcecreate='True' model="ir.cron">
+            <field name="name">Activity Status Cron</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_mail_activity"/>
+            <field name="state">code</field>
+            <field name="code">model._compute_status()</field>
+        </record>
+    	
+    	<record id="status_check_cron_task" forcecreate='True' model="ir.cron">
+            <field name="name">Task Status Cron</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_project_task"/>
+            <field name="state">code</field>
+            <field name="code">model._compute_status()</field>
+        </record>
+    </data>
+</odoo>

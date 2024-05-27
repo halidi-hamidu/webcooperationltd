@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="payment_receipt_vfd_form_view" model="ir.ui.view">
+            <field name="name">payment.receipt.vfd.form</field>
+            <field name="model">payment.receipt.vfd</field>
+            <field name="arch" type="xml">
+                <form string="VFD Receipt" create="false" edit="false">
+                    <header>
+                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" invisible="state == 'draft'"
+                                type="object"/>
+                        <button name="resend_receipt" string="Resend" invisible="state == 'error'"
+                                type="object"/>
+                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" invisible="state == ''"
+                                type="object"/>
+                        <button name="cancel_receipt" string="Cancel" invisible="state not in ['draft', 'sent']" type="object"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,error,verified,cancel"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="receipt_no"/>
+                            <h1>
+                                <field name="receipt_no" placeholder="Reciept No" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="receipt_date" readonly="1"/>
+                                <field name="receipt_time_str" readonly="1"/>
+                                <field name="invoice_id" readonly="1"/>
+                                <field name="receipt_id" readonly="1"/>
+                                <field name="receipt_z_no" readonly="1"/>
+                                <field name="verification_code" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="customer_name" readonly="1"/>
+                                <field name="customer_phone" readonly="1"/>
+                                <field name="customer_vrn" readonly="1"/>
+                                <field name="customer_id" readonly="1"/>
+                                <field name="receipt_url" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page name="vfd_items" string="Items">
+                                <group>
+                                    <field name="items" readonly="1"/>
+                                </group>
+                            </page>
+                            <page name="error_page" string="Error Status"
+                                  invisible="state != 'error'">
+                                <group>
+                                    <field name="error_message" readonly="1"/>
+                                </group>
+                            </page>
+
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="payment_receipt_vfd_tree_view" model="ir.ui.view">
+            <field name="name">payment.receipt.vfd.tree</field>
+            <field name="model">payment.receipt.vfd</field>
+            <field name="arch" type="xml">
+                <tree create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='error'"
+                      default_order="create_date desc">
+                    <field name="receipt_date" optional="hide"/>
+                    <field name="receipt_time" string="Receipt Datetime"/>
+                    <field name="receipt_time_str" optional="hide"/>
+                    <field name="invoice_id"/>
+                    <field name="invoice_currency"/>
+                    <field name="amount_untaxed_signed" sum="Total"/>
+                    <field name="amount_tax_signed" sum="Total"/>
+                    <field name="amount_total_signed" sum="Total"/>
+                    <field name="receipt_no" optional="show"/>
+                    <field name="receipt_id" optional="show"/>
+                    <field name="receipt_z_no" optional="show"/>
+                    <field name="customer_name"/>
+                    <field name="customer_phone" optional="hide"/>
+                    <field name="customer_vrn" optional="hide"/>
+                    <field name="customer_id" optional="hide"/>
+                    <field name="verification_code"/>
+                    <field name="receipt_url" optional="hide"/>
+                    <field name="state" optional="show"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="payment_receipt_vfd_search_view" model="ir.ui.view">
+            <field name="name">payment.receipt.vfd.search</field>
+            <field name="model">payment.receipt.vfd</field>
+            <field name="arch" type="xml">
+                <search string="VFD Receipt">
+                    <group expand="1" string="Group By">
+                        <filter string="Status" name="state" domain="[]"
+                                context="{'group_by':'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="payment_receipt_vfd_act_window" model="ir.actions.act_window">
+            <field name="name">VFD Receipt</field>
+            <field name="res_model">payment.receipt.vfd</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no Receipts found.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="EFD Receipts" id="payment_receipt_vfd_menu" parent="account.menu_finance_receivables" sequence="4" action="payment_receipt_vfd_act_window"/>
+
+    </data>
+</odoo>
