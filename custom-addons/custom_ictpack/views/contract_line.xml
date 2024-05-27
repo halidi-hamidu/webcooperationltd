@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--SEARCH view-->
+    <record id="contract_contract_line_search_view" model="ir.ui.view">
+        <field name="name">contract.contract.line search view (in contract)</field>
+        <field name="model">contract.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="analytic_distribution" />
+                <separator />
+                
+                <group expand="0" string="Group By...">
+                    <filter
+                        string="Analytic Account"
+                        name="group_by_plate_number"
+                        domain="[]"
+                        context="{'group_by':'analytic_distribution'}"
+                    />
+                    <filter
+                        name="group_by_owner"
+                        string="Owner"
+                        domain="[]"
+                        context="{'group_by':'contract_id'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    
+	<!--ACTION customer contracts-->
+    <record id="action_customer_contract_line" model="ir.actions.act_window">
+        <field name="name">Customer Contracts Lines</field>
+        <field name="res_model">contract.line</field>
+        <field name="view_mode">tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="contract_contract_line_search_view" />
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new contract line.
+            </p>
+        </field>
+    </record>
+
+</odoo>

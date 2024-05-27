@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--Sale Order : Form-->
+        <record id="sale_order_form_amount_text" model="ir.ui.view">
+            <field name="name">sale.order_form_amount_text</field>
+            <field name="model">sale.order</field>
+            <!--<field name="priority" eval="15"/>-->
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <field name="note" position="before">
+                    <field name="amount_in_word"/>
+                </field>
+                <field name="partner_shipping_id" position="after">
+                    <field name="reference_number"/>
+                    <field name="reference_date"/>
+                </field>
+                <field name="payment_term_id" position="after">
+                    <field name="business_line"/>
+                </field>
+				<field name="partner_id" position="attributes">
+               		 <attribute name="context">{'default_customer_rank': 1}</attribute>
+                </field>
+              
+            </field>
+        </record>
+
+    </data>
+</odoo>

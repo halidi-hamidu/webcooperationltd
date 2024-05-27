@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="sale.report_saleorder_document">
+            <t t-call="web.external_layout">
+                <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+                <t t-set="o" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+                <t t-set="forced_vat"
+                   t-value="doc.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
+                <div class="page">
+                    <div class="oe_structure"/>
+                    <style>
+                        .table-head-bg{
+                        background-color:#bcd5ed !important;
+                        color:black !important;
+                        }
+                        .text-primary-alt{
+                        color:#2d74b5 !important;
+                        }
+                    </style>
+                    <br/>
+                    <!--Company and invoice Info Begins-->
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table table-sm o_main_table table-borderless" style="border:none !important">
+                                <tbody>
+                                    <tr>
+                                        <td width="60%" style="border-top:none !important">
+                                            <strong>
+                                                <span class="text-primary-alt" t-field="o.company_id.name"/>
+                                            </strong>
+                                            <br/>
+                                            <span t-field="o.company_id.street"/>
+                                            <br/>
+                                            <span t-field="o.company_id.street2"/>,<span t-field="o.company_id.city"/>,
+                                            <span t-field="o.company_id.country_id"/>
+                                            <br/>
+                                            <span t-field="o.company_id.phone"/>
+                                            <br/>
+                                            <t t-if="o.company_id.vat">
+                                                <strong>
+                                                    <span class="text-primary-alt">TIN:</span>
+                                                </strong>
+                                                <span t-field="o.company_id.vat"/>
+                                            </t>
+                                            <!-- TODO: Add VRN in company model.-->
+                                            <!--                                        <t t-if="o.company_id.vrn">-->
+                                            <!--                                            <strong>-->
+                                            <!--                                                <span class="text-primary-alt">VRN:</span>-->
+                                            <!--                                            </strong>-->
+                                            <!--                                            <span t-field="o.company_id.vrn"/>-->
+                                            <!--                                        </t>-->
+                                        </td>
+                                        <td width="40%" style="border-top:none !important">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <span t-if="doc.state in ['draft','sent']">
+                                                        <strong class="text-primary-alt">Quotation No:</strong>
+                                                    </span>
+                                                    <span t-else="">
+                                                        <strong class="text-primary-alt">Order No:</strong>
+                                                    </span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <span class="text-primary-alt" t-field="o.name"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <span t-if="doc.state in ['draft','sent']">
+                                                        <strong class="text-primary-alt">Quotation Date:</strong>
+                                                    </span>
+                                                    <span t-else="">
+                                                        <strong class="text-primary-alt">Order Date:</strong>
+                                                    </span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="text-primary-alt" t-field="o.date_order"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong class="text-primary-alt">Sales Rep</strong>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="text-primary-alt" t-field="o.user_id"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong class="text-primary-alt">Validity</strong>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="text-primary-alt" t-field="o.payment_term_id"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong class="text-primary-alt">Currency</strong>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="text-primary-alt" t-field="o.pricelist_id"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <!--                Billing Address-->
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th width="60%" class="table-head-bg">
+                                            <strong class="text-primary-alt">CUSTOMER:</strong>
+                                        </th>
+                                        <th width="40%" class="table-head-bg">
+                                            <strong class="text-primary-alt">SHIP TO:</strong>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody style="border-top:0px !important">
+                                    <tr>
+                                        <td>
+                                            <strong>
+                                                <span class="text-primary-alt" t-field="o.partner_id.name"/>
+                                            </strong>
+                                            <br/>
+                                            <span t-field="o.partner_id.street"/>
+                                            <br/>
+                                            <span t-field="o.partner_id.street2"/>,<span t-field="o.partner_id.city"/>,
+                                            <span t-field="o.partner_id.country_id"/>
+                                            <br/>
+                                            <span t-field="o.partner_id.phone"/>
+                                            <br/>
+                                            <t t-if="o.partner_id.vat">
+                                                <strong>
+                                                    <span class="text-primary-alt">TIN:</span>
+                                                </strong>
+                                                <span t-field="o.partner_id.vat"/>
+                                            </t>
+
+                                            <!--                                        <t t-if="o.partner_id.vrn">-->
+                                            <!--                                            <strong>-->
+                                            <!--                                                <span class="text-primary-alt">VRN:</span>-->
+                                            <!--                                            </strong>-->
+                                            <!--                                            <span t-field="o.partner_id.vrn"/>-->
+                                            <!--                                        </t>-->
+                                        </td>
+                                        <td>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <strong>
+                                                        <span class="text-primary-alt" t-field="o.partner_id.name"/>
+                                                    </strong>
+                                                    <br/>
+                                                    <span t-field="o.partner_id.street"/>
+                                                    <br/>
+                                                    <span t-field="o.partner_id.street2"/>,<span
+                                                        t-field="o.partner_id.city"/>,
+                                                    <span t-field="o.partner_id.country_id"/>
+                                                    <br/>
+                                                    <span t-field="o.partner_id.phone"/>
+                                                    <br/>
+
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                    <hr size="10"/>
+
+                    <div style="display:none!important" class="row mt-4 mb-4" id="informations">
+                        <div t-if="doc.client_order_ref" class="col-auto col-3 mw-100 mb-2"
+                             name="informations_reference">
+                            <strong>Your Reference:</strong>
+                            <p class="m-0" t-field="doc.client_order_ref"/>
+                        </div>
+                        <div t-if="doc.date_order" class="col-auto col-3 mw-100 mb-2" name="informations_date">
+                            <strong t-if="doc.state in ['draft', 'sent']">Quotation Date:</strong>
+                            <strong t-else="">Order Date:</strong>
+                            <p class="m-0" t-field="doc.date_order" t-options='{"widget": "date"}'/>
+                        </div>
+                        <div t-if="doc.validity_date and doc.state in ['draft', 'sent']"
+                             class="col-auto col-3 mw-100 mb-2"
+                             name="expiration_date">
+                            <strong>Expiration:</strong>
+                            <p class="m-0" t-field="doc.validity_date"/>
+                        </div>
+                        <div t-if="doc.user_id.name" class="col-auto col-3 mw-100 mb-2">
+                            <strong>Salesperson:</strong>
+                            <p class="m-0" t-field="doc.user_id"/>
+                        </div>
+                    </div>
+
+                    <!-- Sales Order Reference-->
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table table-bordered o_main_table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="table-head-bg">
+                                            <strong class="text-primary-alt">Order Reference</strong>
+                                        </th>
+                                        <th class="table-head-bg">
+                                            <strong class="text-primary-alt">Date</strong>
+                                        </th>
+                                        <th class="table-head-bg">
+                                            <strong class="text-primary-alt">Payment Terms</strong>
+                                        </th>
+                                        <th class="table-head-bg">
+                                            <strong class="text-primary-alt">Project Status/Delivery</strong>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody style="border-top:0px !important">
+
+                                    <tr>
+                                        <td>
+                                            <p t-field="o.client_order_ref"/>
+                                        </td>
+                                        <td>
+                                            <p t-field="o.create_date"/>
+                                        </td>
+                                        <td>
+                                            <p t-field="o.payment_term_id"/>
+                                        </td>
+                                        <td>
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <br/>
+
+                    <!-- Is there a discount on at least one line? -->
+                    <t t-set="lines_to_report" t-value="doc._get_order_lines_to_report()"/>
+                    <t t-set="display_discount" t-value="any(l.discount for l in lines_to_report)"/>
+
+                    <table class="table table-sm o_main_table mt-4">
+                        <!-- In case we want to repeat the header, remove "display: table-row-group" -->
+                        <thead style="display: table-row-group">
+                            <tr>
+                                <th name="th_description" class="text-start table-head-bg">Description</th>
+                                <th name="th_quantity" class="text-end table-head-bg">Quantity</th>
+                                <th name="th_priceunit" class="text-end table-head-bg">Unit Price</th>
+                                <th name="th_discount" t-if="display_discount" class="text-end table-head-bg"
+                                    groups="product.group_discount_per_so_line">
+                                    <span>Disc.%</span>
+                                </th>
+                                <th name="th_taxes" class="text-end table-head-bg">Taxes</th>
+                                <th name="th_subtotal" class="text-end table-head-bg">
+                                    <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>
+                                    <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody">
+
+                            <t t-set="current_subtotal" t-value="0"/>
+
+                            <t t-foreach="lines_to_report" t-as="line">
+
+                                <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                                   groups="account.group_show_line_subtotals_tax_excluded"/>
+                                <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                                   groups="account.group_show_line_subtotals_tax_included"/>
+
+                                <tr t-att-class="'bg-200 fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''">
+                                    <t t-if="not line.display_type">
+                                        <td name="td_name">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <td name="td_quantity" class="text-end">
+                                            <span t-field="line.product_uom_qty"/>
+                                            <span t-field="line.product_uom"/>
+                                        </td>
+                                        <td name="td_priceunit" class="text-end">
+                                            <span t-field="line.price_unit"/>
+                                        </td>
+                                        <td t-if="display_discount" class="text-end"
+                                            groups="product.group_discount_per_so_line">
+                                            <span t-field="line.discount"/>
+                                        </td>
+                                        <td name="td_taxes" class="text-end">
+                                            <span t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
+                                        </td>
+                                        <td t-if="not line.is_downpayment" name="td_subtotal"
+                                            class="text-end o_price_total">
+                                            <span t-field="line.price_subtotal"
+                                                  groups="account.group_show_line_subtotals_tax_excluded"/>
+                                            <span t-field="line.price_total"
+                                                  groups="account.group_show_line_subtotals_tax_included"/>
+                                        </td>
+                                    </t>
+                                    <t t-elif="line.display_type == 'line_section'">
+                                        <td name="td_section_line" colspan="99">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <t t-set="current_section" t-value="line"/>
+                                        <t t-set="current_subtotal" t-value="0"/>
+                                    </t>
+                                    <t t-elif="line.display_type == 'line_note'">
+                                        <td name="td_note_line" colspan="99">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section') and not line.is_downpayment">
+                                    <tr class="is-subtotal text-end">
+                                        <td name="td_section_subtotal" colspan="99">
+                                            <strong class="mr16">Subtotal</strong>
+                                            <span
+                                                    t-out="current_subtotal"
+                                                    t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'
+                                            />
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div class="clearfix" name="so_total_summary">
+                        <div id="total" class="row" name="total">
+                            <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
+                                <table class="table table-sm">
+                                    <!-- Tax totals -->
+                                    <t t-set="tax_totals" t-value="doc.tax_totals"/>
+                                    <t t-call="account.document_tax_totals"/>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top:10px;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong>AMOUNT IN WORDS:</strong>
+                                </div>
+                                <div class="card-body">
+                                    <span t-field="doc.amount_in_word"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div t-if="doc.signature" class="mt-4 ml64 mr4" name="signature">
+                        <div class="offset-8">
+                            <strong>Signature</strong>
+                        </div>
+                        <div class="offset-8">
+                            <img t-att-src="image_data_uri(doc.signature)" style="max-height: 4cm; max-width: 8cm;"/>
+                        </div>
+                        <div class="offset-8 text-center">
+                            <p t-field="doc.signed_by"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p t-field="doc.note" name="order_note"/>
+                        <p t-if="not is_html_empty(doc.payment_term_id.note)">
+                            <span t-field="doc.payment_term_id.note"/>
+                        </p>
+                        <p t-if="doc.fiscal_position_id and not is_html_empty(doc.fiscal_position_id.sudo().note)"
+                           id="fiscal_position_remark">
+                            <strong>Fiscal Position Remark:</strong>
+                            <span t-field="doc.fiscal_position_id.sudo().note"/>
+                        </p>
+                    </div>
+
+                    <div class="row" style="margin-top:10px!important">
+                        <div class="col-12">
+                            <table class="table table-bordered table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="60%">
+                                            <t t-if="o.business_line == 'ictpack' or o.business_line == 'uis'">
+                                                <strong>BANK DETAILS:</strong>
+                                                <br/>
+                                                <span>Account Number(TZS):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0150259120400</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Number(USD):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0250259120400</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Bank Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>SWIFTCODE:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CORUTZTZ</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                            </t>
+                                            <t t-if="o.business_line == 'atras' or o.business_line == 'ects'">
+                                                <strong>PAYMENT DETAILS:</strong>
+                                                <br/>
+                                                <span>
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Bank Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Number(TZS):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0150259120402</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <br/>
+                                                <span>
+                                                    <strong>TIGOPESA ACCOUNT - Namna ya kulipa kwa TIGOPESA</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 1. Bonyeza <strong>*150*01#</strong> kisha Chagua
+                                                    Namba 4:
+                                                    <strong>LIPIA BILI</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 2. Chagua Namba 3:
+                                                    <strong>INGIZA NAMBA YA KAMPUNI</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 3. Ingiza namba ya kampuni:
+                                                    <strong>
+                                                        <span class="text-primary-alt">477477</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 4. Ingiza kumbukumbu Namba:
+                                                    <strong>
+                                                        <span t-field="o.client_order_ref"/>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 5. Ingiza kiasi unacholipia:
+                                                    <strong>
+                                                        <span t-field="o.amount_total"/>
+                                                    </strong>
+                                                    Kisha ngiza namba yako ya siri: <strong>****</strong> kukamilisha
+                                                    muamala
+                                                </span>
+                                            </t>
+                                        </td>
+                                        <td width="40%" class="table-head-bg">
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+    </data>
+</odoo>

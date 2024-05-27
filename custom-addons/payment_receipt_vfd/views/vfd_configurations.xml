@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_payment_receipt_vfd" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.payment_receipt_vfd</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="25"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <div class="app_settings_block" data-string="payment_receipt_vfd" string="VFD Receipt"
+                         data-key="payment_receipt_vfd" groups="base.group_erp_manager">
+                        <h2>Payment Receipt VFD Configurations</h2>
+                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
+                            <div class="col-xs-12 col-md-8 o_setting_box">
+                                <div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_base_url"/>
+                                        <field name="vfd_base_url" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_api_key"/>
+                                        <field name="vfd_api_key" password="True" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_api_secret"/>
+                                        <field name="vfd_api_secret" password="True" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="x_tin"/>
+                                        <field name="x_tin" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_token"/>
+                                        <field name="vfd_token" password="True" class="col-8 oe_inline"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h2>Payment Receipt VFD Daily Counter</h2>
+                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
+                            <div class="col-xs-12 col-md-8 o_setting_box">
+                                <div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_receipt_count"/>
+                                        <field name="vfd_receipt_count" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="vfd_daily_counter"/>
+                                        <field name="vfd_daily_counter" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="counter_latest_update"/>
+                                        <field name="counter_latest_update" readonly="1" class="col-8 oe_inline"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h2>VFD API Settings</h2>
+                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
+                            <div class="col-xs-12 col-md-8 o_setting_box">
+                                <div>
+                                    <div class="row">
+                                        <button name="refresh_token" class="oe_highlight mr-2" type="object"
+                                                string="Refresh Token"/>
+                                        <button name="refresh_settings" class="oe_highlight" type="object"
+                                                string="Refresh Settings"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="header"/>
+                                        <field name="header" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="message"/>
+                                        <field name="message" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="expires"/>
+                                        <field name="expires" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="verification_code"/>
+                                        <field name="verification_code" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-3" for="has_vrn"/>
+                                        <field name="has_vrn" class="col-8 oe_inline" readonly="1"/>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_payment_receipt_vfd_configuration" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module' : 'payment_receipt_vfd'}</field>
+        </record>
+
+
+        <menuitem id="payment_receipt_general_settings" name="VFD Settings" parent="account.menu_finance_configuration" groups="base.group_system"/>
+        <menuitem id="payment_receipt_vfd_settings" name="VFD Settings" parent="payment_receipt_general_settings"
+                  action="action_payment_receipt_vfd_configuration" groups="base.group_system"/>
+
+    </data>
+</odoo>
