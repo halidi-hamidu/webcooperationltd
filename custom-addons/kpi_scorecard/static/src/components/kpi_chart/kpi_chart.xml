@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    
+    <t t-name="kpi_scorecard.KpiChart" owl="1">
+        <div class="kpi-chart" t-attf-id="kpi_chart_#{props.kpiId}" t-on-keydown="onInputKeydown" tabindex="0">
+            <div class="kpi-chart-header">
+                <h4>
+                    <span class="ml8" t-out="state.kpiTitle"/>
+                    <i t-if="state.chartData" class="fa fa-expand kpi-chart-icon ml8" t-on-click="() => this._onClickExpandChart()"></i>
+                    <span class="jstr-pull-right mr32">
+                        <i t-if="state.chartData" t-attf-class="fa fa-area-chart kpi-chart-icon #{state.kpiChartType == 'line' and 'kpi-chart-icon-not-active' or ''}" t-on-click="() => this._onToggleChartType('line')"></i>
+                        <i t-if="state.chartData" t-attf-class="fa fa-bar-chart-o kpi-chart-icon #{state.kpiChartType == 'bar' and 'kpi-chart-icon-not-active' or ''} ml8" t-on-click="() => this._onToggleChartType('bar')"></i>
+                    </span>
+                </h4>
+            </div>
+            <div class="kpi-chart-container">
+                <t t-if="state.chartData">
+                    <canvas class="kpi-chart-canvas" t-attf-id="kpi_canvas_#{props.kpiId}"/>
+                </t>
+                <t t-else="">
+                    <h3 class="text-center text-danger pt16 pb16">
+                        There are yet no targets and history for this KPI and this period type
+                    </h3>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

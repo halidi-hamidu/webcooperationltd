@@ -34,13 +34,10 @@ class TestStudioController(TransactionCase):
             expected = self._transform_arch_for_assert(expected)
         self.assertEqual(original, expected)
 
-    def update_context(self, **overrides):
-        self.env = self.env(context=dict(self.env.context, **overrides))
-
 
 class TestEditView(TestStudioController):
 
-    def edit_view(self, base_view, studio_arch="", operations=None, model=None, context=None):
+    def edit_view(self, base_view, studio_arch="", operations=None, model=None):
         _ops = None
         if isinstance(operations, list):
             _ops = []
@@ -48,7 +45,7 @@ class TestEditView(TestStudioController):
                 _ops.append(deepcopy(op))  # the edit view controller may alter objects in place
         if studio_arch == "":
             studio_arch = "<data/>"
-        return self.studio_controller.edit_view(base_view.id, studio_arch, _ops, model, context)
+        return self.studio_controller.edit_view(base_view.id, studio_arch, _ops, model)
 
     def test_edit_view_binary_and_attribute(self):
         base_view = self.env['ir.ui.view'].create({
@@ -83,7 +80,7 @@ class TestEditView(TestStudioController):
               <form>
                 <field name="display_name"/>
                 <field filename="x_studio_binary_field_WocAO_filename" name="x_studio_binary_field_WocAO"/>
-                <field invisible="True" name="x_studio_binary_field_WocAO_filename"/>
+                <field invisible="1" name="x_studio_binary_field_WocAO_filename"/>
               </form>
             """
         )
@@ -98,6 +95,7 @@ class TestEditView(TestStudioController):
             'node': {'tag': 'field',
                      'attrs': {'filename': 'x_studio_binary_field_WocAO_filename',
                                'name': 'x_studio_binary_field_WocAO',
+                               'modifiers': {},
                                'id': 'x_studio_binary_field_WocAO'},
                      'children': [],
                      'has_label': True},
@@ -115,7 +113,7 @@ class TestEditView(TestStudioController):
               <form>
                 <field name="display_name"/>
                 <field filename="x_studio_binary_field_WocAO_filename" name="x_studio_binary_field_WocAO" widget="pdf_viewer"/>
-                <field invisible="True" name="x_studio_binary_field_WocAO_filename"/>
+                <field invisible="1" name="x_studio_binary_field_WocAO_filename"/>
               </form>
             """
         )
@@ -158,6 +156,7 @@ class TestEditView(TestStudioController):
             'node': {'tag': 'field',
                      'attrs': {'filename': 'x_studio_binary_field_WocAO_filename',
                                'name': 'x_studio_binary_field_WocAO',
+                               'modifiers': {},
                                'id': 'x_studio_binary_field_WocAO'},
                      'children': [],
                      'has_label': True},
@@ -185,7 +184,7 @@ class TestEditView(TestStudioController):
             """
               <form>
                 <field name="display_name"/>
-                <field invisible="True" name="x_studio_binary_field_WocAO_filename"/>
+                <field invisible="1" name="x_studio_binary_field_WocAO_filename"/>
               </form>
             """
         )
@@ -255,42 +254,6 @@ class TestEditView(TestStudioController):
             """
         )
 
-    def test_edit_view_create_attribute_attribute(self):
-        op = {
-            'type': 'attributes',
-            'target': {
-                'tag': 'kanban',
-                'attrs': {},
-                'xpath_info': [
-                    {'tag': 'kanban', 'indice': 1},
-                ],
-                'isSubviewAttr': True,
-            },
-            'position': 'attributes',
-            'new_attrs': {'create': True}
-        }
-
-        base_view = self.env['ir.ui.view'].create({
-            'name': 'TestKanban',
-            'type': 'kanban',
-            'model': 'res.partner',
-            'arch': """
-                <kanban>
-                    <templates><t t-name="kanban-box" /></templates>
-                </kanban>
-            """
-        })
-        self.edit_view(base_view, operations=[op], model='res.users')
-
-        self.assertViewArchEqual(
-            base_view.get_combined_arch(),
-            """
-                <kanban create="true">
-                    <templates><t t-name="kanban-box" /></templates>
-                </kanban>
-            """
-        )
-
     def test_edit_view_add_binary_field_inside_group(self):
         arch = """<form>
             <sheet>
@@ -351,7 +314,7 @@ class TestEditView(TestStudioController):
                         <group>
                             <group name="group_left">
                                 <field filename="x_studio_field_fDthx_filename" name="x_studio_field_fDthx"/>
-                                <field invisible="True" name="x_studio_field_fDthx_filename"/>
+                                <field invisible="1" name="x_studio_field_fDthx_filename"/>
                             </group>
                             <group name="group_right"/>
                         </group>
@@ -486,14 +449,14 @@ class TestEditView(TestStudioController):
                 <tree>
                     <field name="name" groups="base.group_no_one"/>
                 </tree>
-            """, {'column_invisible': 'True', 'invisible': None}),
+            """, {'column_invisible': True}),
             ('tree', """
                 <tree>
                     <header>
                         <button name="name" groups="base.group_no_one"/>
                     </header>
                 </tree>
-            """, {'invisible': 'True', 'column_invisible': None}),
+            """, {'invisible': True}),
             ('form', """
                 <form>
                     <field name="child_ids">
@@ -502,7 +465,7 @@ class TestEditView(TestStudioController):
                         </tree>
                     </field>
                 </form>
-            """, {'column_invisible': 'True', 'invisible': None}),
+            """, {'column_invisible': True}),
             ('tree', """
                 <tree>
                     <field name="child_ids">
@@ -511,7 +474,7 @@ class TestEditView(TestStudioController):
                         </form>
                     </field>
                 </tree>
-            """, {'invisible': 'True', 'column_invisible': None}),
+            """, {'invisible': True}),
         ]:
             view = self.env['ir.ui.view'].create({
                 'name': 'foo',
@@ -521,9 +484,9 @@ class TestEditView(TestStudioController):
             })
             arch = self.env['res.partner'].with_context(studio=True).get_view(view.id)['arch']
             tree = etree.fromstring(arch)
-            node = tree.xpath('//*[@name="name"]')[0]
+            modifiers = json.loads(tree.xpath('//*[@name="name"]')[0].get('modifiers'))
             for modifier, value in expected_modifiers.items():
-                self.assertEqual(node.get(modifier), value)
+                self.assertEqual(modifiers.get(modifier), value)
 
     def test_get_view_t_groups(self):
         """Tests the behavior of <t groups="..."></t> blocks with Studio."""
@@ -535,7 +498,7 @@ class TestEditView(TestStudioController):
                         <field name="name"/>
                     </t>
                 </form>
-            """, {'invisible': None}),
+            """, {}),
             # The user doesn't have the group of the `<t>` node, the `<t>` node **must remain**, and be invisible.
             ('form', """
                 <form>
@@ -543,7 +506,7 @@ class TestEditView(TestStudioController):
                         <field name="name"/>
                     </t>
                 </form>
-            """, {'invisible': 'True'}),
+            """, {'invisible': True}),
         ]:
             view = self.env['ir.ui.view'].create({
                 'name': 'foo',
@@ -554,9 +517,9 @@ class TestEditView(TestStudioController):
             arch = self.env['res.partner'].with_context(studio=True).get_view(view.id)['arch']
             tree = etree.fromstring(arch)
             self.assertTrue(tree.xpath('//t'))
-            node = tree.xpath('//t')[0]
+            modifiers = json.loads(tree.xpath('//t')[0].get('modifiers', '{}'))
             for modifier, value in expected_modifiers.items():
-                self.assertEqual(node.get(modifier), value)
+                self.assertEqual(modifiers.get(modifier), value)
 
     def test_open_users_form_with_studio(self):
         """Tests the res.users form view can be loaded with Studio.
@@ -567,3 +530,52 @@ class TestEditView(TestStudioController):
         """
         arch = self.env['res.users'].with_context(studio=True).get_view(self.env.ref('base.view_users_form').id)['arch']
         self.assertTrue(arch)
+
+    def test_add_many2one_with_custom_rec_name(self):
+        base_view = self.env['ir.ui.view'].create({
+            'name': 'TestForm',
+            'type': 'form',
+            'model': 'res.partner',
+            'arch': """
+                    <form>
+                        <field name="display_name" />
+                    </form>"""
+        })
+
+        relation_id = self.env['ir.model'].search([["model", "=", "res.partner.bank"]]).id
+
+        add_many2one_field_op = {
+            "type": "add",
+            "target": {
+                "tag": "field",
+                "attrs": {"name": "display_name"},
+                "xpath_info": [
+                    {"tag": "form", "indice": 1},
+                    {"tag": "field", "indice": 1},
+                ],
+            },
+            "position": "after",
+            "node": {
+                "tag": "field",
+                "attrs": {},
+                "field_description": {
+                    "type": "many2one",
+                    "field_description": "ddd",
+                    "special": False,
+                    "name": "x_studio_many2one_field_sNT7g",
+                    "model_name": "res.partner",
+                    "relation_id": relation_id,
+                },
+            },
+        }
+
+        self.edit_view(base_view, operations=[add_many2one_field_op])
+        self.assertViewArchEqual(
+            base_view.get_combined_arch(),
+            """
+              <form>
+                <field name="display_name" />
+                <field name="x_studio_many2one_field_sNT7g" options="{'create_name_field': 'acc_number'}"/>
+              </form>
+            """
+        )

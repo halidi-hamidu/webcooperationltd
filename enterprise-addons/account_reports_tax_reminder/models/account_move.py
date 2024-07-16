@@ -5,8 +5,8 @@ from odoo import fields, models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _close_tax_period(self, report, options):
-        ret = super()._close_tax_period(report, options)
+    def _close_tax_period(self):
+        ret = super()._close_tax_period()
 
         # add a next activity on the moves, as the attachments should be sent to the administration
         MailActivity = self.env['mail.activity'].with_context(mail_activity_quick_update=True)
@@ -15,8 +15,7 @@ class AccountMove(models.Model):
         if act_user and not (self.company_id in act_user.company_ids and self.env.ref('account.group_account_manager') in act_user.groups_id):
             act_user = self.env['res.users']
 
-        tax_sender_company = report._get_sender_company_for_export(options)
-        for move in self.filtered(lambda x: not x.posted_before and x.company_id == tax_sender_company):
+        for move in self.filtered(lambda x: not x.posted_before):
             MailActivity.create({
                 'res_id': move.id,
                 'res_model_id': self.env.ref('account.model_account_move').id,

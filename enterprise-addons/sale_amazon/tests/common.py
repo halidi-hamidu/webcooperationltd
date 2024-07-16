@@ -74,7 +74,6 @@ GET_ORDER_ITEMS_MOCK = {
 }
 
 OPERATIONS_RESPONSES_MAP = {
-    'getOrder': {'payload': ORDER_MOCK},
     'getOrders': GET_ORDERS_RESPONSE_MOCK,
     'getOrderItems': GET_ORDER_ITEMS_MOCK,
     'createFeedDocument': {'feedDocumentId': '123123', 'url': 'my_amazing_feed_url.test'},
@@ -99,19 +98,9 @@ class TestAmazonCommon(TransactionCase):
             'company_id': self.env.company.id,
         })
 
-        # Create an offer linked to the product
-        self.product = self.env['product.product'].create(
-            {'name': "This is a storable product", 'type': 'product'}
-        )
-        self.offer = self.env['amazon.offer'].create({
-            'account_id': self.account.id,
-            'marketplace_id': marketplace.id,
-            'product_id': self.product.id,
-            'sku': 'TESTING_SKU',
-        })
-
         # Create a delivery carrier
+        product = self.env['product.product'].create({'name': "This is a product"})
         self.carrier = self.env['delivery.carrier'].create(
-            {'name': "My Truck", 'product_id': self.product.id}  # delivery_type == 'fixed'
+            {'name': "My Truck", 'product_id': product.id}  # delivery_type == 'fixed'
         )
         self.tracking_ref = "dummy tracking ref"

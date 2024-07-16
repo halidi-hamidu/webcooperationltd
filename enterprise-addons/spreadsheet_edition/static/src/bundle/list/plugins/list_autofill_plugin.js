@@ -1,11 +1,13 @@
 /** @odoo-module */
 
-import { _t } from "@web/core/l10n/translation";
-import { astToFormula, UIPlugin, tokenize } from "@odoo/o-spreadsheet";
+import { _t } from "web.core";
 import { sprintf } from "@web/core/utils/strings";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
 import { getFirstListFunction, getNumberOfListFormulas } from "@spreadsheet/list/list_helpers";
 
-export class ListAutofillPlugin extends UIPlugin {
+const { astToFormula } = spreadsheet;
+
+export default class ListAutofillPlugin extends spreadsheet.UIPlugin {
     // ---------------------------------------------------------------------
     // Getters
     // ---------------------------------------------------------------------
@@ -20,14 +22,13 @@ export class ListAutofillPlugin extends UIPlugin {
      * @returns Autofilled value
      */
     getNextListValue(formula, isColumn, increment) {
-        const tokens = tokenize(formula);
-        if (getNumberOfListFormulas(tokens) !== 1) {
+        if (getNumberOfListFormulas(formula) !== 1) {
             return formula;
         }
-        const { functionName, args } = getFirstListFunction(tokens);
+        const { functionName, args } = getFirstListFunction(formula);
         const evaluatedArgs = args
             .map(astToFormula)
-            .map((arg) => this.getters.evaluateFormula(this.getters.getActiveSheetId(), arg));
+            .map((arg) => this.getters.evaluateFormula(arg));
         const listId = evaluatedArgs[0];
         if (!this.getters.isExistingList(listId)) {
             return formula;
@@ -86,10 +87,10 @@ export class ListAutofillPlugin extends UIPlugin {
         if (!formula) {
             return [];
         }
-        const { functionName, args } = getFirstListFunction(tokenize(formula));
+        const { functionName, args } = getFirstListFunction(formula);
         const evaluatedArgs = args
             .map(astToFormula)
-            .map((arg) => this.getters.evaluateFormula(this.getters.getActiveSheetId(), arg));
+            .map((arg) => this.getters.evaluateFormula(arg));
         const listId = evaluatedArgs[0];
         if (!this.getters.isExistingList(listId)) {
             return sprintf(_t("Missing list #%s"), listId);

@@ -53,7 +53,7 @@ class AppointmentType(models.Model):
         intervals). Those are linked to a given employee (user with working hours
         activated).
 
-        TDE NOTE: internal method ``is_work_available`` of ``_slots_fill_users_availability``
+        TDE NOTE: internal method ``is_work_available`` of ``_slots_available``
         made as explicit method in 15.0 but left untouched. To clean in 15.3+.
 
         :param datetime start_dt: beginning of slot boundary. Not timezoned UTC;
@@ -96,23 +96,23 @@ class AppointmentType(models.Model):
                     return False
         return False
 
-    def _slot_availability_prepare_users_values(self, staff_users, start_dt, end_dt):
+    def _slot_availability_prepare_values(self, staff_users, start_dt, end_dt):
         """ Override to add batch-fetch of working hours information.
 
         :return: update ``super()`` values with work hours for computation, formatted like
           {
             'work_schedules': dict giving working hours based on user_partner_id
-              (see ``_slot_availability_prepare_users_values_workhours()``);
+              (see ``_slot_availability_prepare_values_workhours()``);
           }
         """
-        values = super()._slot_availability_prepare_users_values(staff_users, start_dt, end_dt)
+        values = super()._slot_availability_prepare_values(staff_users, start_dt, end_dt)
         values.update(
-            self._slot_availability_prepare_users_values_workhours(staff_users, start_dt, end_dt)
+            self._slot_availability_prepare_values_workhours(staff_users, start_dt, end_dt)
         )
         return values
 
     @api.model
-    def _slot_availability_prepare_users_values_workhours(self, staff_users, start_dt, end_dt):
+    def _slot_availability_prepare_values_workhours(self, staff_users, start_dt, end_dt):
         """ This method computes the work intervals of staff users between start_dt
         and end_dt of slot. This means they have an employee using working hours.
 

@@ -1,11 +1,10 @@
 /** @odoo-module */
 
-import * as spreadsheet from "@odoo/o-spreadsheet";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
 import { createSpreadsheet } from "@documents_spreadsheet/../tests/spreadsheet_test_utils";
 import { registry } from "@web/core/registry";
 import { actionService } from "@web/webclient/actions/action_service";
 import { getBasicServerData } from "@spreadsheet/../tests/utils/data";
-import { doMenuAction } from "@spreadsheet/../tests/utils/ui";
 import { setCellContent } from "@spreadsheet/../tests/utils/commands";
 
 const { topbarMenuRegistry } = spreadsheet.registries;
@@ -57,35 +56,21 @@ QUnit.test("open wizard action", async (assert) => {
         },
     };
     registry.category("services").add("action", fakeActionService, { force: true });
-    const { env } = await createSpreadsheet({
-        serverData,
-        spreadsheetId: 2,
-        mockRPC: async function (route, args) {
-            if (args.method === "save_spreadsheet_snapshot") {
-                return true;
-            }
-        },
-    });
-    await doMenuAction(topbarMenuRegistry, ["file", "add_document_to_dashboard"], env);
+    const { env } = await createSpreadsheet({ serverData, spreadsheetId: 2 });
+    const file = topbarMenuRegistry.getAll().find((item) => item.id === "file");
+    const addToDashboard = file.children.find((item) => item.id === "add_document_to_dashboard");
+    await addToDashboard.action(env);
     assert.verifySteps(["open_wizard_action"]);
 });
 
 QUnit.test("document's data is saved when opening wizard", async (assert) => {
     const serverData = getServerData();
     registry.category("services").add("actionMain", actionService);
-    const { env, model } = await createSpreadsheet({
-        serverData,
-        spreadsheetId: 2,
-        mockRPC: async function (route, args) {
-            if (args.method === "save_spreadsheet_snapshot") {
-                assert.step("save_spreadsheet_snapshot");
-                const snapshotData = args.args[1];
-                assert.strictEqual(snapshotData.sheets[0].cells.A1.content, "a cell updated");
-                return true;
-            }
-        },
-    });
+    const { env, model } = await createSpreadsheet({ serverData, spreadsheetId: 2 });
     setCellContent(model, "A1", "a cell updated");
-    await doMenuAction(topbarMenuRegistry, ["file", "add_document_to_dashboard"], env);
-    assert.verifySteps(["save_spreadsheet_snapshot"]);
+    const file = topbarMenuRegistry.getAll().find((item) => item.id === "file");
+    const addToDashboard = file.children.find((item) => item.id === "add_document_to_dashboard");
+    await addToDashboard.action(env);
+    const data = JSON.parse(serverData.models["documents.document"].records[1].raw);
+    assert.strictEqual(data.sheets[0].cells.A1.content, "a cell updated");
 });

@@ -55,7 +55,7 @@ class ResConfigSettings(models.TransientModel):
         the response. """
         partner = self.company_id.partner_id
         street_data = street_split(partner.street)
-        result = self.env['account.external.tax.mixin']._l10n_br_iap_create_account({
+        result = self.env['l10n_br.account.avatax']._l10n_br_iap_create_account({
             'subscriptionName': self.company_name,
             'corporateName': self.company_name,
             'tradeName': self.company_name,
@@ -96,11 +96,11 @@ class ResConfigSettings(models.TransientModel):
         if not self.env.is_system():
             raise AccessError(_('Only administrators can ping Avatax.'))
 
-        query_result = self.env['account.external.tax.mixin']._l10n_br_iap_ping(self.company_id)
+        query_result = self.env['l10n_br.account.avatax']._l10n_br_iap_ping(self.company_id)
         raise UserError(_(
             "Server Response:\n%s",
             pformat(query_result)
         ))
 
     def button_l10n_br_avatax_log(self):
-        return self.env['account.external.tax.mixin']._l10n_br_avatax_log()
+        return self.env['l10n_br.account.avatax']._l10n_br_avatax_log()

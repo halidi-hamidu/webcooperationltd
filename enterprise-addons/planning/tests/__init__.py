@@ -9,4 +9,5 @@ from . import test_planning
 from . import test_publication
 from . import test_user_access
 from . import test_period_duplication
+from . import test_ui_common
 from . import test_ui

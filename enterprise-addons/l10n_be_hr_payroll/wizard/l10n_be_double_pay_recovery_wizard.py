@@ -57,11 +57,9 @@ class L10nBeDoublePayRecoveryWizard(models.TransientModel):
     def _compute_line_ids(self):
         # Copy the employee lines, but some fields only exist on the employee version not the wizard version
         fields_to_copy = (self.env['l10n.be.double.pay.recovery.line']._fields.keys() - {'employee_id', 'company_id'})
-        previous_year = fields.Datetime.today().date().year - 1
         for wizard in self:
-            # Copy the lines that are of the previous year
             wizard.write({'line_ids': [fields.Command.clear()] + [fields.Command.create(read_result)\
-                for read_result in wizard.employee_id.double_pay_line_ids.filtered(lambda d: d.year and d.year == previous_year and d.year <= d.employee_id.first_contract_year).read(fields=fields_to_copy)]})
+                for read_result in wizard.employee_id.double_pay_line_ids.read(fields=fields_to_copy)]})
 
     @api.depends('contract_id')
     def _compute_gross_salary(self):
@@ -83,13 +81,13 @@ class L10nBeDoublePayRecoveryWizard(models.TransientModel):
             # Computation of the limit = Current monthly remuneration * number of months of
             # employment in the previous year * fraction of occupancy on the certificate * 15.34%
             # If vacation certificate amount < the limit: NO limit applicable
-            wizard.threshold = sum(wizard.gross_salary * l.months_count * l.occupation_rate / 100.0 * 0.0767 for l in wizard.line_ids)
+            wizard.threshold = sum([wizard.gross_salary * l.months_count * l.occupation_rate / 100.0 * 0.1534 for l in wizard.line_ids])
 
             # Step 3:
             # Calculation of amounts to be recovered
             amount = min(wizard.threshold, sum(wizard.line_ids.mapped('amount')))
 
-            wizard.double_pay_to_recover = amount
+            wizard.double_pay_to_recover = amount / 2.0
 
     def action_validate(self):
         self.ensure_one()
@@ -99,7 +97,6 @@ class L10nBeDoublePayRecoveryWizard(models.TransientModel):
                 'amount': self.double_pay_to_recover,
             })],
         })
-        self.payslip_id.compute_sheet()
 
 class L10nBeDoublePayRecoveryLineWizard(models.TransientModel):
     _name = 'l10n.be.double.pay.recovery.line.wizard'
@@ -111,4 +108,3 @@ class L10nBeDoublePayRecoveryLineWizard(models.TransientModel):
     wizard_id = fields.Many2one('l10n.be.double.pay.recovery.wizard')
     months_count = fields.Float(string="# Months")
     company_calendar = fields.Many2one(related='wizard_id.company_calendar')
-    year = fields.Integer()

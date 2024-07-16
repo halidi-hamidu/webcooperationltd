@@ -5,6 +5,8 @@ from odoo import fields, Command
 
 from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 
+import json
+
 
 @tagged('post_install', '-at_install')
 class TestAccountReports(TestAccountReportsCommon):
@@ -66,10 +68,9 @@ class TestAccountReports(TestAccountReportsCommon):
         cls._reconcile_on((invoice + payment_2).line_ids, cls.receivable_account_1)
 
         cls.env.user.groups_id += cls.env.ref('analytic.group_analytic_accounting')
-        cls.analytic_plan_departments, cls.analytic_other_plan = cls.env['account.analytic.plan'].create([
-            {'name': 'Departments Plan'},
-            {'name': 'Other Plan'},
-        ])
+        cls.analytic_plan_departments = cls.env['account.analytic.plan'].create({
+            'name': 'Departments', 'company_id': False,
+        })
 
         cls.analytic_account_partner_a_1 = cls.env['account.analytic.account'].create({
             'name': 'analytic_account_partner_a_1',
@@ -91,13 +92,12 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                              4,          5,          6],
             [
                 # Accounts.
-                ('101401 Bank',                 460.0,      0.0,    460.0),
+                ('101404 Bank',                 460.0,      '',     460.0),
                 ('121000 Account Receivable',   460.0,      460.0,    0.0),
-                ('400000 Product Sales',        0.0,        460.0, -460.0),
+                ('400000 Product Sales',        '',         460.0, -460.0),
                 # Report Total.
                 ('Total',                       920.0,      920.0,    0.0),
             ],
-            options,
         )
 
         # Mark the '101200 Account Receivable' line to be unfolded.
@@ -110,22 +110,21 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                      1,                    4,             5,             6],
             [
                 # Account.
-                ('101401 Bank',                         '',              460.00,          0.00,        460.00),
+                ('101404 Bank',                         '',              460.00,            '',        460.00),
                 ('121000 Account Receivable',           '',              460.00,        460.00,          0.00),
                 # Account Move Lines.from unfolded account
-                ('BNK1/2016/00001',                     '02/01/2016',      0.00,        230.00,       -230.00),
-                ('MISC/2016/01/0001',                   '02/01/2016',     69.00,          0.00,       -161.00),
-                ('MISC/2016/01/0001',                   '02/01/2016',    161.00,          0.00,          0.00),
-                ('BNK1/2016/00002',                     '03/01/2016',      0.00,        230.00,       -230.00),
-                ('MISC/2016/01/0001',                   '03/01/2016',     69.00,          0.00,       -161.00),
-                ('MISC/2016/01/0001',                   '03/01/2016',    161.00,          0.00,          0.00),
+                ('BNK1/2016/00001',                     '02/01/2016',        '',        230.00,       -230.00),
+                ('MISC/2016/01/0001',                   '02/01/2016',     69.00,            '',       -161.00),
+                ('MISC/2016/01/0001',                   '02/01/2016',    161.00,            '',          0.00),
+                ('BNK1/2016/00002',                     '03/01/2016',        '',        230.00,       -230.00),
+                ('MISC/2016/01/0001',                   '03/01/2016',     69.00,            '',       -161.00),
+                ('MISC/2016/01/0001',                   '03/01/2016',    161.00,            '',          0.00),
                 # Account Total.
                 ('Total 121000 Account Receivable',     '',              460.00,        460.00,          0.00),
-                ('400000 Product Sales',                '',                0.00,        460.00,       -460.00),
+                ('400000 Product Sales',                '',                  '',        460.00,       -460.00),
                 # Report Total.
                 ('Total',                               '',              920.00,        920.00,          0.00),
             ],
-            options,
         )
 
     def test_balance_sheet_cash_basis(self):
@@ -142,36 +141,35 @@ class TestAccountReports(TestAccountReportsCommon):
                 ('ASSETS',                                      460.0),
                 ('Current Assets',                              460.0),
                 ('Bank and Cash Accounts',                      460.0),
-                ('Receivables',                                   0.0),
-                ('Current Assets',                                0.0),
-                ('Prepayments',                                   0.0),
+                ('Receivables',                                 ''),
+                ('Current Assets',                              ''),
+                ('Prepayments',                                 ''),
                 ('Total Current Assets',                        460.0),
-                ('Plus Fixed Assets',                             0.0),
-                ('Plus Non-current Assets',                       0.0),
+                ('Plus Fixed Assets',                           ''),
+                ('Plus Non-current Assets',                     ''),
                 ('Total ASSETS',                                460.0),
 
-                ('LIABILITIES',                                   0.0),
-                ('Current Liabilities',                           0.0),
-                ('Current Liabilities',                           0.0),
-                ('Payables',                                      0.0),
-                ('Total Current Liabilities',                     0.0),
-                ('Plus Non-current Liabilities',                  0.0),
-                ('Total LIABILITIES',                             0.0),
+                ('LIABILITIES',                                 ''),
+                ('Current Liabilities',                         ''),
+                ('Current Liabilities',                         ''),
+                ('Payables',                                    ''),
+                ('Total Current Liabilities',                   ''),
+                ('Plus Non-current Liabilities',                ''),
+                ('Total LIABILITIES',                           ''),
 
                 ('EQUITY',                                      460.0),
                 ('Unallocated Earnings',                        460.0),
                 ('Current Year Unallocated Earnings',           460.0),
                 ('Current Year Earnings',                       460.0),
-                ('Current Year Allocated Earnings',               0.0),
+                ('Current Year Allocated Earnings',             ''),
                 ('Total Current Year Unallocated Earnings',     460.0),
-                ('Previous Years Unallocated Earnings',           0.0),
+                ('Previous Years Unallocated Earnings',         ''),
                 ('Total Unallocated Earnings',                  460.0),
-                ('Retained Earnings',                             0.0),
+                ('Retained Earnings',                           ''),
                 ('Total EQUITY',                                460.0),
 
                 ('LIABILITIES + EQUITY',                        460.0),
             ],
-            options,
         )
 
     def test_cash_basis_payment_in_the_past(self):
@@ -180,7 +178,7 @@ class TestAccountReports(TestAccountReportsCommon):
         payment_date = fields.Date.from_string('2010-01-01')
         invoice_date = fields.Date.from_string('2011-01-01')
 
-        invoice = self.init_invoice('out_invoice', amounts=[100.0], taxes=self.env.company.account_sale_tax_id, partner=self.partner_a, invoice_date=invoice_date, post=True)
+        invoice = self.init_invoice('out_invoice', amounts=[100.0], partner=self.partner_a, invoice_date=invoice_date, post=True)
         self.env['account.payment.register'].with_context(active_ids=invoice.ids, active_model='account.move').create({
             'payment_date': payment_date,
         })._create_payments()
@@ -201,12 +199,11 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                       4,              5,              6],
             [
                 # Accounts.
-                ('101403 Outstanding Receipts',        115,              0,            115),
-                ('121000 Account Receivable',            0,            115,           -115),
+                ('101402 Outstanding Receipts',        115,             '',            115),
+                ('121000 Account Receivable',           '',            115,           -115),
                 # Report Total.
                 ('Total',                              115,            115,             0),
             ],
-            options,
         )
 
         options = self._generate_options(report, invoice_date, invoice_date, default_options={'report_cash_basis': True})
@@ -218,14 +215,13 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                       4,              5,              6],
             [
                 # Accounts.
-                ('101403 Outstanding Receipts',        115,              0,            115),
+                ('101402 Outstanding Receipts',        115,             '',            115),
                 ('121000 Account Receivable',          115,            115,              0),
-                ('251000 Tax Received',                  0,             15,            -15),
-                ('400000 Product Sales',                 0,            100,           -100),
+                ('251000 Tax Received',                 '',             15,            -15),
+                ('400000 Product Sales',                '',            100,           -100),
                 # Report Total.
                 ('Total',                              230,            230,             0),
             ],
-            options,
         )
 
     def test_cash_basis_ar_ap_both_in_debit_and_credit(self):
@@ -284,7 +280,6 @@ class TestAccountReports(TestAccountReportsCommon):
                 # Report Total.
                 ('Total',                                0,              0,              0),
             ],
-            options,
         )
 
         # Delete the temporary cash basis table manually in order to run another _get_lines in the same transaction
@@ -299,13 +294,12 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                       5,              6,              7],
             [
                 # Accounts.
-                ('101401 Bank',                        350,              0,            350),
+                ('101404 Bank',                        350,             '',            350),
                 ('121000 Account Receivable',          245,            455,           -210),
-                ('400000 Product Sales',                 0,            140,           -140),
+                ('400000 Product Sales',                '',            140,           -140),
                 # Report Total.
                 ('Total',                              595,            595,              0),
             ],
-            options,
         )
 
         # Delete the temporary cash basis table manually in order to run another _get_lines in the same transaction
@@ -320,15 +314,14 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                       5,              6,              7],
             [
                 # Accounts.
-                ('101401 Bank',                        350,              0,            350),
+                ('101404 Bank',                        350,             '',            350),
                 ('121000 Account Receivable',          500,            500,              0),
-                ('400000 Product Sales',                 0,             60,            -60),
-                ('499000 Other Income',                  0,            150,           -150),
-                ('999999 Undistributed Profits/Losses',  0,            140,           -140),
+                ('400000 Product Sales',                '',             60,            -60),
+                ('499000 Other Income',                 '',            150,           -150),
+                ('999999 Undistributed Profits/Losses', '',            140,           -140),
                 # Report Total.
                 ('Total',                              850,            850,              0),
             ],
-            options,
         )
         # Delete the temporary cash basis table manually in order to run another _get_lines in the same transaction
         self.env.cr.execute("DROP TABLE cash_basis_temp_account_move_line")
@@ -342,14 +335,13 @@ class TestAccountReports(TestAccountReportsCommon):
             [   0,                                       5,              6,              7],
             [
                 # Accounts.
-                ('101401 Bank',                        350,              0,            350),
+                ('101404 Bank',                        350,             '',            350),
                 ('121000 Account Receivable',          500,            500,              0),
-                ('400000 Product Sales',                 0,            200,           -200),
-                ('499000 Other Income',                  0,            150,           -150),
+                ('400000 Product Sales',                '',            200,           -200),
+                ('499000 Other Income',                 '',            150,           -150),
                 # Report Total.
                 ('Total',                              850,            850,              0),
             ],
-            options,
         )
 
     def test_cash_basis_general_ledger_load_more_lines(self):
@@ -372,34 +364,32 @@ class TestAccountReports(TestAccountReportsCommon):
             [0, 5, 6, 7],
             [
                 # Accounts.
-                ('101401 Bank',                         460.0,      0,          460.0),
-                ('101403 Outstanding Receipts',         3000.0,     0,          3000.0),
+                ('101402 Outstanding Receipts',         3000.0,     '',         3000.0),
+                ('101404 Bank',                         460.0,      '',         460.0),
                 ('121000 Account Receivable',           3460.0,     3460.0,     0.0),
                 # Expanded line
-                ('400000 Product Sales',                0,          3000.0,     -3000.0),
-                ('INV/2023/00001',                      0,          2000.0,     -2000.0),  # The 2 first payments are grouped
-                ('Load more...',                        '',         '',          ''),
-                ('Total 400000 Product Sales',          0,          3000.0,     -3000.0),
-                ('999999 Undistributed Profits/Losses', 0,          460.0,      -460.0),
+                ('400000 Product Sales',                '',         3000.0,     -3000.0),
+                ('INV/2023/00001',                      '',         2000.0,     -2000.0),  # The 2 first payments are grouped
+                ('Load more...',                        '',         '',         ''),
+                ('Total 400000 Product Sales',          '',         3000.0,     -3000.0),
+                ('999999 Undistributed Profits/Losses', '',         460.0,      -460.0),
                 # Report Total.
-                ('Total',                               6920.0,     6920.0,     0),
+                ('Total',                               6920.0,     6920.0,     0.0),
             ],
-            options,
         )
 
         load_more_1 = report._expand_unfoldable_line('_report_expand_unfoldable_line_general_ledger',
-              lines[5]['id'], lines[7]['groupby'], options,
-              lines[7]['progress'],
-              lines[7]['offset'])
+            lines[5]['id'], lines[7]['groupby'], options,
+            json.loads(lines[7]['progress']),
+            lines[7]['offset'])
 
         self.assertLinesValues(
             load_more_1,
             #   Name, Debit, Credit, Balance
             [0, 5, 6, 7],
             [
-                ('INV/2023/00001', 0, 1000.0, -3000.0),  # The last payment is displayed on another line
+                ('INV/2023/00001', '', 1000.0, -3000.0),  # The last payment is displayed on another line
             ],
-            options,
         )
 
     # ------------------------------------------------------
@@ -412,9 +402,16 @@ class TestAccountReports(TestAccountReportsCommon):
         return line
 
     def _audit_line(self, options, report, line_xml_id):
+        def _get_audit_params_from_report_line(options, report_line_id, report_line):
+            return {
+                'report_line_id': report_line_id,
+                'calling_line_dict_id': report_line['id'],
+                'expression_label': 'balance',
+                'column_group_key': next(iter(options['column_groups'])),
+            }
         lines = report._get_lines(options)
         line = self._get_line_from_xml_id(lines, report, line_xml_id)
-        return report.action_audit_cell(options, self._get_audit_params_from_report_line(options, self.env.ref(line_xml_id), line))
+        return report.action_audit_cell(options, _get_audit_params_from_report_line(options, self.env.ref(line_xml_id).id, line))
 
     def _create_misc_entry(self, invoice_date, debit_account_id, credit_account_id):
         new_misc = self.env['account.move'].create({
@@ -598,39 +595,38 @@ class TestAccountReports(TestAccountReportsCommon):
             report._get_lines(options),
             [0, 1, 2],
             [
-                ('ASSETS', 0, 690.0,),
-                ('Current Assets', 0, 690.0),
-                ('Bank and Cash Accounts', 0, 690.0),
-                ('Receivables', 0, 0),
-                ('Current Assets', 0, 0),
-                ('Prepayments', 0, 0),
-                ('Total Current Assets', 0, 690.0),
-                ('Plus Fixed Assets', 0, 0),
-                ('Plus Non-current Assets', 0, 0),
-                ('Total ASSETS', 0, 690.0),
+                ('ASSETS', '', 690.0,),
+                ('Current Assets', '', 690.0),
+                ('Bank and Cash Accounts', '', 690.0),
+                ('Receivables', '', ''),
+                ('Current Assets', '', ''),
+                ('Prepayments', '', ''),
+                ('Total Current Assets', '', 690.0),
+                ('Plus Fixed Assets', '', ''),
+                ('Plus Non-current Assets', '', ''),
+                ('Total ASSETS', '', 690.0),
 
-                ('LIABILITIES', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Payables', 0, 0),
-                ('Total Current Liabilities', 0, 0),
-                ('Plus Non-current Liabilities', 0, 0),
-                ('Total LIABILITIES', 0, 0),
+                ('LIABILITIES', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Payables', '', ''),
+                ('Total Current Liabilities', '', ''),
+                ('Plus Non-current Liabilities', '', ''),
+                ('Total LIABILITIES', '', ''),
 
                 ('EQUITY', 230.0, 690.0),
                 ('Unallocated Earnings', 230.0, 690.0),
                 ('Current Year Unallocated Earnings', 230.0, 690.0),
                 ('Current Year Earnings', 230.0, 690.0),
-                ('Current Year Allocated Earnings', 0, 0),
+                ('Current Year Allocated Earnings', '', ''),
                 ('Total Current Year Unallocated Earnings', 230.0, 690.0),
-                ('Previous Years Unallocated Earnings', 0, 0),
+                ('Previous Years Unallocated Earnings', '', ''),
                 ('Total Unallocated Earnings', 230.0, 690.0),
-                ('Retained Earnings', 0, 0),
+                ('Retained Earnings', '', ''),
                 ('Total EQUITY', 230.0, 690.0),
 
                 ('LIABILITIES + EQUITY', 230.0, 690.0),
             ],
-            options,
         )
 
     def test_analytic_cash_basis_analytic_line_on_payment(self):
@@ -695,36 +691,35 @@ class TestAccountReports(TestAccountReportsCommon):
                 ('ASSETS', -100.0, 690.0,),
                 ('Current Assets', -100.0, 690.0),
                 ('Bank and Cash Accounts', -100.0, 690.0),
-                ('Receivables', 0, 0),
-                ('Current Assets', 0, 0),
-                ('Prepayments', 0, 0),
+                ('Receivables', '', ''),
+                ('Current Assets', '', ''),
+                ('Prepayments', '', ''),
                 ('Total Current Assets', -100.0, 690.0),
-                ('Plus Fixed Assets', 0, 0),
-                ('Plus Non-current Assets', 0, 0),
+                ('Plus Fixed Assets', '', ''),
+                ('Plus Non-current Assets', '', ''),
                 ('Total ASSETS', -100.0, 690.0),
 
-                ('LIABILITIES', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Payables', 0, 0),
-                ('Total Current Liabilities', 0, 0),
-                ('Plus Non-current Liabilities', 0, 0),
-                ('Total LIABILITIES', 0, 0),
+                ('LIABILITIES', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Payables', '', ''),
+                ('Total Current Liabilities', '', ''),
+                ('Plus Non-current Liabilities', '', ''),
+                ('Total LIABILITIES', '', ''),
 
-                ('EQUITY', 0, 690.0),
-                ('Unallocated Earnings', 0, 690.0),
-                ('Current Year Unallocated Earnings', 0, 690.0),
-                ('Current Year Earnings', 0, 690.0),
-                ('Current Year Allocated Earnings', 0, 0),
-                ('Total Current Year Unallocated Earnings', 0, 690.0),
-                ('Previous Years Unallocated Earnings', 0, 0),
-                ('Total Unallocated Earnings', 0, 690.0),
-                ('Retained Earnings', 0, 0),
-                ('Total EQUITY', 0, 690.0),
+                ('EQUITY', '', 690.0),
+                ('Unallocated Earnings', '', 690.0),
+                ('Current Year Unallocated Earnings', '', 690.0),
+                ('Current Year Earnings', '', 690.0),
+                ('Current Year Allocated Earnings', '', ''),
+                ('Total Current Year Unallocated Earnings', '', 690.0),
+                ('Previous Years Unallocated Earnings', '', ''),
+                ('Total Unallocated Earnings', '', 690.0),
+                ('Retained Earnings', '', ''),
+                ('Total EQUITY', '', 690.0),
 
-                ('LIABILITIES + EQUITY', 0, 690.0),
+                ('LIABILITIES + EQUITY', '', 690.0),
             ],
-            options,
         )
 
     def test_analytic_cash_basis_analytic_line_linked_to_credit_note(self):
@@ -750,6 +745,7 @@ class TestAccountReports(TestAccountReportsCommon):
         reversal = self.env['account.move.reversal'].with_context(
             active_model='account.move', active_ids=invoice.ids).create({
             'reason': 'Test Partial Refund',
+            'refund_method': 'refund',
             'date': '2016-01-01',
             'journal_id': invoice.journal_id.id,
         })
@@ -760,6 +756,9 @@ class TestAccountReports(TestAccountReportsCommon):
         reversal_move.invoice_line_ids.analytic_distribution = {self.analytic_account_partner_a_1.id: 100}
 
         reversal_move.action_post()
+
+        (reversal_move + invoice).line_ids.filtered(
+            lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable')).reconcile()
 
         # Check the cash basis option with analytic groupby on accounts.
         report = self.env.ref('account_reports.balance_sheet')
@@ -777,39 +776,38 @@ class TestAccountReports(TestAccountReportsCommon):
             report._get_lines(options),
             [0, 1, 2],
             [
-                ('ASSETS', 0, 460.0,),
-                ('Current Assets', 0, 460.0),
-                ('Bank and Cash Accounts', 0, 460.0),
-                ('Receivables', 0, 0),
-                ('Current Assets', 0, 0),
-                ('Prepayments', 0, 0),
-                ('Total Current Assets', 0, 460.0),
-                ('Plus Fixed Assets', 0, 0),
-                ('Plus Non-current Assets', 0, 0),
-                ('Total ASSETS', 0, 460.0),
+                ('ASSETS', '', 460.0,),
+                ('Current Assets', '', 460.0),
+                ('Bank and Cash Accounts', '', 460.0),
+                ('Receivables', '', ''),
+                ('Current Assets', '', ''),
+                ('Prepayments', '', ''),
+                ('Total Current Assets', '', 460.0),
+                ('Plus Fixed Assets', '', ''),
+                ('Plus Non-current Assets', '', ''),
+                ('Total ASSETS', '', 460.0),
 
-                ('LIABILITIES', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Current Liabilities', 0, 0),
-                ('Payables', 0, 0),
-                ('Total Current Liabilities', 0, 0),
-                ('Plus Non-current Liabilities', 0, 0),
-                ('Total LIABILITIES', 0, 0),
+                ('LIABILITIES', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Current Liabilities', '', ''),
+                ('Payables', '', ''),
+                ('Total Current Liabilities', '', ''),
+                ('Plus Non-current Liabilities', '', ''),
+                ('Total LIABILITIES', '', ''),
 
                 ('EQUITY', -500.0, 460.0),
                 ('Unallocated Earnings', -500.0, 460.0),
                 ('Current Year Unallocated Earnings', -500.0, 460.0),
                 ('Current Year Earnings', -500.0, 460.0),
-                ('Current Year Allocated Earnings', 0, 0),
+                ('Current Year Allocated Earnings', '', ''),
                 ('Total Current Year Unallocated Earnings', -500.0, 460.0),
-                ('Previous Years Unallocated Earnings', 0, 0),
+                ('Previous Years Unallocated Earnings', '', ''),
                 ('Total Unallocated Earnings', -500.0, 460.0),
-                ('Retained Earnings', 0, 0),
+                ('Retained Earnings', '', ''),
                 ('Total EQUITY', -500.0, 460.0),
 
                 ('LIABILITIES + EQUITY', -500.0, 460.0),
             ],
-            options,
         )
 
     def assert_line_values(self, report, date, list_values, analytic=True, cash_basis=True):
@@ -829,8 +827,7 @@ class TestAccountReports(TestAccountReportsCommon):
         self.assertLinesValues(
             report._get_lines(options)[22:23],
             list(range(len(list_values) + 1)),
-            [('Current Year Earnings', *list_values)],
-            options,
+            [('Current Year Earnings', *list_values)]
         )
 
     def test_analytic_cash_basis_analytic_global(self):
@@ -841,17 +838,17 @@ class TestAccountReports(TestAccountReportsCommon):
             },
             {
                 'name': 'third account',
-                'plan_id': self.analytic_other_plan.id,
+                'plan_id': self.analytic_plan_departments.id,
             },
         ])
 
         # Invoices, with different distributions on their revenue line
-        invoice_1, invoice_2, _invoice_3, invoice_4 = invoices = self.env['account.move'].create([
+        invoice_1, invoice_2, _invoice_3 = invoices = self.env['account.move'].create([
             {
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_a.id,
-                'invoice_date': '2016-02-01',
-                'date': '2016-02-01',
+                'invoice_date': '2016-01-01',
+                'date': '2016-01-01',
                 'company_id': self.company_data['company'].id,
                 'invoice_line_ids': [Command.create({
                     'quantity': 1,
@@ -863,8 +860,8 @@ class TestAccountReports(TestAccountReportsCommon):
             {
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_a.id,
-                'invoice_date': '2016-02-15',
-                'date': '2016-02-15',
+                'invoice_date': '2016-01-15',
+                'date': '2016-01-15',
                 'company_id': self.company_data['company'].id,
                 'invoice_line_ids': [Command.create({
                     'quantity': 1,
@@ -876,8 +873,8 @@ class TestAccountReports(TestAccountReportsCommon):
             {
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_a.id,
-                'invoice_date': '2016-02-25',
-                'date': '2016-02-25',
+                'invoice_date': '2016-01-25',
+                'date': '2016-01-25',
                 'company_id': self.company_data['company'].id,
                 'invoice_line_ids': [Command.create({
                     'quantity': 1,
@@ -886,23 +883,10 @@ class TestAccountReports(TestAccountReportsCommon):
                     'tax_ids': [],
                 })]
             },
-            {
-                'move_type': 'out_invoice',
-                'partner_id': self.partner_a.id,
-                'invoice_date': '2016-03-01',
-                'date': '2016-03-01',
-                'company_id': self.company_data['company'].id,
-                'invoice_line_ids': [Command.create({
-                    'quantity': 1,
-                    'price_unit': 1000,
-                    'analytic_distribution': {f'{self.second_account.id},{self.third_account.id}': 10},
-                    'tax_ids': [],
-                })]
-            },
         ])
         invoices.action_post()
 
-        payment_invoice_1, payment_invoice_2, second_payment_invoice_2, payment_invoice_4 = self.env['account.move'].create([
+        payment_invoice_1, payment_invoice_2, second_payment_invoice_2 = self.env['account.move'].create([
             {
                 'move_type': 'entry',
                 'date': '2016-02-10',
@@ -929,30 +913,20 @@ class TestAccountReports(TestAccountReportsCommon):
                     Command.create({'debit': 0.0, 'credit': 200.0, 'account_id': self.receivable_account_1.id}),
                     Command.create({'debit': 200.0, 'credit': 0.0, 'account_id': self.liquidity_account.id}),
                 ],
-            },
-            {
-                'move_type': 'entry',
-                'date': '2016-03-10',
-                'journal_id': self.liquidity_journal_1.id,
-                'line_ids': [
-                    Command.create({'debit': 0.0, 'credit': 200.0, 'account_id': self.receivable_account_1.id}),
-                    Command.create({'debit': 200.0, 'credit': 0.0, 'account_id': self.liquidity_account.id}),
-                ],
-            },
+            }
         ])
-        (payment_invoice_1 + payment_invoice_2 + second_payment_invoice_2 + payment_invoice_4).action_post()
+        (payment_invoice_1 + payment_invoice_2 + second_payment_invoice_2).action_post()
         self._reconcile_on((invoice_1 + payment_invoice_1).line_ids, self.receivable_account_1)
         self._reconcile_on((invoice_2 + payment_invoice_2).line_ids, self.receivable_account_1)
         self._reconcile_on((invoice_2 + second_payment_invoice_2).line_ids, self.receivable_account_1)
-        self._reconcile_on((invoice_4 + payment_invoice_4).line_ids, self.receivable_account_1)
 
         report = self.env.ref('account_reports.balance_sheet')
 
-        # 4 invoices of 1000 and 1 invoices of 1150, without special filters
-        self.assert_line_values(report, '2016-03-01', [5150], cash_basis=False, analytic=False)
+        # 3 invoices of 1000 and 1 invoices of 1150, without special filters
+        self.assert_line_values(report, '2016-02-29', [4150], cash_basis=False, analytic=False)
 
         # ANALYTICS WITHOUT CABA
-        self.assert_line_values(report, '2016-03-01', [0, 1900.0, 1200.0, 5150], cash_basis=False, analytic=True)
+        self.assert_line_values(report, '2016-02-29', ['', 1800.0, 1100.0, 4150], cash_basis=False, analytic=True)
 
         # CABA WITHOUT ANALYTICS
 
@@ -974,34 +948,22 @@ class TestAccountReports(TestAccountReportsCommon):
         # only first 4 invoices, first 3 partially paid (2 payments on invoice_2)
         self.assert_line_values(report, '2016-02-29', [930.0], cash_basis=True, analytic=False)
 
-        # All 5 invoices, first 3 partially paid (2 payments on invoice_1 and invoice_2)
-        self.assert_line_values(report, '2016-03-01', [1160.0], cash_basis=True, analytic=False)
-
-        # All 5 invoices, first 3 and last partially paid (2 payments on invoice_1 and invoice_2)
-        self.assert_line_values(report, '2016-03-10', [1360.0], cash_basis=True, analytic=False)
-
         # WITH ANALYTICS AND CABA
 
         # only first 2 invoices, first invoice payment, no analytic
-        self.assert_line_values(report, '2016-02-01', [0, 0, 0, 230.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-01', ['', '', '', 230.0], cash_basis=True, analytic=True)
 
         # only first 2 invoices, both paid, analytic on invoice_1 (with proportion of payment)
-        self.assert_line_values(report, '2016-02-10', [0, 200, 100, 430.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-10', ['', 200, 100, 430.0], cash_basis=True, analytic=True)
 
         # only first 3 invoices, first 2 paid, analytic on invoice_1
-        self.assert_line_values(report, '2016-02-15', [0, 200, 100, 430.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-15', ['', 200, 100, 430.0], cash_basis=True, analytic=True)
 
         # only first 3 invoices, all paid, analytic on invoice_1 and invoice_2
-        self.assert_line_values(report, '2016-02-20', [0, 440, 100, 730.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-20', ['', 440, 100, 730.0], cash_basis=True, analytic=True)
 
         # only first 4 invoices, first 3 paid, analytic on invoice_1 and invoice_2
-        self.assert_line_values(report, '2016-02-25', [0, 440, 100, 730.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-25', ['', 440, 100, 730.0], cash_basis=True, analytic=True)
 
         # only first 4 invoices, first 3 partially paid (2 payments on invoice_2)
-        self.assert_line_values(report, '2016-02-29', [0, 600, 100, 930.0], cash_basis=True, analytic=True)
-
-        # All 5 invoices, first 3 partially paid (2 payments on invoice_2)
-        self.assert_line_values(report, '2016-03-01', [0, 600, 100, 1160.0], cash_basis=True, analytic=True)
-
-        # All 5 invoices, first 3 and last partially paid (2 payments on invoice_2)
-        self.assert_line_values(report, '2016-03-10', [0, 620, 120, 1360.0], cash_basis=True, analytic=True)
+        self.assert_line_values(report, '2016-02-29', ['', 600, 100, 930.0], cash_basis=True, analytic=True)

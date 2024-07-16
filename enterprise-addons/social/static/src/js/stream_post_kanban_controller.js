@@ -1,20 +1,19 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { AddSocialStreamDialog } from './add_stream_modal';
 import { NewContentRefreshBanner } from './stream_post_kanban_refresh_banner';
 import { StreamPostDashboard } from './stream_post_kanban_dashboard';
-import { useModelWithSampleData } from "@web/model/model";
 
 import { KanbanController } from '@web/views/kanban/kanban_controller';
+import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
-import { onWillStart, useEffect, useSubEnv, useState } from "@odoo/owl";
+
+const { onWillStart, useEffect, useSubEnv, useState } = owl;
 
 export class StreamPostKanbanController extends KanbanController {
 
     setup() {
         super.setup();
-        this.model = useModelWithSampleData(this.props.Model, this.modelParams);
         this.company = useService('company');
         this.dialog = useService('dialog');
         this.orm = useService('orm');
@@ -61,7 +60,7 @@ export class StreamPostKanbanController extends KanbanController {
 
     _onNewPost() {
         this.actionService.doAction({
-            name: _t('New Post'),
+            name: this.env._t('New Post'),
             type: 'ir.actions.act_window',
             res_model: 'social.post',
             views: [[false, "form"]],
@@ -73,7 +72,7 @@ export class StreamPostKanbanController extends KanbanController {
             this._addNewStream();
         } else {
             this.notification.add(
-                _t("No social accounts configured, please contact your administrator."),
+                this.env._t("No social accounts configured, please contact your administrator."),
                 { type: 'danger' }
             );
         }
@@ -82,7 +81,7 @@ export class StreamPostKanbanController extends KanbanController {
     _addNewStream() {
         this._fetchSocialMedia().then((socialMedia) =>
             this.dialog.add(AddSocialStreamDialog, {
-                title: _t('Add a Stream'),
+                title: this.env._t('Add a Stream'),
                 isSocialManager: this.isSocialManager,
                 socialMedia: socialMedia,
                 socialAccounts: this.accounts,
@@ -102,12 +101,14 @@ export class StreamPostKanbanController extends KanbanController {
             ['name']);
         if (streams.length) {
             this.notification.add(
-                _t("It will appear in the Feed once it has posts to display."),
-                { title: _t("Stream Added (%s)", streams[0].name), type: "success" }
-            );
+                sprintf(this.env._t('It will appear in the Feed once it has posts to display.')),
+                {
+                    title: sprintf(this.env._t('Stream Added (%s)'), streams[0].name),
+                    type: 'success',
+                }
+            )
         } else {
-            await this.model.load();
-            this.model.notify();
+            this.model.load();
         }
     }
 
@@ -138,8 +139,8 @@ export class StreamPostKanbanController extends KanbanController {
      * @param {Array} [{id: company_id, name: company_name}, ...]
      */
     _getCompanies() {
-        const companies = this.company.allowedCompanies;
-        return this.company.activeCompanyIds.map(companyId => companies[companyId]);
+        const companies = this.company.availableCompanies;
+        return this.company.allowedCompanyIds.map(companyId => companies[companyId]);
     }
 
 }

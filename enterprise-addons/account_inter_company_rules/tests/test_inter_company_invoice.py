@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo import Command, tests
+import odoo.tests
 from .common import TestInterCompanyRulesCommon
 
 
-@tests.tagged('post_install', '-at_install')
+@odoo.tests.tagged('post_install','-at_install')
 class TestInterCompanyInvoice(TestInterCompanyRulesCommon):
 
     @classmethod
@@ -16,10 +16,11 @@ class TestInterCompanyInvoice(TestInterCompanyRulesCommon):
         })
         # Configure Chart of Account for company_b.
         cls.env.user.company_id = cls.company_b
-        cls.env['account.chart.template'].try_loading('generic_coa', cls.company_b, install_demo=False)
+        cls.env['account.chart.template'].browse(1).with_company(cls.company_b).try_loading()
+
         # Configure Chart of Account for company_a.
         cls.env.user.company_id = cls.company_a
-        cls.env['account.chart.template'].try_loading('generic_coa', cls.company_a, install_demo=False)
+        cls.env['account.chart.template'].browse(1).with_company(cls.company_a).try_loading()
 
     def _configure_analytic(self, product, company=None):
         """
@@ -30,7 +31,7 @@ class TestInterCompanyInvoice(TestInterCompanyRulesCommon):
         if company:
             self.env.user.company_id = company
             display_name = company.display_name
-        analytic_plan = self.env['account.analytic.plan'].create({'name': f'Analytic Plan {display_name}'})
+        analytic_plan = self.env['account.analytic.plan'].create({'name': f'Analytic Plan {display_name}', 'company_id': company and company.id})
         analytic_account = self.env['account.analytic.account'].create({
             'name': f'Account {display_name}',
             'company_id': company and company.id,
@@ -128,22 +129,6 @@ class TestInterCompanyInvoice(TestInterCompanyRulesCommon):
 
         self.assertEqual(supplier_invoice.invoice_line_ids.analytic_distribution, {str(inter_company_analytic_account.id): 100})
 
-    def test_multi_analytic_account_distribution_company_b(self):
-        """
-        Test that the analytic distribution is set properly when multiple analytic accounts (with or without a company) are set on the invoice line
-        """
-        analytic_account_company_a = self._configure_analytic(company=self.company_a, product=self.product_a)
-        inter_company_analytic_account = self._configure_analytic(product=self.product_a)
-
-        self._create_post_invoice(product_id=self.product_a.id, analytic_distribution={
-            analytic_account_company_a.id: 50,
-            inter_company_analytic_account.id: 50,
-            f"{analytic_account_company_a.id},{inter_company_analytic_account.id}": 100
-        })
-        supplier_invoice = self.env['account.move'].with_user(self.res_users_company_b).search([('move_type', '=', 'in_invoice')], limit=1)
-
-        self.assertEqual(supplier_invoice.invoice_line_ids.analytic_distribution, {str(inter_company_analytic_account.id): 50})
-
     def test_default_analytic_distribution_company_a(self):
         """
         [Analytic Distribution Model is set for Company A]
@@ -157,47 +142,3 @@ class TestInterCompanyInvoice(TestInterCompanyRulesCommon):
         supplier_invoice = self.env['account.move'].with_user(self.res_users_company_b).search([('move_type', '=', 'in_invoice')], limit=1)
 
         self.assertFalse(supplier_invoice.invoice_line_ids.analytic_distribution, "Analytic distribution should not be set on the invoice line.")
-
-    def test_inter_company_invoice_flow_sub_companies(self):
-        """
-        Test that the flow with inter company invoice is also working properly with sub companies
-        """
-        # Create branches for company a
-        self.company_a.write({'child_ids': [
-            Command.create({'name': 'Branch 1 of company a'}),
-            Command.create({'name': 'Branch 2 of company a'}),
-        ]})
-        self.cr.precommit.run()  # load the COA
-
-        branch_1, branch_2 = self.company_a.child_ids
-        (branch_1 + branch_2).write({
-            'rule_type': 'invoice_and_refund'
-        })
-
-        # Select the two branches
-        self.env.user.write({
-            'company_ids': [Command.set((branch_1 + branch_2).ids)],
-            'company_id': branch_1.id,
-        })
-
-        # Invoice from Branch 1 to Branch 2
-        customer_invoice = self.env['account.move'].with_context(allowed_company_ids=branch_1.ids).create({
-            'move_type': 'out_invoice',
-            'invoice_date': '2023-05-01',
-            'partner_id': branch_2.partner_id.id,
-            'invoice_line_ids': [Command.create({
-                'product_id': self.product_a.id,
-                'price_unit': 100.0,
-                'quantity': 1.0,
-                'tax_ids': False,
-            })]
-        })
-
-        customer_invoice.action_post()
-        bill = self.env['account.move'].search([('move_type', '=', 'in_invoice')], limit=1)
-
-        self.assertRecordValues(bill, [{
-            'partner_id': branch_1.partner_id.id,
-            'company_id': branch_2.id,
-            'payment_reference': customer_invoice.payment_reference,
-        }])

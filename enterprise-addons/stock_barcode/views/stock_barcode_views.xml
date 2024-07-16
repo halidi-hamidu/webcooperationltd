@@ -12,18 +12,21 @@
     <menuitem
         id="stock_barcode_menu"
         action="stock_barcode_action_main_menu"
-        web_icon="stock_barcode,static/description/icon.png"
+        web_icon="stock_barcode,static/description/icon.svg"
         sequence="155"
         groups="stock.group_stock_user" />
 
 
     <!-- Actions -->
 
-    <!-- TODO: delete in master, appears to be unused -->
     <record id="stock_picking_action_form" model="ir.actions.act_window">
         <field name="name">Picking</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">form</field>
+        <field name="context">{
+            'form_view_initial_mode': 'edit',
+            'force_detailed_view': True,
+        }</field>
     </record>
 
     <record id="stock_picking_kanban" model="ir.ui.view">
@@ -47,9 +50,11 @@
         <field name="view_mode">kanban,form</field>
         <field name="view_id" ref="stock_barcode.stock_picking_kanban"/>
         <field name="context">{
+            'form_view_initial_mode': 'edit',
             'contact_display': 'partner_address',
             'search_default_available': 1,
             'search_default_to_do_transfers': 1,
+            'force_detailed_view': True
         }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -68,28 +73,29 @@
         <field name="mode">primary</field>
         <field name="priority">20</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_mobile o_emphasize_colors" create="0" sample="1" action="get_action_picking_tree_ready_kanban" type="object">
+            <kanban class="o_kanban_mobile oe_background_grey o_emphasize_colors" create="0" sample="1" action="get_action_picking_tree_ready_kanban" type="object">
                 <field name="display_name"/>
                 <field name="color"/>
                 <field name="count_picking_ready"/>
                 <field name="code"/>
-                <field name="is_barcode_picking_type" invisible="1"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div t-if="record.is_barcode_picking_type" t-attf-class="o_barcode_picking_type oe_kanban_card #{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
+                        <div t-if="['incoming', 'outgoing', 'internal'].indexOf(record.code.raw_value) > -1" t-attf-class="oe_kanban_card #{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
                             <span class="oe_kanban_color_help" t-attf-title="In #{kanban_getcolorname(record.color.raw_value)}" role="img" t-attf-aria-label="In #{kanban_getcolorname(record.color.raw_value)}"/>
-                            <div class="o_kanban_card_header">
-                                <div class="o_primary o_kanban_record_title">
-                                    <field name="name"/>
+                                <div class="o_kanban_card_header">
+                                    <div class="o_primary o_kanban_record_title">
+                                        <field name="name"/>
+                                    </div>
+                                    <div class="o_secondary">
+                                        <field name="warehouse_id" readonly="1" groups="stock.group_stock_multi_warehouses"/>
+                                    </div>
                                 </div>
-                                <div class="o_secondary">
-                                    <field name="warehouse_id" readonly="1" groups="stock.group_stock_multi_warehouses"/>
-                                </div>
-                            </div>
                             <div class="container o_kanban_card_content o_kanban_button">
-                                <span class="row text-muted" name="get_action_picking_tree_ready_kanban" type="object">
-                                    <t t-esc="record.count_picking_ready.value"/> To Process
-                                </span>
+                                <div class="row text-muted">
+                                    <button class="btn btn-primary" name="get_action_picking_tree_ready_kanban" type="object">
+                                        <t t-esc="record.count_picking_ready.value"/> To Process
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </t>
@@ -104,6 +110,10 @@
         <field name="view_mode">kanban,form</field>
         <field name="domain">[('code', 'in', ('incoming', 'outgoing', 'internal'))]</field>
         <field name="view_id" ref="stock_picking_type_kanban"/>
+        <field name="context">{
+            'form_view_initial_mode': 'edit',
+            'force_detailed_view': True,
+        }</field>
     </record>
 
 

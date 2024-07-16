@@ -35,7 +35,7 @@ class TestReportsMrpAccountSubcontracting(TestMrpSubcontractingCommon):
         self.picking.action_confirm()
         self.assertEqual(self.picking.move_ids_without_package.is_subcontract, True)
 
-        self.picking.move_ids_without_package.quantity = 2
+        self.picking.move_ids_without_package.quantity_done = 2
         self.picking.button_validate()
 
         self.env.flush_all()  # Need to flush for mrp report
@@ -62,12 +62,12 @@ class TestReportsMrpAccountSubcontracting(TestMrpSubcontractingCommon):
         """ Check that values of mrp_cost_structure are correctly calculated for subcontracting """
 
         self.picking.action_confirm()
-        self.picking.move_ids_without_package.quantity = 1
+        self.picking.move_ids_without_package.quantity_done = 1
         res = self.picking.button_validate()
         wizard = Form(self.env[res.get('res_model')].with_context(res['context'])).save()
         wizard.process()
         backorder_id = self.picking.search([('backorder_id', '=', self.picking.id)])
-        backorder_id.move_ids_without_package.quantity = 1
+        backorder_id.move_ids_without_package.quantity_done = 1
         backorder_id.button_validate()
 
         self.env.flush_all()  # Need to flush for mrp report

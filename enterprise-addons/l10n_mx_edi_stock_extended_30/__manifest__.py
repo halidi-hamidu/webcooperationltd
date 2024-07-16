@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
-    "name": """Mexico - Electronic Delivery Guide Comex - Version 3.0""",
-    'countries': ['mx'],
+    'name': 'Mexico - Electronic Delivery Guide Comex - Version 3.0',
     'version': '1.0',
     'category': 'Accounting/Localizations/EDI',
     'description': """
@@ -12,7 +11,7 @@
     """,
     'depends': [
         'l10n_mx_edi_stock_30',
-        'l10n_mx_edi_stock_extended',
+        'l10n_mx_edi_stock_extended_40',
     ],
     'data': [
         'security/ir.model.access.csv',

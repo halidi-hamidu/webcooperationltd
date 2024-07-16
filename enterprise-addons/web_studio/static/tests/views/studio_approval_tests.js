@@ -12,7 +12,6 @@ import {
 import { createWebClient, doAction } from "@web/../tests/webclient/helpers";
 import { session } from "@web/session";
 import { registry } from "@web/core/registry";
-import { actionService } from "@web/webclient/actions/action_service";
 
 const fakeStudioService = {
     start() {
@@ -122,7 +121,7 @@ QUnit.module("Studio Approval", (hooks) => {
                             <field name="int_field"/>
                         </button>
                         <button class="oe_stat_button" studio_approval="True"
-                                invisible="bar" id="invisibleStat">
+                                attrs='{"invisible": [["bar", "=", true]]}' id="invisibleStat">
                             <field name="bar"/>
                         </button>
                     </div>
@@ -177,8 +176,8 @@ QUnit.module("Studio Approval", (hooks) => {
         assert.containsNone(popover, ".o_web_approval_cancel");
     });
 
-    QUnit.test("approval check: method button", async function (assert) {
-        assert.expect(3);
+    QUnit.test("approval check", async function (assert) {
+        assert.expect(4);
 
         await makeView({
             type: "form",
@@ -217,86 +216,19 @@ QUnit.module("Studio Approval", (hooks) => {
                         groups: [[1, "Internal User"]],
                     });
                 } else if (args.method === "check_approval") {
-                    /* the check_approval should not be
-                    called for method buttons, as the validation
-                    check is done in the backend side. if this
-                    code is traversed, the test *must* fail!
-                    that's why it's not included in the expected count
-                    or in the verifySteps call */
-                    assert.step("should_not_happen!");
-                } else if (args.method === "someMethod") {
-                    assert.step("someMethod");
-                    return true;
-                }
-            },
-        });
-
-        await click(target, "#mainButton");
-        // first render, handle click, rerender after click
-        assert.verifySteps(["fetch_approval_spec", "someMethod"]);
-    });
-
-    QUnit.test("approval check: action button", async function (assert) {
-        assert.expect(4);
-        patchWithCleanup(actionService, {
-            start() {
-                return {
-                    doActionButton(params) {
-                        /* the action of the button should not be
-                        called, as the approval is refused! if this
-                        code is traversed, the test *must* fail!
-                        that's why it's not included in the expected count
-                        or in the verifySteps call */
-                        assert.step("actionShouldNotBeTriggered");
-                    },
-                };
-            },
-        });
-
-        await makeView({
-            type: "form",
-            resModel: "partner",
-            serverData,
-            arch: `<form string="Partners">
-                    <sheet>
-                        <header>
-                            <button id="mainButton" class="oe_stat_button" type="action" name="someaction" studio_approval="True">
-                                Test
-                            </button>
-                        </header>
-                        <group>
-                            <group style="background-color: red">
-                                <field name="display_name"/>
-                                <field name="bar"/>
-                                <field name="int_field"/>
-                            </group>
-                        </group>
-                    </sheet>
-                </form>`,
-            resId: 2,
-            mockRPC: function (route, args) {
-                const rule = {
-                    id: 1,
-                    group_id: [1, "Internal User"],
-                    domain: false,
-                    can_validate: true,
-                    message: false,
-                    exclusive_user: false,
-                };
-                if (args.method === "get_approval_spec") {
-                    assert.step("fetch_approval_spec");
-                    return Promise.resolve({
-                        rules: [rule],
-                        entries: [],
-                        groups: [[1, "Internal User"]],
-                    });
-                } else if (args.method === "check_approval") {
                     assert.step("attempt_action");
                     return Promise.resolve({
                         approved: false,
                         rules: [rule],
                         entries: [],
                     });
+                } else if (args.method === "someMethod") {
+                    /* the action of the button should not be
+                    called, as the approval is refused! if this
+                    code is traversed, the test *must* fail!
+                    that's why it's not included in the expected count
+                    or in the verifySteps call */
+                    assert.step("should_not_happen!");
                 }
             },
         });
@@ -460,8 +392,8 @@ QUnit.module("Studio Approval", (hooks) => {
                 message: false,
                 exclusive_user: false,
             };
-            if (args.method === "web_save") {
-                assert.step("web_save");
+            if (args.method === "create") {
+                assert.step("create");
             }
             if (args.method === "check_approval") {
                 assert.step(`check_approval: ${JSON.stringify(args.args)}`);
@@ -495,16 +427,16 @@ QUnit.module("Studio Approval", (hooks) => {
             type: "form",
             resModel: "partner",
             arch: `<form>
-                <button type="action" name="someMethod" string="Apply Method" studio_approval="True"/>
+                <button type="object=" name="someMethod" string="Apply Method" studio_approval="True"/>
             </form>`,
         });
 
-        assert.verifySteps(['get_approval_spec: resId: false ; ["partner",false,"someMethod"]']);
+        assert.verifySteps(['get_approval_spec: resId: false ; ["partner","someMethod",false]']);
         await click(target, 'button[name="someMethod"]');
         assert.verifySteps([
-            "web_save",
-            'check_approval: ["partner",4,false,"someMethod"]',
-            'get_approval_spec: resId: 4 ; ["partner",false,"someMethod"]',
+            "create",
+            'check_approval: ["partner",4,"someMethod",false]',
+            'get_approval_spec: resId: 4 ; ["partner","someMethod",false]',
         ]);
     });
 
@@ -528,8 +460,8 @@ QUnit.module("Studio Approval", (hooks) => {
                 message: false,
                 exclusive_user: false,
             };
-            if (args.method === "web_save") {
-                assert.step("web_save");
+            if (args.method === "write") {
+                assert.step("write");
             }
             if (args.method === "check_approval") {
                 assert.step(`check_approval: ${JSON.stringify(args.args)}`);
@@ -563,7 +495,7 @@ QUnit.module("Studio Approval", (hooks) => {
             type: "form",
             resModel: "partner",
             arch: `<form>
-                <button type="action" name="someaction" string="Apply Method" studio_approval="True"/>
+                <button type="object=" name="someMethod" string="Apply Method" studio_approval="True"/>
                 <field name="int_field"/>
             </form>`,
             resId: 1,
@@ -571,12 +503,12 @@ QUnit.module("Studio Approval", (hooks) => {
 
         await editInput(target, ".o_field_widget[name=int_field] input", "10");
 
-        assert.verifySteps(['get_approval_spec: resId: 1 ; ["partner",false,"someaction"]']);
-        await click(target, 'button[name="someaction"]');
+        assert.verifySteps(['get_approval_spec: resId: 1 ; ["partner","someMethod",false]']);
+        await click(target, 'button[name="someMethod"]');
         assert.verifySteps([
-            "web_save",
-            'check_approval: ["partner",1,false,"someaction"]',
-            'get_approval_spec: resId: 1 ; ["partner",false,"someaction"]',
+            "write",
+            'check_approval: ["partner",1,"someMethod",false]',
+            'get_approval_spec: resId: 1 ; ["partner","someMethod",false]',
         ]);
     });
 
@@ -627,8 +559,8 @@ QUnit.module("Studio Approval", (hooks) => {
                 type: "form",
                 resModel: "partner",
                 arch: `<form>
-                <button type="object" name="someMethod" string="Apply Method" invisible="int_field == 1" studio_approval="True"/>
-                <button type="object" name="otherMethod" string="Other Method" invisible="int_field != 1" studio_approval="True"/>
+                <button type="object" name="someMethod" string="Apply Method" attrs="{'invisible': [('int_field', '=', 1)]}" studio_approval="True"/>
+                <button type="object" name="otherMethod" string="Other Method" attrs="{'invisible': [('int_field', '!=', 1)]}" studio_approval="True"/>
                 <field name="int_field"/>
             </form>`,
                 resId: 1,
@@ -699,7 +631,7 @@ QUnit.module("Studio Approval", (hooks) => {
         serverData.models.partner.records = [];
         let hasRules = true;
         const mockRPC = (route, args) => {
-            if (args.method === "web_save") {
+            if (args.method === "write" || args.method === "create") {
                 assert.step(args.method, args.args);
             }
             if (args.method === "get_approval_spec") {
@@ -741,13 +673,13 @@ QUnit.module("Studio Approval", (hooks) => {
         assert.containsNone(target, ".o_web_studio_approval_avatar");
         await click(target, ".o_form_button_save");
         assert.containsOnce(target, ".o_web_studio_approval_avatar");
-        assert.verifySteps(["web_save", "get_approval_spec: 1"]);
+        assert.verifySteps(["create", "get_approval_spec: 1"]);
 
         await editInput(target.querySelector(`.o_field_widget[name="int_field"] input`), null, 34);
         hasRules = false;
         await click(target, ".o_form_button_save");
         assert.containsNone(target, ".o_web_studio_approval_avatar");
 
-        assert.verifySteps(["web_save", "get_approval_spec: 1"]);
+        assert.verifySteps(["write", "get_approval_spec: 1"]);
     });
 });

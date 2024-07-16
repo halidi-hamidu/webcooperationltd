@@ -42,19 +42,3 @@ class Article(models.Model):
             'icon': 'fa-comment-o',
             'order': order,
         }
-
-    @api.model
-    def _read_group_stage_ids(self, stages, domain, order):
-        # This serves as a temporary fix for stability concerns, as updating existing
-        # databases with 'ir_rules' is not easy.
-        if self.env.context.get('default_parent_id'):
-            public_article = self.env['knowledge.article'].search([('id', '=', self.env.context['default_parent_id'])])
-            if public_article.is_published:
-                public_article_stages = self.env['knowledge.article.stage'].sudo().search([
-                    ('id', 'in', stages.sudo().ids),
-                    ('parent_id', '=', public_article.id)
-                ])
-                if all(stage in public_article_stages for stage in stages.sudo()):
-                    # all stages are contained within a public article -> allow access through sudo
-                    return super()._read_group_stage_ids(stages.sudo(), domain, order)
-        return super()._read_group_stage_ids(stages, domain, order)

@@ -38,10 +38,10 @@ class HelpdeskTicketConvertWizard(models.TransientModel):
 
             ticket_sudo, task_sudo = ticket.sudo(), task.sudo()
             ticket_sudo.message_post(body=_("Ticket converted into task %s", task_sudo._get_html_link()))
-            task_sudo.message_post_with_source(
+            task_sudo.message_post_with_view(
                 'mail.message_origin_link',
-                render_values={'self': task_sudo, 'origin': ticket_sudo},
-                subtype_xmlid='mail.mt_note',
+                values={'self': task_sudo, 'origin': ticket_sudo},
+                subtype_id=self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'),
             )
 
         if len(created_tasks) == 1:

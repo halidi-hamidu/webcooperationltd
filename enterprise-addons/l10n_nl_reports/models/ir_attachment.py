@@ -30,7 +30,8 @@ class IrAttachment(models.Model):
 
     @api.model
     def l10n_nl_reports_load_iso_country_codes(self):
-        attachment = self.search([('name', '=', XSD_INFO['name'])], limit=1)
+        xsd_name = f"{XSD_INFO['prefix']}.{XSD_INFO['name']}"
+        attachment = self.search([('name', '=', xsd_name)], limit=1)
 
         if not attachment:
             return set()

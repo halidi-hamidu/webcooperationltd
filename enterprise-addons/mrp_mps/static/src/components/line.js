@@ -2,8 +2,9 @@
 
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { useService, useBus } from "@web/core/utils/hooks";
-import { formatFloat } from "@web/views/fields/formatters";
-import { Component, useRef, onPatched } from "@odoo/owl";
+import fieldUtils from 'web.field_utils';
+
+const { Component, useRef, onPatched } = owl;
 
 export default class MpsLineComponent extends Component {
 
@@ -11,6 +12,7 @@ export default class MpsLineComponent extends Component {
         this.actionService = useService("action");
         this.dialogService = useService("dialog");
         this.orm = useService("orm");
+        this.field_utils = fieldUtils;
         this.model = this.env.model;
         this.forecastRow = useRef("forecastRow");
         this.replenishRow = useRef("replenishRow");
@@ -39,12 +41,12 @@ export default class MpsLineComponent extends Component {
         return this.props.groups;
     }
 
-    get isSelected() {
-        return this.model.selectedRecords.has(this.productionSchedule.id);
+    get formatFloat() {
+        return this.field_utils.format.float;
     }
 
-    formatFloat(value) {
-        return formatFloat(value, { digits: [false, this.productionSchedule.precision_digits] });
+    get isSelected() {
+        return this.model.selectedRecords.has(this.productionSchedule.id);
     }
 
     /**

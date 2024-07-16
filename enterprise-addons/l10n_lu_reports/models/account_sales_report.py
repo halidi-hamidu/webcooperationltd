@@ -58,7 +58,7 @@ class LuxembourgishECSalesReportCustomHandler(models.AbstractModel):
 
     def get_file_data_lines(self, options):
         report = self.env['account.report'].browse(options['report_id'])
-        lines = report._get_lines(report.get_options(options))[:-1]  # Remove the total line
+        lines = report._get_lines(report._get_options(options))[:-1]  # Remove the total line
         for i, line in enumerate(lines):
             new_line = [j['no_format'] for j in line['columns']]
             lines[i] = new_line
@@ -493,7 +493,8 @@ class L10n_luStoredSalesReport(models.Model):
     ])
     company_id = fields.Many2one(comodel_name='res.company', default=lambda self: self.env.company.id)
 
-    @api.depends('year', 'period', 'codes', 'attachment_id')
-    def _compute_display_name(self):
+    def name_get(self):
+        result = []
         for r in self:
-            r.display_name = f"{r.year}/{r.period}/{r.codes} : {r.attachment_id.name}"
+            result.append((r.id, r.year + '/' + r.period + '/' + r.codes + ' : ' + r.attachment_id.name))
+        return result

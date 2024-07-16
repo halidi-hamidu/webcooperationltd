@@ -49,12 +49,12 @@ $o-barcode-completed-color: #befdcc;
         background: var(--barcode__line--completed, #befdcc);
     }
 
-    &.o_line_not_completed {
+    &.o_line_not_completed:not(.o_faulty) {
         background: var(--barcode__line--notCompleted, #fcf9f2);
     }
 
     &.o_selected {
-        box-shadow: inset 0px 0px 0px 3px $o-enterprise-action-color;
+        box-shadow: inset 0px 0px 0px 3px $o-enterprise-primary-color;
     }
 
     .o_barcode_scanner_qty {
@@ -76,8 +76,8 @@ $o-barcode-completed-color: #befdcc;
     }
 
     .o_line_buttons {
-        min-width: 136px;
-        max-width: 40%;
+        min-width: 132px;
+        text-align: right;
     }
 
     .o_line_button {
@@ -96,9 +96,8 @@ $o-barcode-completed-color: #befdcc;
             padding-top: 14px;
         }
 
-        &.btn-secondary:not(:hover) {
-            background-color: transparent;
-            border-color: transparent;
+        &.btn-secondary {
+            @include o-hover-opacity();
         }
 
         &.o_set {

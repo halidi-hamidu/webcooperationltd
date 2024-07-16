@@ -16,6 +16,7 @@ class TestProjectSharing(TestProjectSharingCommon):
 
         cls.analytic_plan = cls.env['account.analytic.plan'].create({
             'name': 'Plan',
+            'company_id': False,
         })
 
         cls.analytic_account = cls.env['account.analytic.account'].create({

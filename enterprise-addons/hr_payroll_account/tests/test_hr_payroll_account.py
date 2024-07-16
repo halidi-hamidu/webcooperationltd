@@ -18,11 +18,11 @@ class TestHrPayrollAccountCommon(TestPayslipContractBase):
     def setUpClass(cls):
         super(TestHrPayrollAccountCommon, cls).setUpClass()
 
-        cls.work_contact = cls.env['res.partner'].create({'name': 'A work contact'})
+        cls.private_address = cls.env['res.partner'].create({'name': 'A private address'})
         cls.work_address = cls.env['res.partner'].create({'name': 'A work address'})
 
         cls.hr_employee_john = cls.env['hr.employee'].create({
-            'work_contact_id': cls.work_contact.id,
+            'address_home_id': cls.private_address.id,
             'address_id': cls.work_address.id,
             'birthday': '1984-05-01',
             'children': 0.0,
@@ -34,7 +34,7 @@ class TestHrPayrollAccountCommon(TestPayslipContractBase):
         })
 
         cls.hr_employee_mark = cls.env['hr.employee'].create({
-            'work_contact_id': cls.work_contact.id,
+            'address_home_id': cls.private_address.id,
             'address_id': cls.work_address.id,
             'birthday': '1984-05-01',
             'children': 0.0,
@@ -73,7 +73,7 @@ class TestHrPayrollAccountCommon(TestPayslipContractBase):
                     'name': 'Meal Voucher',
                     'amount_select': 'fix',
                     'amount_fix': 10,
-                    'quantity': "'WORK100' in worked_days and worked_days['WORK100'].number_of_days",
+                    'quantity': 'worked_days.WORK100 and worked_days.WORK100.number_of_days',
                     'code': 'MA',
                     'category_id': cls.env.ref('hr_payroll.ALW').id,
                     'sequence': 16,
@@ -481,7 +481,7 @@ class TestHrPayrollAccount(TestHrPayrollAccountCommon):
         # Verify that there are 2 invoice lines
         # 1. amount = 2000, credit = 0, debit = 2000
         # 2. amount = -2000, credit = 2000, debit = 0
-        line_amount = self.hra_rule.amount_percentage / 100 * self.hr_payslip_john._get_contract_wage()
+        line_amount = self.hra_rule.amount_percentage / 100 * self.hr_payslip_john.normal_wage
 
         self.assertEqual(len(invoice_lines), 2, 'There should be 2 invoice lines')
         self.assertEqual(invoice_lines[0].amount_currency, line_amount)
@@ -513,7 +513,7 @@ class TestHrPayrollAccount(TestHrPayrollAccountCommon):
         # Check that there are 2 invoice lines, and they are the inverse of the original payslip
         # 1. amount = -2000, credit = 2000, debit = 0
         # 2. amount = 2000, credit = 0, debit = 2000
-        line_amount = self.hra_rule.amount_percentage / 100 * self.hr_payslip_john._get_contract_wage()
+        line_amount = self.hra_rule.amount_percentage / 100 * self.hr_payslip_john.normal_wage
 
         self.assertEqual(len(invoice_lines), 2, 'There should be 2 invoice lines')
         self.assertEqual(invoice_lines[0].amount_currency, -line_amount)

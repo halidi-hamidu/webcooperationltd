@@ -2,10 +2,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.addons.helpdesk.tests import common
-from odoo.tests.common import Form, tagged
+from odoo.tests.common import Form
 
 
-@tagged('post_install', '-at_install')
 class TestHelpdeskAccount(common.HelpdeskCommon):
     @classmethod
     def setUpClass(cls):
@@ -49,7 +48,7 @@ class TestHelpdeskAccount(common.HelpdeskCommon):
             credit_note_form.move_ids.add(inv)
         credit_note_form.reason = 'test'
         credit_note = credit_note_form.save()
-        res = credit_note.refund_moves()
+        res = credit_note.reverse_moves()
         refund = self.env['account.move'].browse(res['res_id'])
 
         self.assertEqual(len(refund), 1, "No refund created")
@@ -64,8 +63,9 @@ class TestHelpdeskAccount(common.HelpdeskCommon):
 
         refund.action_post()
         last_message = str(ticket.message_ids[0].body)
+        refund_text = self.env.ref("helpdesk.mt_ticket_refund_posted").name
 
-        self.assertTrue(refund.display_name in last_message and 'Refund' in last_message,
+        self.assertTrue(refund.display_name in last_message and refund_text in last_message,
             'Refund Post should be logged on the ticket')
 
     def test_create_multiple_credit_notes_in_ticket(self):
@@ -88,7 +88,7 @@ class TestHelpdeskAccount(common.HelpdeskCommon):
             'product_id': self.product.id,
             'price_unit': 10,
             'order_id': self.so.id,
-        })
+        }),
         self.so.action_confirm()
         self.so._create_invoices()
         invoice = self.so.invoice_ids
@@ -105,10 +105,11 @@ class TestHelpdeskAccount(common.HelpdeskCommon):
         credit_note = self.env['account.move.reversal'].create({
             'helpdesk_ticket_id': ticket.id,
             'reason': 'test',
+            'refund_method': 'refund',
             'journal_id': journal_id,
             'move_ids': self.so.invoice_ids,
         })
-        res = credit_note.refund_moves()
+        res = credit_note.reverse_moves()
         move = self.env['account.move'].browse(res['res_id'])
         move.invoice_line_ids.quantity = 2
         move.action_post()
@@ -117,13 +118,13 @@ class TestHelpdeskAccount(common.HelpdeskCommon):
         credit_note = self.env['account.move.reversal'].create({
             'helpdesk_ticket_id': ticket.id,
             'reason': 'test',
+            'refund_method': 'cancel',
             'journal_id': journal_id,
             'move_ids': invoice,
         })
-        res = credit_note.modify_moves()
-        new_invoice = self.env['account.move'].browse(res['res_id'])
-        self.assertEqual(invoice.state, 'posted', "reversed invoice remain in posted state")
-        self.assertEqual(new_invoice.state, 'draft', "newly created invoice should be in draft state.")
+        res = credit_note.reverse_moves()
+        invoice = self.env['account.move'].browse(res['res_id'])
+        self.assertEqual(invoice.state, 'posted', "credit note should be posted.")
 
         # create a Refund
         credit_note_form = Form(self.env['account.move.reversal'].with_context({

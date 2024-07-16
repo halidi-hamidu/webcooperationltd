@@ -10,7 +10,7 @@ from odoo import Command, fields
 class TestEvatXmlReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='no'):
+    def setUpClass(cls, chart_template_ref='l10n_no.no_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         (cls.partner_a + cls.partner_b).write({
@@ -179,7 +179,7 @@ class TestEvatXmlReport(TestAccountReportsCommon):
                         <fastsattMerverdiavgift>1250.0</fastsattMerverdiavgift>
                         <mvaSpesifikasjonslinje>
                             <mvaKode>3</mvaKode>
-                            <mvaKodeRegnskapsystem>25%</mvaKodeRegnskapsystem>
+                            <mvaKodeRegnskapsystem>3 Utgående mva høy sats 25%</mvaKodeRegnskapsystem>
                             <grunnlag>5000.0</grunnlag>
                             <sats>25.0</sats>
                             <merverdiavgift>1250.0</merverdiavgift>
@@ -224,12 +224,12 @@ class TestEvatXmlReport(TestAccountReportsCommon):
                         <fastsattMerverdiavgift>-600.0</fastsattMerverdiavgift>
                         <mvaSpesifikasjonslinje>
                             <mvaKode>1</mvaKode>
-                            <mvaKodeRegnskapsystem>25%</mvaKodeRegnskapsystem>
+                            <mvaKodeRegnskapsystem>1 Inngående mva høy sats 25%</mvaKodeRegnskapsystem>
                             <merverdiavgift>-2000.0</merverdiavgift>
                         </mvaSpesifikasjonslinje>
                         <mvaSpesifikasjonslinje>
                             <mvaKode>3</mvaKode>
-                            <mvaKodeRegnskapsystem>25%</mvaKodeRegnskapsystem>
+                            <mvaKodeRegnskapsystem>3 Utgående mva høy sats 25%</mvaKodeRegnskapsystem>
                             <grunnlag>5600.0</grunnlag>
                             <sats>25.0</sats>
                             <merverdiavgift>1400.0</merverdiavgift>

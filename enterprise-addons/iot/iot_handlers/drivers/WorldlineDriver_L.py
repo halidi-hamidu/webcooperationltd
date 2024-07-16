@@ -15,7 +15,6 @@ TERMINAL_ERRORS = {
     '1802': 'Terminal is busy',
     '1803': 'Timeout expired',
     '2629': 'User cancellation',
-    '2631': 'Host cancellation',
 }
 
 # Manually cancelled by cashier, do not show these errors
@@ -150,10 +149,5 @@ class WorldlineDriver(CtypesTerminalDriver):
             )
         else:
             error_code = error_code.value.decode('utf-8')
-            error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Last Transaction was not processed correctly'), error_code)
-            self.send_status(
-                value={
-                    'error' : error_msg,
-                },
-                request_data=request_data,
-            )
+            error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Last Transaction Status request failed'), error_code)
+            self.send_status(error=error_msg, request_data=request_data)

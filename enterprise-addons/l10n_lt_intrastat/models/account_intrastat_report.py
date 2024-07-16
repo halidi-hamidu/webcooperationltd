@@ -57,7 +57,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             raise RedirectWarning(error_msg, action_error, _('Add company registry'))
 
         query, params = self._prepare_query(options)
-        self._cr.execute(query, params)  # pylint: disable=sql-injection
+        self._cr.execute(query, params)
         query_res = self._cr.dictfetchall()
         query_res = self._fill_missing_values(query_res)
         query_res = self._prepare_values_for_export(query_res)
@@ -84,7 +84,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         })
 
         return {
-            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename(options, 'xml'),
+            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename('xml'),
             'file_content': file_content,
             'file_type': 'xml',
         }

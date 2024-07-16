@@ -367,7 +367,7 @@ class AccountJournal(models.Model):
             return str(float(rmspaces(s) or 0) / (10 ** precision))
 
         def parse_terminal(s):
-            return _('Name: %(name)s, Town: %(city)s', name=rmspaces(s[:16]), city=rmspaces(s[16:]))
+            return _('Name: {name}, Town: {city}').format(name=rmspaces(s[:16]), city=rmspaces(s[16:]))
 
         def parse_operation(tr_type, family, operation, category):
             return "{tr_type}: {family} ({operation})".format(
@@ -407,7 +407,7 @@ class AccountJournal(models.Model):
                 o_idx = p_idx; p_idx += 15; note.append(_('Detail') + ': ' + _('equivalent in the currency of the account') + ': ' + parsefloat(communication[o_idx:p_idx], 3))
                 o_idx = p_idx; p_idx += 15; note.append(_('Detail') + ': ' + _('interest rates, calculation basis') + ': ' + rmspaces(communication[o_idx:p_idx]))
                 o_idx = p_idx; p_idx += 12; note.append(_('Detail') + ': ' + _('interest') + ': ' + parsefloat(communication[o_idx:p_idx], 8))
-                o_idx = p_idx; p_idx += 12; note.append(_('Detail') + ': ' + _('period from %s to %s', parsedate(communication[o_idx:o_idx+6]), parsedate(communication[o_idx+6:o_idx+12])))
+                o_idx = p_idx; p_idx += 12; note.append(_('Detail') + ': ' + _('period from {} to {}').format(parsedate(communication[o_idx:o_idx+6]), parsedate(communication[o_idx+6:o_idx+12])))
             elif co_type == '111':  # POS credit – Globalisation
                 structured_com = _('POS credit – Globalisation')
                 o_idx = p_idx; p_idx +=  1; note.append(_('Detail') + ': ' + _('card scheme') + ': ' + card_scheme[communication[o_idx:p_idx]])
@@ -568,8 +568,7 @@ class AccountJournal(models.Model):
                         statement['acc_number'] = rmspaces(line[5:21])
                         statement['currency'] = rmspaces(line[39:42])
                     elif line[1] == '3':    # foreign bank account IBAN structure
-                        statement['acc_number'] = rmspaces(line[5:39])
-                        statement['currency'] = rmspaces(line[39:42])
+                        raise UserError(_('Error') + ' R1002: ' + _('Foreign bank accounts with IBAN structure are not supported '))
                     else:  # Something else, not supported
                         raise UserError(_('Error') + ' R1003: ' + _('Unsupported bank account structure '))
                 statement['description'] = rmspaces(line[90:125])

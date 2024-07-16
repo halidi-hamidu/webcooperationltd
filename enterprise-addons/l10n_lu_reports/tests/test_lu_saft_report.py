@@ -12,7 +12,7 @@ from freezegun import freeze_time
 class TestLuSaftReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='lu'):
+    def setUpClass(cls, chart_template_ref='l10n_lu.lu_2011_chart_1'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         (cls.partner_a + cls.partner_b).write({
@@ -108,8 +108,8 @@ class TestLuSaftReport(TestAccountReportsCommon):
                             </Address>
                             <Contact>
                                 <ContactPerson>
-                                    <FirstName>NotUsed</FirstName>
-                                    <LastName>Mr Big CEO</LastName>
+                                    <FirstName>Mr Big CEO</FirstName>
+                                    <LastName/>
                                 </ContactPerson>
                                 <Telephone>+352 24 11 12 34</Telephone>
                             </Contact>
@@ -182,8 +182,8 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                 </Address>
                                 <Contact>
                                     <ContactPerson>
-                                        <FirstName>NotUsed</FirstName>
-                                        <LastName>partner_a</LastName>
+                                        <FirstName>partner_a</FirstName>
+                                        <LastName/>
                                     </ContactPerson>
                                     <Telephone>+352 24 11 11 11</Telephone>
                                 </Contact>
@@ -198,7 +198,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                 <Description>Taxe sur la valeur ajoutée</Description>
                                 <TaxCodeDetails>
                                     <TaxCode>___ignore___</TaxCode>
-                                    <Description>17% S</Description>
+                                    <Description>17-S-S</Description>
                                     <TaxPercentage>17.0</TaxPercentage>
                                     <Country>LU</Country>
                                 </TaxCodeDetails>
@@ -229,8 +229,8 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                 </Address>
                                 <Contact>
                                     <ContactPerson>
-                                        <FirstName>NotUsed</FirstName>
-                                        <LastName>Mr Big CEO</LastName>
+                                        <FirstName>Mr Big CEO</FirstName>
+                                        <LastName/>
                                     </ContactPerson>
                                     <Telephone>+352 24 11 12 34</Telephone>
                                 </Contact>
@@ -270,7 +270,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>850.00</Amount>
                                         </TaxAmount>
@@ -282,7 +282,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                     <ValueDate>2019-01-01</ValueDate>
                                     <SourceDocumentID>___ignore___</SourceDocumentID>
                                     <CustomerID>___ignore___</CustomerID>
-                                    <Description>17% S</Description>
+                                    <Description>17-S-S</Description>
                                     <CreditAmount>
                                         <Amount>850.00</Amount>
                                     </CreditAmount>
@@ -323,7 +323,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
                                         </TaxAmount>
@@ -335,7 +335,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                     <ValueDate>2019-03-01</ValueDate>
                                     <SourceDocumentID>___ignore___</SourceDocumentID>
                                     <CustomerID>___ignore___</CustomerID>
-                                    <Description>17% S</Description>
+                                    <Description>17-S-S</Description>
                                     <DebitAmount>
                                         <Amount>510.00</Amount>
                                     </DebitAmount>
@@ -396,7 +396,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>850.00</Amount>
                                         </TaxAmount>
@@ -407,7 +407,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>850.00</Amount>
                                         </TaxAmount>
@@ -453,7 +453,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
                                         </TaxAmount>
@@ -464,7 +464,7 @@ class TestLuSaftReport(TestAccountReportsCommon):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxBaseDescription>17-S-S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
                                         </TaxAmount>

@@ -10,7 +10,7 @@ from odoo.tests import tagged
 class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
     """ Testing the MX Trial Balance when there are Month 13 closing entries. """
     @classmethod
-    def setUpClass(cls, chart_template_ref='mx'):
+    def setUpClass(cls, chart_template_ref='l10n_mx.mx_coa'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.company_data['company'].country_id = cls.env.ref('base.mx')
 
@@ -152,13 +152,12 @@ class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                                            1,       2,       3,       4,        5,         6],
             [
-                ('105.01.01 Domestic customers',                              1000.0,     0.0,  300.0,    0.0,     1300.0,       0.0),
-                ('305.01.01 Profit for the year',                                0.0,   800.0,    0.0,     0.0,       0.0,     800.0),
-                ('401.01.01 Sales and/or services taxed at the general rate',    0.0,     0.0,    0.0,   300.0,       0.0,     300.0),
-                ('999999 Undistributed Profits/Losses',                          0.0,   200.0,    0.0,     0.0,       0.0,     200.0),
+                ('105.01.01 Clientes nacionales',                             1000.0,  '',      300.0,   '',       1300.0,    ''),
+                ('305.01.01 Utilidad del ejercicio',                          '',      800.0,   '',      '',       '',        800.0),
+                ('401.01.01 Ventas y/o servicios gravados a la tasa general', '',      '',      '',      300.0,    '',        300.0),
+                ('999999 Undistributed Profits/Losses',                       '',      200.0,   '',      '',       '',        200.0),
                 ('Total',                                                     1000.0,  1000.0,  300.0,   300.0,    1300.0,    1300.0),
             ],
-            options,
         )
 
         # Generate the Trial Balance between 2022-12-01 and 2023-01-01.
@@ -167,13 +166,12 @@ class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                                            1,         2,         3,       4,        5,         6],
             [
-                ('105.01.01 Domestic customers',                              1000.0,       0.0,    320.0,     0.0,    1320.0,       0.0),
-                ('305.01.01 Profit for the year',                                0.0,     800.0,      0.0,   250.0,       0.0,    1050.0),
-                ('401.01.01 Sales and/or services taxed at the general rate',    0.0,       0.0,    250.0,   320.0,       0.0,      70.0),
-                ('999999 Undistributed Profits/Losses',                          0.0,     200.0,      0.0,     0.0,       0.0,     200.0),
+                ('105.01.01 Clientes nacionales',                             1000.0,    '',        320.0,   '',       1320.0,    ''),
+                ('305.01.01 Utilidad del ejercicio',                          '',        800.0,     '',      250.0,    '',        1050.0),
+                ('401.01.01 Ventas y/o servicios gravados a la tasa general', '',        '',        250.0,   320.0,    '',        70.0),
+                ('999999 Undistributed Profits/Losses',                       '',        200.0,     '',      '',       '',        200.0),
                 ('Total',                                                     1000.0,    1000.0,    570.0,   570.0,    1320.0,    1320.0),
             ],
-            options,
         )
 
     def test_month_13(self):
@@ -190,13 +188,12 @@ class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                                            1,         2,         3,       4,        5,         6],
             [
-                ('105.01.01 Domestic customers',                              1300.0,       0.0,      0.0,     0.0,    1300.0,       0.0),
-                ('305.01.01 Profit for the year',                                0.0,     800.0,      0.0,   250.0,       0.0,    1050.0),
-                ('401.01.01 Sales and/or services taxed at the general rate',    0.0,     300.0,    250.0,     0.0,       0.0,      50.0),
-                ('999999 Undistributed Profits/Losses',                          0.0,     200.0,      0.0,     0.0,       0.0,     200.0),
+                ('105.01.01 Clientes nacionales',                             1300.0,    '',        '',      '',       1300.0,    ''),
+                ('305.01.01 Utilidad del ejercicio',                          '',        800.0,     '',      250.0,    '',        1050.0),
+                ('401.01.01 Ventas y/o servicios gravados a la tasa general', '',        300.0,     250.0,   '',       '',        50.0),
+                ('999999 Undistributed Profits/Losses',                       '',        200.0,     '',      '',       '',        200.0),
                 ('Total',                                                     1300.0,    1300.0,    250.0,   250.0,    1300.0,    1300.0),
             ],
-            options,
         )
 
     def test_comparison(self):
@@ -220,13 +217,12 @@ class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                                            1,       2,      3,    4,    5,      6,      7,       8],
             [
-                ('105.01.01 Domestic customers',                              1000.0,     0.0, 0.0,  0.0,  300.0,    0.0,  1300.0,   0.0),
-                ('305.01.01 Profit for the year',                                0.0,   800.0, 0.0,  0.0,    0.0,    0.0,     0.0,   800.0),
-                ('401.01.01 Sales and/or services taxed at the general rate',    0.0,     0.0, 0.0,  0.0,    0.0,  300.0,     0.0,   300.0),
-                ('999999 Undistributed Profits/Losses',                          0.0,   200.0, 0.0,  0.0,    0.0,    0.0,     0.0,   200.0),
+                ('105.01.01 Clientes nacionales',                             1000.0,  '',     '',   '',   300.0,  '',     1300.0,  ''),
+                ('305.01.01 Utilidad del ejercicio',                          '',      800.0,  '',   '',   '',     '',     '',      800.0),
+                ('401.01.01 Ventas y/o servicios gravados a la tasa general', '',      '',     '',   '',   '',     300.0,  '',      300.0),
+                ('999999 Undistributed Profits/Losses',                       '',      200.0,  '',   '',   '',     '',     '',      200.0),
                 ('Total',                                                     1000.0,  1000.0, 0.0,  0.0,  300.0,  300.0,  1300.0,  1300.0),
             ],
-            options,
         )
 
         # Generate the Trial Balance for Jan 2023, comparing with Dec 2022, and without the 'Month 13' filter.
@@ -242,11 +238,10 @@ class TestL10nMXTrialBalanceMonth13(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                                            1,         2,         3,       4,      5,     6,     7,       8],
             [
-                ('105.01.01 Domestic customers',                              1000.0,       0.0,    300.0,     0.0,  20.0,   0.0,  1320.0,     0.0),
-                ('305.01.01 Profit for the year',                                0.0,     800.0,      0.0,   250.0,   0.0,   0.0,     0.0,  1050.0),
-                ('401.01.01 Sales and/or services taxed at the general rate',    0.0,       0.0,    250.0,   300.0,   0.0,  20.0,     0.0,    70.0),
-                ('999999 Undistributed Profits/Losses',                          0.0,     200.0,      0.0,     0.0,   0.0,   0.0,     0.0,   200.0),
+                ('105.01.01 Clientes nacionales',                             1000.0,    '',        300.0,   '',     20.0,  '',    1320.0,  ''),
+                ('305.01.01 Utilidad del ejercicio',                          '',        800.0,     '',      250.0,  '',    '',    '',      1050.0),
+                ('401.01.01 Ventas y/o servicios gravados a la tasa general', '',        '',        250.0,   300.0,  '',    20.0,  '',      70.0),
+                ('999999 Undistributed Profits/Losses',                       '',        200.0,     '',      '',     '',    '',    '',      200.0),
                 ('Total',                                                     1000.0,    1000.0,    550.0,   550.0,  20.0,  20.0,  1320.0,  1320.0),
             ],
-            options,
         )

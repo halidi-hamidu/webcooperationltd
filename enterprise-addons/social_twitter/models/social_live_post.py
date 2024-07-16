@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import ast
 import logging
 import re
 import requests
@@ -133,10 +132,6 @@ class SocialLivePostTwitter(models.Model):
         :param message: text message in which we will look for mention
         :param ignore_mentions: do not remove those mentions if found
         """
-        if not ast.literal_eval(self.env['ir.config_parameter'].sudo().get_param(
-           'social_twitter.disable_mentions', 'False')):
-            return message
-
         if ignore_mentions:
             # keep only safe (mention consistent) chars in `ignore_mention`
             ignore_mentions = [

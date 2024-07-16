@@ -8,23 +8,32 @@ from .handler.journals import JournalsHandler
 from .handler.periods import PeriodsHandler
 
 
+class AccountConsolidationTrialBalanceReport(models.Model):
+    _inherit = "account.report"
+
+    @api.model
+    def _get_report_name(self):
+        period_id = self._get_selected_period_id()
+        return self.env['consolidation.period'].browse(period_id)['display_name'] or _("Trial Balance")
+
+    def _set_context(self, options):
+        ctx = super(AccountConsolidationTrialBalanceReport, self)._set_context(options)
+        active_id = options.get('active_id')
+        if active_id:
+            ctx.update({'active_id': active_id})
+        return ctx
+
+    def get_report_filename(self, options):
+        self = self.with_context(self._set_context(options))
+        return super(AccountConsolidationTrialBalanceReport, self).get_report_filename(options)
+
+
 class TrialBalanceCustomHandler(models.AbstractModel):
     _name = 'consolidation.trial.balance.report.handler'
     _inherit = 'account.report.custom.handler'
     _description = 'Trial Balance Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'components': {
-                'AccountReportFilters': 'account_consolidation.ConsolidationReportFilters',
-                'AccountReportLineCell': 'account_consolidation.ConsolidationReportLineCell',
-            },
-            'templates': {
-                'AccountReportHeader': 'account_consolidation.ConsolidationReportHeader',
-            },
-        }
-
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         lines = self._get_lines(options)
         new_lines = []
 
@@ -36,18 +45,17 @@ class TrialBalanceCustomHandler(models.AbstractModel):
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         options.pop('date', None)
-        options['unfold_all'] = previous_options.get('unfold_all', True) if previous_options else True
+        options['unfold_all'] = previous_options.get('unfold_all') if previous_options else True
         options['consolidation_hierarchy'] = (previous_options or {}).get('consolidation_hierarchy', True)
         options['consolidation_show_zero_balance_accounts'] = previous_options.get('consolidation_show_zero_balance_accounts') if previous_options else True
-        options['selected_period_id'] = (previous_options or {}).get('selected_period_id', self.env.context.get('default_period_id', self.env.context.get('active_id')))
+        options['force_periods'] = (previous_options or {}).get('force_periods', False)
 
-        if not options['selected_period_id']:
-            # No period was specified; pick one to use by default
-            options['selected_period_id'] = self.env['consolidation.period'].search([], limit=1, order="id desc").id
+        if not self.env.context.get('active_id') and (previous_options or {}).get('active_id'):
+            self = self.with_context(active_id=previous_options['active_id'])
 
         options['buttons'] = self._consolidated_balance_init_buttons(options)
 
-        base_period = self.env['consolidation.period'].browse(options['selected_period_id'])
+        base_period = self._get_selected_period()
         handlers = [
             ('periods', PeriodsHandler(self.env)),
             ('consolidation_journals', JournalsHandler(self.env))
@@ -63,16 +71,17 @@ class TrialBalanceCustomHandler(models.AbstractModel):
 
     def _get_column_headers(self, options):
         AnalysisPeriod = self.env['consolidation.period']
-        all_period_ids = PeriodsHandler.get_selected_values(options) + [options['selected_period_id']]
+        all_period_ids = PeriodsHandler.get_selected_values(options) + [self._get_selected_period_id()]
         selected_periods = AnalysisPeriod.browse(all_period_ids)
         columns = []
         if len(selected_periods) == 1:
             columns += self._get_journals_headers(options)
         else:
-            periods_columns = [{'name': f'{period.display_name} ({period.display_dates})', 'class': 'number', 'figure_type': 'monetary'} for period in selected_periods]
+            periods_columns = [
+                {'name': f'{period.display_name} ({period.display_dates})', 'class': 'number'} for period in selected_periods]
             # Add the percentage column
             if len(selected_periods) == 2:
-                columns += periods_columns + [{'name': '%', 'class': 'number', 'figure_type': 'monetary'}]
+                columns += periods_columns + [{'name': '%', 'class': 'number'}]
             else:
                 columns += periods_columns
         return [columns]
@@ -81,13 +90,13 @@ class TrialBalanceCustomHandler(models.AbstractModel):
         journal_ids = JournalsHandler.get_selected_values(options)
         journals = self.env['consolidation.journal'].browse(journal_ids)
         journal_columns = [self._get_journal_col(j, options) for j in journals]
-        return journal_columns + [{'name': _('Total'), 'class': 'number', 'figure_type': 'monetary'}]
+        return journal_columns + [{'name': _('Total'), 'class': 'number'}]
 
     def _get_journal_col(self, journal, options):
         journal_name = journal.name
         if journal.company_period_id:
             journal_name = journal.company_period_id.company_name
-        if options['export_mode'] == 'print' or options.get('xlsx_mode'):
+        if self.env.context.get('print_mode') or options.get('xlsx_mode'):
             return {'name': journal_name}
         if journal.currencies_are_different and journal.company_period_id:
             cp = journal.company_period_id
@@ -102,7 +111,6 @@ class TrialBalanceCustomHandler(models.AbstractModel):
                 'currency_rate_end': cp.currency_rate_end,
                 'to_currency': to_currency,
                 'class': 'number',
-                'figure_type': 'monetary',
                 'template': 'account_consolidation.cell_template_consolidation_report',
             }
 
@@ -110,13 +118,12 @@ class TrialBalanceCustomHandler(models.AbstractModel):
             'name': journal.name,
             'consolidation_rate': journal.rate_consolidation,
             'class': 'number',
-            'figure_type': 'monetary',
             'template': 'account_consolidation.cell_template_consolidation_report',
         }
 
     def _consolidated_balance_init_buttons(self, options):
         ap_is_closed = False
-        ap_id = options['selected_period_id']
+        ap_id = self._get_selected_period_id()
         if ap_id:
             ap = self.env['consolidation.period'].browse(ap_id)
             ap_is_closed = ap.state == 'closed'
@@ -132,7 +139,7 @@ class TrialBalanceCustomHandler(models.AbstractModel):
     @api.model
     def _get_lines(self, options, line_id=None):
         selected_aps = self._get_period_ids(options)
-        selected_ap = self.env['consolidation.period'].browse(options['selected_period_id'])
+        selected_ap = self._get_selected_period()
 
         # comparison
         if len(selected_aps) > 1:
@@ -141,12 +148,19 @@ class TrialBalanceCustomHandler(models.AbstractModel):
             journal_ids = JournalsHandler.get_selected_values(options)
             journals = self.env['consolidation.journal'].browse(journal_ids)
             builder = DefaultBuilder(self.env, selected_ap._format_value, journals)
-
-        return builder._get_lines(selected_aps, options, line_id)
+        return builder.get_lines(selected_aps, options, line_id)
 
     ####################################################
     # PERIODS
     ####################################################
+    def _get_default_analysis_period(self):
+        """
+        Get the default analysis period, which is the last one when we order by id desc.
+        :return: the if of this analysis period
+        :rtype: int
+        """
+        return self.env['consolidation.period'].search_read([], ['id'], limit=1, order="id desc")[0]['id']
+
     def _get_period_ids(self, options):
         """
         Get all the period ids (the base period and the comparison ones if any)
@@ -156,13 +170,29 @@ class TrialBalanceCustomHandler(models.AbstractModel):
         :rtype: list
         """
         forced_periods = options.get('force_periods', False)
-        return forced_periods or PeriodsHandler.get_selected_values(options) + [options['selected_period_id']]
+        return forced_periods or PeriodsHandler.get_selected_values(options) + [self._get_selected_period_id()]
+
+    def _get_selected_period_id(self):
+        """
+        Get the selected period id (the base period)
+        :return: the id of the selected period
+        :rtype: int
+        """
+        default_analysis_period = self.env.context.get('default_period_id', self.env.context.get('active_id', None))
+        return default_analysis_period or self._get_default_analysis_period()
+
+    def _get_selected_period(self):
+        """
+        Get the selected period (the base period)
+        :return: the recordset containing the selected period
+        """
+        return self.env['consolidation.period'].browse(self._get_selected_period_id())
 
     ####################################################
     # ACTIONS
     ####################################################
     def action_open_view_grid(self, options):
-        period_id = options['selected_period_id']
+        period_id = self._get_selected_period_id()
         name = self.env['consolidation.period'].browse(period_id).display_name or _("Trial Balance")
         return {
             'type': 'ir.actions.act_window',
@@ -182,8 +212,8 @@ class TrialBalanceCustomHandler(models.AbstractModel):
         }
 
     def action_open_audit(self, options, params=None):
-        account_id = self.env['account.report']._parse_line_id(params['line_id'])[-1][0]
-        journal_id = params['journal_id']
+        account_id = self.env['account.report']._parse_line_id(params['lineId'])[0][0]
+        journal_id = params['id']
         journal = self.env['consolidation.journal'].browse(journal_id)
         company_period = journal.company_period_id
         journal_lines = self.env['consolidation.journal.line'].search([
@@ -209,6 +239,14 @@ class TrialBalanceCustomHandler(models.AbstractModel):
             'views': [(self.env.ref('account_consolidation.view_move_line_tree_grouped_general').id, 'list')]
         })
         return action
+
+    def export_file(self, options, file_generator):
+        options.update({
+            'force_periods': self._get_period_ids(options),
+            'active_id': self.env.context.get('active_id'),
+        })
+
+        return self.env['account.report'].browse(options['report_id']).export_file(options, file_generator)
 
     def export_to_pdf(self, options):
         # The implementation of the consolidation report uses column headers, but no explicit columns. Because of that, we

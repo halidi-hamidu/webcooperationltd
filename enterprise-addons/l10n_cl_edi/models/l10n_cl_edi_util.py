@@ -73,7 +73,7 @@ def l10n_cl_edi_retry(max_retries=MAX_RETRIES, logger=None, custom_msg=None):
                 except Exception as error:
                     self._report_connection_err(error)
                     break
-            msg = _('- It was not possible to get a response after %s retries.', max_retries)
+            msg = _('- It was not possible to get a response after %s retries.') % max_retries
             if custom_msg is not None:
                 msg = custom_msg + msg
             self._report_connection_err(msg)
@@ -257,7 +257,7 @@ class L10nClEdiUtilMixin(models.AbstractModel):
     def _report_connection_err(self, error):
         # raise error
         if not self.env.context.get('cron_skip_connection_errs'):
-            self.message_post(body=str(error))
+            self.message_post(body=error)
         else:
             _logger.warning(error)
 
@@ -406,7 +406,12 @@ class L10nClEdiUtilMixin(models.AbstractModel):
             self._report_connection_err(_('Token cannot be generated. Please try again'))
             return False
         settings = Settings(strict=False, extra_http_headers={'Cookie': 'TOKEN=' + token})
-        return self._get_dte_claim_ws(mode, settings, company_vat, document_type_code, document_number)
+        try:
+            response = self._get_dte_claim_ws(mode, settings, company_vat, document_type_code, document_number)
+        except InvalidToken:
+            digital_signature.last_token = False
+            return False
+        return response
 
     @l10n_cl_edi_retry(logger=_logger, custom_msg=_('Document acceptance or claim failed due to:') + '<br/> ')
     def _send_sii_claim_response_ws(self, mode, settings, company_vat, document_type_code, document_number, claim_type):

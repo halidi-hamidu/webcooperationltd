@@ -8,7 +8,7 @@ from odoo.exceptions import UserError, ValidationError
 class L10nBe274XX(models.Model):
     _inherit = 'l10n_be.274_xx'
 
-    move_id = fields.Many2one('account.move', 'Accounting Entry', readonly=True, index='btree_not_null')
+    move_id = fields.Many2one('account.move', 'Accounting Entry', readonly=True)
 
     def action_post_account_entries(self):
         self.ensure_one()

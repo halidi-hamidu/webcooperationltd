@@ -11,14 +11,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'EC Sales Report Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'components': {
-                'AccountReportFilters': 'account_reports.SalesReportFilters',
-            },
-        }
-
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         """
         Generate the dynamic lines for the report in a vertical style (one line per tax per partner).
         """
@@ -38,7 +31,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
 
         operation_categories = options['sales_report_taxes'].get('operation_category', {})
         ec_tax_filter_selection = {v.get('id'): v.get('selected') for v in options.get('ec_tax_filter_selection', [])}
-        for partner, results in self._query_partners(report, options, warnings):
+        for partner, results in self._query_partners(report, options):
             for tax_ec_category in ('goods', 'triangular', 'services'):
                 if not ec_tax_filter_selection[tax_ec_category]:
                     # Skip the line if the tax is not selected
@@ -65,9 +58,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
                     lines.append((0, self._get_report_line_partner(report, options, partner, partner_values, markup=tax_ec_category)))
 
         # Report total line.
-        if lines:
-            lines.append((0, self._get_report_line_total(report, options, totals_by_column_group)))
-
+        lines.append((0, self._get_report_line_total(report, options, totals_by_column_group)))
         return lines
 
     def _caret_options_initializer(self):
@@ -89,12 +80,14 @@ class ECSalesReportCustomHandler(models.AbstractModel):
         """
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         self._init_core_custom_options(report, options, previous_options)
+        company_id = self.env.company.id
         options.update({
             'sales_report_taxes': {
                 'goods': tuple(self.env['account.tax'].search([
-                    *self.env['account.tax']._check_company_domain(self.env.company),
+                    ('company_id', '=', company_id),
                     ('amount', '=', 0.0),
                     ('amount_type', '=', 'percent'),
+                    ('type_tax_use', '=', 'sale'),
                 ]).ids),
                 'services': tuple(),
                 'triangular': tuple(),
@@ -110,8 +103,6 @@ class ECSalesReportCustomHandler(models.AbstractModel):
         options.setdefault('forced_domain', []).append(('partner_id.country_id', 'in', other_country_ids))
 
         report._init_options_journals(options, previous_options=previous_options)
-
-        self._enable_export_buttons_for_common_vat_groups_in_branches(options)
 
     def _init_core_custom_options(self, report, options, previous_options=None):
         """
@@ -136,8 +127,13 @@ class ECSalesReportCustomHandler(models.AbstractModel):
         """
         column_values = []
         for column in options['columns']:
-            value = partner_values[column['column_group_key']].get(column['expression_label'])
-            column_values.append(report._build_column_dict(value, column, options=options))
+            expression_label = column['expression_label']
+            value = partner_values[column['column_group_key']].get(expression_label)
+            column_values.append({
+                'name': report.format_value(value, blank_if_zero=column['blank_if_zero'], figure_type=column['figure_type']) if value is not None else value,
+                'no_format': value,
+                'class': 'number' if column['figure_type'] == 'monetary' else 'text'
+            }) # value is not None => allows to avoid the "0.0" or None values but only those
 
         return {
             'id': report._get_generic_line_id('res.partner', partner.id, markup=markup),
@@ -157,10 +153,12 @@ class ECSalesReportCustomHandler(models.AbstractModel):
         """
         column_values = []
         for column in options['columns']:
-            col_value = totals_by_column_group[column['column_group_key']].get(column['expression_label'])
-            col_value = col_value if column['figure_type'] == 'monetary' else ''
-
-            column_values.append(report._build_column_dict(col_value, column, options=options))
+            value = totals_by_column_group[column['column_group_key']].get(column['expression_label'])
+            column_values.append({
+                'name': report.format_value(value, figure_type=column['figure_type']) if value is not None else None,
+                'no_format': value if column['figure_type'] == 'monetary' else '',
+                'class': 'number' if column['figure_type'] == 'monetary' else 'text'
+            })
 
         return {
             'id': report._get_generic_line_id(None, None, markup='total'),
@@ -170,7 +168,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
             'columns': column_values,
         }
 
-    def _query_partners(self, report, options, warnings=None):
+    def _query_partners(self, report, options):
         ''' Execute the queries, perform all the computation, then
         returns a lists of tuple (partner, fetched_values) sorted by the table's model _order:
             - partner is a res.parter record.
@@ -223,13 +221,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
                 groupby_partners_keyed.setdefault('full_vat_number', vat)
                 groupby_partners_keyed.setdefault('country_code', vat[:2])
 
-                if warnings is not None:
-                    if row['country_code'] not in self._get_ec_country_codes(options):
-                        warnings['account_reports.sales_report_warning_non_ec_country'] = {'alert_type': 'warning'}
-                    elif not row.get('vat_number'):
-                        warnings['account_reports.sales_report_warning_missing_vat'] = {'alert_type': 'warning'}
-                    if row.get('same_country') and row['country_code']:
-                        warnings['account_reports.sales_report_warning_same_country'] = {'alert_type': 'warning'}
+                self._check_warnings(options, row)
 
         company_currency = self.env.company.currency_id
 
@@ -248,6 +240,14 @@ class ECSalesReportCustomHandler(models.AbstractModel):
 
         return [(partner, groupby_partners[partner.id]) for partner in partners.sorted()]
 
+    def _check_warnings(self, options, row):
+        if row['country_code'] not in self._get_ec_country_codes(options):
+            options['non_ec_country_warning'] = True
+        elif not row.get('vat_number'):
+            options['missing_vat_warning'] = True
+        if row.get('same_country'):
+            options['same_country_warning'] = row['country_code']
+
     def _get_query_sums(self, report, options):
         ''' Construct a query retrieving all the aggregated sums to build the report. It includes:
         - sums for all partners.
@@ -258,7 +258,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
         params = []
         queries = []
         # Create the currency table.
-        ct_query = report._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
         allowed_ids = self._get_tag_ids_filtered(options)
 
         # In the case of the generic report, we don't have a country defined. So no reliable tax report whose
@@ -338,7 +338,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
 
     def get_warning_act_window(self, options, params):
         act_window = {'type': 'ir.actions.act_window', 'context': {}}
-        if params['type'] == 'no_vat':
+        if params.get('type') == 'no_vat':
             aml_domains = [
                 ('partner_id.vat', '=', None),
                 ('partner_id.country_id.code', 'in', tuple(self._get_ec_country_codes(options))),
@@ -347,7 +347,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
                 'name': _("Entries with partners with no VAT"),
                 'context': {'search_default_group_by_partner': 1, 'expand': 1}
             })
-        elif params['type'] == 'non_ec_country':
+        elif params.get('type') == 'non_ec_country':
             aml_domains = [('partner_id.country_id.code', 'not in', tuple(self._get_ec_country_codes(options)))]
             act_window['name'] = _("EC tax on non EC countries")
         else:
@@ -360,8 +360,7 @@ class ECSalesReportCustomHandler(models.AbstractModel):
             *self.env['account.report']._get_options_date_domain(options, 'strict_range'),
             (tax_or_tag_field, 'in', tuple(self._get_tag_ids_filtered(options)))
         ])
-
-        if params['model'] == 'move':
+        if params.get('model') == 'move':
             act_window.update({
                 'views': [[self.env.ref('account.view_move_tree').id, 'list'], (False, 'form')],
                 'res_model': 'account.move',

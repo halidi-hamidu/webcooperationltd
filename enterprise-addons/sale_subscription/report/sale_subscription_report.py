@@ -3,125 +3,173 @@
 
 
 from odoo import fields, models
-from odoo.addons.sale_subscription.models.sale_order import SUBSCRIPTION_STATES
 
-class SaleSubscriptionReport(models.Model):
-    _inherit = "sale.report"
+
+class sale_subscription_report(models.Model):
     _name = "sale.subscription.report"
     _description = "Subscription Analysis"
     _auto = False
 
-    client_order_ref = fields.Char(string="Customer Reference", readonly=False)
-    first_contract_date = fields.Date(string='First contract date', readonly=True)
+    name = fields.Char()
+    date_order = fields.Date('Order Date', readonly=True)
     end_date = fields.Date('End Date', readonly=True)
-    recurring_monthly = fields.Monetary('Monthly Recurring', readonly=True)
-    recurring_yearly = fields.Monetary('Yearly Recurring', readonly=True)
-    recurring_total = fields.Monetary('Recurring Revenue', readonly=True)
-    is_subscription = fields.Boolean(readonly=True)
+    product_id = fields.Many2one('product.product', 'Product', readonly=True)
+    product_uom = fields.Many2one('uom.uom', 'Unit of Measure', readonly=True)
+    recurring_monthly = fields.Float('Monthly Recurring Revenue', readonly=True)
+    recurring_yearly = fields.Float('Yearly Recurring Revenue', readonly=True)
+    recurring_total = fields.Float('Recurring Amount', readonly=True)
+    quantity = fields.Float('Quantity', readonly=True)
+    partner_id = fields.Many2one('res.partner', 'Customer', readonly=True)
+    user_id = fields.Many2one('res.users', 'Salesperson', readonly=True)
+    team_id = fields.Many2one('crm.team', 'Sales Team', readonly=True)
+    company_id = fields.Many2one('res.company', 'Company', readonly=True)
+    categ_id = fields.Many2one('product.category', 'Product Category', readonly=True)
+    pricelist_id = fields.Many2one('product.pricelist', 'Pricelist', readonly=True)
     template_id = fields.Many2one('sale.order.template', 'Subscription Template', readonly=True)
+    product_tmpl_id = fields.Many2one('product.template', 'Product Template', readonly=True)
     country_id = fields.Many2one('res.country', 'Country', readonly=True)
     commercial_partner_id = fields.Many2one('res.partner', 'Customer Company', readonly=True)
     industry_id = fields.Many2one('res.partner.industry', 'Industry', readonly=True)
+    analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account', readonly=True)
     close_reason_id = fields.Many2one('sale.order.close.reason', 'Close Reason', readonly=True)
-    margin = fields.Float() # not used but we want to avoid creating a bridge module for nothing
-    subscription_state = fields.Selection(SUBSCRIPTION_STATES, readonly=True)
+    to_renew = fields.Boolean('To Renew', readonly=True)
+    stage_category = fields.Selection([
+        ('draft', 'Draft'),
+        ('progress', 'In Progress'),
+        ('closed', 'Closed')], readonly=True)
     health = fields.Selection([
         ('normal', 'Neutral'),
         ('done', 'Good'),
         ('bad', 'Bad')], string="Health", readonly=True)
-    next_invoice_date = fields.Date('Next Invoice Date', readonly=True)
-    plan_id = fields.Many2one('sale.subscription.plan', 'Plan', readonly=True)
-    origin_order_id = fields.Many2one('sale.order', string='First contract', readonly=True)
+    stage_id = fields.Many2one('sale.order.stage', string='Stage', readonly=True)
 
-    def _select_additional_fields(self):
-        res = super()._select_additional_fields()
-        res['is_subscription'] = "s.is_subscription"
-        res['subscription_state'] = "s.subscription_state"
-        res['end_date'] = "s.end_date"
-        res['first_contract_date'] = "s.first_contract_date"
-        res['health'] = "s.health"
-        res['template_id'] = "s.sale_order_template_id"
-        res['close_reason_id'] = "s.close_reason_id"
-        res['next_invoice_date'] = "s.next_invoice_date"
-        res['plan_id'] = "s.plan_id"
-        res['origin_order_id'] = "s.origin_order_id"
-        res['client_order_ref'] = "s.client_order_ref"
-        res['margin'] = 0
-        res['recurring_monthly'] = f"""sum(l.price_subtotal)
-            / CASE
-                WHEN ssp.billing_period_unit = 'week' THEN 7.0 / 30.437
-                WHEN ssp.billing_period_unit = 'month' THEN 1
-                WHEN ssp.billing_period_unit = 'year' THEN 12
-                ELSE 1
-             END
-            / ssp.billing_period_value
-            / {self._case_value_or_one('s.currency_rate') }
-            * {self._case_value_or_one('currency_table.rate') } 
-        """
-        res['recurring_yearly'] = f"""sum(l.price_subtotal)
-            / CASE
-                WHEN ssp.billing_period_unit = 'week' THEN 7.0 / 30.437
-                WHEN ssp.billing_period_unit = 'month' THEN 1
-                WHEN ssp.billing_period_unit = 'year' THEN 12
-                ELSE 1
-             END
-            / ssp.billing_period_value
-            * 12
-            / {self._case_value_or_one('s.currency_rate') }
-            * {self._case_value_or_one('currency_table.rate') }
-        """
-        res['recurring_total'] = f"""
-                s.recurring_total
-                / {self._case_value_or_one('s.currency_rate') }
-                * {self._case_value_or_one('currency_table.rate') }  
-        """
-        return res
-
-    def _from_sale(self):
-        frm = super()._from_sale()
-        return f"""
-            {frm}
-            LEFT JOIN sale_subscription_plan ssp ON ssp.id = s.plan_id
+    def _select(self):
+        return """
+            MIN(l.id) AS id,
+            sub.name AS name,
+            l.product_id AS product_id,
+            l.product_uom AS product_uom,
+            sub.analytic_account_id AS analytic_account_id,
+            SUM(
+                COALESCE(t.recurring_invoice, false)::INT
+                * COALESCE(l.price_subtotal / NULLIF(rc.recurring_subtotal, 0), 0)
+                * sub.recurring_monthly
+                / COALESCE(NULLIF(sub.currency_rate, 0), 1)
+                * COALESCE(NULLIF(currency_table.rate, 0), 1)
+            ) AS recurring_monthly,
+            SUM(
+                COALESCE(t.recurring_invoice, false)::INT
+                * COALESCE(l.price_subtotal / NULLIF(rc.recurring_subtotal, 0), 0)
+                * sub.recurring_monthly * 12
+                / COALESCE(NULLIF(sub.currency_rate, 0), 1)
+                * COALESCE(NULLIF(currency_table.rate, 0), 1)
+            ) AS recurring_yearly,
+            SUM (
+                COALESCE(t.recurring_invoice, false)::INT
+                * l.price_subtotal
+                / COALESCE(NULLIF(sub.currency_rate, 0), 1)
+                * COALESCE(NULLIF(currency_table.rate, 0), 1)
+            ) AS recurring_total,
+            SUM(l.product_uom_qty) AS quantity,
+            sub.date_order AS date_order,
+            sub.end_date AS end_date,
+            sub.partner_id AS partner_id,
+            sub.user_id AS user_id,
+            sub.team_id,
+            sub.company_id AS company_id,
+            sub.to_renew,
+            sub.stage_category,
+            sub.health,
+            sub.stage_id,
+            sub.sale_order_template_id AS template_id,
+            t.categ_id AS categ_id,
+            sub.pricelist_id AS pricelist_id,
+            p.product_tmpl_id,
+            partner.country_id AS country_id,
+            partner.commercial_partner_id AS commercial_partner_id,
+            partner.industry_id AS industry_id,
+            sub.close_reason_id AS close_reason_id
         """
 
-    def _where_sale(self):
-        where = super()._where_sale()
-        return f"""
-            {where}
-            AND s.subscription_state IS NOT NULL
+    def _from(self):
+        return """
+                    sale_order_line l
+            JOIN    sale_order sub ON (l.order_id=sub.id)
+            JOIN    sale_order_stage stage ON sub.stage_id = stage.id
+            JOIN    res_partner partner ON sub.partner_id = partner.id
+            LEFT JOIN product_product p ON (l.product_id=p.id)
+            LEFT JOIN product_template t ON (p.product_tmpl_id=t.id)
+            LEFT JOIN uom_uom u ON (u.id=l.product_uom)
+            LEFT OUTER JOIN account_analytic_account a ON sub.id=a.id
+            LEFT JOIN ( 
+                SELECT 
+                    sub.id AS id,
+                    SUM(l.price_subtotal) AS recurring_subtotal
+                FROM 
+                            sale_order_line l
+                    JOIN    sale_order sub ON (l.order_id=sub.id)
+                    LEFT JOIN product_product p ON (l.product_id=p.id)
+                    LEFT JOIN product_template t ON (p.product_tmpl_id=t.id)
+                WHERE 
+                    sub.is_subscription
+                AND t.recurring_invoice
+                GROUP BY
+                    sub.id
+            ) rc ON rc.id = sub.id
+            JOIN {currency_table} ON currency_table.company_id = sub.company_id
+        """.format(
+            currency_table=self.env['res.currency']._get_query_currency_table(
+                {
+                    'multi_company': True,
+                    'date': {'date_to': fields.Date.today()}
+                }),
+        )
+
+    def _where(self):
+        return """
+            sub.is_subscription
+            AND sub.recurring_live
         """
 
-    def _group_by_sale(self):
-        group_by_str = super()._group_by_sale()
-        group_by_str = f"""{group_by_str},
-                    s.subscription_state,
-                    s.end_date,
-                    s.health,
-                    s.subscription_state,
-                    s.sale_order_template_id,
-                    partner.industry_id,
-                    s.close_reason_id,
-                    s.state,
-                    s.next_invoice_date,
-                    s.plan_id,
-                    s.origin_order_id,
-                    s.first_contract_date,
-                    s.client_order_ref,
-                    ssp.billing_period_unit,
-                    ssp.billing_period_value
+    def _group_by(self):
+        return """
+            l.product_id,
+            l.product_uom,
+            t.categ_id,
+            sub.analytic_account_id,
+            sub.recurring_monthly,
+            sub.amount_untaxed,
+            sub.date_order,
+            sub.end_date,
+            sub.partner_id,
+            sub.user_id,
+            sub.team_id,
+            sub.company_id,
+            sub.to_renew,
+            sub.stage_category,
+            sub.health,
+            sub.stage_id,
+            sub.name,
+            sub.sale_order_template_id,
+            sub.pricelist_id,
+            p.product_tmpl_id,
+            partner.country_id,
+            partner.commercial_partner_id,
+            partner.industry_id,
+            sub.close_reason_id
         """
-        return group_by_str
 
-    def action_open_subscription_order(self):
-        self.ensure_one()
-        if self.order_reference._name == 'sale.order':
-            action = self.order_reference._get_associated_so_action()
-            action['views'] = [(self.env.ref('sale_subscription.sale_subscription_primary_form_view').id, 'form')]
-            action['res_id'] = self.order_reference.id
-            return action
-        return {
-            'res_model': self._name,
-            'type': 'ir.actions.act_window',
-            'views': [[False, "form"]],
-            'res_id': self.id,
-        }
+    @property
+    def _table_query(self):
+        return self._query()
+
+    def _query(self):
+        return """
+            SELECT %s
+              FROM %s
+             WHERE %s
+          GROUP BY %s
+        """ % (self._select(), self._from(), self._where(), self._group_by())
+
+    def init(self):
+        self.env.cr.execute(f'DROP VIEW IF EXISTS {self._table}')

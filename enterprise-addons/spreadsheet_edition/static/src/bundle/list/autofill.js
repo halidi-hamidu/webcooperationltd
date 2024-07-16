@@ -1,8 +1,8 @@
 /** @odoo-module */
 
 import { getNumberOfListFormulas } from "@spreadsheet/list/list_helpers";
-import { containsReferences } from "@spreadsheet/helpers/helpers";
-import * as spreadsheet from "@odoo/o-spreadsheet";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
+import { containsReferences } from "../helpers";
 
 const { autofillModifiersRegistry, autofillRulesRegistry } = spreadsheet.registries;
 
@@ -13,13 +13,12 @@ const { autofillModifiersRegistry, autofillRulesRegistry } = spreadsheet.registr
 autofillRulesRegistry.add("autofill_list", {
     condition: (cell) =>
         cell &&
-        cell.isFormula &&
-        getNumberOfListFormulas(cell.compiledFormula.tokens) === 1 &&
+        cell.isFormula() &&
+        getNumberOfListFormulas(cell.content) === 1 &&
         !containsReferences(cell),
     generateRule: (cell, cells) => {
         const increment = cells.filter(
-            (cell) =>
-                cell && cell.isFormula && getNumberOfListFormulas(cell.compiledFormula.tokens) === 1
+            (cell) => cell && cell.isFormula() && getNumberOfListFormulas(cell.content) === 1
         ).length;
         return { type: "LIST_UPDATER", increment, current: 0 };
     },
@@ -52,7 +51,11 @@ autofillModifiersRegistry.add("LIST_UPDATER", {
                 isColumn = true;
                 steps = rule.current;
         }
-        const content = getters.getNextListValue(data.cell.content, isColumn, steps);
+        const content = getters.getNextListValue(
+            getters.getFormulaCellContent(data.sheetId, data.cell),
+            isColumn,
+            steps
+        );
         let tooltip = {
             props: {
                 content,

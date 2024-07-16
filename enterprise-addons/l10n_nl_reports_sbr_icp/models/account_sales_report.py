@@ -36,22 +36,20 @@ class DutchECSalesReportCustomHandler(models.AbstractModel):
     def export_icp_report_to_xbrl(self, options):
         # This will generate the XBRL file (similar style to XML).
         report = self.env['account.report'].browse(options['report_id'])
-        query, params = self._get_lines_query_params(report, options, 'icp')
-        self._cr.execute(query, params)
-        lines = self._cr.dictfetchall()
-        data = self._generate_codes_values(lines, options.get('codes_values'))
+        lines = report._get_lines(options)
+        data = self._generate_codes_values(report, lines, options)
 
         xbrl = self.env['ir.qweb']._render('l10n_nl_reports_sbr_icp.icp_report_sbr', data)
         xbrl_element = etree.fromstring(xbrl)
         xbrl_file = etree.tostring(xbrl_element, xml_declaration=True, encoding='utf-8')
         return {
-            'file_name': report.get_default_report_filename(options, 'xbrl'),
+            'file_name': report.get_default_report_filename('xbrl'),
             'file_content': xbrl_file,
             'file_type': 'xml',
         }
 
-    def _generate_codes_values(self, lines, codes_values=None):
-        codes_values = codes_values or {}
+    def _generate_codes_values(self, report, lines, options):
+        codes_values = options.get('codes_values', {})
         codes_values.update({
             'IntraCommunitySupplies': [],
             'IntraCommunityServices': [],
@@ -59,24 +57,26 @@ class DutchECSalesReportCustomHandler(models.AbstractModel):
             'VATIdentificationNumberNLFiscalEntityDivision': self.env.company.vat[2:] if self.env.company.vat.startswith('NL') else self.env.company.vat,
         })
 
+        colname_to_idx = {col['expression_label']: idx for idx, col in enumerate(options.get('columns', []))}
+        company_currency = self.env.company.currency_id
         for line in lines:
-            vat = line['vat'][2:] if line['vat'].startswith(line['country_code']) else line['vat']
-            if line['amount_product'] > 0:
-                codes_values['IntraCommunitySupplies'].append({
-                    'CountryCodeISO': line['country_code'],
-                    'SuppliesAmount': str(int(line['amount_product'])),
-                    'VATIdentificationNumberNational': vat,
-                })
-            if line['amount_service'] > 0:
-                codes_values['IntraCommunityServices'].append({
-                    'CountryCodeISO': line['country_code'],
-                    'ServicesAmount': str(int(line['amount_service'])),
-                    'VATIdentificationNumberNational': vat,
-                })
-            if line['amount_triangular'] > 0:
-                codes_values['IntraCommunityABCSupplies'].append({
-                    'CountryCodeISO': line['country_code'],
-                    'SuppliesAmount': str(int(line['amount_triangular'])),
-                    'VATIdentificationNumberNational': vat,
-                })
+            if report._get_markup(line['id']) != 'total':
+                if company_currency.compare_amounts(line['columns'][colname_to_idx['amount_product']].get('no_format', 0), 0) == 1:
+                    codes_values['IntraCommunitySupplies'].append({
+                        'CountryCodeISO': line['columns'][colname_to_idx['country_code']].get('name'),
+                        'SuppliesAmount': str(int(line['columns'][colname_to_idx['amount_product']].get('no_format'))),
+                        'VATIdentificationNumberNational': line['columns'][colname_to_idx['vat']].get('name'),
+                    })
+                if company_currency.compare_amounts(line['columns'][colname_to_idx['amount_service']].get('no_format', 0), 0) == 1:
+                    codes_values['IntraCommunityServices'].append({
+                        'CountryCodeISO': line['columns'][colname_to_idx['country_code']].get('name'),
+                        'ServicesAmount': str(int(line['columns'][colname_to_idx['amount_service']].get('no_format'))),
+                        'VATIdentificationNumberNational': line['columns'][colname_to_idx['vat']].get('name', 0),
+                    })
+                if company_currency.compare_amounts(line['columns'][colname_to_idx['amount_triangular']].get('no_format', 0), 0) == 1:
+                    codes_values['IntraCommunityABCSupplies'].append({
+                        'CountryCodeISO': line['columns'][colname_to_idx['country_code']].get('name'),
+                        'SuppliesAmount': str(int(line['columns'][colname_to_idx['amount_triangular']].get('no_format'))),
+                        'VATIdentificationNumberNational': line['columns'][colname_to_idx['vat']].get('name'),
+                    })
         return codes_values

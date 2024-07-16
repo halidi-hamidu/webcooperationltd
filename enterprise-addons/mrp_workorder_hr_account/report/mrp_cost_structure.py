@@ -11,7 +11,7 @@ class MrpCostStructure(models.AbstractModel):
 
     def get_lines(self, productions):
         lines = super().get_lines(productions)
-        currency_table = self.env['res.currency']._get_query_currency_table(self.env.companies.ids, fields.Date.today())
+        currency_table = self.env['res.currency']._get_query_currency_table({'multi_company': True, 'date': {'date_to': fields.Date.today()}})
         employee_times = self.env['mrp.workcenter.productivity'].search([
             ('production_id', 'in', productions.ids),
             ('employee_id', '!=', False),

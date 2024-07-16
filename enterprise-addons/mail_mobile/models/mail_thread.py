@@ -22,12 +22,8 @@ class MailThread(models.AbstractModel):
     _inherit = 'mail.thread'
 
     def _notify_thread(self, message, msg_vals=False, **kwargs):
-        scheduled_date = self._is_notification_scheduled(kwargs.get('scheduled_date'))
         recipients_data = super(MailThread, self)._notify_thread(message, msg_vals=msg_vals, **kwargs)
-
-        # if scheduled for later: notification queue will call the notification method
-        if not scheduled_date:
-            self._notify_thread_by_ocn(message, recipients_data, msg_vals, **kwargs)
+        self._notify_thread_by_ocn(message, recipients_data, msg_vals, **kwargs)
         return recipients_data
 
     def _notify_thread_by_ocn(self, message, recipients_data, msg_vals=False, **kwargs):
@@ -57,13 +53,24 @@ class MailThread(models.AbstractModel):
         if not icp_sudo.get_param('odoo_ocn.project_id') or not icp_sudo.get_param('mail_mobile.enable_ocn'):
             return
 
-        msg_vals = dict(msg_vals or {})
-        pids = self._extract_partner_ids_for_notifications(message, msg_vals, recipients_data)
+        notif_pids = [r['id'] for r in recipients_data if r['active']]
+        no_inbox_pids = [r['id'] for r in recipients_data if r['active'] and r['notif'] != 'inbox']
 
-        if not pids:
+        if not notif_pids:
             return
 
-        self._notify_by_ocn_send(message, pids, msg_vals=msg_vals)
+        msg_vals = dict(msg_vals or {})
+        msg_sudo = message.sudo()
+        msg_type = msg_vals.get('message_type') or msg_sudo.message_type
+        author_id = [msg_vals.get('author_id')] if 'author_id' in msg_vals else msg_sudo.author_id.ids
+
+        # never send to author and to people outside of odoo (email), except comments
+        if msg_type == 'comment':
+            pids = set(notif_pids) - set(author_id)
+            self._notify_by_ocn_send(message, list(pids), msg_vals=msg_vals)
+        elif msg_type in ('notification', 'user_notification', 'email'):
+            pids = (set(notif_pids) - set(author_id) - set(no_inbox_pids))
+            self._notify_by_ocn_send(message, list(pids), msg_vals=msg_vals)
 
     def _notify_by_ocn_send(self, message, partner_ids, msg_vals=False):
         """
@@ -134,8 +141,11 @@ class MailThread(models.AbstractModel):
             "db_id": self.env['res.config.settings']._get_ocn_uuid()
         }
 
-        if not payload['model'] and msg_vals and msg_vals.get('body'):
-            payload['model'], payload['res_id'] = self._extract_model_and_id(msg_vals)
+        if not payload['model']:
+            result = self._extract_model_and_id(msg_vals)
+            if result:
+                payload['model'] = result['model']
+                payload['res_id'] = result['res_id']
 
         payload['subject'] = record_name or subject
         payload['android_channel_id'] = 'Following'
@@ -152,6 +162,25 @@ class MailThread(models.AbstractModel):
             payload['body'] = payload_body[:4000 - payload_length]
 
         return payload
+
+    @api.model
+    def _extract_model_and_id(self, msg_vals):
+        """
+        Return the model and the id when is present in a link (HTML)
+
+        :param msg_vals: see ``_notify_thread_by_ocn()``;
+
+        :return: a dict empty if no matches and a dict with these keys if match : model and res_id
+        """
+        regex = r"<a.+model=(?P<model>[\w.]+).+res_id=(?P<id>\d+).+>[\s\w\/\\.]+<\/a>"
+        matches = re.finditer(regex, msg_vals.get('body'))
+
+        for match in matches:
+            return {
+                'model': match.group('model'),
+                'res_id': match.group('id'),
+            }
+        return {}
 
     @api.model
     def _at_mention_analyser(self, body):
@@ -177,6 +206,33 @@ class MailThread(models.AbstractModel):
                     # So it's better to have no id instead of blocking the process.
                     _logger.error("Invalid conversion to int: %s" % match_id)
         return at_mention_ids
+
+    @api.model
+    def _generate_tracking_message(self, message, return_line='\n'):
+        '''
+        Format the tracking values like in the chatter
+        :param message: current mail.message record
+        :param return_line: type of return line
+        :return: a string with the new text if there is one or more tracking value
+        '''
+        tracking_message = ''
+        if message.subtype_id and message.subtype_id.description:
+            tracking_message = return_line + message.subtype_id.description + return_line
+
+        for value in message.sudo().tracking_value_ids.filtered(lambda tracking: not tracking.field_groups):
+            if value.field_type == 'boolean':
+                old_value = str(bool(value.old_value_integer))
+                new_value = str(bool(value.new_value_integer))
+            else:
+                old_value = value.old_value_char if value.old_value_char else str(value.old_value_integer)
+                new_value = value.new_value_char if value.new_value_char else str(value.new_value_integer)
+
+            tracking_message += value.field_desc + ': ' + old_value
+            if old_value != new_value:
+                tracking_message += ' → ' + new_value
+            tracking_message += return_line
+
+        return tracking_message
 
     # Firebase Dynamic Links
 

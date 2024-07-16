@@ -45,7 +45,6 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                         - file_content
                         - file_type
         """
-        #pylint: disable=sql-injection
         # Fetch data.
         self.env['account.move.line'].check_access_rights('read')
 
@@ -180,7 +179,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             ''.ljust(111)                                                       # Reserve               length=111
         ])
         return {
-            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename(options, 'csv'),
+            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename('csv'),
             'file_content': file_content,
             'file_type': 'csv',
         }

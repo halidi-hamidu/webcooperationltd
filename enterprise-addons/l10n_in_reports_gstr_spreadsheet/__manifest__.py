@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': "Spreadsheet document for GSTR1 Report",
-    'countries': ['in'],
+    'icon': '/l10n_in/static/description/icon.png',
     'version': '1.0',
     'category': 'Productivity/Documents',
     'summary': 'Spreadsheet document for GSTR1 Report',

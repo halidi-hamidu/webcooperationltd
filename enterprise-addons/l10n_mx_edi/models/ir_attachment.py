@@ -56,7 +56,7 @@ class IrAttachment(models.Model):
         ['http://www.sat.gob.mx/ComercioExterior11',
          'http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior11/ComercioExterior11.xsd'],
         ['http://www.sat.gob.mx/ComercioExterior20',
-         'http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior11/ComercioExterior20.xsd'],
+         'http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior20/ComercioExterior20.xsd'],
         ['http://www.sat.gob.mx/Pagos',
          'http://www.sat.gob.mx/sitio_internet/cfd/Pagos/Pagos10.xsd'],
         ['http://www.sat.gob.mx/iedu',
@@ -101,6 +101,10 @@ class IrAttachment(models.Model):
         # EXTENDS account/models/ir_attachment.py
         self._l10n_mx_edi_load_xsd_files()
         super().action_download_xsd_files()
+
+    @api.model
+    def l10n_mx_edi_validate_xml_from_attachment(self, xml_content, xsd_name):
+        tools.validate_xml_from_attachment(self.env, xml_content, xsd_name, prefix='l10n_mx_edi')
 
     @api.model
     def _load_xsd_complements(self, content):

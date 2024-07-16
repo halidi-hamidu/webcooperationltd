@@ -13,4 +13,5 @@ class IotDevice(models.Model):
     @api.depends('type')
     def _compute_qcp_test_type(self):
         types = {'device': 'measure', 'scale': 'measure', 'camera': 'picture', 'printer': 'print_label'}
-        self.qcp_test_type = types.get(self.type, '')
+        for device in self:
+            device.qcp_test_type = types.get(device.type, '')

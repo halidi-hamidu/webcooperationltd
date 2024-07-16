@@ -55,6 +55,7 @@ class GovCertificationController(http.Controller):
         """
         logs = request.env["pos_blackbox_be.log"].search([
             ("action", "=", "create"),
+            ("model_name", "in", ["pos.order", "pos.order_pro_forma_be"]),
             ("description", "ilike", serial),
         ], order='id')
 

@@ -40,7 +40,6 @@ class TestAppointmentEventNotifications(AppointmentCommon):
                     event = self.env['calendar.event'].sudo().with_context(
                         mail_notify_author=True,
                     ).create({
-                        "appointment_booker_id": self.user_portal.partner_id.id,
                         "appointment_type_id": appointment_type_id,
                         "name": "Appointment",
                         "partner_ids": [

@@ -7,15 +7,15 @@ from odoo.tests import tagged
 class TestAustraliaTparReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref="au"):
+    def setUpClass(cls, chart_template_ref="l10n_au.l10n_au_chart_template"):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.partner_a.vat = '22 225 459 588'
         cls.partner_b.vat = '11 225 459 588'
 
     def test_tpar(self):
-        purch_tpar_tax = self.env.ref(f'account.{self.env.company.id}_au_tax_purchase_10_service_tpar')
-        purch_tpar_no_abn_tax = self.env.ref(f'account.{self.env.company.id}_au_tax_purchase_10_service_tpar_no_abn')
+        purch_tpar_tax = self.env.ref(f'l10n_au.{self.env.company.id}_au_tax_purchase_10_service_tpar')
+        purch_tpar_no_abn_tax = self.env.ref(f'l10n_au.{self.env.company.id}_au_tax_purchase_10_service_tpar_no_abn')
 
         date_invoice = '2023-01-01'
         bills = self.env['account.move'].create([
@@ -68,9 +68,8 @@ class TestAustraliaTparReport(TestAccountReportsCommon):
             #    Name,                       ABN, Total GST, Gross Paid, Tax Withheld
             [    0,                            1,         2,          3,           4,],
             [
-                ('partner_a',   "22 225 459 588",       50.0,       550.0,       0.0,),
+                ('partner_a',   "22 225 459 588",       50.0,       550.0,        "",),
                 ('partner_b',   "11 225 459 588",       30.0,       189.0,     141.0,),
-                ('Total',                     "",       80.0,       739.0,     141.0,),
-            ],
-            options,
+                ('Total',                   None,       80.0,       739.0,     141.0,),
+            ]
         )

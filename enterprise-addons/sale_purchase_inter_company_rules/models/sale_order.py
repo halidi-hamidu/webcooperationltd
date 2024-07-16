@@ -16,7 +16,7 @@ class sale_order(models.Model):
         for order in self:
             if not order.company_id: # if company_id not found, return to normal behavior
                 continue
-            # if company allow to create a Purchase Order from Sales Order, then do it!
+            # if company allow to create a Purchase Order from Sales Order, then do it !
             company = self.env['res.company']._find_company_from_partner(order.partner_id.id)
             if company and company.rule_type in ('sale', 'sale_purchase') and (not order.auto_generated):
                 order.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(company).inter_company_create_purchase_order(company)
@@ -117,3 +117,16 @@ class sale_order(models.Model):
             'date_planned': so_line.order_id.expected_date or date_order,
             'display_type': so_line.display_type,
         }
+
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    def _purchase_service_create(self, quantity=False):
+        line_to_purchase = set()
+        for line in self:
+            # Do not auto purchase as the sale order is automatically created in a intercompany flow
+            if not line.order_id.auto_generated and not line.order_id.auto_purchase_order_id:
+                line_to_purchase.add(line.id)
+        line_to_purchase = self.env['sale.order.line'].browse(list(line_to_purchase))
+        return super(SaleOrderLine, line_to_purchase)._purchase_service_create(quantity=quantity)

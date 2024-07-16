@@ -21,5 +21,5 @@ class AccountInvoiceReference(models.Model):
     l10n_cl_reference_doc_internal_type = fields.Selection(related='l10n_cl_reference_doc_type_id.internal_type',
                                                            string='Internal Type')
     reason = fields.Char(string='Reason')
-    move_id = fields.Many2one('account.move', ondelete='cascade', string='Originating Document', index='btree_not_null')
+    move_id = fields.Many2one('account.move', ondelete='cascade', string='Originating Document')
     date = fields.Date(string='Document Date', required=True)

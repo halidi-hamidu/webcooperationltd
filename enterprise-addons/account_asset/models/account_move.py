@@ -5,14 +5,15 @@ from odoo import api, fields, models, _, _lt, Command
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
 from odoo.tools.misc import formatLang
-from collections import defaultdict, namedtuple
 from dateutil.relativedelta import relativedelta
+from collections import defaultdict, namedtuple
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
     asset_id = fields.Many2one('account.asset', string='Asset', index=True, ondelete='cascade', copy=False, domain="[('company_id', '=', company_id)]")
+    asset_asset_type = fields.Selection(related='asset_id.asset_type')
     asset_remaining_value = fields.Monetary(string='Depreciable Value', compute='_compute_depreciation_cumulative_value')
     asset_depreciated_value = fields.Monetary(string='Cumulative Depreciation', compute='_compute_depreciation_cumulative_value')
     # true when this move is the result of the changing of value of an asset
@@ -26,9 +27,10 @@ class AccountMove(models.Model):
     )
 
     asset_ids = fields.One2many('account.asset', string='Assets', compute="_compute_asset_ids")
+    linked_asset_type = fields.Char(compute="_compute_asset_ids")  # just a button label. That's to avoid a plethora of different buttons defined in xml
     asset_id_display_name = fields.Char(compute="_compute_asset_ids")   # just a button label. That's to avoid a plethora of different buttons defined in xml
-    count_asset = fields.Integer(compute="_compute_asset_ids")
-    draft_asset_exists = fields.Boolean(compute="_compute_asset_ids")
+    number_asset_ids = fields.Integer(compute="_compute_asset_ids")
+    draft_asset_ids = fields.Boolean(compute="_compute_asset_ids")
 
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
@@ -58,10 +60,10 @@ class AccountMove(models.Model):
         for move in self:
             asset = move.asset_id or move.reversed_entry_id.asset_id  # reversed moves are created before being assigned to the asset
             if asset:
-                account_internal_group = 'expense'
+                account_internal_group = 'income' if asset.asset_type == 'sale' else 'expense'
                 asset_depreciation = sum(
                     move.line_ids.filtered(lambda l: l.account_id.internal_group == account_internal_group or l.account_id == asset.account_depreciation_expense_id).mapped('balance')
-                )
+                ) * (-1 if asset.asset_type == 'sale' else 1)
                 # Special case of closing entry - only disposed assets of type 'purchase' should match this condition
                 # The condition on len(move.line_ids) is to avoid the case where there is only one depreciation move, and it is not a disposal move
                 # The condition will be matched because a disposal move from a disposal move will always have more than 2 lines, unlike a normal depreciation move
@@ -88,7 +90,7 @@ class AccountMove(models.Model):
         for move in self:
             asset = move.asset_id
             amount = abs(move.depreciation_value)
-            account = asset.account_depreciation_expense_id
+            account = asset.account_depreciation_expense_id if asset.asset_type != 'sale' else asset.account_depreciation_id
             move.write({'line_ids': [
                 Command.update(line.id, {
                     'balance': amount if line.account_id == account else -amount,
@@ -117,6 +119,9 @@ class AccountMove(models.Model):
         # configured to automatically create assets
         posted.sudo()._auto_create_asset()
 
+        # close deferred expense/revenue if all their depreciation moves are posted
+        posted._close_assets()
+
         return posted
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
@@ -138,13 +143,13 @@ class AccountMove(models.Model):
 
                     self.create(self._prepare_move_for_asset_depreciation({
                         'asset_id': move.asset_id,
-                        'amount': move.depreciation_value,
+                        'amount': move.depreciation_value if move.asset_id.asset_type != 'sale' else -move.depreciation_value,
                         'depreciation_beginning_date': last_date + (relativedelta(months=1) if method_period == "1" else relativedelta(years=1)),
                         'date': last_date + (relativedelta(months=1) if method_period == "1" else relativedelta(years=1)),
                         'asset_number_days': 0
                     }))
 
-                msg = _('Depreciation entry %s reversed (%s)', move.name, formatLang(self.env, move.depreciation_value, currency_obj=move.company_id.currency_id))
+                msg = _('Depreciation entry %s reversed (%s)') % (move.name, formatLang(self.env, move.depreciation_value, currency_obj=move.company_id.currency_id))
                 move.asset_id.message_post(body=msg)
                 default_values['asset_id'] = move.asset_id.id
                 default_values['asset_number_days'] = -move.asset_number_days
@@ -169,7 +174,7 @@ class AccountMove(models.Model):
     def _log_depreciation_asset(self):
         for move in self.filtered(lambda m: m.asset_id):
             asset = move.asset_id
-            msg = _('Depreciation entry %s posted (%s)', move.name, formatLang(self.env, move.depreciation_value, currency_obj=move.company_id.currency_id))
+            msg = _('Depreciation entry %s posted (%s)') % (move.name, formatLang(self.env, move.depreciation_value, currency_obj=move.company_id.currency_id))
             asset.message_post(body=msg)
 
     def _auto_create_asset(self):
@@ -192,7 +197,7 @@ class AccountMove(models.Model):
                     and not (move.move_type in ('out_invoice', 'out_refund') and move_line.account_id.internal_group == 'asset')
                 ):
                     if not move_line.name:
-                        raise UserError(_('Journal Items of %(account)s should have a label in order to generate an asset', account=move_line.account_id.display_name))
+                        raise UserError(_('Journal Items of {account} should have a label in order to generate an asset').format(account=move_line.account_id.display_name))
                     if move_line.account_id.multiple_assets_per_line:
                         # decimal quantities are not supported, quantities are rounded to the lower int
                         units_quantity = max(1, int(move_line.quantity))
@@ -226,15 +231,20 @@ class AccountMove(models.Model):
                 if validate:
                     asset.validate()
             if invoice:
-                asset.message_post(body=_('Asset created from invoice: %s', invoice._get_html_link()))
+                asset_name = {
+                    'purchase': _lt('Asset'),
+                    'sale': _lt('Deferred revenue'),
+                    'expense': _lt('Deferred expense'),
+                }[asset.asset_type]
+                asset.message_post(body=_('%s created from invoice: %s', asset_name, invoice._get_html_link()))
                 asset._post_non_deductible_tax_value()
         return assets
 
     @api.model
     def _prepare_move_for_asset_depreciation(self, vals):
-        missing_fields = {'asset_id', 'amount', 'depreciation_beginning_date', 'date', 'asset_number_days'} - set(vals)
+        missing_fields = set(['asset_id', 'amount', 'depreciation_beginning_date', 'date', 'asset_number_days']) - set(vals)
         if missing_fields:
-            raise UserError(_('Some fields are missing %s', ', '.join(missing_fields)))
+            raise UserError(_('Some fields are missing {}').format(', '.join(missing_fields)))
         asset = vals['asset_id']
         analytic_distribution = asset.analytic_distribution
         depreciation_date = vals.get('date', fields.Date.context_today(self))
@@ -286,15 +296,69 @@ class AccountMove(models.Model):
     def _compute_asset_ids(self):
         for record in self:
             record.asset_ids = record.line_ids.asset_ids
-            record.count_asset = len(record.asset_ids)
-            record.asset_id_display_name = _('Asset')
-            record.draft_asset_exists = bool(record.asset_ids.filtered(lambda x: x.state == "draft"))
+            record.number_asset_ids = len(record.asset_ids)
+            record.linked_asset_type = record.asset_ids[:1].asset_type
+            record.asset_id_display_name = {'sale': _('Revenue'), 'purchase': _('Asset'), 'expense': _('Expense')}.get(record.asset_id.asset_type)
+            record.draft_asset_ids = bool(record.asset_ids.filtered(lambda x: x.state == "draft"))
 
     def open_asset_view(self):
         return self.asset_id.open_asset(['form'])
 
     def action_open_asset_ids(self):
         return self.asset_ids.open_asset(['tree', 'form'])
+
+    # DEPRECATED - to be removed in master
+    def _delete_reversed_entry_assets(self):
+        ReverseKey = namedtuple('ReverseKey', ['product_id', 'price_unit', 'quantity'])
+
+        def build_key(line):
+            return ReverseKey(**{k: line[k] for k in ReverseKey._fields})
+
+        for move in self.filtered(lambda m: m.reversed_entry_id):
+            reversed_products = move.invoice_line_ids.mapped(build_key)
+            # handle single asset per line by checking match on product_id, price_unit and quantity
+            for line in move.reversed_entry_id.line_ids.filtered(lambda l: (
+                l.asset_ids
+                and not l.account_id.multiple_assets_per_line
+                and build_key(l) in reversed_products
+            )):
+                try:
+                    index = reversed_products.index(build_key(line))
+                except ValueError:
+                    continue
+
+                for asset in line.asset_ids:
+                    if asset.state == 'draft' or all(state == 'draft' for state in asset.depreciation_move_ids.mapped('state')):
+                        asset.state = 'draft'
+                        asset.unlink()
+                del reversed_products[index]
+
+            # handle multiple assets per line by counting the remaining reversed quantities
+            rp_count = defaultdict(float)
+            for rp in reversed_products:
+                rp_count[(rp.product_id.id, rp.price_unit)] += rp.quantity
+
+            for line in move.reversed_entry_id.line_ids.filtered(lambda l: (
+                l.asset_ids
+                and l.account_id.multiple_assets_per_line
+                and rp_count.get((l.product_id.id, l.price_unit))
+            )):
+                for asset in line.asset_ids:
+                    if (
+                        rp_count[(line.product_id.id, line.price_unit)] > 0
+                        and (asset.state == 'draft' or all(
+                            state == 'draft'
+                            for state in asset.depreciation_move_ids.mapped('state')
+                        ))
+                    ):
+                        asset.state = 'draft'
+                        asset.unlink()
+                        rp_count[(line.product_id.id, line.price_unit)] -= 1
+
+    def _close_assets(self):
+        for asset in self.asset_id:
+            if asset.asset_type in ('expense', 'sale') and all(m.state == 'posted' for m in asset.depreciation_move_ids):
+                asset.write({'state': 'close'})
 
 
 class AccountMoveLine(models.Model):
@@ -308,24 +372,36 @@ class AccountMoveLine(models.Model):
             return self.tax_ids
         return super()._get_computed_taxes()
 
-    def turn_as_asset(self):
+    def _turn_as_asset(self, asset_type, view_name, view):
         ctx = self.env.context.copy()
         ctx.update({
             'default_original_move_line_ids': [(6, False, self.env.context['active_ids'])],
             'default_company_id': self.company_id.id,
+            'asset_type': asset_type,
+            'default_asset_type': asset_type,
         })
         if any(line.move_id.state == 'draft' for line in self):
             raise UserError(_("All the lines should be posted"))
         if any(account != self[0].account_id for account in self.mapped('account_id')):
             raise UserError(_("All the lines should be from the same account"))
         return {
-            "name": _("Turn as an asset"),
+            "name": view_name,
             "type": "ir.actions.act_window",
             "res_model": "account.asset",
-            "views": [[False, "form"]],
+            "views": [[view.id, "form"]],
             "target": "current",
             "context": ctx,
         }
+
+    def turn_as_asset(self):
+        return self._turn_as_asset('purchase', _("Turn as an asset"), self.env.ref("account_asset.view_account_asset_form"))
+
+    def turn_as_deferred(self):
+        balance = sum(aml.debit - aml.credit for aml in self)
+        if balance > 0:
+            return self._turn_as_asset('expense', _("Turn as a deferred expense"), self.env.ref('account_asset.view_account_asset_expense_form'))
+        else:
+            return self._turn_as_asset('sale', _("Turn as a deferred revenue"), self.env.ref('account_asset.view_account_asset_revenue_form'))
 
     @api.depends('tax_ids.invoice_repartition_line_ids')
     def _compute_non_deductible_tax_value(self):

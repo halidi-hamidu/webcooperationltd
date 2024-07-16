@@ -61,6 +61,12 @@ class testAttachmentAccess(TransactionCase):
         attachment = self.env['ir.attachment'].create({'name': 'bar', 'datas': base64.b64encode(b'bar')})
         # As admin, link this second attachment to the previously created document (write instead of create)
         document.write({'attachment_id': attachment.id})
+        # Mimic the previous behavior before odoo/enterprise#64530,
+        # which wasn't correctly setting `res_model` and `res_id` on the attachment
+        # upon a `write` of `attachment_id` on `documents.document`
+        # to assert Documents users can still read `attachment_datas`
+        # for past documents for which `res_model` and `res_id` is not correctly set on the `attachment_id`
+        attachment.res_model = attachment.res_id = False
         # Ensure the res_model/res_id has not been set automatically during the write on the document
         self.assertFalse(attachment.res_model)
         self.assertFalse(attachment.res_id)

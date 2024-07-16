@@ -13,11 +13,6 @@ class TestSaleCouponTaxCloudFlow(common.TestSaleCouponTaxCloudCommon):
     def setUp(self):
         super(TestSaleCouponTaxCloudFlow, self).setUp()
 
-        self.env.company.country_id = self.env.ref('base.us')
-        self.env['account.tax.group'].create(
-            {'name': 'Test Account Tax Group', 'company_id': self.env.company.id}
-        )
-
         # the response for the full order, without any discount
         self.response_full = {'values': {0: 8.88, 1: 4.44, 2: 0.89}}
         # the response for the half price order

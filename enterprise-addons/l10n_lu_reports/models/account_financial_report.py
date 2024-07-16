@@ -39,7 +39,7 @@ class LuxembourgishFinancialReportCustomHandler(models.AbstractModel):
     def get_electronic_report_values(self, options):
         company = self.env.company
         report = self.env['account.report'].browse(options['report_id'])
-        vat = report.get_vat_for_export(options)
+        vat = report.get_vat_for_export(options, raise_warning=False)
         if vat and vat.startswith("LU"):  # Remove LU prefix in the XML
             vat = vat[2:]
         return {
@@ -93,7 +93,7 @@ class LuxembourgishFinancialReportCustomHandler(models.AbstractModel):
         lu_template_values = self.get_electronic_report_values(options)
 
         # Add comparison filter to get data from last year
-        options = report.get_options({**options, 'comparison': {
+        options = report._get_options({**options, 'comparison': {
             'filter': 'same_last_year',
             'number_period': 1,
         }})
@@ -200,14 +200,14 @@ class LuxembourgishFinancialReportCustomHandler(models.AbstractModel):
 
         report = self.env['account.report'].browse(options['report_id'])
         if not self.env.context.get('skip_options_recompute'):
-            options = report.get_options(options)
+            options = report._get_options(options)
         lu_template_values = self.get_financial_electronic_report_values(options)
         for form in lu_template_values['forms']:
             if references:
                 references, names = _get_references(report)
                 # Only add those references on accounts with reported values (for the current or previous year);
                 # the reference has an eCDF code equal to the report code of the referred account for the current year + 1000,
-                # to equal to the report code of the ref. account for the previous year + 999
+                # ot equal to the report code of the ref. account for the previous year + 999
                 references = {r: references[r] for r in references
                               if str(int(r) - 1000) in form['field_values'] or str(int(r) - 999) in form['field_values']}
                 names = {r: names[r] for r in references

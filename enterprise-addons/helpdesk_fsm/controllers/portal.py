@@ -30,7 +30,7 @@ class ProjectHelpdeskPortal(ProjectCustomerPortal, CustomerPortal):
 
     def _ticket_get_page_view_values(self, ticket, access_token, **kwargs):
         values = super()._ticket_get_page_view_values(ticket, access_token, **kwargs)
-        if ticket.fsm_task_count:
+        if ticket.fsm_task_count and request.env['project.task'].check_access_rights('read', raise_exception=False):
             tasks = request.env['project.task'].search([('id', 'in', ticket.fsm_task_ids.ids)])
             if tasks:
                 if len(tasks) == 1:

@@ -96,8 +96,8 @@ class PeruvianTaxPle141ReportCustomHandler(models.AbstractModel):
 
         if state_error:
             raise UserError(_(
-                "The state in the next documents is posted/cancelled but not stamped/cancelled in the SUNAT:\n\n%s", '\n'.join(
-                    state_error)))
+                "The state in the next documents is posted/cancelled but not stamped/cancelled in the SUNAT:\n\n%s") % '\n'.join(
+                    state_error))
 
         return self._get_file_txt(options, data)
 
@@ -109,7 +109,7 @@ class PeruvianTaxPle141ReportCustomHandler(models.AbstractModel):
         ]
 
     def _report_custom_engine_ple_14_1(
-        self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None
+        self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None
     ):
         report = self.env["account.report"].browse(options["report_id"])
         report._check_groupby_fields(

@@ -4,11 +4,11 @@
 import json
 
 from odoo import Command
-from odoo.tests.common import HttpCase
 from odoo.addons.helpdesk.tests.common import HelpdeskCommon
+from odoo.exceptions import ValidationError
 
 
-class TestWebsiteHelpdeskLivechat(HttpCase, HelpdeskCommon):
+class TestWebsiteHelpdeskLivechat(HelpdeskCommon):
     def setUp(self):
         super().setUp()
 
@@ -18,31 +18,23 @@ class TestWebsiteHelpdeskLivechat(HttpCase, HelpdeskCommon):
         })
 
         user = self.helpdesk_manager
-
-        def _compute_available_operator_ids(channel_self):
-            for record in channel_self:
-                record.available_operator_ids = user
-
-        self.patch(type(self.env['im_livechat.channel']), '_compute_available_operator_ids', _compute_available_operator_ids)
+        self.patch(type(self.env['im_livechat.channel']), '_get_available_users', lambda _: user)
 
         self.test_team.use_website_helpdesk_livechat = True
 
     def test_helpdesk_commands(self):
-        channel_info = self.make_jsonrpc_request("/im_livechat/get_session", {
-            'anonymous_name': 'Visitor',
-            'channel_id': self.livechat_channel.id,
-        })
-        discuss_channel = self.env['discuss.channel'].browse(channel_info['id']).with_user(self.helpdesk_manager)
+        channel_info = self.livechat_channel.with_user(self.helpdesk_manager)._open_livechat_mail_channel(anonymous_name='Visitor')
+        mail_channel = self.env['mail.channel'].browse(channel_info['id']).with_user(self.helpdesk_manager)
 
         self.assertFalse(self.env['helpdesk.ticket'].search([('team_id', '=', self.test_team.id)]), 'The team should start with no tickets')
 
         # Post a message that will be part of the chat history in the ticket description
         test_message = 'Test message'
-        discuss_channel.message_post(body=test_message)
+        mail_channel.message_post(body=test_message)
 
-        # Create the ticket with the /ticket command
+        # Create the ticket with the /helpdesk command
         ticket_name = 'Test website helpdesk livechat'
-        discuss_channel.execute_command_helpdesk(body=f"/ticket {ticket_name}")
+        mail_channel.execute_command_helpdesk(body=f"/helpdesk {ticket_name}")
 
         bus = self.env['bus.bus'].search([('channel', 'like', f"\"res.partner\",{self.helpdesk_manager.partner_id.id}")], order='id desc', limit=1)
         message = json.loads(bus.message)
@@ -54,11 +46,53 @@ class TestWebsiteHelpdeskLivechat(HttpCase, HelpdeskCommon):
         self.assertIn(ticket_name, ticket.name, f"The created ticket should be named '{ticket_name}'.")
         self.assertIn(test_message, f"{self.helpdesk_manager.name}: {str(ticket.description)}", 'The chat history should be in the ticket description.')
 
-        # Search the tickets with the /search_tickets command
-        discuss_channel.execute_command_helpdesk_search(body=f"/search_tickets {ticket_name}")
+        # Search the ticket with the /helpdesk_search command
+        mail_channel.execute_command_helpdesk_search(body=f"/helpdesk_search {ticket_name}")
 
         bus = self.env['bus.bus'].search([('channel', 'like', f"\"res.partner\",{self.helpdesk_manager.partner_id.id}")], order='id desc', limit=1)
         message = json.loads(bus.message)
-        expected_message = f"<span class='o_mail_notification'>Tickets search results for <b>Test website helpdesk livechat</b>: <br/><a href=# data-oe-model='helpdesk.ticket' data-oe-id='{ticket.id}'>{ticket_name} (#{ticket.ticket_ref})</a></span>"
+        expected_message = f"<span class='o_mail_notification'>We found some matched ticket(s) related to the search query: <br/><a href=# data-oe-model='helpdesk.ticket' data-oe-id='{ticket.id}'>{ticket_name} (#{ticket.ticket_ref})</a></span>"
 
         self.assertEqual(message['payload']['body'], expected_message, 'A message should be posted saying the previously created ticket matches the command.')
+
+    def test_helpdesk_livechat_commands(self):
+        public_user = self.env.ref('base.public_user')
+        channel_info = self.livechat_channel.with_user(public_user)._open_livechat_mail_channel(anonymous_name='Visitor')
+        mail_channel = self.env['mail.channel'].browse(channel_info['id']).with_user(self.helpdesk_manager)
+
+        # Executes command /helpdesk
+        mail_channel.execute_command_helpdesk(body="/helpdesk")
+
+        bus = self.env['bus.bus'].search([('channel', 'like', f'"res.partner",{self.helpdesk_manager.partner_id.id}')], order='id desc', limit=1)
+        message = json.loads(bus.message)
+
+        self.assertIn("<b>@Public user</b>", message['payload']['body'], 'Command message should contains the username.')
+
+        # chat with self
+        private_channel = self.env['mail.channel'].with_user(self.helpdesk_manager).create({
+            'name': 'Secret channel with self',
+            'channel_type': 'chat',
+        })
+
+        # Executes command /helpdesk
+        private_channel.execute_command_helpdesk(body="/helpdesk")
+
+        bus = self.env['bus.bus'].search([('channel', 'like', f'"res.partner",{self.helpdesk_manager.partner_id.id}')], order='id desc', limit=1)
+        message = json.loads(bus.message)
+
+        self.assertIn("<b>@Helpdesk Manager</b>.", message['payload']['body'], 'Command message should contains username.')
+
+    def test_chatbot_script_steps_with_create_ticket(self):
+        with self.assertRaises(ValidationError):
+            self.env['chatbot.script'].create({
+                'title': 'Chatbot 1',
+                'script_step_ids': [Command.create({'step_type': 'create_ticket'})]
+            })
+
+        self.env['chatbot.script'].create({
+            'title': 'Chatbot 2',
+            'script_step_ids': [
+                Command.create({'step_type': 'question_email'}),
+                Command.create({'step_type': 'create_ticket'}),
+            ]
+        })

@@ -13,7 +13,6 @@ class HrPayslipInputType(models.Model):
     code = fields.Char(required=True, help="The code that can be used in the salary rules")
     struct_ids = fields.Many2many('hr.payroll.structure', string='Availability in Structure', help='This input will be only available in those structure. If empty, it will be available in all payslip.')
     country_id = fields.Many2one('res.country', string='Country', default=lambda self: self.env.company.country_id)
-    country_code = fields.Char(related='country_id.code')
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_master_data(self):

@@ -4,7 +4,6 @@
 {
     'name': 'Ecuador - ATS Report',
     'version': '1.0',
-    'countries': ['ec'],
     'category': 'Accounting/Localizations/Reporting',
     'author': 'TRESCLOUD',
     'description': """
@@ -15,6 +14,7 @@
         'l10n_ec_reports',
     ],
     'data': [
+        'data/tax_report_data.xml',
         'data/ats_report.xml',
     ],
     'installable': True,

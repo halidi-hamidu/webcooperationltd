@@ -70,8 +70,8 @@ class AccountSalesReportTest(AccountSalesReportCommon):
         self._create_invoices([
             (self.partner_a, l_tax[:1], 100),
             (self.partner_a, l_tax[:1], 200),
-            (self.partner_a, t_tax[:1], 300),
-            (self.partner_b, t_tax[:1], 100),
+            (self.partner_a, t_tax[:1], 300),  # Should be ignored due to purchase tax
+            (self.partner_b, t_tax[:1], 100),  # Should be ignored due to purchase tax
             (self.partner_a, s_tax[:1], 400),
             (self.partner_b, s_tax[:1], 500),
             (self.partner_b, bad_tax_1[:1], 700),  # Should be ignored due to fixed amount
@@ -83,12 +83,11 @@ class AccountSalesReportTest(AccountSalesReportCommon):
         self.assertLinesValues(
             report._get_lines(options),
             # pylint: disable=C0326
-            #   Partner                country code,            VAT Number,              Amount
-            [   0,                     1,                       2,                       3],
+            #   Partner,                country code,             VAT Number,               Amount
+            [   0,                      1,                        2,                        3],
             [
-                (self.partner_a.name,  self.partner_a.vat[:2],  self.partner_a.vat[2:],  f'${NON_BREAKING_SPACE}1,000.00'),
-                (self.partner_b.name,  self.partner_b.vat[:2],  self.partner_b.vat[2:],  f'${NON_BREAKING_SPACE}600.00'),
-                ('Total',              '',                      '',                      f'${NON_BREAKING_SPACE}1,600.00'),
+                (self.partner_a.name,   self.partner_a.vat[:2],   self.partner_a.vat[2:],   f'${NON_BREAKING_SPACE}700.00'),
+                (self.partner_b.name,   self.partner_b.vat[:2],   self.partner_b.vat[2:],   f'${NON_BREAKING_SPACE}500.00'),
+                ('Total',               '',                       '',                       f'${NON_BREAKING_SPACE}1,200.00'),
             ],
-            options,
         )

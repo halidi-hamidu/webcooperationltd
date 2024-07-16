@@ -49,13 +49,6 @@ class SocialStreamPostLinkedIn(models.Model):
             else:
                 post.post_link = False
 
-    def _compute_is_author(self):
-        linkedin_posts = self._filter_by_media_types(['linkedin'])
-        super(SocialStreamPostLinkedIn, (self - linkedin_posts))._compute_is_author()
-
-        for post in linkedin_posts:
-            post.is_author = post.linkedin_author_urn == post.account_id.linkedin_account_urn
-
     # ========================================================
     # COMMENTS / LIKES
     # ========================================================
@@ -206,7 +199,7 @@ class SocialStreamPostLinkedIn(models.Model):
     def _linkedin_format_comment(self, json_data):
         """Formats a comment returned by the LinkedIn API to a dict that will be interpreted by our frontend."""
         created_time = json_data.get('created', {}).get('time', 0)
-        data = {
+        return {
             'id': json_data.get('commentUrn'),
             'from': json_data.get('from'),
             'message': json_data.get('message', {}).get('text', ''),
@@ -227,21 +220,6 @@ class SocialStreamPostLinkedIn(models.Model):
                 },
             },
         }
-
-        image_content = next(
-            (content for content in json_data.get('content', [])
-             if content.get('type') == 'IMAGE'),
-            None,
-        )
-        if image_content:
-            # Sometimes we can't access the image (e.g. if it's still being process)
-            # so we have a placeholder image if the download URL is not yet available
-            data['attachment'] = {
-                'type': 'photo',
-                'media': {'image': {'src': image_content.get('url', '/web/static/img/placeholder.png')}},
-            }
-
-        return data
 
     def _fetch_matching_post(self):
         self.ensure_one()

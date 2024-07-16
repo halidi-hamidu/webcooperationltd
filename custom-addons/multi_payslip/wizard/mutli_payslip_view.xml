@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="multi_payslip_view_wiz" model="ir.ui.view">
+            <field name="name">multi.payslip.wiz.form.view</field>
+            <field name="model">multi.payslip</field>
+            <field name="arch" type="xml">
+                <form string="Confirm">
+                    <field name="employee_ids">
+                        <tree editable="bottom">
+                            <field name="employee_id"/>
+                            <field name="month_from"/>
+                            <field name="month_to"/>
+                        </tree>
+                    </field>
+                    
+                    <h3>Click on Confirm for confirm Multi payslip.</h3>
+                    <footer>
+                        <button name="multi_payslip" string="Confirm" type="object" class="oe_highlight" context="{'employee_ids':employee_ids}"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Assign Multiple payslip -->
+        <act_window id="hr_employee_action_multiple_payslip"
+                name="Create payslip"
+                res_model="multi.payslip" binding_model="hr.employee"
+                view_mode="form" target="new"/>
+    </data>
+
+</odoo>

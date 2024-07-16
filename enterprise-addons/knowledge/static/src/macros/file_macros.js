@@ -3,10 +3,6 @@
 import { AbstractMacro } from "@knowledge/macros/abstract_macro";
 import { dragAndDrop } from "@knowledge/macros/utils";
 
-/**
- * Macro that will add a file as an attachment of a record and display it
- * in its Form view.
- */
 export class UseAsAttachmentMacro extends AbstractMacro {
     /**
      * @override
@@ -16,17 +12,11 @@ export class UseAsAttachmentMacro extends AbstractMacro {
         const action = super.macroAction();
         let attachFilesLastClickedEl = null;
         action.steps.push({
-            // Search for the chatter button to attach a file and open
-            // the AttachmentList zone. Search in notebook tabs too.
             trigger: function() {
                 this.validatePage();
-                const el = this.getFirstVisibleElement('.o-mail-Chatter-attachFiles:not([disabled])', (matchEl) => {
-                    // Wait for the attachments to be loaded by the chatter.
-                    const attachmentsCountEl = matchEl.querySelector('sup');
-                    return attachmentsCountEl && Number.parseInt(attachmentsCountEl.textContent) > 0;
-                });
+                const el = this.getFirstVisibleElement('.o_ChatterTopbar_buttonToggleAttachments:not([disabled])');
                 if (el) {
-                    const attachmentBoxEl = this.getFirstVisibleElement('.o-mail-AttachmentBox .o-mail-AttachmentList');
+                    const attachmentBoxEl = this.getFirstVisibleElement('.o_AttachmentBox_content');
                     if (attachmentBoxEl) {
                         return attachmentBoxEl;
                     } else if (el !== attachFilesLastClickedEl) {
@@ -44,10 +34,6 @@ export class UseAsAttachmentMacro extends AbstractMacro {
     }
 }
 
-/**
- * Macro that will add a file to a message (without sending it) in the context
- * of a record in its Form view.
- */
 export class AttachToMessageMacro extends AbstractMacro {
     /**
      * @override
@@ -57,13 +43,11 @@ export class AttachToMessageMacro extends AbstractMacro {
         const action = super.macroAction();
         let sendMessageLastClickedEl = null;
         action.steps.push({
-            // Search for the chatter button to send a message and make sure
-            // that the composer is visible. Search in notebook tabs too.
             trigger: function() {
                 this.validatePage();
-                const el = this.getFirstVisibleElement('.o-mail-Chatter-sendMessage:not([disabled])');
+                const el = this.getFirstVisibleElement('.o_ChatterTopbar_buttonSendMessage:not([disabled])');
                 if (el) {
-                    if (el.classList.contains('active')) {
+                    if (el.classList.contains('o-active')) {
                         return el;
                     } else if (el !== sendMessageLastClickedEl) {
                         el.click();
@@ -78,19 +62,15 @@ export class AttachToMessageMacro extends AbstractMacro {
                 el.scrollIntoView();
             },
         }, {
-            // Search for the composer button to attach files and start dragging
-            // the data file over it.
             trigger: function() {
                 this.validatePage();
-                return this.getFirstVisibleElement('.o-mail-Composer-attachFiles:not([disabled])');
+                return this.getFirstVisibleElement('.o_Composer_buttonAttachment:not([disabled])');
             }.bind(this),
             action: dragAndDrop.bind(this, 'dragenter', this.data.dataTransfer),
         }, {
-            // Search for the composer drop zone for attachments and drop the
-            // data file into it.
             trigger: function () {
                 this.validatePage();
-                return this.getFirstVisibleElement('.o-mail-Composer-dropzone');
+                return this.getFirstVisibleElement('.o_Composer_dropZone');
             }.bind(this),
             action: dragAndDrop.bind(this, 'drop', this.data.dataTransfer),
         }, this.unblockUI);

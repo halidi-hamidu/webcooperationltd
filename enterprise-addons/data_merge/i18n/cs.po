@@ -3,18 +3,23 @@
 # 	* data_merge
 # 
 # Translators:
-# Ivana Bartonkova, 2023
+# Damian Brencic <brencicdamian12313@gmail.com>, 2022
+# Ladislav Tomm <tomm@helemik.cz>, 2022
+# Michal Veselý <michal@veselyberanek.net>, 2022
+# Jan Horzinka <jan.horzinka@centrum.cz>, 2022
+# Martin Trigaux, 2022
+# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
+# Jiří Podhorecký, 2023
 # Jakub Smolka, 2023
-# Wil Odoo, 2023
-# Aleš Fiala <f.ales1@seznam.cz>, 2024
+# Aleš Fiala <f.ales1@seznam.cz>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Aleš Fiala <f.ales1@seznam.cz>, 2024\n"
+"POT-Creation-Date: 2022-12-15 13:28+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Aleš Fiala <f.ales1@seznam.cz>, 2023\n"
 "Language-Team: Czech (https://app.transifex.com/odoo/teams/41243/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,13 +33,6 @@ msgstr ""
 #, python-format
 msgid "%s (copy)"
 msgstr "%s (kopie)"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_group.py:0
-#, python-format
-msgid "%s - Similarity: %s%%"
-msgstr ""
 
 #. module: data_merge
 #. odoo-javascript
@@ -54,6 +52,15 @@ msgstr ""
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
+msgid ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Model "
+"specific</span>"
+msgstr ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', "
+"False)]}\">Specifický pro model</span>"
+
+#. module: data_merge
+#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"me-1\">Every</span>"
 msgstr "<span class=\"me-1\">Každý</span>"
 
@@ -61,11 +68,6 @@ msgstr "<span class=\"me-1\">Každý</span>"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"oe_inline\">%</span>"
 msgstr "<span class=\"oe_inline\">%</span>"
-
-#. module: data_merge
-#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
-msgid "<span invisible=\"not custom_merge_method\">Model specific</span>"
-msgstr ""
 
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_rule_uniq_model_id_field_id
@@ -128,7 +130,7 @@ msgstr "Shoda bez ohledu na malá a velká písmena"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__company_id
 msgid "Company"
-msgstr "Společnost"
+msgstr "Firma"
 
 #. module: data_merge
 #: model_terms:ir.actions.act_window,help:data_merge.action_data_merge_record
@@ -157,7 +159,7 @@ msgstr "Vytvořeno uživatelem"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__record_create_date
 msgid "Created On"
-msgstr "Vytvořeno dne"
+msgstr "Vytvořeno"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_uid
@@ -165,7 +167,7 @@ msgstr "Vytvořeno dne"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__create_uid
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__create_uid
 msgid "Created by"
-msgstr "Vytvořeno uživatelem"
+msgstr "Vytvořeno od"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_date
@@ -173,7 +175,7 @@ msgstr "Vytvořeno uživatelem"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__create_date
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__create_date
 msgid "Created on"
-msgstr "Vytvořeno dne"
+msgstr "Vytvořeno"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__mix_by_company
@@ -187,11 +189,13 @@ msgstr "Metoda vlastního slučování"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_cleanup_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_cleanup
 msgid "Data Merge: Cleanup Records"
 msgstr "Sloučení dat: Vyčistění záznamů"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_find_duplicates_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_find_duplicates
 msgid "Data Merge: Find Duplicate Records"
 msgstr "Sloučení dat: Najít duplicitní záznamy"
 
@@ -225,7 +229,7 @@ msgstr "Deduplikační skupina"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__model_id
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__model_id
 msgid "Deduplication Model"
-msgstr "Deduplikační model"
+msgstr "Model deduplikace"
 
 #. module: data_merge
 #: model:ir.model,name:data_merge.model_data_merge_record
@@ -235,7 +239,7 @@ msgstr "Deduplikační záznam"
 #. module: data_merge
 #: model:ir.model,name:data_merge.model_data_merge_rule
 msgid "Deduplication Rule"
-msgstr "Deduplikační pravidlo"
+msgstr "Pravidlo deduplikace"
 
 #. module: data_merge
 #: model:ir.actions.act_window,name:data_merge.action_data_merge_config
@@ -288,7 +292,7 @@ msgstr "Zahozeno"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__display_name
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__display_name
 msgid "Display Name"
-msgstr "Zobrazovací název"
+msgstr "Zobrazované jméno"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__divergent_fields
@@ -311,13 +315,6 @@ msgstr "Odstranění duplikátů"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "Duplicates"
 msgstr "Duplikáty"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_model.py:0
-#, python-format
-msgid "Duplicates to Merge"
-msgstr ""
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__create_threshold
@@ -404,6 +401,14 @@ msgid "Is Master"
 msgstr "Je hlavní"
 
 #. module: data_merge
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_group____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_model____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_record____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_rule____last_update
+msgid "Last Modified on"
+msgstr "Naposled změněno"
+
+#. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__last_notification
 msgid "Last Notification"
 msgstr "Poslední notifikace"
@@ -414,7 +419,7 @@ msgstr "Poslední notifikace"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__write_uid
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__write_uid
 msgid "Last Updated by"
-msgstr "Naposledy upraveno uživatelem"
+msgstr "Naposledy upraveno od"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__write_date
@@ -422,7 +427,7 @@ msgstr "Naposledy upraveno uživatelem"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__write_date
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__write_date
 msgid "Last Updated on"
-msgstr "Naposledy upraveno dne"
+msgstr "Naposled upraveno"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_record__used_in
@@ -539,7 +544,7 @@ msgstr "měsíců"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__name
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__name
 msgid "Name"
-msgstr "Název"
+msgstr "Jméno"
 
 #. module: data_merge
 #. odoo-python
@@ -633,7 +638,7 @@ msgstr "Vyberte model pro konfiguraci pravidel deduplikace"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__sequence
 msgid "Sequence"
-msgstr "Sekvence"
+msgstr "Číselná řada"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__similarity

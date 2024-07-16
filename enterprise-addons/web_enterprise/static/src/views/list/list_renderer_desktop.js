@@ -5,12 +5,11 @@ import { useService } from "@web/core/utils/hooks";
 import { patch } from "@web/core/utils/patch";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { PromoteStudioDialog } from "@web_enterprise/webclient/promote_studio_dialog/promote_studio_dialog";
-import { _t } from "@web/core/l10n/translation";
 import { onWillDestroy, useState } from "@odoo/owl";
 
-export const patchListRendererDesktop = () => ({
+export const patchListRendererDesktop = {
     setup() {
-        super.setup(...arguments);
+        this._super(...arguments);
         this.userService = useService("user");
         this.actionService = useService("action");
         const list = this.props.list;
@@ -82,7 +81,7 @@ export const patchListRendererDesktop = () => ({
     },
 
     get displayOptionalFields() {
-        return this.isStudioEditable() || super.displayOptionalFields;
+        return this.isStudioEditable() || this.getOptionalFields.length;
     },
 
     /**
@@ -91,10 +90,8 @@ export const patchListRendererDesktop = () => ({
      * @private
      */
     onSelectedAddCustomField() {
-        this.env.services.dialog.add(PromoteStudioDialog, {
-            title: _t("Odoo Studio - Add new fields to any view"),
-        });
+        this.env.services.dialog.add(PromoteStudioDialog, {});
     },
-});
+};
 
-export const unpatchListRendererDesktop = patch(ListRenderer.prototype, patchListRendererDesktop());
+patch(ListRenderer.prototype, "web_enterprise.ListRendererDesktop", patchListRendererDesktop);

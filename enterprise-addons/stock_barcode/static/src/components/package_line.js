@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { bus } from 'web.core';
 import LineComponent from './line';
 
 export default class PackageLineComponent extends LineComponent {
@@ -19,9 +20,13 @@ export default class PackageLineComponent extends LineComponent {
         const reservedQuantity = this.line.lines.reduce((r, l) => r + l.reserved_uom_qty, 0);
         const doneQuantity = this.line.lines.reduce((r, l) => r + l.qty_done, 0);
         if (reservedQuantity > 0) {
-            return doneQuantity / reservedQuantity;
+            return this.applyRounding(doneQuantity / reservedQuantity);
         }
         return doneQuantity >= 0 ? 1 : 0;
+    }
+
+    openPackage() {
+        bus.trigger('open-package', this.line.package_id.id);
     }
 
     select(ev) {
@@ -30,5 +35,4 @@ export default class PackageLineComponent extends LineComponent {
         this.env.model.trigger('update');
     }
 }
-PackageLineComponent.props = ["displayUOM", "line", "openPackage"];
 PackageLineComponent.template = 'stock_barcode.PackageLineComponent';

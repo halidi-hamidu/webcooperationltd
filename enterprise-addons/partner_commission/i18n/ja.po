@@ -3,17 +3,17 @@
 # 	* partner_commission
 # 
 # Translators:
-# Wil Odoo, 2023
-# Junko Augias, 2023
+# Martin Trigaux, 2022
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
+# Junko Augias, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Ryoko Tsuda <ryoko@quartile.co>, 2023\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
+"Last-Translator: Junko Augias, 2023\n"
 "Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,9 +40,23 @@ msgid " (%d month(s))"
 msgstr " (%d月 )"
 
 #. module: partner_commission
+#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Automatic PO frequency</span>\n"
+"                            <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" role=\"img\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\"/>"
+msgstr ""
+
+#. module: partner_commission
+#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Minimum PO amount total</span>\n"
+"                            <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" role=\"img\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\"/>"
+msgstr ""
+
+#. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_plan__active
 msgid "Active"
-msgstr "有効化"
+msgstr "有効"
 
 #. module: partner_commission
 #: model:res.groups,name:partner_commission.group_commission_manager
@@ -53,11 +67,6 @@ msgstr "すべてのドキュメント"
 #: model_terms:ir.ui.view,arch_db:partner_commission.commission_plan_search_view
 msgid "Archived"
 msgstr "アーカイブ済"
-
-#. module: partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
-msgid "Automatic PO frequency"
-msgstr "自動購買オーダ頻度"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__is_capped
@@ -81,8 +90,6 @@ msgstr "自動購買オーダ頻度手数料"
 #: model:ir.model.fields,field_description:partner_commission.field_res_partner__commission_plan_id
 #: model:ir.model.fields,field_description:partner_commission.field_res_users__commission_plan_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_order__commission_plan_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_order_log_report__commission_plan_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_subscription_report__commission_plan_id
 msgid "Commission Plan"
 msgstr "手数料プラン"
 
@@ -93,23 +100,9 @@ msgid "Commission Plans"
 msgstr "手数料プラン"
 
 #. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "Commission on %(invoice)s, %(partner)s, %(amount)s"
-msgstr "手数料 %(invoice)s, %(partner)s, %(amount)s"
-
-#. module: partner_commission
 #: model:ir.model,name:partner_commission.model_commission_plan
 msgid "Commission plan"
 msgstr "手数料プラン"
-
-#. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "Commission refunded. Invoice: %s. Amount: %s."
-msgstr "手数料が返金されました。請求書: %s 金額: %s"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_commission_rule
@@ -204,7 +197,13 @@ msgstr "仕訳"
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_account_move_line
 msgid "Journal Item"
-msgstr "仕訳項目"
+msgstr "仕訳明細"
+
+#. module: partner_commission
+#: model:ir.model.fields,field_description:partner_commission.field_commission_plan____last_update
+#: model:ir.model.fields,field_description:partner_commission.field_commission_rule____last_update
+msgid "Last Modified on"
+msgstr "最終更新日"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_plan__write_uid
@@ -239,11 +238,6 @@ msgid "Maximum amount, specified in the currency of the pricelist, if given."
 msgstr "最大金額。指定されている場合、価格表の通貨で定義されます。"
 
 #. module: partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
-msgid "Minimum PO amount total"
-msgstr "最小購買オーダ合計"
-
-#. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_res_company__commission_po_minimum
 #: model:ir.model.fields,field_description:partner_commission.field_res_config_settings__commission_po_minimum
 msgid "Minimum Total Amount for PO commission"
@@ -260,19 +254,13 @@ msgid "Name"
 msgstr "名称"
 
 #. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "New commission. Invoice: %s. Amount: %s."
-msgstr "新規手数料。請求書: %s 金額: %s"
-
-#. module: partner_commission
 #: model:res.groups,name:partner_commission.group_commission_user
 msgid "Own Documents Only"
 msgstr "所有するドキュメントのみ"
 
 #. module: partner_commission
 #: model:ir.actions.server,name:partner_commission.cron_confirm_purchase_orders_ir_actions_server
+#: model:ir.cron,cron_name:partner_commission.cron_confirm_purchase_orders
 msgid "Partner Commission: confirm purchase orders"
 msgstr "取引先手数料: 購買オーダ確認"
 
@@ -289,7 +277,7 @@ msgstr "取引先手数料"
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__pricelist_id
 msgid "Pricelist"
-msgstr "価格表"
+msgstr "価格リスト"
 
 #. module: partner_commission
 #: model:ir.model.fields.selection,name:partner_commission.selection__purchase_order__purchase_type__procurement
@@ -331,7 +319,7 @@ msgstr "購買タイプ"
 #. module: partner_commission
 #: model:ir.model.fields.selection,name:partner_commission.selection__res_company__commission_automatic_po_frequency__quarterly
 msgid "Quarterly"
-msgstr "四半期毎"
+msgstr "四半期ごと"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__rate
@@ -348,13 +336,10 @@ msgstr "レートは0から100の間にして下さい。"
 #: model:ir.model.fields,field_description:partner_commission.field_account_move__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_account_payment__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_order__referrer_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_order_log_report__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_subscription_report__referrer_id
 #: model_terms:ir.ui.view,arch_db:partner_commission.account_move_view_search_inherit_partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_log_search
 #: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_subsciption_view_search_inherit_partner_commission
 #: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_view_search_inherit_partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.sale_subscription_report_search
 msgid "Referrer"
 msgstr "紹介者"
 
@@ -382,11 +367,6 @@ msgid "Sale Order Template"
 msgstr "販売オーダテンプレート"
 
 #. module: partner_commission
-#: model:ir.model,name:partner_commission.model_sale_order_log_report
-msgid "Sales Log Analysis Report"
-msgstr "販売ログ分析レポート"
-
-#. module: partner_commission
 #: model:ir.model,name:partner_commission.model_sale_order
 msgid "Sales Order"
 msgstr "販売オーダ"
@@ -394,13 +374,13 @@ msgstr "販売オーダ"
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__sequence
 msgid "Sequence"
-msgstr "シーケンス"
+msgstr "付番"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_purchase_order__invoice_commission_count
 #: model_terms:ir.ui.view,arch_db:partner_commission.purchase_order_form_inherit_partner_commission
 msgid "Source Invoices"
-msgstr "請求元"
+msgstr "正きゅもと"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_sale_subscription_report
@@ -410,7 +390,7 @@ msgstr "サブスクリプション分析"
 #. module: partner_commission
 #: model:ir.model.fields,help:partner_commission.field_sale_order__commission_plan_id
 msgid "Takes precedence over the Referrer's commission plan."
-msgstr "紹介者の委託プランよりも優先されます。"
+msgstr "紹介者の手数料プランよりも優先されます。"
 
 #. module: partner_commission
 #. odoo-python

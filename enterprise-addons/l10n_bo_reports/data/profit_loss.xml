@@ -19,7 +19,6 @@
                 <field name="name">Gross Income</field>
                 <field name="code">l10n_bo_pl_gross_income</field>
                 <field name="aggregation_formula">l10n_bo_pl_income.balance - l10n_bo_pl_cogs.balance</field>
-                <field name="hierarchy_level">0</field>
                 <field name="children_ids">
                     <record id="l10n_bo_pl_income" model="account.report.line">
                         <field name="name">Net Income</field>
@@ -33,15 +32,7 @@
                         <field name="code">l10n_bo_pl_cogs</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_cogs_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">510</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">510</field>
                     </record>
                 </field>
             </record>
@@ -49,52 +40,27 @@
                 <field name="name">Operational Profit</field>
                 <field name="code">l10n_bo_pl_op_profit</field>
                 <field name="aggregation_formula">l10n_bo_pl_gross_income.balance - l10n_bo_pl_expenses_commercial.balance - l10n_bo_pl_expenses_admin.balance - l10n_bo_pl_expenses_financial.balance + l10n_bo_pl_income_financial.balance - l10n_bo_pl_expenses_operational_other.balance</field>
-                <field name="hierarchy_level">0</field>
                 <field name="children_ids">
                     <record id="l10n_bo_pl_expenses_commercial" model="account.report.line">
                         <field name="name">Commercial Expenses</field>
                         <field name="code">l10n_bo_pl_expenses_commercial</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_expenses_commercial_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">520</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">520</field>
                     </record>
                     <record id="l10n_bo_pl_expenses_admin" model="account.report.line">
                         <field name="name">General Expenses of Administration</field>
                         <field name="code">l10n_bo_pl_expenses_admin</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_expenses_admin_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">530</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">530</field>
                     </record>
                     <record id="l10n_bo_pl_expenses_financial" model="account.report.line">
                         <field name="name">Financial Expenses</field>
                         <field name="code">l10n_bo_pl_expenses_financial</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_expenses_financial_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">540</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">540</field>
                     </record>
                     <record id="l10n_bo_pl_income_financial" model="account.report.line">
                         <field name="name">Financial Income</field>
@@ -108,15 +74,7 @@
                         <field name="code">l10n_bo_pl_expenses_operational_other</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_expenses_operational_other_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">550</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">550</field>
                     </record>
                 </field>
             </record>
@@ -124,7 +82,6 @@
                 <field name="name">Earnings Before Taxes</field>
                 <field name="code">l10n_bo_pl_ebt</field>
                 <field name="aggregation_formula">l10n_bo_pl_op_profit.balance + l10n_bo_pl_income_other.balance - l10n_bo_pl_expenses_non_operational_other.balance</field>
-                <field name="hierarchy_level">0</field>
                 <field name="children_ids">
                     <record id="l10n_bo_pl_income_other" model="account.report.line">
                         <field name="name">Other Income</field>
@@ -138,15 +95,7 @@
                         <field name="code">l10n_bo_pl_expenses_non_operational_other</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="l10n_bo_pl_expenses_non_operational_other_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">560</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">560</field>
                     </record>
                 </field>
             </record>
@@ -155,16 +104,7 @@
                 <field name="code">l10n_bo_pl_corporate_tax</field>
                 <field name="groupby">account_id</field>
                 <field name="foldable" eval="True"/>
-                <field name="account_codes_formula" eval="False"/>
-                <field name="hierarchy_level">0</field>
-                <field name="expression_ids">
-                    <record id="l10n_bo_pl_corporate_tax_balance" model="account.report.expression">
-                        <field name="label">balance</field>
-                        <field name="engine">account_codes</field>
-                        <field name="formula">570</field>
-                        <field name="green_on_positive" eval="False"/>
-                    </record>
-                </field>
+                <field name="account_codes_formula">570</field>
             </record>
             <record id="l10n_bo_pl_net_profit" model="account.report.line">
                 <field name="name">Net Profit</field>

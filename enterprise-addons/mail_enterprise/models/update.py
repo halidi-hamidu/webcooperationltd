@@ -27,6 +27,8 @@ class PublisherWarrantyContract(AbstractModel):
                 msg["maintenance"]["errors"] = list(c.errors.keys())
         except Exception:
             msg["maintenance"]["errors"] = ['cloc/error']
+
+        ICP.set_param('publisher_warranty.cloc', str(msg['maintenance']))
         return msg
 
     @api.model

@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="l10n_mx_edi_stock.vehicle_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='vehicle_config']" position="after">
-                <field name="gross_vehicle_weight" invisible="not vehicle_config" required="vehicle_config"/>
+                <field name="gross_vehicle_weight" attrs="{'invisible': [('vehicle_config', '=', False)], 'required': [('vehicle_config', '!=', False)]}"/>
             </xpath>
         </field>
     </record>

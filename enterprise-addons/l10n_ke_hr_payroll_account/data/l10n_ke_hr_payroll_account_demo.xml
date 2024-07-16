@@ -44,7 +44,7 @@
 
     <record id="user_barack" model="res.users">
         <field name="partner_id" ref="l10n_ke_hr_payroll_account.res_partner_barack"/>
-        <field name="login">barackakintola</field>
+        <field name="login">barackakintola@example.com</field>
         <field name="password">barackakintola</field>
         <field name="signature" type="html"><span>--<br/>+B. Akintola</span></field>
         <field name="company_ids" eval="[(4, ref('l10n_ke.demo_company_ke'))]"/>
@@ -64,7 +64,14 @@
 
     <record id="res_partner_barack_private_address" model="res.partner">
         <field name="name">Barack Akintola</field>
+        <field name="street">Box 6-70100</field>
+        <field name="city">Garissa</field>
+        <field name="zip">00247</field>
+        <field name="country_id" ref="base.ke"/>
+        <field name="phone">+25420318879</field>
+        <field name="email">barack.akintola@example.com</field>
         <field name="company_id" ref="l10n_ke.demo_company_ke"/>
+        <field name="type">private</field>
     </record>
 
     <record id="res_partner_bank_account_barack" model="res.partner.bank">
@@ -79,12 +86,7 @@
         <field name="gender">male</field>
         <field name="marital">single</field>
         <field name="job_title">Software Developer</field>
-        <field name="private_street">Box 6-70100</field>
-        <field name="private_city">Garissa</field>
-        <field name="private_zip">00247</field>
-        <field name="private_country_id" ref="base.ke"/>
-        <field name="private_phone">+25420318879</field>
-        <field name="private_email">barack.akintola@example.com</field>
+        <field name="address_home_id" ref="l10n_ke_hr_payroll_account.res_partner_barack_private_address"/>
         <field name="address_id" ref="l10n_ke_hr_payroll_account.res_partner_barack_work_address"/>
         <field name="emergency_contact">Mohamed Akintola</field>
         <field name="emergency_phone">+25420318879</field>
@@ -103,7 +105,6 @@
         <field name="image_1920" type="base64" file="l10n_ke_hr_payroll/static/img/hr_employee_barack.jpg"/>
         <field name="company_id" ref="l10n_ke.demo_company_ke"/>
         <field name="user_id" ref="l10n_ke_hr_payroll_account.user_barack"/>
-        <field name="l10n_ke_mortgage">21000</field>
     </record>
 
     <record id="hr_contract_cdi_barack_previous" model="hr.contract">
@@ -116,17 +117,9 @@
         <field name="hr_responsible_id" ref="base.user_demo"/>
         <field name="company_id" ref="l10n_ke.demo_company_ke"/>
         <field name="date_start" eval="(DateTime.today() + relativedelta(years=-2, month=1, day=1))"/>
-        <field name="date_end" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1, days=-1))"/>
-        <field name="date_generated_from" eval="(DateTime.today() + relativedelta(years=-2, month=1, day=1))"/>
-        <field name="date_generated_to" eval="(DateTime.today() + relativedelta(years=-2, month=1, day=1))"/>
+        <field name="date_end" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1, days=-2))"/>
         <field name="resource_calendar_id" ref="l10n_ke_hr_payroll.resource_calendar_std_45h"/>
         <field name="l10n_ke_pension_contribution">17000</field>
-        <field name="l10n_ke_food_allowance">4000</field>
-        <field name="l10n_ke_airtime_allowance">3000</field>
-        <field name="l10n_ke_pension_allowance">6000</field>
-        <field name="l10n_ke_voluntary_medical_insurance">3917</field>
-        <field name="l10n_ke_life_insurance">0</field>
-        <field name="l10n_ke_education">0</field>
     </record>
 
     <record id="hr_contract_cdi_barack" model="hr.contract">
@@ -138,183 +131,19 @@
         <field name="state">open</field>
         <field name="hr_responsible_id" ref="base.user_demo"/>
         <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_start" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1))"/>
-        <field name="date_generated_from" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1))"/>
-        <field name="date_generated_to" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1))"/>
+        <field name="date_start" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1, days=-1))"/>
         <field name="resource_calendar_id" ref="l10n_ke_hr_payroll.resource_calendar_std_45h"/>
         <field name="l10n_ke_pension_contribution">17000</field>
-        <field name="l10n_ke_food_allowance">4000</field>
-        <field name="l10n_ke_airtime_allowance">3000</field>
-        <field name="l10n_ke_pension_allowance">6000</field>
-        <field name="l10n_ke_voluntary_medical_insurance">3917</field>
-        <field name="l10n_ke_life_insurance">0</field>
-        <field name="l10n_ke_education">0</field>
     </record>
 
     <record id="hr_employee_barack" model="hr.employee">
         <field name="contract_id" ref="l10n_ke_hr_payroll_account.hr_contract_cdi_barack"/>
     </record>
 
-    <!-- Work Entries for Barack -->
-
-    <function model="hr.contract" name="_generate_work_entries">
-        <value eval="[ref('l10n_ke_hr_payroll_account.hr_contract_cdi_barack')]"/>
-        <value eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1))"/>
-        <value eval="DateTime.today()"/>
-    </function>
-
-    <!-- Payslips -->
-    <record id="hr_payslip_barack_01" model="hr.payslip">
-        <field name="name">Payslip 01</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=1, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_02" model="hr.payslip">
-        <field name="name">Payslip 02</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=2, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=2, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_03" model="hr.payslip">
-        <field name="name">Payslip 03</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=3, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=3, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_04" model="hr.payslip">
-        <field name="name">Payslip 04</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=4, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=4, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_05" model="hr.payslip">
-        <field name="name">Payslip 05</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=5, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=5, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_06" model="hr.payslip">
-        <field name="name">Payslip 06</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=6, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=6, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_07" model="hr.payslip">
-        <field name="name">Payslip 07</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=7, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=7, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_08" model="hr.payslip">
-        <field name="name">Payslip 08</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=8, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=8, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_09" model="hr.payslip">
-        <field name="name">Payslip 09</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=9, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=9, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_10" model="hr.payslip">
-        <field name="name">Payslip 10</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=10, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=10, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_11" model="hr.payslip">
-        <field name="name">Payslip 11</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=11, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=11, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-    <record id="hr_payslip_barack_12" model="hr.payslip">
-        <field name="name">Payslip 12</field>
-        <field name="employee_id" ref="hr_employee_barack"/>
-        <field name="company_id" ref="l10n_ke.demo_company_ke"/>
-        <field name="date_from" eval="(DateTime.today() + relativedelta(years=-1, month=12, day=1)).strftime('%Y-%m-%d')"/>
-        <field name="date_to" eval="(DateTime.today() + relativedelta(years=-1, month=12, day=31)).strftime('%Y-%m-%d')"/>
-        <field name="contract_id" ref="hr_contract_cdi_barack"/>
-        <field name="struct_id" ref="l10n_ke_hr_payroll.hr_payroll_structure_ken_employee_salary"/>
-    </record>
-
-    <function model="hr.payslip" name="compute_sheet">
-        <value eval="[
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_01'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_02'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_03'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_04'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_05'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_06'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_07'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_08'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_09'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_10'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_11'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_12'),
-        ]"/>
-    </function>
-
-    <function model="hr.payslip" name="action_payslip_done">
-        <value eval="[
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_01'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_02'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_03'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_04'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_05'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_06'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_07'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_08'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_09'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_10'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_11'),
-            ref('l10n_ke_hr_payroll_account.hr_payslip_barack_12'),
-        ]"/>
-    </function>
-
-    <record id="tax_deduction_card" model="l10n_ke.tax.deduction.card"
-        context="{'allowed_company_ids': [ref('l10n_ke.demo_company_ke')]}">
-        <field name="name">Tax Deduction Card - Demo</field>
-    </record>
-    <function model="l10n_ke.tax.deduction.card" name="action_generate_declarations">
-        <value eval="[ref('l10n_ke_hr_payroll_account.tax_deduction_card')]"/>
-    </function>
-    <function model="l10n_ke.tax.deduction.card" name="action_generate_pdf">
-        <value eval="[ref('l10n_ke_hr_payroll_account.tax_deduction_card')]"/>
-    </function>
+    <data noupdate="1">
+        <function model="account.chart.template" name="try_loading">
+            <value eval="[ref('l10n_ke.l10nke_chart_template')]"/>
+            <value model="res.company" eval="obj().env.ref('l10n_ke.demo_company_ke')"/>
+        </function>
+    </data>
 </odoo>

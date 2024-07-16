@@ -4,7 +4,6 @@
 from datetime import date
 
 from odoo.tests import tagged
-from freezegun import freeze_time
 
 from .common import TestPayrollCommon
 
@@ -13,8 +12,7 @@ from .common import TestPayrollCommon
 class TestPayrollAllocatingPaidTimeOff(TestPayrollCommon):
 
     def setUp(self):
-      super(TestPayrollAllocatingPaidTimeOff, self).setUp()
-      with freeze_time('2023-01-01'):
+        super(TestPayrollAllocatingPaidTimeOff, self).setUp()
 
         today = date.today()
         self.paid_time_off_type = self.holiday_leave_types #self.holiday_leave_types.filtered(lambda leave_type: leave_type.validity_start == date(today.year, 1, 1) and leave_type.validity_stop == date(today.year, 12, 31))

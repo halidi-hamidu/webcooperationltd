@@ -19,27 +19,27 @@ class TestReports(TestAr, TestAccountReportsCommon):
             "demo_refund_invoice_3": {
                 # "ref": "demo_refund_invoice_3: Create draft refund for invoice 3",
                 "reason": "Mercadería defectuosa",
-                "is_refund": True,
+                "refund_method": "refund",
                 "move_ids": self.demo_invoices['test_invoice_3'],
                 "date": '2021-03-01',
             },
             "demo_refund_invoice_4": {
                 # "ref": "demo_refund_invoice_4: Create draft refund for invoice 4",
                 "reason": "Venta cancelada",
-                "is_refund": False,
+                "refund_method": "cancel",
                 "move_ids": self.demo_invoices['test_invoice_4'],
                 "date": '2021-03-01',
             },
             "demo_refund_invoice_16": {
                 # "ref": "demo_refund_invoice_16: Create cancel refund for expo invoice 16 (las nc/nd expo invoice no requiere parametro permiso existennte, por eso agregamos este ejemplo)",
                 "reason": "Venta cancelada",
-                "is_refund": False,
+                "refund_method": "cancel",
                 "move_ids": self.demo_invoices['test_invoice_16'],
                 "date": '2021-03-01',
             },
             "demo_refund_bill_1": {
                 "reason": "demo_sup_refund_invoice_5: liquido producto bill refund (credit note)",
-                "is_refund": False,
+                "refund_method": "cancel",
                 "move_ids": self.demo_bills['test_vendor_bill_8'],
                 "date": '2021-03-27',
                 "l10n_latam_document_number": "00011-00000012",
@@ -50,7 +50,6 @@ class TestReports(TestAr, TestAccountReportsCommon):
         refund_wizard = self.env['account.move.reversal']
         for key, values in credit_notes.items():
             origin_move = values.get("move_ids")
-            is_refund = values.pop("is_refund")
             values.update({
                 'date': fields.Date.from_string(values.get('date')),
                 'journal_id': origin_move.journal_id.id,
@@ -58,7 +57,7 @@ class TestReports(TestAr, TestAccountReportsCommon):
             move_reversal = refund_wizard.with_context(
                 active_model="account.move",
                 active_ids=origin_move.ids).create(values)
-            reversal = move_reversal.refund_moves() if is_refund else move_reversal.modify_moves()
+            reversal = move_reversal.reverse_moves()
             reverse_move = self.env['account.move'].browse(reversal['res_id'])
             self.demo_credit_notes[key] = reverse_move
 
@@ -303,7 +302,7 @@ class TestReports(TestAr, TestAccountReportsCommon):
         invoices.action_post()
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='ar_ri'):
+    def setUpClass(cls, chart_template_ref='l10n_ar.l10nar_ri_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.journal = cls._create_journal(cls, 'preprinted', data={'l10n_ar_afip_pos_number': 37928})
         cls.maxDiff = None
@@ -377,11 +376,10 @@ class TestReports(TestAr, TestAccountReportsCommon):
             # pylint: disable=C0326
             lines,
             #    Move Name              Partner Name    VAT            Taxed   VAT 21%   Total
-            [    0,                     2,              4,             5,      8,        15],
+            [    0,                     2,              4,             5,      8,        12],
             [
                 ('DI 0001-00000001000', 'BEST PARTNER', '30714295698', -1000,  -210,     -1210),
                 ('DI 0001-00000002000', 'BEST PARTNER', '30714295698', -500,   -105,     -605),
                 ('DI 0001-00000003000', 'BEST PARTNER', '30714295698', -800,   -168,     -968),
             ],
-            options,
         )

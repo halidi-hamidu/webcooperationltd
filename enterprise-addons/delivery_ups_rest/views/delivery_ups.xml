@@ -6,32 +6,32 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='destination']" position='before'>
                 <page string="UPS Configuration" name="ups_configuration"
-                    invisible="delivery_type != 'ups_rest'">
+                    attrs="{'invisible': [('delivery_type', '!=', 'ups_rest')]}">
                     <group>
                         <group>
-                            <field name="ups_shipper_number" required="delivery_type == 'ups_rest'"/>
-                            <field name="ups_client_id" required="delivery_type == 'ups_rest'"/>
-                            <field name="ups_client_secret" required="delivery_type == 'ups_rest'"/>
-                            <field name="ups_default_service_type" required="delivery_type == 'ups_rest'"/>
+                            <field name="ups_shipper_number" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
+                            <field name="ups_client_id" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
+                            <field name="ups_client_secret" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
+                            <field name="ups_default_service_type" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
                         </group>
                         <group>
-                            <field name="ups_default_packaging_id" required="delivery_type == 'ups_rest'" domain="[('package_carrier_type', '=', 'ups_rest')]"/>
-                            <field name="ups_package_weight_unit" string="Package Weight Unit" required="delivery_type == 'ups_rest'"/>
-                            <field name="ups_package_dimension_unit" required="'delivery_type' == 'ups_rest'"/>
-                            <field name="ups_label_file_type" string="Label Format" required="delivery_type == 'ups_rest'"/>
+                            <field name="ups_default_packaging_id" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}" domain="[('package_carrier_type', '=', 'ups_rest')]"/>
+                            <field name="ups_package_weight_unit" string="Package Weight Unit" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
+                            <field name="ups_package_dimension_unit" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
+                            <field name="ups_label_file_type" string="Label Format" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
                         </group>
                         <group string="Options" name="ups_vas">
-                            <field name="ups_bill_my_account" invisible="delivery_type != 'ups_rest'"/>
-                            <field name="ups_saturday_delivery" string="Saturday Delivery" required="delivery_type == 'ups_rest'" invisible="ups_default_service_type in ['03','11','13','59','12','65','08']"/>
-                            <field name="ups_cod" required="delivery_type == 'ups_rest'" invisible="ups_default_service_type == '96'"/>
-                            <field name="ups_cod_funds_code" required="delivery_type == 'ups_rest'" invisible="not ups_cod" widget="radio"/>
+                            <field name="ups_bill_my_account" attrs="{'invisible': [('delivery_type', '!=', 'ups_rest')]}"/>
+                            <field name="ups_saturday_delivery" string="Saturday Delivery" attrs="{'required': [('delivery_type', '=', 'ups_rest')], 'invisible': [('ups_default_service_type', 'in', ['03','11','13','59','12','65','08'])]}"/>
+                            <field name="ups_cod" attrs="{'required': [('delivery_type', '=', 'ups_rest')], 'invisible': [('ups_default_service_type', '=', '96')]}"/>
+                            <field name="ups_cod_funds_code" attrs="{'required': [('delivery_type', '=', 'ups_rest')], 'invisible': [('ups_cod', '=', False)]}" widget="radio"/>
                             <field name="can_generate_return" invisible="1"/>
-                            <field name="return_label_on_delivery" invisible="not can_generate_return"/>
-                            <field name="get_return_label_from_portal" invisible="not return_label_on_delivery"/>
-                            <field name="ups_duty_payment" string="Duties paid by" required="delivery_type == 'ups_rest'"/>
+                            <field name="return_label_on_delivery" attrs="{'invisible': [('can_generate_return', '=', False)]}"/>
+                            <field name="get_return_label_from_portal" attrs="{'invisible': [('return_label_on_delivery', '=', False)]}"/>
+                            <field name="ups_duty_payment" string="Duties paid by" attrs="{'required': [('delivery_type', '=', 'ups_rest')]}"/>
                         </group>
                     </group>
-                    <group string="How to setup UPS?" invisible="delivery_type != 'ups_rest'" colspan="2">
+                    <group string="How to setup UPS?" attrs="{'invisible': [('delivery_type', '!=', 'ups_rest')]}" colspan="2">
                         <ol colspan="2">
                             <li>Create an account on <a href="http://www.ups.com/" target="_blank">ups.com</a></li>
                             <li>From there, get your <b>account number</b></li>

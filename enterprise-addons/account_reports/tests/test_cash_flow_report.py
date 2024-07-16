@@ -100,23 +100,23 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self.assertGrowthComparisonValues(
             self.report._get_lines(options),
             [
-                ('Cash and cash equivalents, beginning of period',         'n/a',    0),
-                ('Net increase in cash and cash equivalents',              '900.0%', 1),
-                ('Cash flows from operating activities',                   '0.0%',   0),
-                ('Advance Payments received from customers',               '0.0%',   0),
-                ('Cash received from operating activities',                '0.0%',   0),
-                ('Advance payments made to suppliers',                     '0.0%',   0),
-                ('Cash paid for operating activities',                     '0.0%',   0),
-                ('Cash flows from investing & extraordinary activities',   '0.0%',   0),
-                ('Cash in',                                                '0.0%',   0),
-                ('Cash out',                                               '0.0%',   0),
-                ('Cash flows from financing activities',                   '0.0%',   0),
-                ('Cash in',                                                '0.0%',   0),
-                ('Cash out',                                               '0.0%',   0),
-                ('Cash flows from unclassified activities',                '900.0%', 1),
-                ('Cash in',                                                '900.0%', 1),
-                ('Cash out',                                               '0.0%',   0),
-                ('Cash and cash equivalents, closing balance',             '1000.0%', 1),
+                ('Cash and cash equivalents, beginning of period',         'n/a',    'number'),
+                ('Net increase in cash and cash equivalents',              '900.0%', 'number color-green'),
+                ('Cash flows from operating activities',                   '',       ''),
+                ('Advance Payments received from customers',               '',       ''),
+                ('Cash received from operating activities',                '',       ''),
+                ('Advance payments made to suppliers',                     '',       ''),
+                ('Cash paid for operating activities',                     '',       ''),
+                ('Cash flows from investing & extraordinary activities',   '',       ''),
+                ('Cash in',                                                '',       ''),
+                ('Cash out',                                               '',       ''),
+                ('Cash flows from financing activities',                   '',       ''),
+                ('Cash in',                                                '',       ''),
+                ('Cash out',                                               '',       ''),
+                ('Cash flows from unclassified activities',                '900.0%', 'number color-green'),
+                ('Cash in',                                                '900.0%', 'number color-green'),
+                ('Cash out',                                               '',       ''),
+                ('Cash and cash equivalents, closing balance',             '1000.0%', 'number color-green'),
             ]
         )
 
@@ -158,24 +158,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         cash_move.action_post()
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                         600.0],
-            ['Cash flows from operating activities',                                0.0],
-            ['Advance Payments received from customers',                            0.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
-            ['Cash flows from financing activities',                                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash flows from operating activities',                                 ''],
+            ['Advance Payments received from customers',                             ''],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
+            ['Cash flows from financing activities',                                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from unclassified activities',                           600.0],
             ['Cash in',                                                           600.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                        600.0],
-        ], options)
+        ])
 
         # This move should not appear since it does not use a bank or cash account
         receivable_move = self.env['account.move'].create({
@@ -190,24 +190,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         receivable_move.action_post()
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                         600.0],
-            ['Cash flows from operating activities',                                0.0],
-            ['Advance Payments received from customers',                            0.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
-            ['Cash flows from financing activities',                                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash flows from operating activities',                                 ''],
+            ['Advance Payments received from customers',                             ''],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
+            ['Cash flows from financing activities',                                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from unclassified activities',                           600.0],
             ['Cash in',                                                           600.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                        600.0],
-        ], options)
+        ])
 
     def test_cash_flow_comparison(self):
         self.report.filter_period_comparison = True
@@ -267,25 +267,30 @@ class TestCashFlowReport(TestAccountReportsCommon):
 
         self._reconcile_on((invoice_past_period + payment_past_period).line_ids, self.account_receivable_1)
 
-        self.assertLinesValues(self.report._get_lines(options), [0, 1, 2], [
-            ['Cash and cash equivalents, beginning of period',            100.0,        0.0],
-            ['Net increase in cash and cash equivalents',                 230.0,      100.0],
-            ['Cash flows from operating activities',                        0.0,        0.0],
-            ['Advance Payments received from customers',                    0.0,        0.0],
-            ['Cash received from operating activities',                     0.0,        0.0],
-            ['Advance payments made to suppliers',                          0.0,        0.0],
-            ['Cash paid for operating activities',                          0.0,        0.0],
-            ['Cash flows from investing & extraordinary activities',        0.0,        0.0],
-            ['Cash in',                                                     0.0,        0.0],
-            ['Cash out',                                                    0.0,        0.0],
-            ['Cash flows from financing activities',                        0.0,        0.0],
-            ['Cash in',                                                     0.0,        0.0],
-            ['Cash out',                                                    0.0,        0.0],
-            ['Cash flows from unclassified activities',                   230.0,      100.0],
-            ['Cash in',                                                   230.0,      100.0],
-            ['Cash out',                                                    0.0,        0.0],
-            ['Cash and cash equivalents, closing balance',                330.0,      100.0],
-        ], options)
+        self.assertLinesValues(
+            self.report._get_lines(options),
+            #   Name                                                 Current period        Past period
+            [   0,                                                                1,                2],
+            [
+                ('Cash and cash equivalents, beginning of period',            100.0,               ''),
+                ('Net increase in cash and cash equivalents',                 230.0,            100.0),
+                ('Cash flows from operating activities',                         '',               ''),
+                ('Advance Payments received from customers',                     '',               ''),
+                ('Cash received from operating activities',                      '',               ''),
+                ('Advance payments made to suppliers',                           '',               ''),
+                ('Cash paid for operating activities',                           '',               ''),
+                ('Cash flows from investing & extraordinary activities',         '',               ''),
+                ('Cash in',                                                      '',               ''),
+                ('Cash out',                                                     '',               ''),
+                ('Cash flows from financing activities',                         '',               ''),
+                ('Cash in',                                                      '',               ''),
+                ('Cash out',                                                     '',               ''),
+                ('Cash flows from unclassified activities',                   230.0,            100.0),
+                ('Cash in',                                                   230.0,            100.0),
+                ('Cash out',                                                     '',               ''),
+                ('Cash and cash equivalents, closing balance',                330.0,            100.0),
+            ],
+        )
 
     def test_cash_flow_column_groups(self):
         self.report.filter_period_comparison = True
@@ -344,24 +349,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((invoice_previous_period + payment_previous_period).line_ids, self.account_receivable_1)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1, 2], [
-            ['Cash and cash equivalents, beginning of period',            115.0,        0.0],
+            ['Cash and cash equivalents, beginning of period',            115.0,         ''],
             ['Net increase in cash and cash equivalents',                 230.0,      115.0],
             ['Cash flows from operating activities',                      200.0,      100.0],
-            ['Advance Payments received from customers',                    0.0,        0.0],
+            ['Advance Payments received from customers',                     '',         ''],
             ['Cash received from operating activities',                   200.0,      100.0],
-            ['Advance payments made to suppliers',                          0.0,        0.0],
-            ['Cash paid for operating activities',                          0.0,        0.0],
-            ['Cash flows from investing & extraordinary activities',        0.0,        0.0],
-            ['Cash in',                                                     0.0,        0.0],
-            ['Cash out',                                                    0.0,        0.0],
-            ['Cash flows from financing activities',                        0.0,        0.0],
-            ['Cash in',                                                     0.0,        0.0],
-            ['Cash out',                                                    0.0,        0.0],
+            ['Advance payments made to suppliers',                           '',         ''],
+            ['Cash paid for operating activities',                           '',         ''],
+            ['Cash flows from investing & extraordinary activities',         '',         ''],
+            ['Cash in',                                                      '',         ''],
+            ['Cash out',                                                     '',         ''],
+            ['Cash flows from financing activities',                         '',         ''],
+            ['Cash in',                                                      '',         ''],
+            ['Cash out',                                                     '',         ''],
             ['Cash flows from unclassified activities',                    30.0,       15.0],
             ['Cash in',                                                    30.0,       15.0],
-            ['Cash out',                                                    0.0,        0.0],
+            ['Cash out',                                                     '',         ''],
             ['Cash and cash equivalents, closing balance',                345.0,      115.0],
-        ], options)
+        ])
 
     def test_cash_flow_multi_company_multi_currency_unfolding(self):
         options = self._generate_options(self.report, fields.Date.from_string('2016-01-01'), fields.Date.from_string('2017-01-01'))
@@ -400,28 +405,28 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((invoice_with_company_2 + payment_with_company_2).line_ids, self.company_data_2['default_account_receivable'])
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           115.0],
             ['Cash flows from operating activities',                                115.0],
-            ['Advance Payments received from customers',                              0.0],
+            ['Advance Payments received from customers',                               ''],
             ['Cash received from operating activities',                             115.0],
             ['121160 Account Operating',                                            115.0],
             ['Total Cash received from operating activities',                       115.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from unclassified activities',                               0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from unclassified activities',                                ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                          115.0],
-            ['101401 Bank',                                                         115.0],
+            ['101404 Bank',                                                         115.0],
             ['Total Cash and cash equivalents, closing balance',                    115.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_1(self):
         ''' Test how the cash flow report is involved:
@@ -462,24 +467,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((invoice + payment_1).line_ids, self.account_receivable_1)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           230.0],
             ['Cash flows from operating activities',                                200.0],
-            ['Advance Payments received from customers',                              0.0],
+            ['Advance Payments received from customers',                               ''],
             ['Cash received from operating activities',                             200.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                              30.0],
             ['Cash in',                                                              30.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                          230.0],
-        ], options)
+        ])
 
         # Second payment (also 20% but will produce two partials, one on each receivable line).
         payment_2 = self.env['account.move'].create({
@@ -496,24 +501,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((invoice + payment_2).line_ids, self.account_receivable_1)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           460.0],
             ['Cash flows from operating activities',                                400.0],
-            ['Advance Payments received from customers',                              0.0],
+            ['Advance Payments received from customers',                               ''],
             ['Cash received from operating activities',                             400.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                              60.0],
             ['Cash in',                                                              60.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                          460.0],
-        ], options)
+        ])
 
         # Third payment (residual invoice amount + 1000.0).
         payment_3 = self.env['account.move'].create({
@@ -530,24 +535,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((invoice + payment_3).line_ids, self.account_receivable_1)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          2150.0],
             ['Cash flows from operating activities',                               2000.0],
             ['Advance Payments received from customers',                           1000.0],
             ['Cash received from operating activities',                            1000.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             150.0],
             ['Cash in',                                                             150.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         2150.0],
-        ], options)
+        ])
 
         # Second invoice.
         invoice_2 = self.env['account.move'].create({
@@ -565,46 +570,46 @@ class TestCashFlowReport(TestAccountReportsCommon):
 
         # Exceed the report date, should not affect the report.
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          2150.0],
             ['Cash flows from operating activities',                               2000.0],
             ['Advance Payments received from customers',                           1000.0],
             ['Cash received from operating activities',                            1000.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             150.0],
             ['Cash in',                                                             150.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         2150.0],
-        ], options)
+        ])
 
         options['date']['date_to'] = '2018-01-01'
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          2150.0],
             ['Cash flows from operating activities',                               2000.0],
-            ['Advance Payments received from customers',                              0.0],
+            ['Advance Payments received from customers',                               ''],
             ['Cash received from operating activities',                            2000.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             150.0],
             ['Cash in',                                                             150.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         2150.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_2(self):
         ''' Test how the cash flow report is involved:
@@ -627,24 +632,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         liquidity_move_1.action_post()
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                        -300.0],
             ['Cash flows from operating activities',                             -550.0],
             ['Advance Payments received from customers',                         -550.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
-            ['Cash flows from financing activities',                                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
+            ['Cash flows from financing activities',                                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from unclassified activities',                           250.0],
             ['Cash in',                                                           250.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                       -300.0],
-        ], options)
+        ])
 
         # Misc. move to be reconciled at 800 / (1000 + 3000) = 20%.
 
@@ -663,24 +668,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((misc_move + liquidity_move_1).line_ids, self.account_receivable_1)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                        -300.0],
             ['Cash flows from operating activities',                             2650.0],
             ['Advance Payments received from customers',                         2650.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from financing activities',                            -3600.0],
-            ['Cash in',                                                             0.0],
+            ['Cash in',                                                              ''],
             ['Cash out',                                                        -3600.0],
             ['Cash flows from unclassified activities',                           650.0],
             ['Cash in',                                                           650.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                       -300.0],
-        ], options)
+        ])
 
         # Second liquidity move.
 
@@ -699,47 +704,47 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((misc_move + liquidity_move_2).line_ids, self.account_receivable_2)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                       -3300.0],
             ['Cash flows from operating activities',                             -150.0],
             ['Advance Payments received from customers',                         -150.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from financing activities',                            -3875.0],
             ['Cash in',                                                           400.0],
             ['Cash out',                                                        -4275.0],
             ['Cash flows from unclassified activities',                           725.0],
             ['Cash in',                                                           725.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                      -3300.0],
-        ], options)
+        ])
 
         # This should not change the report.
         self._reconcile_on((liquidity_move_1 + liquidity_move_2).line_ids, self.account_receivable_3)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                      0.0],
+            ['Cash and cash equivalents, beginning of period',                       ''],
             ['Net increase in cash and cash equivalents',                       -3300.0],
             ['Cash flows from operating activities',                             -150.0],
             ['Advance Payments received from customers',                         -150.0],
-            ['Cash received from operating activities',                             0.0],
-            ['Advance payments made to suppliers',                                  0.0],
-            ['Cash paid for operating activities',                                  0.0],
-            ['Cash flows from investing & extraordinary activities',                0.0],
-            ['Cash in',                                                             0.0],
-            ['Cash out',                                                            0.0],
+            ['Cash received from operating activities',                              ''],
+            ['Advance payments made to suppliers',                                   ''],
+            ['Cash paid for operating activities',                                   ''],
+            ['Cash flows from investing & extraordinary activities',                 ''],
+            ['Cash in',                                                              ''],
+            ['Cash out',                                                             ''],
             ['Cash flows from financing activities',                            -3875.0],
             ['Cash in',                                                           400.0],
             ['Cash out',                                                        -4275.0],
             ['Cash flows from unclassified activities',                           725.0],
             ['Cash in',                                                           725.0],
-            ['Cash out',                                                            0.0],
+            ['Cash out',                                                             ''],
             ['Cash and cash equivalents, closing balance',                      -3300.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_3(self):
         ''' Test how the cash flow report is involved:
@@ -784,46 +789,46 @@ class TestCashFlowReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, fields.Date.from_string('2016-01-01'), fields.Date.from_string('2016-01-01'))
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          1000.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from financing activities',                                500.0],
             ['Cash in',                                                             500.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             500.0],
             ['Cash in',                                                             500.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         1000.0],
-        ], options)
+        ])
 
         options = self._generate_options(self.report, fields.Date.from_string('2016-01-01'), fields.Date.from_string('2016-02-01'))
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           500.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             500.0],
             ['Cash in',                                                             500.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                          500.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_4(self):
         ''' The difficulty of this case is the liquidity move will pay the misc move at 1000 / 3000 = 1/3.
@@ -858,24 +863,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on(move_1.line_ids.filtered('credit') + move_2.line_ids, self.account_financing)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                         -1000.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                           -1000.0],
-            ['Cash in',                                                               0.0],
+            ['Cash in',                                                                ''],
             ['Cash out',                                                          -1000.0],
             ['Cash and cash equivalents, closing balance',                        -1000.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_5(self):
         ''' Same as test_cash_flow_tricky_case_4 in credit.'''
@@ -908,24 +913,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on(move_1.line_ids.filtered('debit') + move_2.line_ids, self.account_financing)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          1000.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                            1000.0],
             ['Cash in',                                                            1000.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         1000.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_6(self):
         ''' Test the additional lines on liquidity moves (e.g. bank fees) are well reported. '''
@@ -984,24 +989,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on(moves.line_ids, self.account_receivable_2)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
-            ['Net increase in cash and cash equivalents',                             0.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
+            ['Net increase in cash and cash equivalents',                              ''],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
             ['Cash flows from investing & extraordinary activities',               2000.0],
             ['Cash in',                                                            2000.0],
-            ['Cash out',                                                              0.0],
-            ['Cash flows from financing activities',                                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
+            ['Cash flows from financing activities',                                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                           -2000.0],
-            ['Cash in',                                                               0.0],
+            ['Cash in',                                                                ''],
             ['Cash out',                                                          -2000.0],
-            ['Cash and cash equivalents, closing balance',                            0.0],
-        ], options)
+            ['Cash and cash equivalents, closing balance',                             ''],
+        ])
 
     def test_cash_flow_tricky_case_7(self):
         ''' Test cross reconciliation between liquidity moves with additional lines when the liquidity account
@@ -1037,24 +1042,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on((move_1 + move_2).line_ids, self.account_bank)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          1500.0],
             ['Cash flows from operating activities',                               1000.0],
             ['Advance Payments received from customers',                           1000.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from financing activities',                               1000.0],
             ['Cash in',                                                            1000.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                            -500.0],
-            ['Cash in',                                                               0.0],
+            ['Cash in',                                                                ''],
             ['Cash out',                                                           -500.0],
             ['Cash and cash equivalents, closing balance',                         1500.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_8(self):
         ''' Difficulties on this test are:
@@ -1094,24 +1099,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on(move_1.line_ids + move_2.line_ids.filtered('debit'), self.account_financing)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                          -100.0],
             ['Cash flows from operating activities',                               -900.0],
             ['Advance Payments received from customers',                           -900.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from financing activities',                                400.0],
             ['Cash in',                                                             400.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             400.0],
             ['Cash in',                                                             400.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                         -100.0],
-        ], options)
+        ])
 
     def test_cash_flow_tricky_case_9(self):
         ''' Same as test_cash_flow_tricky_case_8 with reversed debit/credit.'''
@@ -1146,24 +1151,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         self._reconcile_on(move_1.line_ids + move_2.line_ids.filtered('credit'), self.account_financing)
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           100.0],
             ['Cash flows from operating activities',                                900.0],
             ['Advance Payments received from customers',                            900.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from financing activities',                               -400.0],
-            ['Cash in',                                                               0.0],
+            ['Cash in',                                                                ''],
             ['Cash out',                                                           -400.0],
             ['Cash flows from unclassified activities',                            -400.0],
-            ['Cash in',                                                               0.0],
+            ['Cash in',                                                                ''],
             ['Cash out',                                                           -400.0],
             ['Cash and cash equivalents, closing balance',                          100.0],
-        ], options)
+        ])
 
     def test_cash_flow_handle_multiple_tags(self):
         ''' Ensure that the balances are correct in the following situations:
@@ -1202,24 +1207,24 @@ class TestCashFlowReport(TestAccountReportsCommon):
         move.action_post()
 
         self.assertLinesValues(self.report._get_lines(options), [0, 1], [
-            ['Cash and cash equivalents, beginning of period',                        0.0],
+            ['Cash and cash equivalents, beginning of period',                         ''],
             ['Net increase in cash and cash equivalents',                           800.0],
-            ['Cash flows from operating activities',                                  0.0],
-            ['Advance Payments received from customers',                              0.0],
-            ['Cash received from operating activities',                               0.0],
-            ['Advance payments made to suppliers',                                    0.0],
-            ['Cash paid for operating activities',                                    0.0],
-            ['Cash flows from investing & extraordinary activities',                  0.0],
-            ['Cash in',                                                               0.0],
-            ['Cash out',                                                              0.0],
+            ['Cash flows from operating activities',                                   ''],
+            ['Advance Payments received from customers',                               ''],
+            ['Cash received from operating activities',                                ''],
+            ['Advance payments made to suppliers',                                     ''],
+            ['Cash paid for operating activities',                                     ''],
+            ['Cash flows from investing & extraordinary activities',                   ''],
+            ['Cash in',                                                                ''],
+            ['Cash out',                                                               ''],
             ['Cash flows from financing activities',                                500.0],
             ['Cash in',                                                             500.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash flows from unclassified activities',                             300.0],
             ['Cash in',                                                             300.0],
-            ['Cash out',                                                              0.0],
+            ['Cash out',                                                               ''],
             ['Cash and cash equivalents, closing balance',                          800.0],
-        ], options)
+        ])
 
     def test_cash_flow_hierarchy(self):
         """ Test the 'hierarchy' option. I.e. we want to ensure that each section of the report (e.g. "Cash and cash equivalents, beginning of period" and "Cash and cash equivalents, closing balance") has its own dedicated hierarchy and they are not mixed up together.
@@ -1264,21 +1269,21 @@ class TestCashFlowReport(TestAccountReportsCommon):
               {'name': "10140499 Bank",                                           'level': 1,    'book_value': '$\xa0100.00'},
               {'name': "10150199 Cash",                                           'level': 1,    'book_value': '$\xa050.00'},
               {'name': "Total Cash and cash equivalents, beginning of period",    'level': 1,    'book_value': '$\xa0150.00'},
-            {'name': "Net increase in cash and cash equivalents",                 'level': 0,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from operating activities",                  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Advance Payments received from customers",            'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash received from operating activities",             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Advance payments made to suppliers",                  'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash paid for operating activities",                  'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from investing & extraordinary activities",  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from financing activities",                  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from unclassified activities",               'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
+            {'name': "Net increase in cash and cash equivalents",                 'level': 0,    'book_value': ''},
+                {'name': "Cash flows from operating activities",                  'level': 2,    'book_value': ''},
+                  {'name': "Advance Payments received from customers",            'level': 3,    'book_value': ''},
+                  {'name': "Cash received from operating activities",             'level': 3,    'book_value': ''},
+                  {'name': "Advance payments made to suppliers",                  'level': 3,    'book_value': ''},
+                  {'name': "Cash paid for operating activities",                  'level': 3,    'book_value': ''},
+                {'name': "Cash flows from investing & extraordinary activities",  'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
+                {'name': "Cash flows from financing activities",                  'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
+                {'name': "Cash flows from unclassified activities",               'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
             {'name': "Cash and cash equivalents, closing balance",                'level': 0,    'book_value': '$\xa0150.00'},
               {'name': "10140499 Bank",                                           'level': 1,    'book_value': '$\xa0100.00'},
               {'name': "10150199 Cash",                                           'level': 1,    'book_value': '$\xa050.00'},
@@ -1304,37 +1309,37 @@ class TestCashFlowReport(TestAccountReportsCommon):
               {'name': "10 Group Bank & Cash",                                    'level': 1,    'book_value': '$\xa0150.00'},
                 {'name': "1014 Group Bank",                                       'level': 2,    'book_value': '$\xa0100.00'},
                   {'name': "10140499 Bank",                                       'level': 3,    'book_value': '$\xa0100.00'},
-                {'name': "Total 1014 Group Bank",                                 'level': 2,    'book_value': '$\xa0100.00'},
+                  {'name': "Total 1014 Group Bank",                               'level': 3,    'book_value': '$\xa0100.00'},
                 {'name': "1015 Group Cash",                                       'level': 2,    'book_value': '$\xa050.00'},
                   {'name': "10150199 Cash",                                       'level': 3,    'book_value': '$\xa050.00'},
-                {'name': "Total 1015 Group Cash",                                 'level': 2,    'book_value': '$\xa050.00'},
-              {'name': "Total 10 Group Bank & Cash",                              'level': 1,    'book_value': '$\xa0150.00'},
-            {'name': "Total Cash and cash equivalents, beginning of period",      'level': 1,    'book_value': '$\xa0150.00'},
-            {'name': "Net increase in cash and cash equivalents",                 'level': 0,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from operating activities",                  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Advance Payments received from customers",            'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash received from operating activities",             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Advance payments made to suppliers",                  'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash paid for operating activities",                  'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from investing & extraordinary activities",  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from financing activities",                  'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
-                {'name': "Cash flows from unclassified activities",               'level': 2,    'book_value': '$\xa00.00'},
-                  {'name': "Cash in",                                             'level': 4,    'book_value': '$\xa00.00'},
-                  {'name': "Cash out",                                            'level': 4,    'book_value': '$\xa00.00'},
+                  {'name': "Total 1015 Group Cash",                               'level': 3,    'book_value': '$\xa050.00'},
+                {'name': "Total 10 Group Bank & Cash",                            'level': 2,    'book_value': '$\xa0150.00'},
+              {'name': "Total Cash and cash equivalents, beginning of period",    'level': 1,    'book_value': '$\xa0150.00'},
+            {'name': "Net increase in cash and cash equivalents",                 'level': 0,    'book_value': ''},
+                {'name': "Cash flows from operating activities",                  'level': 2,    'book_value': ''},
+                  {'name': "Advance Payments received from customers",            'level': 3,    'book_value': ''},
+                  {'name': "Cash received from operating activities",             'level': 3,    'book_value': ''},
+                  {'name': "Advance payments made to suppliers",                  'level': 3,    'book_value': ''},
+                  {'name': "Cash paid for operating activities",                  'level': 3,    'book_value': ''},
+                {'name': "Cash flows from investing & extraordinary activities",  'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
+                {'name': "Cash flows from financing activities",                  'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
+                {'name': "Cash flows from unclassified activities",               'level': 2,    'book_value': ''},
+                  {'name': "Cash in",                                             'level': 3,    'book_value': ''},
+                  {'name': "Cash out",                                            'level': 3,    'book_value': ''},
             {'name': "Cash and cash equivalents, closing balance",                'level': 0,    'book_value': '$\xa0150.00'},
               {'name': "10 Group Bank & Cash",                                    'level': 1,    'book_value': '$\xa0150.00'},
                 {'name': "1014 Group Bank",                                       'level': 2,    'book_value': '$\xa0100.00'},
                   {'name': "10140499 Bank",                                       'level': 3,    'book_value': '$\xa0100.00'},
-                {'name': "Total 1014 Group Bank",                                 'level': 2,    'book_value': '$\xa0100.00'},
+                  {'name': "Total 1014 Group Bank",                               'level': 3,    'book_value': '$\xa0100.00'},
                 {'name': "1015 Group Cash",                                       'level': 2,    'book_value': '$\xa050.00'},
                   {'name': "10150199 Cash",                                       'level': 3,    'book_value': '$\xa050.00'},
-                {'name': "Total 1015 Group Cash",                                 'level': 2,    'book_value': '$\xa050.00'},
-              {'name': "Total 10 Group Bank & Cash",                              'level': 1,    'book_value': '$\xa0150.00'},
-            {'name': "Total Cash and cash equivalents, closing balance",          'level': 1,    'book_value': '$\xa0150.00'}
+                  {'name': "Total 1015 Group Cash",                               'level': 3,    'book_value': '$\xa050.00'},
+                {'name': "Total 10 Group Bank & Cash",                            'level': 2,    'book_value': '$\xa0150.00'},
+              {'name': "Total Cash and cash equivalents, closing balance",        'level': 1,    'book_value': '$\xa0150.00'}
         ]
         # assertEqual is used and not assertLinesValues because we want to check the 'level'
         self.assertEqual(len(lines), len(expected_values))

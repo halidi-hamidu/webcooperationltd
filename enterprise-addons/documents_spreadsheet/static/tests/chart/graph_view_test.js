@@ -3,21 +3,27 @@
 import { patchGraphSpreadsheet } from "@spreadsheet_edition/assets/graph_view/graph_view";
 import { SpreadsheetAction } from "@documents_spreadsheet/bundle/actions/spreadsheet_action";
 import { click, patchWithCleanup, triggerEvent } from "@web/../tests/helpers/utils";
-import { GraphRenderer } from "@web/views/graph/graph_renderer";
+import { patch, unpatch } from "@web/core/utils/patch";
+import { GraphController } from "@web/views/graph/graph_controller";
+import { fakeCookieService } from "@web/../tests/helpers/mock_services";
+import { registry } from "@web/core/registry";
 import {
     createSpreadsheetFromGraphView,
     spawnGraphViewForSpreadsheet,
 } from "../utils/chart_helpers";
-import { getSpreadsheetActionModel } from "@spreadsheet_edition/../tests/utils/webclient_helpers";
-import { getBasicServerData } from "@spreadsheet/../tests/utils/data";
+import { getSpreadsheetActionModel } from "../utils/webclient_helpers";
 import { toggleMenu, toggleMenuItem } from "@web/../tests/search/helpers";
-import { session } from "@web/session";
 
 function beforeEach() {
-    patchWithCleanup(GraphRenderer.prototype, patchGraphSpreadsheet());
+    patch(GraphController.prototype, "graph_spreadsheet", patchGraphSpreadsheet);
+    registry.category("services").add("cookie", fakeCookieService);
 }
 
-QUnit.module("documents_spreadsheet > graph view", { beforeEach }, () => {
+function afterEach() {
+    unpatch(GraphController.prototype, "graph_spreadsheet");
+}
+
+QUnit.module("documents_spreadsheet > graph view", { beforeEach, afterEach }, () => {
     QUnit.test("simple chart insertion", async (assert) => {
         const { model } = await createSpreadsheetFromGraphView();
         const sheetId = model.getters.getActiveSheetId();
@@ -113,7 +119,7 @@ QUnit.module("documents_spreadsheet > graph view", { beforeEach }, () => {
         let spreadsheetAction;
         patchWithCleanup(SpreadsheetAction.prototype, {
             setup() {
-                super.setup();
+                this._super();
                 spreadsheetAction = this;
             },
         });
@@ -127,47 +133,5 @@ QUnit.module("documents_spreadsheet > graph view", { beforeEach }, () => {
         const sheetId = model.getters.getActiveSheetId();
         const chartId = model.getters.getChartIds(sheetId)[0];
         assert.equal(model.getters.getChart(chartId).title, "New name");
-    });
-
-    QUnit.test("graph with a contextual domain", async (assert) => {
-        const uid = session.user_context.uid;
-        const serverData = getBasicServerData();
-        serverData.models.partner.records = [
-            {
-                id: 1,
-                probability: 0.5,
-                foo: uid,
-            },
-        ];
-        serverData.views["partner,false,search"] = /* xml */ `
-            <search>
-                <filter string="Filter" name="filter" domain="[('foo', '=', uid)]"/>
-            </search>
-        `;
-        const { model } = await createSpreadsheetFromGraphView({
-            serverData,
-            additionalContext: { search_default_filter: 1 },
-            mockRPC: function (route, args) {
-                if (args.method === "web_read_group") {
-                    assert.deepEqual(
-                        args.kwargs.domain,
-                        [["foo", "=", uid]],
-                        "data should be fetched with the evaluated the domain"
-                    );
-                    assert.step("web_read_group");
-                }
-            },
-        });
-        const sheetId = model.getters.getActiveSheetId();
-        const chartId = model.getters.getFigures(sheetId)[0].id;
-
-        const chart = model.getters.getChartDefinition(chartId);
-        assert.deepEqual(chart.searchParams.domain, '[("foo", "=", uid)]');
-        assert.deepEqual(
-            model.exportData().sheets[0].figures[0].data.searchParams.domain,
-            '[("foo", "=", uid)]',
-            "domain is exported with the dynamic value"
-        );
-        assert.verifySteps(["web_read_group", "web_read_group"]);
     });
 });

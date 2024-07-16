@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_move_form_sms_notification_inherit" model="ir.ui.view">
+            <field name="name">sale.order.form.sms.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <!--<field name="priority" eval="40"/>-->
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <field name="registration_sms_limit" invisible="1"/>
+                     <field name="business_line" invisible="1"/>
+                    <button name="send_registration_sms" string="GENERATE REGISTRATION SMS" class="oe_highlight"
+                            type="object" attrs="{'invisible': ['|',('business_line', '!=', 'atras'),('registration_sms_limit', '!=', 0)]}"/>
+                </xpath>
+                <field name="payment_term_id" position="after">
+                           <field name="atras_project_ids" string="Registered Cars" widget="many2many_tags" options="{'no_create_edit': True}"
+                           attrs="{'invisible': [('business_line', '!=', 'atras')]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

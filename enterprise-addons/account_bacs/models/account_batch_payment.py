@@ -13,10 +13,10 @@ MAX_PAYMENT_AMOUNT = 999999999.99
 class AccountBatchPayment(models.Model):
     _inherit = 'account.batch.payment'
 
-    bacs_multi_mode = fields.Boolean(string="BACS Multi Mode", help="Payments in batch get processed on their individual date.",)
-    bacs_processing_date = fields.Date(string="BACS Processing Date", default=fields.Date.today(), help="The processing day of the BACS transaction.")
-    bacs_expiry_date = fields.Date(string="BACS Expiry Date", help="The date on which the file will expire.")
-    bacs_submission_serial = fields.Char(string="BACS Submission Serial", store=True, default=lambda self: self._default_bacs_submission_serial())
+    bacs_multi_mode = fields.Boolean(string="BACS Multi Mode", help="Payments in batch get processed on their individual date.", states={'draft': [('readonly', False)]}, readonly=True)
+    bacs_processing_date = fields.Date(string="BACS Processing Date", default=fields.Date.today(), help="The processing day of the BACS transaction.", states={'draft': [('readonly', False)]}, readonly=True)
+    bacs_expiry_date = fields.Date(string="BACS Expiry Date", help="The date on which the file will expire.", states={'draft': [('readonly', False)]}, readonly=True)
+    bacs_submission_serial = fields.Char(string="BACS Submission Serial", store=True, default=lambda self: self._default_bacs_submission_serial(), states={'draft': [('readonly', False)]}, readonly=True, groups="base.group_no_one")
 
     def _default_bacs_submission_serial(self):
         """
@@ -71,7 +71,7 @@ class AccountBatchPayment(models.Model):
             if not company.bacs_sun:
                 raise UserError(_("The company '%s' requires a SUN to generate BACS files. Please configure it first.", company.name))
             if batch.journal_id.bank_account_id.acc_type != 'iban':
-                raise UserError(_("The account %s, of journal '%s', is not of type IBAN.\nA valid IBAN account is required to use BACS features.", batch.journal_id.bank_account_id.acc_number, batch.journal_id.name))
+                raise UserError(_("The account %s, of journal '%s', is not of type IBAN.\nA valid IBAN account is required to use BACS features.") % (batch.journal_id.bank_account_id.acc_number, batch.journal_id.name))
             if batch.bacs_processing_date < fields.Date.today():
                 raise UserError(_("The processing date cannot be in the past."))
 

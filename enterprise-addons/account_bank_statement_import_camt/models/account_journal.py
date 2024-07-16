@@ -80,7 +80,7 @@ class AccountJournal(models.Model):
                         'sequence': sequence,
                         'date': date,
                         'amount': CAMT._get_signed_amount(entry_details, entry, namespaces=ns, journal_currency=journal_currency),
-                        'payment_ref': CAMT._get_transaction_name(entry_details, namespaces=ns),
+                        'payment_ref': CAMT._get_transaction_name(entry_details, namespaces=ns, entry=entry),
                         'partner_name': partner_name,
                         'account_number': CAMT._get_account_number(entry_details, placeholder=counter_party, namespaces=ns),
                         'ref': CAMT._get_ref(entry_details, counter_party=counter_party, prefix='', namespaces=ns),

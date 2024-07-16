@@ -9,17 +9,12 @@ class IrActionsReport(models.Model):
     _name = 'ir.actions.report'
     _inherit = ['studio.mixin', 'ir.actions.report']
 
-    def _read_paper_format_measures(self, paperformat_fields=None):
-        if paperformat_fields is None:
-            paperformat_fields = ["margin_top", "margin_left", "margin_right", "print_page_height", "print_page_width", "header_spacing", "dpi", "disable_shrinking"]
-        self.ensure_one()
-        return self.get_paperformat().read(paperformat_fields)[0]
-
     @api.model
     def _render_qweb_html(self, report_ref, docids, data=None):
-        if self._context.get("studio"):
-            data = data or dict()
-            data["studio"] = True
+        report = self._get_report(report_ref)
+        if data and data.get('full_branding'):
+            self = self.with_context(full_branding=True)
+        if data and data.get('studio') and report.report_type == 'qweb-pdf':
             data['report_type'] = 'pdf'
         return super(IrActionsReport, self)._render_qweb_html(report_ref, docids, data)
 
@@ -39,14 +34,6 @@ class IrActionsReport(models.Model):
             'report_name': '%s_copy_%s' % (new.report_name, copy_no),
             'report_file': new_view.key,  # TODO: are we sure about this?
         })
-
-    def _get_rendering_context(self, report, docids, data):
-        ctx = super()._get_rendering_context(report, docids, data)
-        if self.env.context.get("studio") and not ctx.get("docs"):
-            # TODO or not ?: user inputed values in data ?
-            doc = self.env[report.model].new({})
-            ctx["docs"] = doc
-        return ctx
 
     @api.model
     def _get_rendering_context_model(self, report):

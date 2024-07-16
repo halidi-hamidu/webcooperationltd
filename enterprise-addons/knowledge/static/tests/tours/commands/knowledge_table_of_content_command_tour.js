@@ -1,14 +1,13 @@
 /** @odoo-module */
 
-import { registry } from "@web/core/registry";
+import tour from 'web_tour.tour';
 import { endKnowledgeTour, openCommandBar } from '../knowledge_tour_utils.js';
-import { stepUtils } from "@web_tour/tour_service/tour_utils";
 
 
-registry.category("web_tour.tours").add('knowledge_table_of_content_command_tour', {
+tour.register('knowledge_table_of_content_command_tour', {
     url: '/web',
     test: true,
-    steps: () => [stepUtils.showAppsMenuItem(), {
+}, [tour.stepUtils.showAppsMenuItem(), {
     // open the Knowledge App
     trigger: '.o_app[data-menu-xmlid="knowledge.knowledge_menu_root"]',
 }, { // open the command bar
@@ -22,7 +21,7 @@ registry.category("web_tour.tours").add('knowledge_table_of_content_command_tour
 }, { // wait for the block to appear in the editor
     trigger: '.o_knowledge_behavior_type_toc',
 }, { // insert a few titles in the editor
-    trigger: '.odoo-editor-editable > p',
+    trigger: '.odoo-editor-editable',
     run: function () {
         const $anchor = $(this.$anchor[0]);
         $anchor.append([
@@ -39,10 +38,10 @@ registry.category("web_tour.tours").add('knowledge_table_of_content_command_tour
     trigger: '#dropdown_tools_panel',
     run: 'click',
 }, { // switch to locked (readonly) mode
-    trigger: '.o_knowledge_more_options_panel .btn-lock',
+    trigger: '.o_knowledge_more_options_panel.show [name="action_set_lock"]',
     run: 'click',
 }, { // check that we are in readonly mode
-    trigger: '.o_field_html .o_readonly',
+    trigger: '[name="body"].o_field_html .o_readonly',
     run: () => {},
 }, { // check that the content of the toc is not duplicated
     trigger: '.o_knowledge_behavior_type_toc',
@@ -58,10 +57,10 @@ registry.category("web_tour.tours").add('knowledge_table_of_content_command_tour
     trigger: '#dropdown_tools_panel',
     run: 'click',
 }, { // unlock the article
-    trigger: '.o_knowledge_more_options_panel.show .btn-lock',
+    trigger: '.o_knowledge_more_options_panel.show [name="action_set_unlock"]',
     run: 'click',
 }, { // check that we are in edit mode
-    trigger: '.o_field_html .odoo-editor-editable',
+    trigger: '[name="body"].o_field_html .odoo-editor-editable',
     run: () => {},
 }, ...endKnowledgeTour()
-]});
+]);

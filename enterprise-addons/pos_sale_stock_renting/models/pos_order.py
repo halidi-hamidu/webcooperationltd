@@ -8,6 +8,8 @@ class PosOrder(models.Model):
 
     def _process_order(self, order, draft, existing_order):
         order_id = super(PosOrder, self)._process_order(order, draft, existing_order)
+        if 'sale_order_line_id' not in self.env['pos.order.line']:
+            return order_id
         order = self.browse(order_id)
         for line in order.lines:
             if line.sale_order_line_id and line.product_id.rent_ok and line.product_id.tracking != 'none':

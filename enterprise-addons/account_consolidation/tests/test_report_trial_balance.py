@@ -17,7 +17,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
 
     def test_default_options(self):
         report = self.env.ref('account_consolidation.consolidated_balance_report')
-        options = report.get_options(None)
+        options = report._get_options(None)
         self.assertTrue(options['unfold_all'])
         self.assertTrue(options['consolidation_show_zero_balance_accounts'])
         self.assertEqual(0, len(options['unfolded_lines']))
@@ -48,7 +48,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
     def test_plain_all_journals(self):
         report = self.env.ref('account_consolidation.consolidated_balance_report')
         report = report.with_context(default_period_id=self.periods[0].id)
-        options = report.get_options(None)
+        options = report._get_options(None)
         options['consolidation_hierarchy'] = False
 
         lines = report._get_lines(options)
@@ -62,16 +62,20 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
         ]
         self.assertListEqual(expected_matrix, matrix, 'Report amounts are not all corrects')
         for line in lines:
-            line_id = report._parse_line_id(line['id'])[-1][0]
+            line_id = report._parse_line_id(line['id'])[0][0]
             parent_id = line.get('parent_id', None)
             self.assertFalse(line.get('unfoldable', False), 'Account line should not be unfoldable')
             if line.get('class', None) != 'total':
                 account = self.env['consolidation.account'].browse(int(line_id))
                 self.assertEqual(len(account), 1)
-                self.assertIsNone(line.get('parent_id', None), 'Account line "alone in the dark" should not have a parent_id but does (%s)' % line)
+                if int(line_id) != self.consolidation_accounts['alone in the dark'].id:
+                    self.assertIsNotNone(line.get('parent_id', None), 'Account line should have a parent_id but does not (%s)' % line)
+                    self.assertEqual(parent_id, self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % account.group_id.id))
+                else:
+                    self.assertIsNone(line.get('parent_id', None), 'Account line "alone in the dark" should not have a parent_id but does (%s)' % line)
 
         levels = [row['level'] for row in lines]
-        expected_levels = [3, 3, 3, 3, 0]
+        expected_levels = [3, 3, 3, 3, 1]
         self.assertListEqual(expected_levels, levels, 'Levels are not all corrects')
 
     def test_hierarchy_all_journals(self):
@@ -79,7 +83,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
         report = self.env.ref('account_consolidation.consolidated_balance_report')
         report = report.with_context(default_period_id=self.periods[0].id)
         custom_handler = self.env[report.custom_handler_model_name]
-        options = report.get_options(None)
+        options = report._get_options(None)
         headers = custom_handler._get_column_headers(options)
         self.assertEqual(len(headers[0]), len(self.journals) + 1, 'Report should have a header by journal + a total column')
         real_headers = headers[0][0:-1]
@@ -88,10 +92,10 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
 
         lines = report._get_lines(options)
         # first line is the orphan
-        self.assertEqual(int(report._parse_line_id(lines[0]['id'])[-1][0]), self.consolidation_accounts['alone in the dark'].id)
+        self.assertEqual(int(report._parse_line_id(lines[0]['id'])[0][0]), self.consolidation_accounts['alone in the dark'].id)
         # second line is the root section
-        self.assertEqual(report._parse_line_id(lines[1]['id'])[-1][0], 'section_%s' % self.sections[0].id)
-        self.assertEqual(lines[1]['level'], 0)
+        self.assertEqual(report._parse_line_id(lines[1]['id'])[0][0], 'section_%s' % self.sections[0].id)
+        self.assertEqual(lines[1]['level'], 1)
         self.assertTrue(lines[1]['unfoldable'])
         self.assertTrue(lines[1]['unfolded'])
         self.assertEqual(len(lines[1]['columns']), 3)
@@ -117,7 +121,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
                 self.assertTrue(line['unfoldable'], 'Section line should be unfoldable')
                 self.assertTrue(line['unfolded'], 'Section line should be unfolded')
                 if section.parent_id:
-                    self.assertEqual(parent_id, self._get_conso_groug_section_id(section.parent_id))
+                    self.assertEqual(parent_id, self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.parent_id.id))
                 else:
                     self.assertIsNone(parent_id)
             elif line.get('class', None) != 'total':
@@ -126,12 +130,12 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
                 self.assertEqual(len(account), 1)
                 if int(line_id) != self.consolidation_accounts['alone in the dark'].id:
                     self.assertIsNotNone(line.get('parent_id', None), 'Account line should have a parent_id but does not (%s)' % line)
-                    self.assertEqual(parent_id, self._get_conso_groug_section_id(account.group_id))
+                    self.assertEqual(parent_id, self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % account.group_id.id))
                 else:
                     self.assertIsNone(line.get('parent_id', None), 'Account line "alone in the dark" should not have a parent_id but does (%s)' % line)
 
         levels = [row['level'] for row in lines if report._parse_line_id(row['id'])[-1][0] != 'total']
-        expected_levels = [0, 0, 0, 3, 5, 3, 5, 5, 0]
+        expected_levels = [1, 1, 1, 2, 3, 2, 3, 3, 1]
         self.assertListEqual(expected_levels, levels, 'Levels are not all corrects')
 
     def test_hierarchy_one_journal_selected(self):
@@ -139,7 +143,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
         report = self.env.ref('account_consolidation.consolidated_balance_report')
         report = report.with_context(default_period_id=self.periods[0].id)
         custom_handler = self.env[report.custom_handler_model_name]
-        options = report.get_options(None)
+        options = report._get_options(None)
         options['consolidation_journals'][0]['selected'] = True
         headers = custom_handler._get_column_headers(options)
         self.assertEqual(len(headers[0]), 2, 'Report should have a header by selected journal + a total column')
@@ -150,9 +154,9 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
             self.assertNotEqual(real_header['name'], custom_handler._get_journal_col(self.journals['us'][0], options)['name'], '"US Company" journal should be in headers')
 
         lines = report._get_lines(options)
-        self.assertEqual(int(report._parse_line_id(lines[0]['id'])[-1][0]), self.consolidation_accounts['alone in the dark'].id)
-        self.assertEqual(report._parse_line_id(lines[1]['id'])[-1][0], 'section_%s' % self.sections[0].id)
-        self.assertEqual(lines[1]['level'], 0)
+        self.assertEqual(int(report._parse_line_id(lines[0]['id'])[0][0]), self.consolidation_accounts['alone in the dark'].id)
+        self.assertEqual(report._parse_line_id(lines[1]['id'])[0][0], 'section_%s' % self.sections[0].id)
+        self.assertEqual(lines[1]['level'], 1)
         self.assertTrue(lines[1]['unfoldable'])
         self.assertTrue(lines[1]['unfolded'])
         self.assertEqual(len(lines[1]['columns']), 2)
@@ -178,7 +182,7 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
                 self.assertTrue(line['unfoldable'], 'Section line should be unfoldable')
                 self.assertTrue(line['unfolded'], 'Section line should be unfolded')
                 if section.parent_id:
-                    self.assertEqual(parent_id, report._get_generic_line_id(None, None, 'section_%s' % section.parent_id.id))
+                    self.assertEqual(parent_id, self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.parent_id.id))
                 else:
                     self.assertIsNone(parent_id)
             elif line.get('class', None) != 'total':
@@ -187,12 +191,12 @@ class TestTrialBalanceReport(AccountConsolidationTestCase):
                 self.assertEqual(len(account), 1)
                 if int(line_id) != self.consolidation_accounts['alone in the dark'].id:
                     self.assertIsNotNone(line.get('parent_id', None), 'Account line should have a parent_id but does not (%s)' % line)
-                    self.assertEqual(parent_id, self._get_conso_groug_section_id(account.group_id))
+                    self.assertEqual(parent_id, self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % account.group_id.id))
                 else:
                     self.assertIsNone(line.get('parent_id', None), 'Account line "alone in the dark" should not have a parent_id but does (%s)' % line)
 
         levels = [row['level'] for row in lines if report._parse_line_id(row['id'])[-1][0] != 'total']
-        expected_levels = [0, 0, 0, 3, 5, 3, 5, 5, 0]
+        expected_levels = [1, 1, 1, 2, 3, 2, 3, 3, 1]
         self.assertListEqual(expected_levels, levels, 'Levels are not all corrects')
 
     # HELPERS

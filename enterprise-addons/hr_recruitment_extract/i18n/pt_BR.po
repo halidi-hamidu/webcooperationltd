@@ -3,16 +3,16 @@
 # 	* hr_recruitment_extract
 # 
 # Translators:
-# Wil Odoo, 2023
-# Maitê Dietze, 2023
+# Martin Trigaux, 2022
+# Layna Nascimento, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Maitê Dietze, 2023\n"
+"POT-Creation-Date: 2022-12-15 13:29+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
+"Last-Translator: Layna Nascimento, 2023\n"
 "Language-Team: Portuguese (Brazil) (https://app.transifex.com/odoo/teams/41243/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,34 +30,23 @@ msgstr "Candidatura de %s"
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Buy credits"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Comprar créditos"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Refresh"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Atualizar"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Retry"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
+"                        Resend For Digitization"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Tentar novamente"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_needaction
-msgid "Action Needed"
-msgstr "Requer ação"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
@@ -67,6 +56,14 @@ msgid ""
 msgstr ""
 "Todos os campos serão automatizados pela inteligência artificial, o que pode"
 " levar 5 segundos."
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__error_status
+#, python-format
+msgid "An error occurred"
+msgstr "Houve um erro"
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_hr_applicant
@@ -79,19 +76,21 @@ msgid "Attachment"
 msgstr "Anexo"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_attachment_count
-msgid "Attachment Count"
-msgstr "Contagem de anexos"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_send_button
-msgid "Can show the ocr send button"
-msgstr "Pode mostrar o botão de envio do OCR "
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "CV is being Digitized"
+msgstr ""
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_res_company
 msgid "Companies"
 msgstr "Empresas"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__done
+msgid "Completed flow"
+msgstr "Fluxo Completado"
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_res_config_settings
@@ -102,12 +101,6 @@ msgstr "Configurações"
 #: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__res_company__recruitment_extract_show_ocr_option_selection__auto_send
 msgid "Digitize automatically"
 msgstr "Digitalizar automaticamente"
-
-#. module: hr_recruitment_extract
-#: model:ir.actions.server,name:hr_recruitment_extract.ir_actions_server_digitize_cv
-#: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
-msgid "Digitize document"
-msgstr "Digitalizar documento"
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__res_company__recruitment_extract_show_ocr_option_selection__manual_send
@@ -125,108 +118,64 @@ msgid "Error message"
 msgstr "Mensagem de erro"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_state_processed
-msgid "Extract State Processed"
-msgstr "Situação da extração - processada"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_resend_button
+msgid "Extract Can Show Resend Button"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_send_button
+msgid "Extract Can Show Send Button"
+msgstr ""
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_state
-msgid "Extract state"
-msgstr "Status da extração"
+msgid "Extract State"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_status
-msgid "Extract status"
-msgstr "Status da extração"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Generated Applicant"
+msgstr "Candidato gerado"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_follower_ids
-msgid "Followers"
-msgstr "Seguidores"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Generated Applicants"
+msgstr "Candidatos gerados"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_partner_ids
-msgid "Followers (Partners)"
-msgstr "Seguidores (usuários)"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__is_first_stage
+msgid "Is First Stage"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__has_message
-msgid "Has Message"
-msgstr "Tem uma mensagem"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__no_extract_requested
+msgid "No extract requested"
+msgstr "Nenhuma extração solicitada"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_document_uuid
-msgid "ID of the request to IAP-OCR"
-msgstr "ID da solicitação para IAP-OCR"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__not_enough_credit
+msgid "Not enough credit"
+msgstr "Créditos insuficientes"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_needaction
-msgid "If checked, new messages require your attention."
-msgstr "Se marcado, novas mensagens solicitarão sua atenção."
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_error
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_sms_error
-msgid "If checked, some messages have a delivery error."
-msgstr "Se marcado, há mensagens com erros de entrega."
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_is_follower
-msgid "Is Follower"
-msgstr "É um seguidor"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__is_in_extractable_state
-msgid "Is In Extractable State"
-msgstr "Está em situação extraível"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_main_attachment_id
-msgid "Main Attachment"
-msgstr "Anexo principal"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_error
-msgid "Message Delivery error"
-msgstr "Erro na entrega da mensagem"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_ids
-msgid "Messages"
-msgstr "Mensagens"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_needaction_counter
-msgid "Number of Actions"
-msgstr "Número de ações"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_error_counter
-msgid "Number of errors"
-msgstr "Número de erros"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_needaction_counter
-msgid "Number of messages requiring action"
-msgstr "Número de mensagens que requerem ação"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_error_counter
-msgid "Number of messages with delivery error"
-msgstr "Número de mensagens com erro de entrega"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__rating_ids
-msgid "Ratings"
-msgstr "Avaliações"
+#: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_ocr_parse_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_ocr_parse
+msgid "Recruitment OCR: Parse CV"
+msgstr "OCR de recrutamento: analisar CV"
 
 #. module: hr_recruitment_extract
 #: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_update_ocr_status_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_update_ocr_status
 msgid "Recruitment OCR: Update All Status"
 msgstr "OCR de recrutamento: atualizar todos os status"
 
 #. module: hr_recruitment_extract
 #: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_ocr_validate_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_ocr_validate
 msgid "Recruitment OCR: Validate CV"
 msgstr "OCR de recrutamento:: validar CV"
 
@@ -236,14 +185,44 @@ msgid "Recruitment processing option"
 msgstr "Opção de processamento de recrutamento"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_sms_error
-msgid "SMS Delivery error"
-msgstr "Erro no envio de SMS"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_remote_id
+msgid "Request ID to IAP-OCR"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.actions.server,name:hr_recruitment_extract.ir_actions_server_digitize_cv
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
+msgid "Send For Digitization"
+msgstr "Enviar para digitalização"
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields,field_description:hr_recruitment_extract.field_res_company__recruitment_extract_show_ocr_option_selection
 msgid "Send mode on applicant attachments"
 msgstr "Modo de envio em anexos de candidatos"
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Server is currently under maintenance. Please retry later"
+msgstr "O servidor está em manutenção. Tente novamente mais tarde."
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Server not available. Please retry later"
+msgstr "O servidor está indisponível. Tente novamente mais tarde."
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__state_processed
+msgid "State Processed"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_status_code
+msgid "Status code"
+msgstr "Estado do Código "
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
@@ -255,14 +234,43 @@ msgstr ""
 " a 10 segundos."
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__website_message_ids
-msgid "Website Messages"
-msgstr "Mensagens do site"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "The document could not be found"
+msgstr "O documento não foi encontrado"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__website_message_ids
-msgid "Website communication history"
-msgstr "Histórico de comunicação do site"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__to_validate
+msgid "To validate"
+msgstr "Para validar"
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Unsupported image format"
+msgstr "Formato de imagem não suportado"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_extraction
+msgid "Waiting extraction"
+msgstr "Aguardando extração"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__extract_not_ready
+msgid "Waiting extraction, but not ready"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_upload
+msgid "Waiting upload"
+msgstr "Aguardando carregamento"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_validation
+msgid "Waiting validation"
+msgstr "Aguardando validação"
 
 #. module: hr_recruitment_extract
 #. odoo-python

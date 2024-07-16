@@ -8,5 +8,3 @@ from . import account_ple_purchase_8_2
 from . import account_ple_sales_14_1
 from . import account_ple_usage
 from . import res_country
-from . import res_company
-from . import res_config_settings

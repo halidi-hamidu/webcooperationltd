@@ -12,8 +12,11 @@ from odoo.exceptions import UserError
 
 class PeruvianTaxPleReportCustomHandler(models.AbstractModel):
     _name = "l10n_pe.tax.ple.report.handler"
-    _inherit = "account.tax.report.handler"
+    _inherit = "account.generic.tax.report.handler"
     _description = "PLE Generic Report"
+
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        return []
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -143,23 +146,21 @@ class PeruvianTaxPleReportCustomHandler(models.AbstractModel):
 
         report = self.env["account.report"].browse(options["report_id"])
         _tables, where_clause, where_params = report._query_get(options, 'strict_range')
-        if self.env.company.chart_template != 'pe':
-            return build_result([])
+
         ref = self.env.ref
-        cid = self.env.company.id
         try:
-            tax_group_igv = ref(f"account.{cid}_tax_group_igv").id
-            tax_group_igv_g_ng = ref(f"account.{cid}_tax_group_igv_g_ng").id
-            tax_group_igv_ng = ref(f"account.{cid}_tax_group_igv_ng").id
-            tax_group_exp = ref(f"account.{cid}_tax_group_exp").id
-            tax_group_exo = ref(f"account.{cid}_tax_group_exo").id
-            tax_group_ina = ref(f"account.{cid}_tax_group_ina").id
-            tax_group_ivap = ref(f"account.{cid}_tax_group_ivap").id
-            tax_group_icbper = ref(f"account.{cid}_tax_group_icbper").id
-            tax_group_isc = ref(f"account.{cid}_tax_group_isc").id
-            tax_group_gra = ref(f"account.{cid}_tax_group_gra").id
-            tax_group_other = ref(f"account.{cid}_tax_group_other").id
-            tax_group_ret = ref(f"account.{cid}_tax_group_ret").id
+            tax_group_igv = ref("l10n_pe.tax_group_igv").id
+            tax_group_igv_g_ng = ref("l10n_pe.tax_group_igv_g_ng").id
+            tax_group_igv_ng = ref("l10n_pe.tax_group_igv_ng").id
+            tax_group_exp = ref("l10n_pe.tax_group_exp").id
+            tax_group_exo = ref("l10n_pe.tax_group_exo").id
+            tax_group_ina = ref("l10n_pe.tax_group_ina").id
+            tax_group_ivap = ref("l10n_pe.tax_group_ivap").id
+            tax_group_icbper = ref("l10n_pe.tax_group_icbper").id
+            tax_group_isc = ref("l10n_pe.tax_group_isc").id
+            tax_group_gra = ref("l10n_pe.tax_group_gra").id
+            tax_group_other = ref("l10n_pe.tax_group_other").id
+            tax_group_ret = ref("l10n_pe.tax_group_ret").id
         except ValueError:
             raise UserError(_("In order to generate the PLE reports, please update l10n_pe module to update the required data."))
 

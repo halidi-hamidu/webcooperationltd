@@ -21,14 +21,14 @@ class SpreadsheetDashboardAccess(TransactionCase):
         dashboard = self.env["spreadsheet.dashboard"].create(
             {
                 "name": "a dashboard",
-                "spreadsheet_data": "{}",
+                "data": base64.b64encode(b"{}"),
                 "group_ids": [Command.set(self.group.ids)],
                 "dashboard_group_id": dashboard_group.id,
             }
         )
         # only read access, no one ever joined this dashboard
         result = dashboard.with_user(self.user).join_spreadsheet_session()
-        self.assertEqual(result["data"], {})
+        self.assertEqual(result["raw"], b"{}")
 
     def test_update_data_reset_collaborative(self):
         dashboard_group = self.env["spreadsheet.dashboard.group"].create({
@@ -37,7 +37,7 @@ class SpreadsheetDashboardAccess(TransactionCase):
         dashboard = self.env["spreadsheet.dashboard"].create(
             {
                 "name": "a dashboard",
-                "spreadsheet_data": "{}",
+                "data": base64.b64encode(b"{}"),
                 "group_ids": [Command.set(self.group.ids)],
                 "dashboard_group_id": dashboard_group.id,
             }
@@ -52,11 +52,37 @@ class SpreadsheetDashboardAccess(TransactionCase):
             "type": "SNAPSHOT",
             "serverRevisionId": "rev-2-id",
             "nextRevisionId": "rev-3-id",
-            "data": {"revisionId": "rev-3-id"},
+            "data": {},
         })
         revisions = dashboard.with_context(active_test=False).spreadsheet_revision_ids
         self.assertEqual(len(revisions.exists()), 2)
         self.assertTrue(dashboard.spreadsheet_snapshot)
-        dashboard.spreadsheet_data = "{ version: 2 }"
+        dashboard.data = base64.b64encode(b"{ version: 2 }")
         self.assertFalse(revisions.exists())
         self.assertFalse(dashboard.spreadsheet_snapshot)
+
+
+    def test_dispatch_collaborative_sets_to_noupdate(self):
+        dashboard_group = self.env["spreadsheet.dashboard.group"].create({
+            "name": "Dashboard group"
+        })
+        dashboard = self.env["spreadsheet.dashboard"].create(
+            {
+                "name": "a dashboard",
+                "group_ids": [Command.set(self.group.ids)],
+                "dashboard_group_id": dashboard_group.id,
+            }
+        )
+        ir_model_data = self.env["ir.model.data"].create({
+            "name": "test_dashboard",
+            "model": "spreadsheet.dashboard",
+            "res_id": dashboard.id,
+            "noupdate": False,
+        })
+        dashboard.dispatch_spreadsheet_message({
+            "type": "REMOTE_REVISION",
+            "serverRevisionId": "rev-1-id",
+            "nextRevisionId": "rev-2-id",
+            "commands": [],
+        })
+        self.assertTrue(ir_model_data.noupdate)

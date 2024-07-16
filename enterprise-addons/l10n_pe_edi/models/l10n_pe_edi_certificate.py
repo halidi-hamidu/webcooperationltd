@@ -6,13 +6,13 @@ import ssl
 from base64 import b64decode, b64encode
 from copy import deepcopy
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import pkcs12
 from lxml import etree
 from pytz import timezone
 from datetime import datetime
 from OpenSSL import crypto
 
 from odoo import _, api, fields, models, tools
+from odoo.addons.account.tools.certificate import load_key_and_certificates
 from odoo.exceptions import ValidationError
 
 
@@ -45,7 +45,7 @@ class Certificate(models.Model):
         http://www.vauxoo.com/r/manualdeautorizacion#page=21
         """
         self.ensure_one()
-        private_key, certificate, _ = pkcs12.load_key_and_certificates(b64decode(self.content), self.password.encode())
+        private_key, certificate = load_key_and_certificates(b64decode(self.content), self.password.encode())
         pem_certificate = certificate.public_bytes(serialization.Encoding.PEM)
         pem_private_key = private_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
 
@@ -83,7 +83,7 @@ class Certificate(models.Model):
                 'date_end': fields.Datetime.to_string(cert_date_end),
             })
             if peruvian_dt > cert_date_end:
-                raise ValidationError(_('The certificate is expired since %s', certificate.date_end))
+                raise ValidationError(_('The certificate is expired since %s') % certificate.date_end)
         return certificates
 
     # -------------------------------------------------------------------------
@@ -101,10 +101,7 @@ class Certificate(models.Model):
 
         edi_tree_c14n_str = etree.tostring(edi_tree_copy, method='c14n', exclusive=True, with_comments=False)
         digest_b64 = b64encode(hashlib.new('sha1', edi_tree_c14n_str).digest())
-        signature_str = self.env['ir.qweb']._render(
-            'l10n_pe_edi.ubl_pe_21_signature_template',
-            {'digest_value': digest_b64.decode()}
-        )
+        signature_str = self.env['ir.qweb']._render('l10n_pe_edi.pe_ubl_2_1_signature', {'digest_value': digest_b64.decode()})
 
         # Eliminate all non useful spaces and new lines in the stream
         signature_str = signature_str.replace('\n', '').replace('  ', '')

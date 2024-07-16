@@ -12,20 +12,14 @@ class AccountBatchPayment(models.Model):
     _order = "date desc, id desc"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    name = fields.Char(required=True, copy=False, string='Reference')
-    date = fields.Date(required=True, copy=False, default=fields.Date.context_today, tracking=True)
+    name = fields.Char(required=True, copy=False, string='Reference', readonly=True, states={'draft': [('readonly', False)]})
+    date = fields.Date(required=True, copy=False, default=fields.Date.context_today, readonly=True, states={'draft': [('readonly', False)]}, tracking=True)
     state = fields.Selection([
         ('draft', 'New'),
         ('sent', 'Sent'),
         ('reconciled', 'Reconciled'),
     ], store=True, compute='_compute_state', default='draft', tracking=True)
-    journal_id = fields.Many2one(
-        'account.journal',
-        string='Bank',
-        check_company=True,
-        domain=[('type', '=', 'bank')],
-        tracking=True,
-    )
+    journal_id = fields.Many2one('account.journal', string='Bank', domain=[('type', '=', 'bank')], required=True, readonly=True, states={'draft': [('readonly', False)]}, tracking=True)
     payment_ids = fields.One2many('account.payment', 'batch_payment_id', string="Payments", required=True)
     currency_id = fields.Many2one('res.currency', compute='_compute_currency', store=True, readonly=True)
     company_currency_id = fields.Many2one(
@@ -48,7 +42,7 @@ class AccountBatchPayment(models.Model):
         compute='_compute_from_payment_ids',
         store=True,
     )
-    batch_type = fields.Selection(selection=[('inbound', 'Inbound'), ('outbound', 'Outbound')], required=True, default='inbound', tracking=True)
+    batch_type = fields.Selection(selection=[('inbound', 'Inbound'), ('outbound', 'Outbound')], required=True, readonly=True, states={'draft': [('readonly', False)]}, default='inbound', tracking=True)
     payment_method_id = fields.Many2one(
         comodel_name='account.payment.method',
         string='Payment Method', store=True, readonly=False,
@@ -58,7 +52,7 @@ class AccountBatchPayment(models.Model):
     available_payment_method_ids = fields.Many2many(
         comodel_name='account.payment.method',
         compute='_compute_available_payment_method_ids')
-    payment_method_code = fields.Char(related='payment_method_id.code', readonly=False, tracking=True)
+    payment_method_code = fields.Char(related='payment_method_id.code', tracking=True)
     export_file_create_date = fields.Date(string='Generation Date', default=fields.Date.today, readonly=True, help="Creation date of the related export file.", copy=False)
     export_file = fields.Binary(string='File', readonly=True, help="Export file related to this batch", copy=False)
     export_filename = fields.Char(string='File Name', help="Name of the export file generated for this batch", store=True, copy=False)
@@ -126,18 +120,23 @@ class AccountBatchPayment(models.Model):
     @api.depends('currency_id', 'payment_ids.amount')
     def _compute_from_payment_ids(self):
         for batch in self:
-            amount_currency = 0.0
+            amount = 0.0
             amount_residual = 0.0
             amount_residual_currency = 0.0
             for payment in batch.payment_ids:
                 liquidity_lines, _counterpart_lines, _writeoff_lines = payment._seek_for_lines()
                 for line in liquidity_lines:
-                    amount_currency += line.amount_currency
+                    amount += line.currency_id._convert(
+                        from_amount=line.amount_currency,
+                        to_currency=batch.currency_id,
+                        company=line.company_id,
+                        date=line.date,
+                    )
                     amount_residual += line.amount_residual
                     amount_residual_currency += line.amount_residual_currency
 
             batch.amount_residual = amount_residual
-            batch.amount = amount_currency
+            batch.amount = amount
             batch.amount_residual_currency = amount_residual_currency
 
     @api.constrains('batch_type', 'journal_id', 'payment_ids')
@@ -191,11 +190,9 @@ class AccountBatchPayment(models.Model):
             return self.env['ir.sequence'].with_context(sequence_date=sequence_date).next_by_code(sequence_code)
         return vals['name']
 
-    @api.depends('state')
-    def _compute_display_name(self):
+    def name_get(self):
         state_values = dict(self._fields['state'].selection)
-        for batch in self:
-            batch.display_name = f'{batch.name} ({state_values.get(batch.state)})'
+        return [(batch.id, f'{batch.name} ({state_values.get(batch.state)})') for batch in self]
 
     def validate_batch(self):
         """ Verifies the content of a batch and proceeds to its sending if possible.

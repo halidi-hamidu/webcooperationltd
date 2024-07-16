@@ -6,10 +6,12 @@ import { getBasicServerData } from "@spreadsheet/../tests/utils/data";
 import { getCellContent, getCellFormula, getCellValue } from "@spreadsheet/../tests/utils/getters";
 import { setCellContent } from "@spreadsheet/../tests/utils/commands";
 import { setupCollaborativeEnv } from "../../utils/collaborative_helpers";
-import { ListDataSource } from "@spreadsheet/list/list_data_source";
+import ListDataSource from "@spreadsheet/list/list_data_source";
 import { waitForDataSourcesLoaded } from "@spreadsheet/../tests/utils/model";
 
 /** @typedef {import("@spreadsheet/o_spreadsheet/o_spreadsheet").Model} Model */
+
+let dataSourceId = 0;
 
 function insertList(model, id, anchor = [0, 0]) {
     const { definition, columns } = getListPayload();
@@ -19,6 +21,7 @@ function insertList(model, id, anchor = [0, 0]) {
         row: anchor[1],
         id,
         definition,
+        dataSourceId: dataSourceId++,
         columns,
         linesNumber: 5,
     });
@@ -107,7 +110,7 @@ QUnit.test("Add two lists concurrently", async (assert) => {
     assert.spreadsheetIsSynchronized(
         [alice, bob, charlie],
         (user) =>
-            Object.values(user.config.custom.dataSources._dataSources).filter(
+            Object.values(user.config.dataSources._dataSources).filter(
                 (ds) => ds instanceof ListDataSource
             ).length,
         2
@@ -163,7 +166,25 @@ QUnit.test("Re-insert and remove a list concurrently", async (assert) => {
     });
     assert.spreadsheetIsSynchronized(
         [alice, bob, charlie],
-        (user) => user.getters.getPivotIds().length,
+        (user) => user.getters.getListIds().length,
+        0
+    );
+});
+
+QUnit.test("remove and update a domain of a list concurrently", async (assert) => {
+    insertList(alice, "1");
+    await network.concurrent(() => {
+        alice.dispatch("REMOVE_ODOO_LIST", {
+            listId: "1",
+        });
+        bob.dispatch("UPDATE_ODOO_LIST_DOMAIN", {
+            listId: "1",
+            domain: [["foo", "in", [55]]],
+        });
+    });
+    assert.spreadsheetIsSynchronized(
+        [alice, bob, charlie],
+        (user) => user.getters.getListIds().length,
         0
     );
 });

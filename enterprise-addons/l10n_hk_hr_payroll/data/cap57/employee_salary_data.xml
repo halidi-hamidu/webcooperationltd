@@ -7,9 +7,12 @@
         <field name="code">HRA</field>
         <field name="sequence">1</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = employee.l10n_hk_rental_id and contract._get_contract_wage() &gt;= 10000 and 'SKIP_RENT_ALLOWANCE' not in inputs</field>
+        <field name="condition_python">
+is_start_renting = employee.l10n_hk_rental_date_start and payslip.date_to &gt;= employee.l10n_hk_rental_date_start
+result = is_start_renting and employee.l10n_hk_rental_amount and contract._get_contract_wage() &gt;= 10000 and not inputs.SKIP_RENT_ALLOWANCE
+        </field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = min(contract._get_contract_wage() - 10000, employee.l10n_hk_rental_id.amount, payslip.paid_amount)</field>
+        <field name="amount_python_compute">result = min(contract._get_contract_wage() - 10000, employee.l10n_hk_rental_amount, payslip.paid_amount)</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
     </record>
 
@@ -29,11 +32,11 @@
         <field name="code">COMMISSION</field>
         <field name="sequence">5</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = 'COMMISSION' in inputs</field>
+        <field name="condition_python">result = inputs.COMMISSION</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-result = inputs['COMMISSION'].amount
-result_name = inputs['COMMISSION'].name
+result = inputs.COMMISSION.amount
+result_name = inputs.COMMISSION.name
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
         <field name="appears_on_payroll_report" eval="True"/>
@@ -45,9 +48,9 @@ result_name = inputs['COMMISSION'].name
         <field name="code">BACKPAY</field>
         <field name="sequence">6</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = 'BACKPAY' in inputs</field>
+        <field name="condition_python">result = inputs.BACKPAY</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = inputs['BACKPAY'].amount</field>
+        <field name="amount_python_compute">result = inputs.BACKPAY.amount</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
         <field name="appears_on_payroll_report" eval="True"/>
     </record>
@@ -59,14 +62,15 @@ result_name = inputs['COMMISSION'].name
         <field name="code">ALW.INT</field>
         <field name="sequence">30</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(not payslip.is_outside_contract and contract.l10n_hk_internet)</field>
+        <field name="condition_python">result = bool(contract.l10n_hk_internet) and payslip.rule_parameter('l10n_hk_wifi_allowance')</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
 prorata_rate = 1
-total_days = sum([wd.number_of_days for wd in payslip.worked_days_line_ids])
-actual_work_days = payslip._get_number_of_worked_days()
-prorata_rate = actual_work_days / total_days
-result = contract.l10n_hk_internet * prorata_rate
+out_day = payslip.dict._get_worked_days_line_number_of_days('OUT')
+if out_day:
+    days_in_month = (payslip.date_to - payslip.date_from).days + 1
+    prorata_rate = (days_in_month - out_day) / days_in_month
+result = payslip.rule_parameter('l10n_hk_wifi_allowance') * prorata_rate
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
     </record>
@@ -77,9 +81,9 @@ result = contract.l10n_hk_internet * prorata_rate
         <field name="code">GLOBAL_DEDUCTION</field>
         <field name="sequence">98</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = 'GLOBAL_DEDUCTION' in inputs</field>
+        <field name="condition_python">result = inputs.GLOBAL_DEDUCTION</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = -inputs['GLOBAL_DEDUCTION'].amount</field>
+        <field name="amount_python_compute">result = -inputs.GLOBAL_DEDUCTION.amount</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
         <field name="appears_on_payroll_report" eval="True"/>
     </record>
@@ -90,9 +94,9 @@ result = contract.l10n_hk_internet * prorata_rate
         <field name="code">GLOBAL_REIMBURSEMENT</field>
         <field name="sequence">99</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = 'GLOBAL_REIMBURSEMENT' in inputs</field>
+        <field name="condition_python">result = inputs.GLOBAL_REIMBURSEMENT</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = inputs['GLOBAL_REIMBURSEMENT'].amount</field>
+        <field name="amount_python_compute">result = inputs.GLOBAL_REIMBURSEMENT.amount</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
         <field name="appears_on_payroll_report" eval="True"/>
     </record>
@@ -105,12 +109,11 @@ result = contract.l10n_hk_internet * prorata_rate
         <field name="sequence">100</field>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+        <field name="amount_python_compute">result = categories.BASIC + categories.ALW + categories.DED</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
         <field name="appears_on_payslip" eval="False"/>
     </record>
 
-    <!-- Deduction and Reimbursement-->
     <function model="hr.salary.rule" name="write">
         <value model="hr.salary.rule" search="[
             ('struct_id', '=', ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary')),
@@ -129,11 +132,11 @@ result = contract.l10n_hk_internet * prorata_rate
         <field name="code">REFERRAL_FEE</field>
         <field name="sequence">103</field>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = inputs['REFERRAL_FEE'].amount > 0.0 if 'REFERRAL_FEE' in inputs else False</field>
+        <field name="condition_python">result = inputs.REFERRAL_FEE.amount > 0.0 if inputs.REFERRAL_FEE else False</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-result = inputs['REFERRAL_FEE'].amount
-result_name = inputs['REFERRAL_FEE'].name
+result = inputs.REFERRAL_FEE.amount if inputs.REFERRAL_FEE else 0
+result_name = inputs.REFERRAL_FEE.name
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
     </record>
@@ -147,34 +150,34 @@ result_name = inputs['REFERRAL_FEE'].name
         <field name="sequence">109</field>
         <field name="condition_select">python</field>
         <field name="condition_python">
-domain = payslip._get_last_year_payslips_domain(payslip.date_from, payslip.date_to, [employee.id])
+domain = payslip.dict._get_last_year_payslips_domain(payslip.date_from, payslip.date_to, [employee.id])
 last_year_payslips = payslip.env['hr.payslip'].search(domain, order='date_from desc')
 result = payslip.date_to.month == 12 and last_year_payslips
         </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
 # Calculate the number of days in current year
-first_day = payslip.date_from + relativedelta(month=1, day=1)
-last_day = payslip.date_to + relativedelta(month=12, day=31)
-total_days = (last_day - first_day).days + 1
+first_day_of_current_year = payslip.date_to + relativedelta(month=1, day=1)
+day_of_year = (payslip.date_to - first_day_of_current_year).days + 1
 
 # Find past 12-month payslips
-domain = payslip._get_last_year_payslips_domain(payslip.date_from, payslip.date_to, [employee.id])
+domain = payslip.dict._get_last_year_payslips_domain(payslip.date_from, payslip.date_to, [employee.id])
 last_year_payslips = payslip.env['hr.payslip'].search(domain, order='date_from desc')
+no_of_payslips = len(last_year_payslips)
 
 # Calculate the work rate
-number_of_days = last_year_payslips._get_number_of_worked_days(only_full_pay=True)
-number_of_months = number_of_days / total_days * 12  # total_days remains the same for last 12 months and current year
+actual_work_days = sum([pl._get_actual_work_days(skip_non_full_pay=True) for pl in last_year_payslips])
+work_rate = actual_work_days / day_of_year
+no_of_work_months = work_rate * 12
 
 # Calculate the average monthly salary
 gross = last_year_payslips._get_line_values(['713_GROSS'], compute_sum=True)['713_GROSS']['sum']['total']
 gross -= last_year_payslips._get_total_non_full_pay()
-average_monthly_salary = inputs['CUST_AVG_MONTHLY_SALARY'].amount if inputs.get('CUST_AVG_MONTHLY_SALARY') else gross / number_of_months
+average_monthly_salary = gross / no_of_work_months
 
 # Calculate the pro-rata rate
-current_year_payslips = last_year_payslips.filtered(lambda p: p.date_from &gt;= first_day) + payslip
-number_of_days = current_year_payslips._get_number_of_worked_days()
-prorata_rate = number_of_days / total_days
+prorata_rate_per_month = (actual_work_days + payslip.date_to.day) / day_of_year
+prorata_rate = prorata_rate_per_month
 
 result = average_monthly_salary * prorata_rate
         </field>
@@ -189,7 +192,7 @@ result = average_monthly_salary * prorata_rate
         <field name="sequence">110</field>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+        <field name="amount_python_compute">result = categories.BASIC + categories.ALW + categories.DED</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
     </record>
 
@@ -202,12 +205,11 @@ result = average_monthly_salary * prorata_rate
         <field name="condition_select">python</field>
         <field name="condition_python">
 first_mpf_date = employee.first_contract_date + relativedelta(days=30)
-is_above_mpf_threshold = result_rules['MPF_GROSS']['total'] &gt;= payslip._rule_parameter('l10n_hk_mpf_threshold')
-result = is_above_mpf_threshold and first_mpf_date &lt;= payslip.date_from
+result = result_rules['MPF_GROSS']['total'] &gt;= payslip.rule_parameter('l10n_hk_mpf_threshold') and first_mpf_date &lt;= payslip.date_from
         </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-result = -min(0.05 * result_rules['MPF_GROSS']['total'], payslip._rule_parameter('l10n_hk_mpf_maximum'))
+result = -min(0.05 * result_rules['MPF_GROSS']['total'], payslip.rule_parameter('l10n_hk_mpf_maximum'))
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary" />
         <field name="appears_on_payslip">True</field>
@@ -221,21 +223,14 @@ result = -min(0.05 * result_rules['MPF_GROSS']['total'], payslip._rule_parameter
         <field name="condition_select">python</field>
         <field name="condition_python">
 first_mpf_date = employee.first_contract_date + relativedelta(days=30)
-if first_mpf_date.day != 1:
-    first_mpf_date = first_mpf_date + relativedelta(months=1, day=payslip.date_from.day)
-    if (first_mpf_date - employee.first_contract_date).days + 1 &gt; 60:
-        first_mpf_date = first_mpf_date - relativedelta(months=1)
 result = first_mpf_date &lt;= payslip.date_from
         </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-result = -min(0.05 * result_rules['MPF_GROSS']['total'], payslip._rule_parameter('l10n_hk_mpf_maximum'))
+result = -min(0.05 * result_rules['MPF_GROSS']['total'], payslip.rule_parameter('l10n_hk_mpf_maximum'))
 first_mpf_date = employee.first_contract_date + relativedelta(days=30)
-if first_mpf_date.day != 1:
-    first_mpf_date = first_mpf_date + relativedelta(months=1, day=payslip.date_from.day)
-    if (first_mpf_date - employee.first_contract_date).days + 1 &gt; 60:
-        first_mpf_date = first_mpf_date - relativedelta(months=1)
-if first_mpf_date == payslip.date_from:
+last_payslip_date = payslip.date_from - relativedelta(months=1)
+if first_mpf_date == payslip.date_from or (first_mpf_date.day != 1 and first_mpf_date.month == last_payslip_date.month and first_mpf_date.year == last_payslip_date.year):
     past_payslip_ids = payslip.env['hr.payslip'].search([
         ('state', 'in', ['paid', 'done']),
         ('date_to', '&gt;=', employee.first_contract_date),
@@ -243,7 +238,7 @@ if first_mpf_date == payslip.date_from:
         ('employee_id', '=', employee.id),
     ])
     gross_list = past_payslip_ids.line_ids.filtered(lambda line: line.code == 'MPF_GROSS').mapped('total')
-    result -= sum([min(0.05 * gross, payslip._rule_parameter('l10n_hk_mpf_maximum')) for gross in gross_list])
+    result -= sum([min(0.05 * gross, payslip.rule_parameter('l10n_hk_mpf_maximum')) for gross in gross_list])
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary" />
         <field name="appears_on_payslip">False</field>
@@ -261,7 +256,7 @@ if first_mpf_date == payslip.date_from:
 if employee.l10n_hk_mpf_vc_option == 'custom':
     result = -employee.l10n_hk_mpf_vc_percentage * result_rules['MPF_GROSS']['total']
 else:
-    result = -max(0.05 * result_rules['MPF_GROSS']['total'] - payslip._rule_parameter('l10n_hk_mpf_maximum') , 0)
+    result = -max(0.05 * result_rules['MPF_GROSS']['total'] - payslip.rule_parameter('l10n_hk_mpf_maximum'), 0)
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary" />
         <field name="appears_on_payslip">True</field>
@@ -287,11 +282,11 @@ else:
         <field name="code">EXPENSES</field>
         <field name="sequence" eval="190"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = inputs['EXPENSES'].amount > 0.0 if 'EXPENSES' in inputs else False</field>
+        <field name="condition_python">result = inputs.EXPENSES.amount > 0.0 if inputs.EXPENSES else False</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-result = inputs['EXPENSES'].amount
-result_name = inputs['EXPENSES'].name
+result = inputs.EXPENSES.amount if inputs.EXPENSES else 0
+result_name = inputs.EXPENSES.name
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary"/>
     </record>
@@ -302,7 +297,7 @@ result_name = inputs['EXPENSES'].name
             ('struct_id', '=', ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary')),
             ('code', '=', 'GROSS')]"/>
         <value eval="{
-            'amount_python_compute': &quot;result = categories['BASIC'] + categories['ALW'] - categories['ERMPF']&quot;,
+            'amount_python_compute': 'result = categories.BASIC + categories.ALW - categories.ERMPF',
             'sequence': 200,
             'appears_on_payslip': False}"/>
     </function>
@@ -313,7 +308,7 @@ result_name = inputs['EXPENSES'].name
             ('struct_id', '=', ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary')),
             ('code', '=', 'NET')]"/>
         <value eval="{
-            'amount_python_compute': &quot;result = categories['BASIC'] + categories['ALW'] + categories['DED'] + categories['EEMPF']&quot;,
+            'amount_python_compute': 'result = categories.BASIC + categories.ALW + categories.DED + categories.EEMPF',
             'sequence': 210}"/>
     </function>
 

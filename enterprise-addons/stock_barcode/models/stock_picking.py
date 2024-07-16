@@ -13,7 +13,7 @@ class StockPicking(models.Model):
         self.ensure_one()
         view = self.env.ref('stock_barcode.stock_barcode_cancel_operation_view')
         return {
-            'name': _('Cancel this operation?'),
+            'name': _('Cancel this operation ?'),
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'stock_barcode.cancel.operation',
@@ -60,22 +60,12 @@ class StockPicking(models.Model):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id("stock_barcode.stock_barcode_picking_client_action")
         action = dict(action, target='fullscreen')
-        action['context'] = {'active_id': self.id}
+        action['context'] = {
+            'active_id': self.id,
+        }
         return action
 
-    def action_create_return_picking(self):
-        """
-        Create a return picking for the current picking and open it in the barcode app
-        """
-        self.ensure_one()
-        return_picking = self.with_context(active_model='stock.picking', active_id=self.id).env['stock.return.picking'].create({})
-        if sum(return_picking.product_return_moves.mapped('quantity')) <= 0:
-            raise UserError(_("All products have been returned already"))
-        picking_id, _pt = return_picking._create_returns()
-        new_picking = self.env['stock.picking'].browse(picking_id)
-        return new_picking._get_client_action()['action']
-
-    def action_print_barcode(self):
+    def action_print_barcode_pdf(self):
         return self.action_open_label_type()
 
     def action_print_delivery_slip(self):
@@ -102,6 +92,7 @@ class StockPicking(models.Model):
         # Fetch `stock.location`
         source_locations = self.env['stock.location'].search([('id', 'child_of', self.location_id.ids)])
         destination_locations = self.env['stock.location'].search([('id', 'child_of', self.location_dest_id.ids)])
+        package_locations = self.env['stock.location'].search([('id', 'child_of', self.location_dest_id.ids), ('usage', '!=', 'customer')])
         locations = move_lines.location_id | move_lines.location_dest_id | source_locations | destination_locations
 
         # Fetch `stock.quant.package` and `stock.package.type` if group_tracking_lot.
@@ -109,7 +100,7 @@ class StockPicking(models.Model):
         package_types = self.env['stock.package.type']
         if self.env.user.has_group('stock.group_tracking_lot'):
             packages |= move_lines.package_id | move_lines.result_package_id
-            packages |= self.env['stock.quant.package'].with_context(pack_locs=destination_locations.ids)._get_usable_packages()
+            packages |= self.env['stock.quant.package'].with_context(pack_locs=package_locations.ids)._get_usable_packages()
             package_types = package_types.search([])
 
         data = {
@@ -136,8 +127,6 @@ class StockPicking(models.Model):
             picking['note'] = False if is_html_empty(picking['note']) else html2plaintext(picking['note'])
 
         data['config'] = self.picking_type_id._get_barcode_config()
-        if self.return_id:
-            data['config']['create_backorder'] = 'never'
         data['line_view_id'] = self.env.ref('stock_barcode.stock_move_line_product_selector').id
         data['form_view_id'] = self.env.ref('stock_barcode.stock_picking_barcode').id
         data['package_view_id'] = self.env.ref('stock_barcode.stock_quant_barcode_kanban').id
@@ -165,6 +154,7 @@ class StockPicking(models.Model):
             'picking_type_id': picking_type.id,
             'location_id': location_id.id,
             'location_dest_id': location_dest_id.id,
+            'immediate_transfer': True,
         })
 
     def _get_client_action(self):
@@ -180,7 +170,6 @@ class StockPicking(models.Model):
         to inject new fields to the client action.
         """
         return [
-            'move_ids',
             'move_line_ids',
             'picking_type_id',
             'location_id',
@@ -189,17 +178,17 @@ class StockPicking(models.Model):
             'state',
             'picking_type_code',
             'company_id',
+            'immediate_transfer',
             'note',
             'picking_type_entire_packs',
             'use_create_lots',
             'use_existing_lots',
             'user_id',
-            'return_id',
         ]
 
     @api.model
     def filter_on_barcode(self, barcode):
-        """ Searches ready pickings for the scanned product/package/lot.
+        """ Searches ready pickings for the scanned product/package.
         """
         barcode_type = None
         nomenclature = self.env.company.nomenclature_id
@@ -208,7 +197,7 @@ class StockPicking(models.Model):
             if parsed_results:
                 # filter with the last feasible rule
                 for result in parsed_results[::-1]:
-                    if result['rule'].type in ('product', 'package', 'lot'):
+                    if result['rule'].type in ('product', 'package'):
                         barcode_type = result['rule'].type
                         break
 
@@ -222,25 +211,18 @@ class StockPicking(models.Model):
         picking_nums = 0
         additional_context = {'active_id': active_id}
         if barcode_type == 'product' or not barcode_type:
-            product = self.env['product.product'].search([('barcode', '=', barcode)], limit=1)
+            product = self.env['product.product'].search_read([('barcode', '=', barcode)], ['id'], limit=1)
             if product:
-                picking_nums = self.search_count(base_domain + [('product_id', '=', product.id)])
-                additional_context['search_default_product_id'] = product.id
+                product_id = product[0]['id']
+                picking_nums = self.search_count(base_domain + [('product_id', '=', product_id)])
+                additional_context['search_default_product_id'] = product_id
         if self.env.user.has_group('stock.group_tracking_lot') and (barcode_type == 'package' or (not barcode_type and not picking_nums)):
-            package = self.env['stock.quant.package'].search([('name', '=', barcode)], limit=1)
+            package = self.env['stock.quant.package'].search_read([('name', '=', barcode)], ['id'], limit=1)
             if package:
-                pack_domain = ['|', ('move_line_ids.package_id', '=', package.id), ('move_line_ids.result_package_id', '=', package.id)]
+                package_id = package[0]['id']
+                pack_domain = ['|', ('move_line_ids.package_id', '=', package_id), ('move_line_ids.result_package_id', '=', package_id)]
                 picking_nums = self.search_count(base_domain + pack_domain)
                 additional_context['search_default_move_line_ids'] = barcode
-        if self.env.user.has_group('stock.group_production_lot') and (barcode_type == 'lot' or (not barcode_type and not picking_nums)):
-            lot = self.env['stock.lot'].search([
-                ('name', '=', barcode),
-                ('company_id', '=', picking_type.company_id.id),
-            ], limit=1)
-            if lot:
-                lot_domain = [('move_line_ids.lot_id', '=', lot.id)]
-                picking_nums = self.search_count(base_domain + lot_domain)
-                additional_context['search_default_lot_id'] = lot.id
         if not barcode_type and not picking_nums:  # Nothing found yet, try to find picking by name.
             picking_nums = self.search_count(base_domain + [('name', '=', barcode)])
             additional_context['search_default_name'] = barcode
@@ -249,13 +231,13 @@ class StockPicking(models.Model):
             if barcode_type:
                 return {
                     'warning': {
-                        'message': _("No %(picking_type)s ready for this %(barcode_type)s", picking_type=picking_type.name, barcode_type=barcode_type),
+                        'title': _("No %(picking_type)s ready for this %(barcode_type)s", picking_type=picking_type.name, barcode_type=barcode_type),
                     }
                 }
             return {
                 'warning': {
-                    'title': _('No product, lot or package found for barcode %s', barcode),
-                    'message': _('Scan a product, a lot/serial number or a package to filter the transfers.'),
+                    'title': _('No product or package found for barcode %s', barcode),
+                    'message': _('Scan a product or a package to filter the transfers.'),
                 }
             }
 
@@ -303,10 +285,6 @@ class StockPickingType(models.Model):
     show_barcode_validation = fields.Boolean(
         compute='_compute_show_barcode_validation',
         help='Technical field used to compute whether the "Final Validation" group should be displayed, solving combined groups/invisible complexity.')
-    is_barcode_picking_type = fields.Boolean(
-        compute='_compute_is_barcode_picking_type',
-        help="Technical field indicating if should be used in barcode app and used to control visibility in the related UI.")
-
 
     @api.depends('restrict_scan_product', 'restrict_put_in_pack', 'restrict_scan_dest_location')
     def _compute_show_barcode_validation(self):
@@ -319,14 +297,6 @@ class StockPickingType(models.Model):
                                  (picking_type.code == 'outgoing' or picking_type.restrict_scan_dest_location != 'optional')
             # show if not all hidden
             picking_type.show_barcode_validation = not (hide_full and hide_all_product_packed and hide_dest_location)
-
-    @api.depends('code')
-    def _compute_is_barcode_picking_type(self):
-        for picking_type in self:
-            if picking_type.code in ['incoming', 'outgoing', 'internal']:
-                picking_type.is_barcode_picking_type = True
-            else:
-                picking_type.is_barcode_picking_type = False
 
     @api.constrains('restrict_scan_source_location', 'restrict_scan_dest_location')
     def _check_restrinct_scan_locations(self):
@@ -354,7 +324,6 @@ class StockPickingType(models.Model):
             'barcode_validation_after_dest_location': self.barcode_validation_after_dest_location,
             'barcode_validation_all_product_packed': self.barcode_validation_all_product_packed,
             'barcode_validation_full': not self.restrict_scan_product and self.barcode_validation_full,  # Forced to be False when scanning a product is mandatory.
-            'create_backorder': self.create_backorder,
             'restrict_scan_product': self.restrict_scan_product,
             # Selection fields converted into boolean.
             'restrict_scan_tracking_number': self.restrict_scan_tracking_number == 'mandatory',

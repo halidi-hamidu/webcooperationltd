@@ -108,18 +108,17 @@ class TestReportEngines(TestAccountReportsCommon):
         moves.action_post()
         return moves
 
-    def _prepare_test_external_values(self, value, date, figure_type=False):
-        field_name = 'text_value' if figure_type == 'string' else 'value'
+    def _prepare_test_external_values(self, value, date):
         return {
             'name': date,
-            field_name: value,
+            'value': value,
             'date': date,
         }
 
-    def _prepare_test_expression(self, formula, label='balance', **kwargs):
+    def _prepare_test_expression(self, formula, **kwargs):
         return {
             'expression_values': {
-                'label': label,
+                'label': 'balance',
                 'formula': formula,
                 **kwargs,
             },
@@ -214,6 +213,15 @@ class TestReportEngines(TestAccountReportsCommon):
 
         return report
 
+    def _get_audit_params_from_report_line(self, options, report_line, report_line_dict, **kwargs):
+        return {
+            'report_line_id': report_line.id,
+            'calling_line_dict_id': report_line_dict['id'],
+            'expression_label': 'balance',
+            'column_group_key': next(iter(options['column_groups'])),
+            **kwargs,
+        }
+
     # -------------------------------------------------------------------------
     # TESTS
     # -------------------------------------------------------------------------
@@ -259,12 +267,11 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_1',        5400.0),
                 ('101001 101001',      3000.0),
                 ('101002 101002',      2400.0),
-                ('test_line_2',           0.0),
-                ('101001 101001',         0.0),
+                ('test_line_2',            ''),
+                ('101001 101001',          ''),
                 ('test_line_3',         600.0),
                 ('101001 101001',       600.0),
             ],
-            options,
         )
 
         # Check redirection.
@@ -345,14 +352,13 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('101002 101002',       300.0),
                 ('101003 101003',       600.0),
                 ('101004 101004',       900.0),
-                ('test_line_5',           0.0),
-                ('test_line_6',           0.0),
+                ('test_line_5',            ''),
+                ('test_line_6',            ''),
                 ('test_line_7',             3),
                 ('101002 101002',           1),
                 ('101003 101003',           1),
                 ('101004 101004',           1),
             ],
-            options,
         )
 
         # Check redirection.
@@ -514,7 +520,7 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('101003 101003',       600.0),
                 ('test_line_11',         10.0),
                 ('345D 345D',            10.0),
-                ('test_line_12',          0.0),
+                ('test_line_12',           ''),
                 ('test_line_13',      12700.0),
                 ('10.20.0 10.20.0',   10000.0),
                 ('100001 100001',      1000.0),
@@ -523,12 +529,11 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_14',       3000.0),
                 ('100001 100001',      1000.0),
                 ('101001 101001',      2000.0),
-                ('test_line_15',          0.0),
+                ('test_line_15',           ''),
                 ('test_line_16',        400.0),
                 ('100001 100001',      1000.0),
                 ('101003 101003',      -600.0),
             ],
-            options,
         )
 
         # Check redirection.
@@ -579,10 +584,9 @@ class TestReportEngines(TestAccountReportsCommon):
             report._get_lines(options),
             [   0,                          1],
             [
-                ('test_line_1',           0.0),
-                ('test_line_2',           0.0),
+                ('test_line_1',            ''),
+                ('test_line_2',            ''),
             ],
-            options,
         )
 
         options = self._generate_options(report, '2020-01-02', '2020-01-02')
@@ -594,7 +598,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_1',         100.0),
                 ('test_line_2',         100.0),
             ],
-            options,
         )
 
         options = self._generate_options(report, '2020-01-03', '2020-01-03')
@@ -607,7 +610,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_1',         500.0),
                 ('test_line_2',         500.0),
             ],
-            options,
         )
 
         # Check redirection.
@@ -628,10 +630,9 @@ class TestReportEngines(TestAccountReportsCommon):
             report._get_lines(options),
             [   0,                          1],
             [
-                ('test_line_1',           0.0),
-                ('test_line_2',           0.0),
+                ('test_line_1',            ''),
+                ('test_line_2',            ''),
             ],
-            options,
         )
 
         options = self._generate_options(report, '2020-01-02', '2020-01-04')
@@ -643,7 +644,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_1',          600.0),
                 ('test_line_2',          500.0),
             ],
-            options,
         )
 
         # Check redirection.
@@ -675,14 +675,12 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_1',          800.0),
                 ('test_line_2',          300.0),
             ],
-            options,
         )
 
     def test_engine_external_editable_percentage(self):
         # Create the report.
         test_rounding_4 = self._prepare_test_report_line(
-            self._prepare_test_expression_external(
-                'most_recent', [
+            self._prepare_test_expression_external('most_recent', [
                     self._prepare_test_external_values(10.1254, '2020-01-01'),
                     self._prepare_test_external_values(5, '2020-01-02'),
                 ], figure_type='percentage', subformula='editable;rounding=4',
@@ -690,8 +688,7 @@ class TestReportEngines(TestAccountReportsCommon):
             code='TEST_PERCENTAGE'
         )
         test_rounding_2 = self._prepare_test_report_line(
-            self._prepare_test_expression_external(
-                'most_recent', [
+            self._prepare_test_expression_external('most_recent', [
                     self._prepare_test_external_values(10.12, '2020-01-01'),
                     self._prepare_test_external_values(5, '2020-01-02'),
                 ], figure_type='percentage', subformula='editable;rounding=2',
@@ -701,8 +698,7 @@ class TestReportEngines(TestAccountReportsCommon):
             self._prepare_test_expression_aggregation('10000 * TEST_PERCENTAGE.balance'),
         )
         test_float = self._prepare_test_report_line(
-            self._prepare_test_expression_external(
-                'most_recent', [
+            self._prepare_test_expression_external('most_recent', [
                     self._prepare_test_external_values(10.12, '2020-01-01'),
                     self._prepare_test_external_values(5, '2020-01-02'),
                 ], figure_type='float', subformula='editable;rounding=2',
@@ -715,12 +711,12 @@ class TestReportEngines(TestAccountReportsCommon):
         self.assertLinesValues(
             # pylint: disable=bad-whitespace
             report._get_lines(options),
-            [0,                          1],
+            [0, 1],
             [
                 ('test_line_1', '10.1254%'),
-                ('test_line_2',   '10.12%'),
-                ('test_line_3',     101254),
-                ('test_line_4',    '10.12'),
+                ('test_line_2', '10.12%'),
+                ('test_line_3', 101254),
+                ('test_line_4', '10.12'),
             ],
             options,
         )
@@ -729,12 +725,12 @@ class TestReportEngines(TestAccountReportsCommon):
         self.assertLinesValues(
             # pylint: disable=bad-whitespace
             report._get_lines(options),
-            [0,                         1],
+            [0, 1],
             [
                 ('test_line_1', '5.0000%'),
-                ('test_line_2',   '5.00%'),
-                ('test_line_3',     50000),
-                ('test_line_4',    '5.00'),
+                ('test_line_2', '5.00%'),
+                ('test_line_3', 50000),
+                ('test_line_4', '5.00'),
             ],
             options,
         )
@@ -755,7 +751,7 @@ class TestReportEngines(TestAccountReportsCommon):
 
         # Check the values.
 
-        def _custom_engine_test(expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+        def _custom_engine_test(expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None):
             domain = [('account_id.code', '=', '101002')]
             domain_key = str(domain)
             formulas_dict = {domain_key: expressions}
@@ -782,7 +778,6 @@ class TestReportEngines(TestAccountReportsCommon):
                     ('test_line_1',        -300.0),
                     ('101002 101002',      -300.0),
                 ],
-                options,
             )
 
     def test_engine_aggregation(self):
@@ -967,16 +962,16 @@ class TestReportEngines(TestAccountReportsCommon):
             report_lines,
             [   0,                          1],
             [
-                ('test1',                 0.0),
+                ('test1',                  ''),
                 ('test2_1',            2000.0),
-                ('test2_2',               0.0),
-                ('test2_3',               0.0),
+                ('test2_2',                ''),
+                ('test2_3',                ''),
                 ('test2_4',            2000.0),
                 ('test3_1',            -300.0),
-                ('test3_2',               0.0),
-                ('test3_3',               0.0),
+                ('test3_2',                ''),
+                ('test3_3',                ''),
                 ('test4_1',            1700.0),
-                ('test4_2',               0.0),
+                ('test4_2',                ''),
                 ('9999',               3500.0),
                 ('test6',                 1.0),
                 ('test7',            100000.0),
@@ -984,19 +979,18 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test10_1',            100.0),
                 ('test10_2',            100.5),
                 ('test10_3',            100.47),
-                ('test11_1',              0.0),
+                ('test11_1',               ''),
                 ('test11_2',            100.0),
                 ('test11_3',            100.0),
-                ('test11_4',              0.0),
+                ('test11_4',               ''),
                 ('test11_5',            100.0),
-                ('test11_6',              0.0),
+                ('test11_6',               ''),
                 ('test12_1',           3200.0),
                 ('test12_2',           2000.0),
                 ('test12_3',           -300.0),
                 ('test12_4',           1500.0),
                 ('test12_5',           1500.0),
             ],
-            options,
         )
 
         # Check redirection.
@@ -1043,7 +1037,6 @@ class TestReportEngines(TestAccountReportsCommon):
         )
 
         other_report = self._create_report([other_report_line_1, other_report_line_2, other_report_line_3, other_report_line_4])
-        other_report_options = self._generate_options(other_report, '2021-01-01', '2021-01-01')
 
         # Main report
         main_report_line_1 = self._prepare_test_report_line(
@@ -1081,12 +1074,11 @@ class TestReportEngines(TestAccountReportsCommon):
         )
 
         main_report = self._create_report([main_report_line_1, main_report_line_2, main_report_line_3, main_report_line_4, main_report_line_5, main_report_line_6])
-        main_report_options = self._generate_options(main_report, '2021-01-01', '2021-01-01')
 
         # First check other_report
         self.assertLinesValues(
             # pylint: disable=bad-whitespace
-            other_report._get_lines(other_report_options),
+            other_report._get_lines(self._generate_options(other_report, '2021-01-01', '2021-01-01')),
             [   0,                                      1],
             [
                 ('other_report_line_1',               2.0),
@@ -1094,7 +1086,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('other_report_line_3',               6.0),
                 ('other_report_line_4',               5.0),
             ],
-            other_report_options,
         )
 
         # Check main_report
@@ -1112,7 +1103,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('main_report_line_5',               27.0),
                 ('main_report_line_6',               27.0),
             ],
-            main_report_options,
         )
 
         # Check redirection.
@@ -1217,12 +1207,11 @@ class TestReportEngines(TestAccountReportsCommon):
             lines,
             [   0,                                1],
             [
-                ('test_line_1',          '6,000.00'),
-                ('Partner A',            '1,000.00'),
-                ('Partner B',            '2,000.00'),
+                ('test_line_1',     '$ 6,000.00'),
+                ('Partner A',       '$ 1,000.00'),
+                ('Partner B',       '$ 2,000.00'),
                 ('Load more...',                 ''),
-            ],
-            options,
+            ]
         )
 
         load_more_line = lines[-1]
@@ -1239,256 +1228,9 @@ class TestReportEngines(TestAccountReportsCommon):
             load_more_res,
             [   0,                                1],
             [
-                ('Partner C',            '3,000.00'),
-            ],
-            options,
+                ('Partner C',       '$ 3,000.00'),
+            ]
         )
-
-    def test_engine_external_boolean(self):
-        # Create the report.
-        test_line = self._prepare_test_report_line(
-            self._prepare_test_expression_external('most_recent', [
-                self._prepare_test_external_values('1', '2020-01-02'),
-                self._prepare_test_external_values('0', '2020-01-03'),
-                self._prepare_test_external_values('1', '2020-01-03'),
-                self._prepare_test_external_values('0', '2020-01-05'),
-            ], figure_type='boolean')
-        )
-
-        report = self._create_report([test_line])
-        # Check the values at multiple dates.
-        options = self._generate_options(report, '2020-01-01', '2020-01-01')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                          1],
-            [
-                ('test_line_1',          'No'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-02', '2020-01-02')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                          1],
-            [
-                ('test_line_1',         'Yes'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-03', '2020-01-03')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                          1],
-            [
-                ('test_line_1',         'Yes'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-05', '2020-01-05')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                          1],
-            [
-                ('test_line_1',          'No'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-02', '2020-01-05')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                          1],
-            [
-                ('test_line_1',          'No'),
-            ],
-            options,
-        )
-
-    def test_engine_external_string(self):
-        # Create the report.
-        test_line = self._prepare_test_report_line(
-            self._prepare_test_expression_external('most_recent', [
-                self._prepare_test_external_values('TARDIS', '2020-01-02', figure_type='string'),
-                self._prepare_test_external_values('Kris Kelvin', '2020-01-03', figure_type='string'),
-                self._prepare_test_external_values('Trisolaris', '2020-01-03', figure_type='string'),
-                self._prepare_test_external_values("5-ounce bird carrying a 1-pound coconut", '2020-01-05', figure_type='string'),
-            ], figure_type='string')
-        )
-
-        report = self._create_report([test_line])
-        # Check the values at multiple dates.
-        options = self._generate_options(report, '2020-01-01', '2020-01-01')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                                    1],
-            [
-                ('test_line_1',                      ''),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-02', '2020-01-02')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                                    1],
-            [
-                ('test_line_1',                'TARDIS'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-03', '2020-01-03')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                                    1],
-            [
-                ('test_line_1',            'Trisolaris'),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-05', '2020-01-05')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                                    1],
-            [
-                ('test_line_1', "5-ounce bird carrying a 1-pound coconut"),
-            ],
-            options,
-        )
-
-        options = self._generate_options(report, '2020-01-02', '2020-01-05')
-        self.assertLinesValues(
-            # pylint: disable=bad-whitespace
-            report._get_lines(options),
-            [   0,                                    1],
-            [
-                ('test_line_1', "5-ounce bird carrying a 1-pound coconut"),
-            ],
-            options,
-        )
-
-    def test_engine_external_default_value_tax_closing_fiscalyear_lock_date(self):
-        def lock_via_fiscalyear_lock_date(non_tax_report, tax_report, report_options_map):
-            lock_date_wizard = self.env['account.change.lock.date'].create({
-                'fiscalyear_lock_date': fields.Date.from_string('2020-01-02'),
-            })
-            lock_date_wizard.change_lock_date()
-
-        self._run_external_engine_default_test_case(False, True, lock_via_fiscalyear_lock_date)
-
-    def test_engine_external_default_value_tax_closing_tax_lock_date(self):
-        def lock_via_tax_lock_date(non_tax_report, tax_report, report_options_map):
-            lock_date_wizard = self.env['account.change.lock.date'].create({
-                'tax_lock_date': fields.Date.from_string('2020-01-02'),
-            })
-            lock_date_wizard.change_lock_date()
-
-        self._run_external_engine_default_test_case(True, False, lock_via_tax_lock_date)
-
-    def test_engine_external_default_value_tax_closing(self):
-        def lock_via_tax_closing(non_tax_report, tax_report, report_options_map):
-            tax_closing_action = self.env['account.tax.report.handler'].action_periodic_vat_entries(report_options_map[tax_report])
-            closing_move_id = tax_closing_action['res_id']
-            self.env['account.move'].browse(closing_move_id).action_post()
-
-        self._run_external_engine_default_test_case(True, False, lock_via_tax_closing)
-
-    def _run_external_engine_default_test_case(self, impact_tax_report, impact_non_tax_report, lock_operation_function):
-        """ Common helper to run the tests of _default expressions
-        """
-        test_line_1 = self._prepare_test_report_line(
-            self._prepare_test_expression_account_codes('10'),
-            groupby='account_id',
-        )
-        test_line_2 = self._prepare_test_report_line(
-            self._prepare_test_expression_external('sum', {}),
-            self._prepare_test_expression_account_codes('10', label='_default_balance'),
-        )
-
-        non_tax_report = self._create_report([test_line_1, test_line_2], name="non_tax_report")
-        tax_report = self._create_report([test_line_1, test_line_2], root_report_id=self.env.ref('account.generic_tax_report').id, name="tax_report")
-
-        # Create the journal entries.
-        self._create_test_account_moves([
-            self._prepare_test_account_move_line(1000.0, account_code='100001'),
-            self._prepare_test_account_move_line(-300.0, account_code='101002'),
-            self._prepare_test_account_move_line(-600.0, account_code='314159'),
-        ])
-
-        report_options_map = {
-            report: self._generate_options(
-                report,
-                '2020-01-01', '2020-01-31',
-                default_options={
-                    'unfold_all': True,
-                }
-            )
-            for report in [non_tax_report, tax_report]
-        }
-
-        # Check the values before locking
-        for report in [non_tax_report, tax_report]:
-            with self.subTest(report=report.name):
-                options = report_options_map[report]
-                self.assertLinesValues(
-                    # pylint: disable=bad-whitespace
-                    report._get_lines(options),
-                    [0,                             1],
-                    [
-                        ('test_line_1',         700.0),
-                        ('100001 100001',      1000.0),
-                        ('101002 101002',      -300.0),
-                        ('test_line_2',           0.0),
-                    ],
-                    options,
-                )
-
-        # Run the lock operation
-        lock_operation_function(non_tax_report, tax_report, report_options_map)
-
-        # Check the values after locking
-        for report, impacted in [(non_tax_report, impact_non_tax_report), (tax_report, impact_tax_report)]:
-            with self.subTest(report=report.name):
-                options = report_options_map[report]
-                if impacted:
-                    self.assertLinesValues(
-                        # pylint: disable=bad-whitespace
-                        report._get_lines(options),
-                        [0,                             1],
-                        [
-                            ('test_line_1',         700.0),
-                            ('100001 100001',      1000.0),
-                            ('101002 101002',      -300.0),
-                            ('test_line_2',         700.0),
-                        ],
-                        options,
-                    )
-                else:
-                    self.assertLinesValues(
-                        # pylint: disable=bad-whitespace
-                        report._get_lines(options),
-                        [0,                             1],
-                        [
-                            ('test_line_1',         700.0),
-                            ('100001 100001',      1000.0),
-                            ('101002 101002',      -300.0),
-                            ('test_line_2',           0.0),
-                        ],
-                        options,
-                    )
 
     def test_engine_aggregation_cross_bound(self):
         report_1 = self._create_report([
@@ -1515,9 +1257,8 @@ class TestReportEngines(TestAccountReportsCommon):
             report_1._get_lines(options),
             [   0,                          1],
             [
-                ('Line 1-1',              0.0),
+                ('Line 1-1',               ''),
             ],
-            options
         )
 
         self._create_test_account_moves([
@@ -1532,7 +1273,6 @@ class TestReportEngines(TestAccountReportsCommon):
             [
                 ('Line 1-1',             14.0),
             ],
-            options
         )
 
     def test_change_expression_engine_to_tax_tags(self):
@@ -1598,7 +1338,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_5',              19.0),
                 ('test_line_6',               2.0),
             ],
-            main_options,
         )
 
         # Test with another rounding method
@@ -1615,12 +1354,11 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_5',              22.0),
                 ('test_line_6',               3.0),
             ],
-            up_options
         )
 
-        # In file export mode, the rounding should always be applied, even if it was previously disabled
-        print_mode_options = report._custom_options_add_integer_rounding(
-            {**main_options, 'export_mode': 'file'},
+        # In print mode, the rounding should always be applied, even if it was previously disabled
+        print_mode_options = report.with_context(print_mode=True)._custom_options_add_integer_rounding(
+            {**main_options},
             'HALF-UP',
             previous_options={'integer_rounding_enabled': False},
         )
@@ -1636,7 +1374,6 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_5',              19.0),
                 ('test_line_6',               2.0),
             ],
-            print_mode_options,
         )
 
         # Rounding available, but disabled
@@ -1653,5 +1390,4 @@ class TestReportEngines(TestAccountReportsCommon):
                 ('test_line_5',              19.70),
                 ('test_line_6',               1.97),
             ],
-            no_rounding_options,
         )

@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 from odoo.osv import expression
 
 
@@ -64,7 +64,7 @@ class SocialPostYoutube(models.Model):
                 'youtube_description': post.youtube_description,
                 'youtube_video_id': post.youtube_video_id,
                 'published_date': post.scheduled_date if post.scheduled_date else fields.Datetime.now(),
-                'post_link': "https://www.youtube.com/watch?v=%s" % post.youtube_video_id if post.youtube_video_id else '',
+                'post_link': "https://www.youtube.com/watch?v=%s" % post.youtube_video_id,
             })
 
     @api.depends('account_ids.media_type')
@@ -92,16 +92,6 @@ class SocialPostYoutube(models.Model):
                 raise UserError(_("Please select a single YouTube account at a time."))
             if not social_post.youtube_video_id and 'youtube' in social_post.media_ids.mapped('media_type'):
                 raise UserError(_("You have to upload a video when posting on YouTube."))
-            if social_post.youtube_title:
-                if ">" in social_post.youtube_title or "<" in social_post.youtube_title:
-                    raise ValidationError(_("Title should not contain > or < symbol."))
-                elif len(social_post.youtube_title) > 100:
-                    raise ValidationError(_("Title cannot exceed 100 characters."))
-            if social_post.youtube_description:
-                if ">" in social_post.youtube_description or "<" in social_post.youtube_description:
-                    raise ValidationError(_("Description should not contain > or < symbol."))
-                elif len(social_post.youtube_description) > 5000:
-                    raise ValidationError(_("Description cannot exceed 5000 characters."))
 
     @api.model_create_multi
     def create(self, vals_list):

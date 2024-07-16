@@ -8,8 +8,12 @@ from datetime import date, datetime
 
 class GermanTaxReportCustomHandler(models.AbstractModel):
     _name = 'l10n_de.tax.report.handler'
-    _inherit = 'account.tax.report.handler'
+    _inherit = 'account.generic.tax.report.handler'
     _description = 'German Tax Report Custom Handler'
+
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        # Overridden to prevent having unnecessary lines from the generic tax report.
+        return []
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -45,7 +49,7 @@ class GermanTaxReportCustomHandler(models.AbstractModel):
 
         report = self.env['account.report'].browse(options['report_id'])
         template_context = {}
-        options = report.get_options(options)
+        options = report._get_options(options)
         date_to = datetime.strptime(options['date']['date_to'], '%Y-%m-%d')
         template_context['year'] = date_to.year
         if options['date']['period_type'] == 'month':
@@ -103,7 +107,7 @@ class GermanTaxReportCustomHandler(models.AbstractModel):
                 elem.text = "0,00"
 
         return {
-            'file_name': report.get_default_report_filename(options, 'xml'),
+            'file_name': report.get_default_report_filename('xml'),
             'file_content': etree.tostring(tree, pretty_print=True, standalone=False, encoding='ISO-8859-1',),
             'file_type': 'xml',
         }

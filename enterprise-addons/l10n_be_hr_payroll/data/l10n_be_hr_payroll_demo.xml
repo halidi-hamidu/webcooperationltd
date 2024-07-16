@@ -11,6 +11,7 @@
         <field name="city">Eghezee</field>
         <field name="vat">BE0897223670</field>
         <field name="phone">061928374</field>
+        <field name="sdworx_code">1111111</field>
         <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
     </record>
     <record id="base.user_admin" model="res.users">
@@ -38,17 +39,17 @@
     <record id="resource_public_time_off_be" model="resource.calendar.leaves">
         <field name="name">Celebration Day</field>
         <field name="company_id" ref="l10n_be_hr_payroll.res_company_be"/>
-        <field name="date_from" eval="time.strftime('%Y-03-01 05:00:00')"/>
-        <field name="date_to" eval="time.strftime('%Y-03-01 17:00:00')"/>
+        <field name="date_from" eval="(datetime.today() + relativedelta(days=+14)).strftime('%Y-%m-%d 07:00:00')"></field>
+        <field name="date_to" eval="(datetime.today() + relativedelta(days=+14)).strftime('%Y-%m-%d 15:36:00')"></field>
         <field name="work_entry_type_id" ref="hr_work_entry_contract.work_entry_type_legal_leave"/>
     </record>
 
-    <!-- Mandatory day -->
-    <record id="hr_leave_mandatory_day_be" model="hr.leave.mandatory.day">
+    <!-- Stress day -->
+    <record id="hr_leave_stress_day_be" model="hr.leave.stress.day">
         <field name="name">Annual Event</field>
         <field name="company_id" ref="l10n_be_hr_payroll.res_company_be"/>
-        <field name="start_date" eval="(datetime.today() + relativedelta(days=+21)).strftime('%Y-%m-%d 05:00:00')"></field>
-        <field name="end_date" eval="(datetime.today() + relativedelta(days=+21)).strftime('%Y-%m-%d 19:00:00')"></field>
+        <field name="start_date" eval="(datetime.today() + relativedelta(days=+21)).strftime('%Y-%m-%d 07:00:00')"></field>
+        <field name="end_date" eval="(datetime.today() + relativedelta(days=+21)).strftime('%Y-%m-%d 16:00:00')"></field>
         <field name="color">9</field>
     </record>
 

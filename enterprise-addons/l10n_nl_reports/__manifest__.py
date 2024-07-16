@@ -66,11 +66,11 @@
 
 {
     'name': 'Netherlands - Accounting Reports',
-    'countries': ['nl'],
+    'icon': '/l10n_nl/static/description/icon.png',
     'version': '1.5',
     'category': 'Accounting/Localizations/Reporting',
     'description': """
-Accounting reports for Netherlands
+        Accounting reports for Netherlands
     """,
     'author': 'Veritos - Jan Verlaan',
     'website': 'http://www.veritos.nl',

@@ -68,7 +68,7 @@ class CommissionRule(models.Model):
     def _check_product_category(self):
         for rule in self:
             if rule.product_id and rule.product_id.categ_id != rule.category_id:
-                raise ValidationError(_('Product %s does not belong to category %s', rule.product_id.code, rule.category_id.name))
+                raise ValidationError(_('Product %s does not belong to category %s') % (rule.product_id.code, rule.category_id.name))
 
     @api.onchange('is_capped')
     def _onchange_is_capped(self):

@@ -22,24 +22,18 @@ class AppointmentPerformanceCase(AppointmentCommon):
         super(AppointmentPerformanceCase, self).setUp()
         # patch registry to simulate a ready environment
         self.patch(self.env.registry, 'ready', True)
+        self._flush_tracking()
 
 
+@tagged('appointment_performance', 'post_install', '-at_install')
 class AppointmentUIPerformanceCase(AppointmentPerformanceCase, UtilPerf):
 
     @classmethod
     def setUpClass(cls):
         super(AppointmentUIPerformanceCase, cls).setUpClass()
-
-        # tweak in case website is installed
+        # if website_livechat is installed, disable it
         if 'website' in cls.env and 'channel_id' in cls.env['website']:
-            # if website_livechat is installed, disable it
             cls.env['website'].search([]).channel_id = False
-
-            # remove menu containing a slug url (only website_helpdesk normally), to
-            # avoid the menu cache being disabled, which would increase sql queries.
-            cls.env['website.menu'].search([
-                ('url', '=like', '/%/%-%'),
-            ]).unlink()
 
 
 @tagged('appointment_performance', 'post_install', '-at_install')
@@ -60,13 +54,10 @@ class OnlineAppointmentPerformance(AppointmentUIPerformanceCase):
               ),
              ])
 
-        # Flush everything, notably tracking values, as it may impact performances
-        self.flush_tracking()
-
     @warmup
     def test_appointment_invitation_page_anonymous(self):
         """ Anonymous access of invitation page """
-        random.seed(1871)  # fix shuffle in _slots_fill_users_availability
+        random.seed(1871)  # fix shuffle in _slots_available
         invitation = self.env['appointment.invite'].create({
             'short_code': 'spock',
             'appointment_type_ids': self.apt_type_bxls_2days.ids,
@@ -75,7 +66,7 @@ class OnlineAppointmentPerformance(AppointmentUIPerformanceCase):
         self.authenticate(None, None)
         t0 = time.time()
         with freeze_time(self.reference_now):
-            with self.assertQueryCount(default=28):  # apt 27
+            with self.assertQueryCount(default=31):  # apt 30
                 self._test_url_open(invitation.redirect_url)
         t1 = time.time()
 
@@ -84,12 +75,12 @@ class OnlineAppointmentPerformance(AppointmentUIPerformanceCase):
     @warmup
     def test_appointment_type_page_website_authenticated(self):
         """ Authenticated access of Appointment type page """
-        random.seed(1871)  # fix shuffle in _slots_fill_users_availability
+        random.seed(1871)  # fix shuffle in _slots_available
 
         self.authenticate('staff_user_aust', 'staff_user_aust')
         t0 = time.time()
         with freeze_time(self.reference_now):
-            with self.assertQueryCount(default=39):  # apt 26 - no-demo +1
+            with self.assertQueryCount(default=39):  # apt 27
                 self._test_url_open('/appointment/%i' % self.apt_type_bxls_2days.id)
         t1 = time.time()
 

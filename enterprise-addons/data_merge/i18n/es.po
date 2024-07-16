@@ -3,16 +3,17 @@
 # 	* data_merge
 # 
 # Translators:
-# Wil Odoo, 2023
-# Larissa Manderfeld, 2024
+# Martin Trigaux, 2022
+# Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
+# Larissa Manderfeld, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Larissa Manderfeld, 2024\n"
+"POT-Creation-Date: 2022-12-15 13:28+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Larissa Manderfeld, 2023\n"
 "Language-Team: Spanish (https://app.transifex.com/odoo/teams/41243/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,13 +29,6 @@ msgid "%s (copy)"
 msgstr "%s (copia)"
 
 #. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_group.py:0
-#, python-format
-msgid "%s - Similarity: %s%%"
-msgstr "%s - Similitud: %s%%"
-
-#. module: data_merge
 #. odoo-javascript
 #: code:addons/data_merge/static/src/views/data_merge_list_view.js:0
 #, python-format
@@ -47,8 +41,17 @@ msgid ""
 "' deduplication rule.<br/>\n"
 "You can merge them"
 msgstr ""
-"\".<br/>\n"
-"Puede fusionarlos"
+"' regla de deduplicación.<br/>\n"
+"Puedes fusionarlos"
+
+#. module: data_merge
+#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
+msgid ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Model "
+"specific</span>"
+msgstr ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Modelo "
+"específico</span>"
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
@@ -59,11 +62,6 @@ msgstr "<span class=\"me-1\">Cada</span>"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"oe_inline\">%</span>"
 msgstr "<span class=\"oe_inline\">%</span>"
-
-#. module: data_merge
-#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
-msgid "<span invisible=\"not custom_merge_method\">Model specific</span>"
-msgstr "<span invisible=\"not custom_merge_method\">Modelo específico</span>"
 
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_rule_uniq_model_id_field_id
@@ -96,7 +94,7 @@ msgid ""
 "Are you sure that you want to merge the selected records in their respective"
 " group?"
 msgstr ""
-"¿Está seguro de que desea fusionar los registros seleccionados en sus "
+"¿Estás seguro que quieres fusionar los registros seleccionados en sus "
 "respectivos grupos?"
 
 #. module: data_merge
@@ -104,7 +102,7 @@ msgstr ""
 #: code:addons/data_merge/static/src/views/data_merge_list_view.js:0
 #, python-format
 msgid "Are you sure that you want to merge these records?"
-msgstr "¿Está seguro de que desea fusionar estos registros?"
+msgstr "¿Estás seguro que quieres fusionar estos registros?"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__merge_mode__automatic
@@ -133,7 +131,7 @@ msgstr "Compañía"
 #: model_terms:ir.actions.act_window,help:data_merge.action_data_merge_record
 #: model_terms:ir.actions.act_window,help:data_merge.action_data_merge_record_notification
 msgid "Configure rules to identify duplicate records"
-msgstr "Configure reglas para identificar registros duplicados"
+msgstr "Configura reglas para identificar registros duplicados"
 
 #. module: data_merge
 #: model:ir.model,name:data_merge.model_res_partner
@@ -156,7 +154,7 @@ msgstr "Creado por"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__record_create_date
 msgid "Created On"
-msgstr "Creado el"
+msgstr "Creado en"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_uid
@@ -186,11 +184,13 @@ msgstr "Método de fusión personalizado"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_cleanup_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_cleanup
 msgid "Data Merge: Cleanup Records"
 msgstr "Fusión de datos: registros limpios"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_find_duplicates_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_find_duplicates
 msgid "Data Merge: Find Duplicate Records"
 msgstr "Fusión de datos: encontrar registros duplicados"
 
@@ -253,7 +253,7 @@ msgstr "La deduplicación está prohibida en el modelo: %s"
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__removal_mode__delete
 msgid "Delete"
-msgstr "Eliminar"
+msgstr "Suprimir"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__differences
@@ -310,13 +310,6 @@ msgstr "Eliminación de duplicados"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "Duplicates"
 msgstr "Duplicados"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_model.py:0
-#, python-format
-msgid "Duplicates to Merge"
-msgstr "Duplicados a fusionar"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__create_threshold
@@ -385,7 +378,7 @@ msgid ""
 "If the model already has a custom merge method, the class attribute `_merge_disabled` is set to true on\n"
 "             that model and the generic data merge action should not be available on that model."
 msgstr ""
-"Si el modelo ya tiene un método de fusión personalizado, el atributo de clase `_merge_disabled` se establece como verdadero en\n"
+"Si el modelo ya tiene un método de fusión personalizado, el atributo de clase \"_merge_disabled\" se establece como verdadero en\n"
 "             ese modelo y la acción genérica de fusión de datos no debería estar disponible en ese modelo."
 
 #. module: data_merge
@@ -402,6 +395,14 @@ msgstr "Está descartado"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__is_master
 msgid "Is Master"
 msgstr "es maestro"
+
+#. module: data_merge
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_group____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_model____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_record____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_rule____last_update
+msgid "Last Modified on"
+msgstr "Última modificación el"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__last_notification
@@ -474,7 +475,7 @@ msgstr "Fusionar"
 #. module: data_merge
 #: model:ir.ui.menu,name:data_merge.ir_model_menu_merge_action_manager
 msgid "Merge Action Manager"
-msgstr "Gerente de acciones de fusión"
+msgstr "Gestor de acciones de fusión"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__match_mode
@@ -494,7 +495,7 @@ msgstr "Acción de servidor de fusión"
 #. module: data_merge
 #: model:ir.actions.act_window,name:data_merge.ir_model_action_merge
 msgid "Merge action Manager"
-msgstr "Gerente de acciones de fusión"
+msgstr "Gestor de acciones de fusión"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__is_contextual_merge_action
@@ -597,7 +598,7 @@ msgstr "Registros"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__records_to_merge_count
 msgid "Records To Merge Count"
-msgstr "Número de registros a fusionar"
+msgstr "Conteo de registros a fusionar"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__domain
@@ -667,7 +668,7 @@ msgstr "Umbral de sugerencia"
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_model_check_notif_freq
 msgid "The notification frequency should be greater than 0"
-msgstr "La frecuencia de notificación debe ser mayor que 0"
+msgstr "La frecuencia de notificación debe ser mayor a 0"
 
 #. module: data_merge
 #. odoo-python
@@ -681,7 +682,7 @@ msgstr "El registro referenciado no existe"
 #: code:addons/data_merge/static/src/views/data_merge_list_view.js:0
 #, python-format
 msgid "The selected records have been merged"
-msgstr "Los registros seleccionados han sido fusionados"
+msgstr "Los registros seleccionados se fusionaron"
 
 #. module: data_merge
 #. odoo-python
@@ -749,7 +750,7 @@ msgstr "Debe seleccionar por lo menos dos %s para poder fusionarlas."
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_duplicate
 msgid "duplicate records with the '"
-msgstr "registros duplicados con la regla de deduplicación \""
+msgstr "registros duplicados con el '"
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_duplicate

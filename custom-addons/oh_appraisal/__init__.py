@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
-###############################################################################
+# -- coding: utf-8 --
+###################################################################################
 #    A part of Open HRMS Project <https://www.openhrms.com>
 #
 #    Cybrosys Technologies Pvt. Ltd.
-#    Copyright (C) 2023-TODAY Cybrosys Technologies (<https://www.cybrosys.com>)
+#    Copyright (C) 2022-TODAY Cybrosys Technologies (<https://www.cybrosys.com>).
+#    Author: Cybrosys (<https://www.cybrosys.com>)
 #
 #    This program is free software: you can modify
 #    it under the terms of the GNU Affero General Public License (AGPL) as
@@ -18,6 +19,5 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-###############################################################################
-from . import controllers
+###################################################################################
 from . import models

@@ -19,7 +19,7 @@ class TestSaleReport(TestSubscriptionCommon):
                 'taxes_id': [Command.set(self.tax_10.ids)],
                 'recurring_invoice': True,
                 'uom_id': self.env.ref('uom.product_uom_unit').id,
-                'product_subscription_pricing_ids': [Command.set(self.pricing_month.ids)]
+                'product_pricing_ids': [Command.set(self.pricing_month.ids)]
             },
             {
                 'name': 'Product B',
@@ -37,7 +37,7 @@ class TestSaleReport(TestSubscriptionCommon):
                 'note': "Subscription description",
                 'partner_id': self.user_portal.partner_id.id,
                 'pricelist_id': self.company_data['default_pricelist'].id,
-                'plan_id': self.plan_month.id,
+                'recurrence_id': self.recurrence_month.id,
                 'order_line': [Command.create({
                     'name': self.recurring_product.name,
                     'product_id': self.recurring_product.id,
@@ -54,7 +54,7 @@ class TestSaleReport(TestSubscriptionCommon):
         upsell_sub = self.env['sale.order'].browse(action['res_id'])
         self.env.flush_all()
 
-        report_lines = self.env['sale.report'].search([('name', 'in', [self.original_subscription.name, upsell_sub.name])])
+        report_lines = self.env['sale.report'].search([('order_id', 'in', [self.original_subscription.id, upsell_sub.id])])
         self.assertEqual(len(report_lines), 1)
         self.assertEqual(report_lines.product_id, self.recurring_product)
         self.assertEqual(report_lines.product_uom_qty, 2)
@@ -65,7 +65,7 @@ class TestSaleReport(TestSubscriptionCommon):
         upsell_sub.action_confirm()
         self.env.flush_all()
 
-        report_lines = self.env['sale.report'].search([('name', 'in', [self.original_subscription.name, upsell_sub.name])])
+        report_lines = self.env['sale.report'].search([('order_id', 'in', [self.original_subscription.id, upsell_sub.id])])
         self.assertEqual(len(report_lines), 1)
         self.assertEqual(report_lines.product_id, self.recurring_product)
         self.assertEqual(report_lines.product_uom_qty, 2)
@@ -82,7 +82,7 @@ class TestSaleReport(TestSubscriptionCommon):
         upsell_sub.action_confirm()
         self.env.flush_all()
 
-        report_lines = self.env['sale.report'].search([('name', 'in', [self.original_subscription.name, upsell_sub.name])])
+        report_lines = self.env['sale.report'].search([('order_id', 'in', [self.original_subscription.id, upsell_sub.id])])
         self.assertEqual(len(report_lines), 1)
         self.assertEqual(report_lines.product_id, self.recurring_product)
         self.assertEqual(report_lines.product_uom_qty, 3)
@@ -100,11 +100,14 @@ class TestSaleReport(TestSubscriptionCommon):
         upsell_sub.action_confirm()
         self.env.flush_all()
 
-        report_lines = self.env['sale.report'].search([('name', 'in', [self.original_subscription.name, upsell_sub.name])])
-        self.assertEqual(len(report_lines), 1)
+        report_lines = self.env['sale.report'].search([('order_id', 'in', [self.original_subscription.id, upsell_sub.id])])
+        self.assertEqual(len(report_lines), 1)  # only 1 as we don't copy the non-recurring product
         recurring_line = report_lines.filtered(lambda l: l.product_id == self.recurring_product)
+        no_recurring_line = report_lines.filtered(lambda l: l.product_id == self.no_recurring_product)
         self.assertEqual(recurring_line.product_uom_qty, 2)
         self.assertEqual(recurring_line.price_subtotal, 200)
+        self.assertEqual(no_recurring_line.product_uom_qty, 0)
+        self.assertEqual(no_recurring_line.price_subtotal, 0)
 
     def test_report_confirm_upsell_with_same_product_and_discount(self):
         action = self.original_subscription.prepare_upsell_order()
@@ -119,7 +122,7 @@ class TestSaleReport(TestSubscriptionCommon):
         upsell_sub.action_confirm()
         self.env.flush_all()
 
-        report_lines = self.env['sale.report'].search([('name', 'in', [self.original_subscription.name, upsell_sub.name])])
+        report_lines = self.env['sale.report'].search([('order_id', 'in', [self.original_subscription.id, upsell_sub.id])])
         self.assertEqual(len(report_lines), 1)
         self.assertEqual(report_lines.product_id, self.recurring_product)
         self.assertEqual(report_lines.product_uom_qty, 3)

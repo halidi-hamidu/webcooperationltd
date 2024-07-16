@@ -5,72 +5,45 @@ from datetime import timedelta
 import base64
 import io
 import os
-import re
-from markupsafe import Markup
 from PIL import Image
 from unittest import skipIf
 from odoo import fields
-from odoo.tests.common import tagged, users
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
-from odoo.addons.mail.tests.common import MailCommon, mail_new_test_user
+from odoo.tests.common import tagged
 
 
-class TestKnowledgeUICommon(HttpCaseWithUserDemo, MailCommon):
+class TestKnowledgeUICommon(HttpCaseWithUserDemo):
     @classmethod
     def setUpClass(cls):
         super(TestKnowledgeUICommon, cls).setUpClass()
         # remove existing articles to ease tour management
         cls.env['knowledge.article'].with_context(active_test=False).search([]).unlink()
 
-        cls.user_portal = mail_new_test_user(
-            cls.env,
-            company_id=cls.company_admin.id,
-            email='patrick.portal@test.example.com',
-            groups='base.group_portal',
-            login='portal_test',
-            name='Patrick Portal',
-            notification_type='email',
-            tz='Europe/Brussels',
-        )
-
 @tagged('post_install', '-at_install', 'knowledge', 'knowledge_tour')
 class TestKnowledgeUI(TestKnowledgeUICommon):
 
-    def test_knowledge_history(self):
-        """This tour will check that the history works properly."""
-        self.start_tour('/web', 'knowledge_history_tour', login='demo', step_delay=100)
+    def test_knowledge_load_more(self):
+        """ The goal of this tour is to test the behavior of the 'load more' feature.
+        Sub-trees of the articles are loaded max 50 by 50.
 
-    def test_knowledge_load_template(self):
-        """This tour will check that the user can create a new article by using
-           the template gallery."""
-        category = self.env['knowledge.article.template.category'].create({
-            'name': 'Personal'
-        })
-        template = self.env['knowledge.article'].create({
-            'icon': '📚',
-            'article_properties_definition': [{
-                'name': '28db68689e91de10',
-                'type': 'char',
-                'string': 'My Text Field',
-                'default': ''
-            }],
-            'is_template': True,
-            'template_name': 'My Template',
-            'template_category_id': category.id,
-            'template_body': Markup('<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>'),
-        })
+        The parent articles are hand-picked with specific index because it allows testing
+        that we force the display of the parents of the active article. """
 
-        self.start_tour('/web', 'knowledge_load_template', login='admin')
-        article = self.env['knowledge.article'].search([('id', '!=', template.id)], limit=1)
-        self.assertTrue(bool(article))
+        root_articles = self.env['knowledge.article'].create([{
+            'name': 'Root Article %i' % index
+        } for index in range(153)])
 
-        # Strip collaborative steps ids from the body for content-only
-        # comparison
-        body = re.sub(r'\s*data-last-history-steps="[^"]*"', '', article.body)
+        children_articles = self.env['knowledge.article'].create([{
+            'name': 'Child Article %i' % index,
+            'parent_id': root_articles[103].id,
+        } for index in range(254)])
 
-        self.assertEqual(template.template_body, body)
-        self.assertEqual(template.icon, article.icon)
-        self.assertEqual(template.article_properties_definition, article.article_properties_definition)
+        self.env['knowledge.article'].create([{
+            'name': 'Grand-Child Article %i' % index,
+            'parent_id': children_articles[203].id,
+        } for index in range(344)])
+
+        self.start_tour('/web', 'knowledge_load_more_tour', login='admin', step_delay=100)
 
     def test_knowledge_main_flow(self):
 
@@ -94,14 +67,8 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
             'active': False,
             'to_delete': True,
         })
-        self.env['knowledge.article'].create({
-            'name': 'Article 3',
-            'internal_permission': 'write',
-            'parent_id': False,
-            'is_article_visible_by_everyone': True,
-        })
-        with self.mock_mail_gateway(), self.mock_mail_app():
-            self.start_tour('/web', 'knowledge_main_flow_tour', login='admin', step_delay=100)
+
+        self.start_tour('/web', 'knowledge_main_flow_tour', login='admin', step_delay=100)
 
         # check our articles were correctly created
         # with appropriate default values (section / internal_permission)
@@ -128,7 +95,7 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
         self.assertEqual(children_workspace_articles[1], child_article_1)
 
         # workspace article should have one partner invited on it
-        invited_member = workspace_article.article_member_ids.filtered(lambda member: member.partner_id != workspace_article.create_uid.partner_id)
+        invited_member = workspace_article.article_member_ids
         self.assertEqual(len(invited_member), 1)
         invited_partner = invited_member.partner_id
         self.assertEqual(len(invited_partner), 1)
@@ -141,62 +108,8 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
         self.assertEqual(len(invitation_message), 1)
         self.assertIn(
             workspace_article._get_invite_url(invited_partner),
-            self._new_mails.body_html
+            invitation_message.body
         )
-
-        # as we re-ordered our favorites, private article should come first
-        article_favorites = self.env['knowledge.article.favorite'].search([])
-        self.assertEqual(len(article_favorites), 2)
-        self.assertEqual(article_favorites[0].article_id, private_article)
-        self.assertEqual(article_favorites[1].article_id, workspace_article)
-
-    def test_knowledge_main_flow_portal(self):
-        """ Same goal as 'test_knowledge_main_flow' but for a portal user.
-         Portal users have limited rights, they can only access articles to which they have been
-         given specific write access to. """
-
-        # as the knowledge.article#_resequence method is based on write date
-        # force the write_date to be correctly computed
-        # otherwise it always returns the same value as we are in a single transaction
-        self.patch(self.env.cr, 'now', fields.Datetime.now)
-
-        # create initial set of data:
-        # - one regular internal article
-        # - one article to which portal has access to
-        self.env['knowledge.article'].create([{
-            'name': "Internal Workspace Article",
-            'internal_permission': 'write',
-            'parent_id': False,
-            'is_article_visible_by_everyone': True,
-        }, {
-            'name': "Workspace Article",
-            'body': "<p>Content of Workspace Article</p>",
-            'internal_permission': 'write',
-            'parent_id': False,
-            'is_article_visible_by_everyone': True,
-            'article_member_ids': [(0, 0, {
-                'partner_id': self.user_portal.partner_id.id,
-                'permission': 'write',
-            })]
-        }])
-
-        self.start_tour('/knowledge/home', 'knowledge_main_flow_tour_portal', login='portal_test')
-
-        # check our articles were correctly created
-        # with appropriate default values (section / internal_permission)
-        private_article = self.env['knowledge.article'].search([('name', '=', "My Private Article")])
-        self.assertTrue(bool(private_article))
-        self.assertEqual(private_article.category, 'private')
-        self.assertEqual(private_article.internal_permission, 'none')
-
-        workspace_article = self.env['knowledge.article'].search([('name', '=', "Workspace Article")])
-        # check that workspace article's content has been properly modified
-        self.assertIn("Edited Content of Workspace Article", workspace_article.body,
-                      "Portal should have been able to modify the article content as he as direct access")
-
-        children_workspace_articles = workspace_article.child_ids.sorted('sequence')
-        self.assertEqual(len(children_workspace_articles), 2,
-                         "Portal should have been able to create 2 children")
 
         # as we re-ordered our favorites, private article should come first
         article_favorites = self.env['knowledge.article.favorite'].search([])
@@ -236,8 +149,7 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
             'article_member_ids': [(0, 0, {
                 'partner_id': self.env.ref('base.partner_admin').id,
                 'permission': 'write',
-            })],
-            'is_article_visible_by_everyone': True,
+            })]
         }, {
             'name': 'Readonly Article 2',
             'internal_permission': False,
@@ -247,8 +159,7 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
             }), (0, 0, {
                 'partner_id': self.partner_demo.id,
                 'permission': 'read',
-            })],
-            'is_article_visible_by_everyone': True,
+            })]
         }])
 
         self.start_tour('/knowledge/article/%s' % articles[0].id, 'knowledge_readonly_favorite_tour', login='demo', step_delay=100)
@@ -290,91 +201,15 @@ class TestKnowledgeUI(TestKnowledgeUICommon):
         parent_article = self.env['knowledge.article'].create([{
             'name': 'ParentArticle',
             'sequence': 1,
-            'is_article_visible_by_everyone': True,
         }, {
             'name': 'InheritPropertiesArticle',
             'sequence': 2,
-            'is_article_visible_by_everyone': True,
         }])[0]
         self.env['knowledge.article'].create({
             'name': 'ChildArticle',
             'parent_id': parent_article.id
         })
-        self.start_tour('/web', 'knowledge_properties_tour', login='admin', step_delay=100)
-
-    def test_knowledge_items_search_favorites_tour(self):
-        """Test search favorites for items view"""
-        self.env['knowledge.article'].create([{'name': 'Article 1'}])
-        self.start_tour('/web', 'knowledge_items_search_favorites_tour', login='admin')
-
-    def test_knowledge_search_favorites_tour(self):
-        """Test search favorites with searchModel state"""
-        self.env['knowledge.article'].create([{'name': 'Article 1'}])
-        self.start_tour('/web', 'knowledge_search_favorites_tour', login='admin')
-
-    @users('admin')
-    def test_knowledge_sidebar(self):
-        # This tour checks that the features of the sidebar work as expected
-        self.start_tour('/web', 'knowledge_sidebar_tour', login='admin', timeout=100)
-
-        # Check section create button and artice icon button
-        workspace_article = self.env['knowledge.article'].search([('name', '=', 'Workspace Article')])
-        self.assertTrue(bool(workspace_article))
-        self.assertEqual(workspace_article.category, 'workspace')
-        self.assertFalse(workspace_article.parent_id)
-        self.assertEqual(workspace_article.icon, '🥵')
-
-        # Check article create and icon buttons
-        workspace_child = self.env['knowledge.article'].search([('name', '=', 'Workspace Child')])
-        self.assertEqual(workspace_child.parent_id, workspace_article)
-        self.assertEqual(workspace_child.icon, '😬')
-        self.assertTrue(workspace_child.is_user_favorite)
-
-        # Check drag and drop to trash
-        shared_article = self.env['knowledge.article'].with_context(active_test=False).search([('name', '=', 'Shared Article')])
-        self.assertTrue(bool(shared_article))
-        self.assertEqual(shared_article.category, 'shared')
-        self.assertFalse(shared_article.active)
-
-        # Check favorites resequencing
-        private_article = self.env['knowledge.article'].search([('name', '=', 'Private Article')])
-        self.assertTrue(bool(private_article))
-        self.assertEqual(private_article.category, 'private')
-        self.assertFalse(private_article.parent_id)
-        self.assertGreater(private_article.user_favorite_sequence, workspace_child.user_favorite_sequence)
-
-        # Check articles resequencing and article icon button
-        private_children = private_article.child_ids.sorted('sequence')
-        self.assertEqual(private_children[0].name, 'Private Child 3')
-        self.assertEqual(private_children[0].icon, '🥶')
-        self.assertEqual(private_children[1].name, 'Private Child 4')
-        self.assertEqual(private_children[2].name, 'Private Child 1')
-
-        # Check drag and drop to other section
-        moved_to_share = self.env['knowledge.article'].with_context(active_test=False).search([('name', '=', 'Moved to Share')])
-        self.assertTrue(bool(moved_to_share))
-        self.assertEqual(moved_to_share.parent_id, shared_article)
-        self.assertEqual(moved_to_share.category, 'shared')
-        self.assertFalse(moved_to_share.active)
-
-        # Check drag and drop to root and to trash
-        private_child_2 = self.env['knowledge.article'].with_context(active_test=False).search([('name', '=', 'Private Child 2')])
-        self.assertTrue(bool(private_child_2))
-        self.assertFalse(private_child_2.parent_id)
-        self.assertGreater(private_child_2.sequence, private_article.sequence)
-        self.assertFalse(private_child_2.active)
-
-        # Check that some features are restricted with read only articles
-        private_article.write({
-            'internal_permission': 'read',
-            'is_article_visible_by_everyone': True,
-            'sequence': workspace_article.sequence+1,
-        })
-        self.start_tour('/web', 'knowledge_sidebar_readonly_tour', login='demo')
-
-        # Check that articles did not move
-        self.assertFalse(workspace_article.parent_id)
-        self.assertGreater(private_article.sequence, workspace_article.sequence)
+        self.start_tour('/web', 'knowledge_properties_tour', login='admin')
 
 @tagged('external', 'post_install', '-at_install')
 @skipIf(not os.getenv("UNSPLASH_APP_ID") or not os.getenv("UNSPLASH_ACCESS_KEY"), "no unsplash credentials")

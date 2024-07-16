@@ -15,10 +15,6 @@ class TimerService {
         return (this.hours * 60 + this.minutes) * 60 + this.seconds;
     }
 
-    get floatValue() {
-        return this.toSeconds / 3600;
-    }
-
     get timerFormatted() {
         const hours = `${this.hours}`.padStart(2, "0");
         const minutes = `${this.minutes}`.padStart(2, "0");

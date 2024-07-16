@@ -3,15 +3,15 @@
 # 	* account_disallowed_expenses_fleet
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 15.5alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2022-09-20 09:48+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
 "Last-Translator: Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023\n"
 "Language-Team: Ukrainian (https://app.transifex.com/odoo/teams/41243/uk/)\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +21,9 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
 #. module: account_disallowed_expenses_fleet
-#. odoo-python
-#: code:addons/account_disallowed_expenses_fleet/report/account_disallowed_expenses_report.py:0
-#, python-format
-msgid "Accounts missing a disallowed expense category"
-msgstr "В рахунках відсутня заборонена категорія витрат"
+#: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_account_disallowed_expenses_category__car_category
+msgid "Car Category"
+msgstr "Категорія машини"
 
 #. module: account_disallowed_expenses_fleet
 #: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_fleet_disallowed_expenses_rate__company_id
@@ -41,11 +39,6 @@ msgstr "Створив"
 #: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_fleet_disallowed_expenses_rate__create_date
 msgid "Created on"
 msgstr "Створено"
-
-#. module: account_disallowed_expenses_fleet
-#: model:ir.model,name:account_disallowed_expenses_fleet.model_account_deferred_report_handler
-msgid "Deferred Expense Report Custom Handler"
-msgstr "Кастомний обробник звіту витрат майбутніх періодів"
 
 #. module: account_disallowed_expenses_fleet
 #: model:ir.model,name:account_disallowed_expenses_fleet.model_account_disallowed_expenses_category
@@ -74,19 +67,14 @@ msgid "ID"
 msgstr "ID"
 
 #. module: account_disallowed_expenses_fleet
-#. odoo-javascript
-#: code:addons/account_disallowed_expenses_fleet/static/src/components/disallowed_expenses_report/warnings.xml:0
-#, python-format
-msgid ""
-"It looks like Journal Items concerning vehicles are missing. Please check if"
-msgstr ""
-"Схоже, відсутні елементи журналу, що стосуються транспортних засобів. Будь "
-"ласка, перевірте, чи"
-
-#. module: account_disallowed_expenses_fleet
 #: model:ir.model,name:account_disallowed_expenses_fleet.model_account_move_line
 msgid "Journal Item"
 msgstr "Елемент журналу"
+
+#. module: account_disallowed_expenses_fleet
+#: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_fleet_disallowed_expenses_rate____last_update
+msgid "Last Modified on"
+msgstr "Остання модифікація"
 
 #. module: account_disallowed_expenses_fleet
 #: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_fleet_disallowed_expenses_rate__write_uid
@@ -99,25 +87,16 @@ msgid "Last Updated on"
 msgstr "Останнє оновлення"
 
 #. module: account_disallowed_expenses_fleet
-#: model:ir.model,name:account_disallowed_expenses_fleet.model_bank_rec_widget_line
-msgid "Line of the bank reconciliation widget"
-msgstr "Рядок віджета узгодження по банку"
-
-#. module: account_disallowed_expenses_fleet
-#: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_account_disallowed_expenses_category__car_category
-msgid "Make Vehicle Required"
-msgstr "Зробити необхідним транспортний засіб"
-
-#. module: account_disallowed_expenses_fleet
 #: model:ir.model.fields,field_description:account_disallowed_expenses_fleet.field_fleet_disallowed_expenses_rate__date_from
 msgid "Start Date"
 msgstr "Початкова дата"
 
 #. module: account_disallowed_expenses_fleet
 #: model:ir.model.fields,help:account_disallowed_expenses_fleet.field_account_disallowed_expenses_category__car_category
-msgid "The vehicle becomes mandatory while booking any account move."
+msgid "This checkbox makes the vehicle mandatory while booking a vendor bill."
 msgstr ""
-"Транспортний засіб стає обов’язковим під час бронювання будь-якої проводки."
+"Цей чекбокс робить транспортний засіб обов’язковим під час бронювання "
+"рахунку постачальника."
 
 #. module: account_disallowed_expenses_fleet
 #: model:ir.model,name:account_disallowed_expenses_fleet.model_fleet_vehicle
@@ -131,22 +110,6 @@ msgid "Vehicle Disallowed Expenses Rate"
 msgstr "Ставка заборонених витрат автотранспорту"
 
 #. module: account_disallowed_expenses_fleet
-#. odoo-javascript
-#: code:addons/account_disallowed_expenses_fleet/static/src/components/disallowed_expenses_report/filter_extra_options.xml:0
-#, python-format
+#: model_terms:ir.ui.view,arch_db:account_disallowed_expenses_fleet.disallowed_expenses_fleet_search_template_extra_options
 msgid "Vehicle Split"
 msgstr "Розділення авто"
-
-#. module: account_disallowed_expenses_fleet
-#. odoo-javascript
-#: code:addons/account_disallowed_expenses_fleet/static/src/components/disallowed_expenses_report/warnings.xml:0
-#, python-format
-msgid "need a Disallowed Expense Category."
-msgstr "потрібна заборонена категорія витрат."
-
-#. module: account_disallowed_expenses_fleet
-#. odoo-javascript
-#: code:addons/account_disallowed_expenses_fleet/static/src/components/disallowed_expenses_report/warnings.xml:0
-#, python-format
-msgid "these accounts"
-msgstr "ці рахунки"

@@ -43,38 +43,16 @@ class HrPayslip(models.Model):
                 'count': leaves_to_defer,
                 'action': 'hr_payroll_holidays.hr_leave_action_open_to_defer',
             })
-        leaves_no_document = self.env['hr.leave'].search([
+        leaves_no_document = self.env['hr.leave'].search_read([
             ('state', 'not in', ['refuse', 'validate']),
             ('leave_type_support_document', '=', True),
-            ('attachment_ids', '=', False),
             ('employee_company_id', 'in', self.env.companies.ids),
-        ])
+            ('attachment_ids', '=', False)], fields=['id'])
         if leaves_no_document:
             no_document_str = _('Time Off Without Joined Document')
             res.append({
                 'string': no_document_str,
                 'count': len(leaves_no_document),
-                'action': self._dashboard_default_action(no_document_str, 'hr.leave', leaves_no_document.ids)
-            })
-        leaves_no_allocation_ids = []
-        employees = self.env['hr.employee'].search([('company_id', 'in', self.env.companies.ids)])
-        consumed_leaves = employees._get_consumed_leaves(leave_types=self.env['hr.leave.type'].search([
-            ('requires_allocation', '=', 'yes'),
-            ('allows_negative', '=', False),
-        ]))[1]
-        for employee in consumed_leaves:
-            to_recheck_leaves_per_leave_type = consumed_leaves[employee]
-            for holiday_status_id in to_recheck_leaves_per_leave_type:
-                for end_dates in to_recheck_leaves_per_leave_type[holiday_status_id]['excess_days']:
-                    leave_id = to_recheck_leaves_per_leave_type[holiday_status_id]['excess_days'][end_dates]['leave_id']
-                    leaves_no_allocation_ids.append(leave_id)
-        if leaves_no_allocation_ids:
-            no_allocation_str = _('Time Off Not Related To An Allocation')
-            res.append({
-                'string': no_allocation_str,
-                'count': len(leaves_no_allocation_ids),
-                'action': self._dashboard_default_action(no_allocation_str, 'hr.leave', leaves_no_allocation_ids, additional_context={
-                    'search_default_group_employee': True,
-                })
+                'action': self._dashboard_default_action(no_document_str, 'hr.leave', [l['id'] for l in leaves_no_document])
             })
         return res

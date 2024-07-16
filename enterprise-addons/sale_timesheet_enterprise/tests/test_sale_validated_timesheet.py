@@ -238,3 +238,96 @@ class TestSaleValidatedTimesheet(TestCommonSaleTimesheet):
         self.assertEqual(portal_task_read['portal_subtask_effective_hours'], 0)
         self.assertEqual(portal_task_read['portal_total_hours_spent'], 2)
         self.assertEqual(portal_task_read['portal_progress'], 20)
+
+    def test_block_edit_so_line_validated_timesheet(self):
+        """
+            The purpose is to check that it is not possible to modify the sale order line
+            if the timesheet is validated when we call the logic that updates the
+            timesheet sale order lines.
+        """
+        self.sale_order.action_confirm()
+        ordered_task = self.env['project.task'].search([('sale_line_id', '=', self.ordered_so_line.id)])
+        today = date.today()
+        not_validated_timesheet, validated_timesheet = self.env['account.analytic.line'].create([
+            {
+                'name': 'Timesheet ordered not validated',
+                'project_id': ordered_task.project_id.id,
+                'task_id': ordered_task.id,
+                'unit_amount': 2,
+                'employee_id': self.employee_user.id,
+                'date': today,
+            },
+            {
+                'name': 'Timesheet ordered validated',
+                'project_id': ordered_task.project_id.id,
+                'task_id': ordered_task.id,
+                'unit_amount': 2,
+                'employee_id': self.employee_user.id,
+                'date': today,
+            }
+        ])
+        employee_map = self.env['project.sale.line.employee.map'].create(
+        {
+            'project_id': ordered_task.project_id.id,
+            'employee_id': self.employee_user.id,
+            'sale_line_id': ordered_task.sale_line_id.id,
+        })
+        employee_map.sale_line_id = ordered_task.sale_line_id.id
+        validated_timesheet.validated = True
+
+        other_sale_line = self.sale_order.order_line.filtered(lambda sl: sl.id != ordered_task.sale_line_id.id)[-1]
+        employee_map.sale_line_id = other_sale_line
+        ordered_task.project_id._update_timesheets_sale_line_id()
+
+        self.assertEqual(not_validated_timesheet.so_line, other_sale_line)  # sale order line is updated
+        self.assertEqual(validated_timesheet.so_line, ordered_task.sale_line_id)  # sale order line is not updated
+
+    def test_create_invoice_for_past_validated_timesheet(self):
+        self.env['ir.config_parameter'].sudo().set_param('sale.invoiced_timesheet', 'approved')
+        self.env['res.config.settings'].create({'prevent_old_timesheets_encoding': True}).execute()
+        sale_order_2 = self.env['sale.order'].with_context(tracking_disable=True).create({
+            'company_id': self.env.company.id,
+            'partner_id': self.partner_a.id,
+            'partner_invoice_id': self.partner_a.id,
+            'partner_shipping_id': self.partner_a.id,
+            'pricelist_id': self.company_data['default_pricelist'].id,
+        })
+
+        delivered_so_line = self.env['sale.order.line'].with_context(tracking_disable=True).create({
+            'product_id': self.product_delivery_timesheet3.id,
+            'product_uom_qty': 10,
+            'order_id': sale_order_2.id,
+        })
+        sale_order_2.action_confirm()
+
+        delivered_task = self.env['project.task'].search([('sale_line_id', '=', delivered_so_line.id)])
+        month_before = date.today() + relativedelta(months=-1)
+        start_of_month_before = month_before.replace(day=1)
+        end_of_month_before = date.today().replace(day=1) - relativedelta(days=1)
+
+        delivered_timesheet1 = self.env['account.analytic.line'].create({
+            'name': 'Timesheet delivered 1',
+            'project_id': delivered_task.project_id.id,
+            'task_id': delivered_task.id,
+            'unit_amount': 6,
+            'employee_id': self.employee_user.id,
+            'date': month_before,
+        })
+        delivered_timesheet1.action_validate_timesheet()
+        self.employee_user.last_validated_timesheet_date = date.today()
+        user = self.env['res.users'].create({
+            'name': 'Basic User',
+            'login': 'basic_user',
+            'password': 'password',
+            'groups_id': [(6, 0, [
+                self.env.ref('project.group_project_user').id,
+                self.env.ref('hr_timesheet.group_hr_timesheet_approver').id,
+                self.env.ref('sales_team.group_sale_manager').id,
+                self.env.ref('account.group_account_user').id,  # Add the accounting accountant group
+            ])],
+        })
+        invoice1 = sale_order_2.with_user(user).with_context(
+            timesheet_start_date=start_of_month_before,
+            timesheet_end_date=end_of_month_before
+        )._create_invoices()
+        self.assertTrue(invoice1, 'Invoice should be created')

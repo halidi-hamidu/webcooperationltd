@@ -3,15 +3,16 @@
 # 	* partner_commission
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
+# JH CHOI <hwangtog@gmail.com>, 2022
 # Sarah Park, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
 "Last-Translator: Sarah Park, 2023\n"
 "Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
 "MIME-Version: 1.0\n"
@@ -39,9 +40,25 @@ msgid " (%d month(s))"
 msgstr " (%d개월)"
 
 #. module: partner_commission
+#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Automatic PO frequency</span>\n"
+"                            <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" role=\"img\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\"/>"
+msgstr ""
+"<span class=\"o_form_label\">자동 PO 빈도</span>\n"
+"                            <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" role=\"img\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\"/>"
+
+#. module: partner_commission
+#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Minimum PO amount total</span>\n"
+"                            <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" role=\"img\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\"/>"
+msgstr ""
+
+#. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_plan__active
 msgid "Active"
-msgstr "활성화"
+msgstr "활성"
 
 #. module: partner_commission
 #: model:res.groups,name:partner_commission.group_commission_manager
@@ -52,11 +69,6 @@ msgstr "모든 문서"
 #: model_terms:ir.ui.view,arch_db:partner_commission.commission_plan_search_view
 msgid "Archived"
 msgstr "보관됨"
-
-#. module: partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
-msgid "Automatic PO frequency"
-msgstr "자동 PO 횟수"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__is_capped
@@ -80,8 +92,6 @@ msgstr "수수료 자동 Po 빈도"
 #: model:ir.model.fields,field_description:partner_commission.field_res_partner__commission_plan_id
 #: model:ir.model.fields,field_description:partner_commission.field_res_users__commission_plan_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_order__commission_plan_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_order_log_report__commission_plan_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_subscription_report__commission_plan_id
 msgid "Commission Plan"
 msgstr "수수료 계획"
 
@@ -92,23 +102,9 @@ msgid "Commission Plans"
 msgstr "수수료 계획"
 
 #. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "Commission on %(invoice)s, %(partner)s, %(amount)s"
-msgstr "%(invoice)s, %(partner)s, %(amount)s 관련 수수료"
-
-#. module: partner_commission
 #: model:ir.model,name:partner_commission.model_commission_plan
 msgid "Commission plan"
 msgstr "수수료 계획"
-
-#. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "Commission refunded. Invoice: %s. Amount: %s."
-msgstr "수수료가 환불되었습니다. 청구서:%s 금액: %s"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_commission_rule
@@ -128,7 +124,7 @@ msgstr "회사"
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_res_config_settings
 msgid "Config Settings"
-msgstr "환경 설정"
+msgstr "설정 구성"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_res_partner
@@ -198,12 +194,18 @@ msgstr "이 주문 항목을 포함한 수수료 내역 청구서"
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_account_move
 msgid "Journal Entry"
-msgstr "전표입력"
+msgstr "분개"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_account_move_line
 msgid "Journal Item"
-msgstr "전표 항목"
+msgstr "분개 항목"
+
+#. module: partner_commission
+#: model:ir.model.fields,field_description:partner_commission.field_commission_plan____last_update
+#: model:ir.model.fields,field_description:partner_commission.field_commission_rule____last_update
+msgid "Last Modified on"
+msgstr "최근 수정일"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_plan__write_uid
@@ -238,11 +240,6 @@ msgid "Maximum amount, specified in the currency of the pricelist, if given."
 msgstr "주어진 경우 가격표의 통화로 지정된 최대 금액입니다."
 
 #. module: partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.res_config_settings_view_form
-msgid "Minimum PO amount total"
-msgstr "최소 PO 합계액"
-
-#. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_res_company__commission_po_minimum
 #: model:ir.model.fields,field_description:partner_commission.field_res_config_settings__commission_po_minimum
 msgid "Minimum Total Amount for PO commission"
@@ -251,19 +248,12 @@ msgstr "PO 커미션 최소 합계액"
 #. module: partner_commission
 #: model:ir.model.fields.selection,name:partner_commission.selection__res_company__commission_automatic_po_frequency__monthly
 msgid "Monthly"
-msgstr "월별"
+msgstr "월간"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_commission_plan__name
 msgid "Name"
 msgstr "이름"
-
-#. module: partner_commission
-#. odoo-python
-#: code:addons/partner_commission/models/account_move.py:0
-#, python-format
-msgid "New commission. Invoice: %s. Amount: %s."
-msgstr "새 수수료입니다. 청구서: %s 금액: %s."
 
 #. module: partner_commission
 #: model:res.groups,name:partner_commission.group_commission_user
@@ -272,6 +262,7 @@ msgstr "자신의 문서만"
 
 #. module: partner_commission
 #: model:ir.actions.server,name:partner_commission.cron_confirm_purchase_orders_ir_actions_server
+#: model:ir.cron,cron_name:partner_commission.cron_confirm_purchase_orders
 msgid "Partner Commission: confirm purchase orders"
 msgstr "협력사 수수료 : 구매 주문 확인"
 
@@ -320,7 +311,7 @@ msgstr "기본 상품 구매"
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_purchase_order
 msgid "Purchase Order"
-msgstr "구매 주문"
+msgstr "발주서"
 
 #. module: partner_commission
 #: model:ir.model.fields,field_description:partner_commission.field_purchase_order__purchase_type
@@ -347,13 +338,10 @@ msgstr "비율은 0에서 100 사이여야 합니다."
 #: model:ir.model.fields,field_description:partner_commission.field_account_move__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_account_payment__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_order__referrer_id
-#: model:ir.model.fields,field_description:partner_commission.field_sale_order_log_report__referrer_id
 #: model:ir.model.fields,field_description:partner_commission.field_sale_subscription_report__referrer_id
 #: model_terms:ir.ui.view,arch_db:partner_commission.account_move_view_search_inherit_partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_log_search
 #: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_subsciption_view_search_inherit_partner_commission
 #: model_terms:ir.ui.view,arch_db:partner_commission.sale_order_view_search_inherit_partner_commission
-#: model_terms:ir.ui.view,arch_db:partner_commission.sale_subscription_report_search
 msgid "Referrer"
 msgstr "추천인"
 
@@ -379,11 +367,6 @@ msgstr "규칙"
 #: model:ir.model.fields,field_description:partner_commission.field_commission_rule__template_id
 msgid "Sale Order Template"
 msgstr "판매주문서 서식"
-
-#. module: partner_commission
-#: model:ir.model,name:partner_commission.model_sale_order_log_report
-msgid "Sales Log Analysis Report"
-msgstr "판매 기록 분석 보고서"
 
 #. module: partner_commission
 #: model:ir.model,name:partner_commission.model_sale_order

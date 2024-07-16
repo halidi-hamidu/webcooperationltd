@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from dateutil.relativedelta import relativedelta
-
 from odoo.tests.common import Form, tagged
 from odoo.addons.partner_commission.tests.setup import TestCommissionsSetup
 from odoo import fields
@@ -91,7 +89,7 @@ class TestSaleSubscription(TestCommissionsSetup):
         form.partner_id = self.customer
         form.referrer_id = self.referrer
         # form.commission_plan_frozen = False
-        form.plan_id = self.plan_month
+        form.recurrence_id = self.recurrence_month
         with form.order_line.new() as line:
             line.name = self.worker.name
             line.product_id = self.worker
@@ -100,7 +98,7 @@ class TestSaleSubscription(TestCommissionsSetup):
         form.end_date = fields.Date.today()
         so = form.save()
         so.action_confirm()
-        so.next_invoice_date += relativedelta(months=1) # prevent validation error
+
         res = so.prepare_renewal_order()
         res_id = res['res_id']
         renewal_so = self.env['sale.order'].browse(res_id)
@@ -149,10 +147,10 @@ class TestSaleSubscription(TestCommissionsSetup):
         # `is_subscription` is True when there are recurring lines in the sale order.
         form.commission_plan_frozen = True
         form.commission_plan_id = self.env['commission.plan']
+        form.end_date = fields.Date.today()
 
         sub = form.save()
         sub.action_confirm()
-        sub._cron_recurring_create_invoice()
         # renew
         res = sub.prepare_renewal_order()
         res_id = res['res_id']
@@ -224,7 +222,6 @@ class TestSaleSubscription(TestCommissionsSetup):
         form.commission_plan_id = self.silver_plan
         sub_A = form.save()
         sub_A.action_confirm()
-        sub_A._cron_recurring_create_invoice()
         self.assertEqual(sub_A.commission_plan_id, self.silver_plan)
         self.assertEqual(sub_A.commission_plan_frozen, True)
 
@@ -234,17 +231,10 @@ class TestSaleSubscription(TestCommissionsSetup):
         form.partner_id = self.customer
         form.referrer_id = self.referrer
         form.sale_order_template_id = self.template_yearly
-        # Subscription plan is defined by the product and pricing
-        with form.order_line.new() as line:
-            line.name = self.worker.name
-            line.product_id = self.worker
-            line.product_uom_qty = 1
         form.commission_plan_frozen = True
         form.commission_plan_id = self.silver_plan
         form.commission_plan_frozen = False
         sub_B = form.save()
-        sub_B.action_confirm()
-        sub_B._cron_recurring_create_invoice()
         self.assertEqual(sub_B.commission_plan_id, self.gold_plan)
         self.assertEqual(sub_B.commission_plan_frozen, False)
 
@@ -262,7 +252,6 @@ class TestSaleSubscription(TestCommissionsSetup):
         form.commission_plan_frozen = True
         sub_C = form.save()
         sub_C.action_confirm()
-        sub_C._cron_recurring_create_invoice()
         self.assertEqual(sub_C.commission_plan_id, self.gold_plan)
         self.assertEqual(sub_C.commission_plan_frozen, True)
 

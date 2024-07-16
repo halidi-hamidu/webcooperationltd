@@ -1,18 +1,20 @@
 /** @odoo-module **/
 
-import publicWidget from '@web/legacy/js/public/public_widget';
+import { _t } from 'web.core';
+import time from 'web.time';
+import publicWidget from 'web.public.widget';
 import { msecPerUnit, RentingMixin } from '@website_sale_renting/js/renting_mixin';
-import { deserializeDateTime } from "@web/core/l10n/dates";
-
-const { DateTime } = luxon;
+import { luxonToMoment, momentToLuxon, deserializeDateTime } from "@web/core/l10n/dates";
 
 publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(RentingMixin, {
     selector: '.o_website_sale_daterange_picker',
-
-    init() {
-        this._super(...arguments);
-        this.rpc = this.bindService("rpc");
-    },
+    events: Object.assign({}, publicWidget.Widget.prototype.events, {
+        'click [data-toggle=daterange]': '_onClickToggleDaterange',
+    }),
+    jsLibs: (publicWidget.Widget.prototype.jsLibs || []).concat([
+        '/web/static/lib/daterangepicker/daterangepicker.js',
+        '/web/static/src/legacy/js/libs/daterangepicker.js',
+    ]),
 
     /**
      * During start, load the renting constraints to validate renting pickup and return dates.
@@ -37,8 +39,8 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
         this.isShopDatePicker = this.el.classList.contains("o_website_sale_shop_daterange_picker");
         this.startDate = this._getDefaultRentingDate('start_date');
         this.endDate = this._getDefaultRentingDate('end_date');
-        this.el.querySelectorAll(".o_daterange_picker").forEach((el) => {
-            this._initSaleRentingDateRangePicker(el);
+        this.el.querySelectorAll('input.daterange-input').forEach(daterangeInput => {
+            this._initSaleRentingDateRangePicker(daterangeInput);
         });
         this._verifyValidPeriod();
     },
@@ -63,7 +65,9 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
      * @private
      */
     async _loadRentingConstraints() {
-        return this.rpc("/rental/product/constraints").then((constraints) => {
+        return this._rpc({
+            route: "/rental/product/constraints",
+        }).then((constraints) => {
             this.rentingUnavailabilityDays = constraints.renting_unavailabity_days;
             this.rentingMinimalTime = constraints.renting_minimal_time;
             $('.oe_website_sale').trigger('renting_constraints_changed', {
@@ -81,41 +85,59 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
      * @param {HTMLElement} dateInput
      * @private
      */
-    _initSaleRentingDateRangePicker(el) {
-        const hasDefaultDates = Boolean(this._hasDefaultDates());
-        el.dataset.hasDefaultDates = hasDefaultDates;
-        const value =
-            this.isShopDatePicker && !hasDefaultDates ? ["", ""] : [this.startDate, this.endDate];
-        this.call(
-            "datetime_picker",
-            "create",
-            {
-                target: el,
-                pickerProps: {
-                    value,
-                    range: true,
-                    type: this._isDurationWithHours() ? "datetime" : "date",
-                    minDate: DateTime.min(DateTime.now(), this.startDate),
-                    maxDate: DateTime.max(DateTime.now().plus({ years: 3 }), this.endDate),
-                    isDateValid: this._isValidDate.bind(this),
-                    dayCellClass: (date) => this._isCustomDate(date).join(" "),
-                },
-                onApply: ([start_date, end_date]) => {
-                    this.startDate = start_date;
-                    this.endDate = end_date;
-                    this._verifyValidPeriod();
-                    this.$("input[name=renting_start_date]").change();
-                    this.$el.trigger("daterangepicker_apply", {
-                        start_date,
-                        end_date,
-                    });
-                },
+    _initSaleRentingDateRangePicker(dateInput) {
+        const $dateInput = this.$(dateInput);
+        $dateInput.daterangepicker({
+            // dates
+            minDate: luxonToMoment(luxon.DateTime.min(luxon.DateTime.now(), this.startDate)),
+            maxDate: luxonToMoment(luxon.DateTime.max(luxon.DateTime.now().plus({years: 3}), this.endDate)),
+            startDate: luxonToMoment(this.startDate),
+            endDate: luxonToMoment(this.endDate),
+            isInvalidDate: this._isInvalidDate.bind(this),
+            isCustomDate: this._isCustomDate.bind(this),
+            // display
+            locale: {
+                direction: _t.database.parameters.direction,
+                format: this._isDurationWithHours() ?
+                    time.getLangDatetimeFormat().replace('YYYY', 'YY').replace(':ss', '') : time.getLangDateFormat(),
+                applyLabel: _t('Search'),
+                cancelLabel: _t('Cancel'),
+                weekLabel: 'W',
+                customRangeLabel: _t('Custom Range'),
+                daysOfWeek: moment.weekdaysMin(),
+                monthNames: luxon.Info.months('short'),
+                firstDay: moment.localeData().firstDayOfWeek()
             },
-            () => [
-                el.querySelector("input[name=renting_start_date]"),
-                el.querySelector("input[name=renting_end_date]"),
-            ]
-        ).enable();
+            timePicker: this._isDurationWithHours(),
+            timePicker24Hour: true,
+        }, (start, end, _label) => {
+            this.startDate = momentToLuxon(start);
+            this.endDate = this._isDurationWithHours() ? momentToLuxon(end) : momentToLuxon(end).startOf('day');
+            if (this._verifyValidPeriod()) {
+                this.$('input[name=renting_dates]').change();
+            }
+        });
+        $dateInput.data('daterangepicker').container.addClass('o_website_sale_renting');
+        $dateInput[0].dataset.hasDefaultDates = Boolean(this._hasDefaultDates());
+        if (this.isShopDatePicker && !this._hasDefaultDates()) {
+            $dateInput.val('');
+            $dateInput.attr('placeholder', ' - ');
+        }
+    },
+
+    // ------------------------------------------
+    // Handlers
+    // ------------------------------------------
+    /**
+     * Handle the click on daterangepicker input with a calendar icon to open the daterange picker
+     * object.
+     *
+     * @param {Event} event
+     */
+    _onClickToggleDaterange(event) {
+        if (event.currentTarget.dataset['target']) {
+            this.$(event.currentTarget.dataset['target'] + " .daterange-input").click();
+        }
     },
 
     // ------------------------------------------
@@ -148,7 +170,7 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
         }
         // that means that the date is not in the url and not in the hidden input
         // get the first available date based on this.rentingUnavailabilityDays
-        let date = DateTime.now().plus({days: 1});
+        let date = luxon.DateTime.now().plus({days: 1});
         return this._getFirstAvailableDate(date);
     },
 
@@ -163,15 +185,15 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
     },
 
     /**
-     * Check if the date is valid.
+     * Check if the date is invalid.
      *
      * This function is used in the daterange picker objects and meant to be easily overriden.
      *
-     * @param {DateTime} date
+     * @param {moment} date
      * @private
      */
-    _isValidDate(date) {
-        return !this.rentingUnavailabilityDays[date.weekday];
+    _isInvalidDate(date) {
+        return this.rentingUnavailabilityDays[date.isoWeekday()];
     },
 
     /**
@@ -179,7 +201,7 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
      *
      * This function is used in the daterange picker objects and meant to be easily overriden.
      *
-     * @param {DateTime} date
+     * @param {moment} date
      * @private
      */
     _isCustomDate(date) {
@@ -216,7 +238,7 @@ publicWidget.registry.WebsiteSaleDaterangePicker = publicWidget.Widget.extend(Re
      */
     _getFirstAvailableDate(date) {
         let counter = 0;
-        while (!this._isValidDate(date) && counter < 1000) {
+        while (this._isInvalidDate(luxonToMoment(date)) && counter < 1000) {
             date = date.plus({days: 1});
             counter++;
         }

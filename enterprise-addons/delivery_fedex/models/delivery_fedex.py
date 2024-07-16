@@ -3,7 +3,6 @@
 import logging
 import time
 
-from markupsafe import Markup
 from odoo.tools.zeep.helpers import serialize_object
 
 from odoo import api, models, fields, _, tools
@@ -318,13 +317,13 @@ class ProviderFedex(models.Model):
 
                     carrier_price = self._get_request_price(response['price'], order, order_currency)
 
-                    logmessage = Markup(_("Shipment created into Fedex<br/>"
-                                          "<b>Tracking Numbers:</b> %s<br/>"
-                                          "<b>Packages:</b> %s")) % (','.join(carrier_tracking_refs), ','.join([pl[0] for pl in package_labels]))
+                    logmessage = _("Shipment created into Fedex<br/>"
+                                   "<b>Tracking Numbers:</b> %s<br/>"
+                                   "<b>Packages:</b> %s") % (','.join(carrier_tracking_refs), ','.join([pl[0] for pl in package_labels]))
                     if self.fedex_label_file_type != 'PDF':
-                        attachments = [('%s-%s.%s' % (self._get_delivery_label_prefix(), pl[0], self.fedex_label_file_type), pl[1]) for pl in package_labels]
+                        attachments = [('LabelFedex-%s.%s' % (pl[0], self.fedex_label_file_type), pl[1]) for pl in package_labels]
                     if self.fedex_label_file_type == 'PDF':
-                        attachments = [('%s.pdf' % (self._get_delivery_label_prefix()), pdf.merge_pdf([pl[1] for pl in package_labels]))]
+                        attachments = [('LabelFedex.pdf', pdf.merge_pdf([pl[1] for pl in package_labels]))]
                     for pick in lognote_pickings:
                         pick.message_post(body=logmessage, attachments=attachments)
                     shipping_data = {'exact_price': carrier_price,
@@ -337,9 +336,9 @@ class ProviderFedex(models.Model):
                 self.get_return_label(picking, tracking_number=response['tracking_number'], origin_date=response['date'])
             commercial_invoice = srm.get_document()
             if commercial_invoice:
-                fedex_documents = [('%s.pdf' % self._get_delivery_doc_prefix(), commercial_invoice)]
+                fedex_documents = [('DocumentFedex.pdf', commercial_invoice)]
                 for pick in lognote_pickings:
-                    pick.message_post(body=_('Fedex Documents'), attachments=fedex_documents)
+                    pick.message_post(body='Fedex Documents', attachments=fedex_documents)
         return res
 
     def fedex_get_return_label(self, picking, tracking_number=None, origin_date=None):
@@ -400,7 +399,7 @@ class ProviderFedex(models.Model):
         if not response.get('errors_message'):
             fedex_labels = [('%s-%s-%s.%s' % (self.get_return_label_prefix(), response['tracking_number'], index, self.fedex_label_file_type), label)
                             for index, label in enumerate(srm._get_labels(self.fedex_label_file_type))]
-            picking.message_post(body=_('Return Label'), attachments=fedex_labels)
+            picking.message_post(body='Return Label', attachments=fedex_labels)
         else:
             raise UserError(response['errors_message'])
 

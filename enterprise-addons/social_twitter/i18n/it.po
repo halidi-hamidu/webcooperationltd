@@ -3,16 +3,18 @@
 # 	* social_twitter
 # 
 # Translators:
-# Wil Odoo, 2023
-# Marianna Ciofani, 2024
+# Martin Trigaux, 2022
+# Marianna Ciofani, 2023
+# Sergio Zanchetta <primes2h@gmail.com>, 2024
+# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:47+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Marianna Ciofani, 2024\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:49+0000\n"
+"Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Italian (https://app.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,7 +47,7 @@ msgstr "<i class=\"fa fa-comments me-1\" title=\"Comments\"/>"
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 msgid "<i class=\"fa fa-heart me-1\" title=\"Likes\"/>"
-msgstr "<i class=\"fa fa-heart me-1\" title=\"Likes\"/>"
+msgstr "<i class=\"fa fa-heart me-1\" title=\"Mi piace\"/>"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
@@ -59,12 +61,17 @@ msgstr ""
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 msgid "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
-msgstr "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
+msgstr "<i class=\"fa fa-retweet me-1\" title=\"Retweet di un tweet\"/>"
+
+#. module: social_twitter
+#: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
+msgid "<span class=\"fst-italic\">Empty tweet</span>"
+msgstr "<span class=\"fst-italic\">Tweet vuoto</span>"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
 msgid "@twitteraccount ·"
-msgstr "@twitteraccount ·"
+msgstr "@accounttwitter ·"
 
 #. module: social_twitter
 #. odoo-python
@@ -82,7 +89,6 @@ msgstr "Autenticazione non riuscita, inserire credenziali valide."
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 #, python-format
@@ -129,7 +135,7 @@ msgstr "Chiave consumer"
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
 msgid "Consumer Secret Key"
-msgstr "Chiave segreto consumer"
+msgstr "Chiave privata"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__create_uid
@@ -159,22 +165,6 @@ msgstr "Visualizza anteprima Twitter"
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
-#, python-format
-msgid ""
-"Easy, tiger! No spamming allowed. Let's stick to three replies per Tweet."
-msgstr ""
-"Vacci piano! Lo spam non è ammesso. La regola è tre risposte per Tweet."
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
-#, python-format
-msgid "Empty tweet"
-msgstr "Tweet vuoto"
-
-#. module: social_twitter
-#. odoo-javascript
 #: code:addons/social_twitter/static/src/js/stream_post_kanban_record.js:0
 #, python-format
 msgid "Error"
@@ -196,6 +186,15 @@ msgid ""
 "%s."
 msgstr ""
 "Errore nell'eliminazione del tweet\n"
+"%s."
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Failed to fetch the conversation id: '%s' using the account %s."
+msgstr ""
+"Errore nel recupero della conversazione con ID \"%s\" utilizzando l'account "
 "%s."
 
 #. module: social_twitter
@@ -242,6 +241,11 @@ msgid "Keyword"
 msgstr "Parola chiave"
 
 #. module: social_twitter
+#: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account____last_update
+msgid "Last Modified on"
+msgstr "Ultima modifica il"
+
+#. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_uid
 msgid "Last Updated by"
 msgstr "Ultimo aggiornamento di"
@@ -256,7 +260,7 @@ msgstr "Ultimo aggiornamento il"
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #, python-format
 msgid "Likes"
-msgstr "Likes"
+msgstr "Mi piace"
 
 #. module: social_twitter
 #. odoo-python
@@ -283,6 +287,13 @@ msgstr "Citazioni"
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__name
 msgid "Name"
 msgstr "Nome"
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Oops! Couldn't find this tweet on Twitter.com"
+msgstr "Ops! Non è stato possibile trovare il tweet su Twitter.com"
 
 #. module: social_twitter
 #. odoo-python
@@ -342,13 +353,6 @@ msgstr "Retweet"
 
 #. module: social_twitter
 #. odoo-python
-#: code:addons/social_twitter/controllers/main.py:0
-#, python-format
-msgid "Read More about Twitter Accounts"
-msgstr "Scopri di più sugli account Twitter"
-
-#. module: social_twitter
-#. odoo-python
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
 msgid "Replies from Tweets older than 7 days must be accessed on Twitter.com"
@@ -401,7 +405,7 @@ msgstr "Post social dal vivo"
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_media
 msgid "Social Media"
-msgstr "Social network"
+msgstr "Social media"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_post
@@ -411,7 +415,7 @@ msgstr "Post social"
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_post_template
 msgid "Social Post Template"
-msgstr "Template Post Social"
+msgstr "Modello post social"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_stream
@@ -457,14 +461,7 @@ msgstr ""
 #: code:addons/social_twitter/controllers/main.py:0
 #, python-format
 msgid "This Tweet has been deleted."
-msgstr "Questo tweet è stato eliminato."
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "This tweet is outdated, please refresh the stream and try again."
-msgstr "Questo tweet è obsoleto, ricarica il flusso e prova di nuovo."
+msgstr "Il tweet è stato eliminato."
 
 #. module: social_twitter
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_follow
@@ -503,12 +500,7 @@ msgstr "Chiave consumer Twitter"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_res_config_settings__twitter_consumer_secret_key
 msgid "Twitter Consumer Secret Key"
-msgstr "Twitter Consumer Secret Key"
-
-#. module: social_twitter
-#: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_conversation_id
-msgid "Twitter Conversation ID"
-msgstr "ID conversazione twitter"
+msgstr "Chiave privata Twitter"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -518,7 +510,7 @@ msgstr "Account sviluppatore Twitter"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream__twitter_followed_account_id
 msgid "Twitter Followed Account"
-msgstr "Account seguiti Twitter"
+msgstr "Account seguiti su Twitter"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__twitter_id
@@ -577,7 +569,7 @@ msgstr "ID retweet Twitter"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_screen_name
 msgid "Twitter Screen Name"
-msgstr "Twitter Screen Name"
+msgstr "Nome utente Twitter"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_tweet_id
@@ -626,8 +618,8 @@ msgid "Undo Retweet"
 msgstr "Annulla retweet"
 
 #. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Unknown"
 msgstr "Sconosciuto"
@@ -662,9 +654,9 @@ msgid ""
 "We could not upload your image, it may be corrupted, it may exceed size "
 "limit or API may have send improper response (error: %s)."
 msgstr ""
-"Non è stato possibile caricare l'immagine che potrebbe essere corrotta, "
-"eccedere le dimensioni indicato o l'API ha inviato una risposta non adeguata"
-" (errore: %s)."
+"Impossibile caricare l'immagine. Potrebbe essere corrotta, eccedere le "
+"dimensioni limite oppure può essere stata inviata una risposta da API non "
+"adeguata (errore: %s)."
 
 #. module: social_twitter
 #. odoo-python
@@ -673,6 +665,17 @@ msgstr ""
 #, python-format
 msgid "You are not authenticated"
 msgstr "Non sei autenticato"
+
+#. module: social_twitter
+#. odoo-javascript
+#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
+#, python-format
+msgid ""
+"You can comment only three times a tweet as it may be considered as spamming"
+" by Twitter"
+msgstr ""
+"È possibile commentare un tweet solo tre volte altrimenti verrà considerato "
+"spam da Twitter."
 
 #. module: social_twitter
 #: model:ir.model.constraint,message:social_twitter.constraint_social_stream_post_tweet_uniq
@@ -689,7 +692,7 @@ msgid ""
 "It may be because it's protected. To solve this, please make sure you follow it before trying again."
 msgstr ""
 "Impossibile creare un flusso da questo account Twitter.\n"
-"Dato che potrebbe essere protetto, come soluzione, prima di riprovare, verificare di seguirlo."
+"Potrebbe essere protetto. Come soluzione, prima di riprovare, verificare di seguirlo."
 
 #. module: social_twitter
 #. odoo-python
@@ -706,8 +709,8 @@ msgid ""
 "You need to add the following callback URL to your twitter application "
 "settings: %s"
 msgstr ""
-"È necessario aggiungere il seguente URL di callback alle impostazioni "
-"dell'applicazione twitter: %s"
+"È necessario aggiungere il seguente URL di richiamata nelle impostazioni "
+"dell'applicazione Twitter: %s"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_view_form

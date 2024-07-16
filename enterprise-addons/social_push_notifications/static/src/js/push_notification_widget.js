@@ -1,19 +1,14 @@
-/** @odoo-module **/
 /* global firebase */
+odoo.define('social_push_notifications.NotificationManager', function (require) {
+"use strict";
 
-import publicWidget from "@web/legacy/js/public/public_widget";
-import { browser } from "@web/core/browser/browser";
-import NotificationRequestPopup from "@social_push_notifications/js/push_notification_request_popup";
-import { Component } from "@odoo/owl";
+var core = require('web.core');
+var publicWidget = require('web.public.widget');
+var localStorage = require('web.local_storage');
+var NotificationRequestPopup = require('social_push_notifications.NotificationRequestPopup');
 
 publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
     selector: '#wrapwrap',
-
-    init() {
-        this._super(...arguments);
-        this.rpc = this.bindService("rpc");
-        this.notification = this.bindService("notification");
-    },
 
     /**
      * This will start listening to notifications if permission was already granted
@@ -44,7 +39,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
         } else if (Notification.permission !== "denied") {
             this._askPermission();
         }
-        Component.env.bus.addEventListener('open_notification_request', (ev) => this._onNotificationRequest(...ev.detail));
+        core.bus.on('open_notification_request', this, this._onNotificationRequest);
 
         return superPromise;
     },
@@ -68,17 +63,18 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
             if (window.Notification && Notification.permission === "granted") {
                 const notificationData = payload.data;
                 const options = {
+                    message: notificationData.body,
                     title: notificationData.title,
                     type: 'success',
                 };
                 const targetUrl = notificationData.target_url;
                 if (targetUrl) {
                     options.buttons = [{
-                        name: 'Open',
-                        onClick: () => window.open(targetUrl, '_blank'),
+                        text: 'Open',
+                        click: () => window.open(targetUrl, '_blank'),
                     }];
                 }
-                this.notification.add(notificationData.body, options);
+                this.displayNotification(options);
             }
         };
         messaging = messaging || this._initializeFirebaseApp(config);
@@ -197,11 +193,13 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
      * @private
      */
     _fetchPushConfiguration: function () {
-        return this.rpc('/social_push_notifications/fetch_push_configuration').then(function (config) {
+        return this._rpc({
+            route: '/social_push_notifications/fetch_push_configuration'
+        }).then(function (config) {
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + 7);
             Object.assign(config, {'expirationDate': expirationDate});
-            browser.localStorage.setItem(
+            localStorage.setItem(
                 'social_push_notifications.notification_request_config',
                 JSON.stringify(config)
             );
@@ -225,15 +223,21 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
 
         var pushConfiguration = this._getPushConfiguration();
         if (pushConfiguration && pushConfiguration.token !== token) {
-            this.rpc('/social_push_notifications/unregister', {
-                token: pushConfiguration.token
+            this._rpc({
+                route: '/social_push_notifications/unregister',
+                params: {
+                    token: pushConfiguration.token
+                }
             });
         }
 
-        this.rpc('/social_push_notifications/register', {
-            token: token
+        this._rpc({
+            route: '/social_push_notifications/register',
+            params: {
+                token: token
+            }
         }).then(function () {
-            browser.localStorage.setItem('social_push_notifications.configuration', JSON.stringify({
+            localStorage.setItem('social_push_notifications.configuration', JSON.stringify({
                 'token': token,
             }));
         });
@@ -262,7 +266,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
      *
      * The configuration is stored for 7 days to still receive visual updates if the configuration
      * changes on the backend side.
-     *
+     * 
      * @param {String} [nextAskPermissionKeySuffix] optional - Suffix of the cache entry
      * @param {Object} [forcedPopupConfig] optional - Properties that will overwrite the notification request configuration.
      * @param {String} forcedPopupConfig.title optional - Title of the popup.
@@ -273,7 +277,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
     _askPermission: async function (nextAskPermissionKeySuffix, forcedPopupConfig) {
         var self = this;
 
-        var nextAskPermission = browser.localStorage.getItem('social_push_notifications.next_ask_permission' +
+        var nextAskPermission = localStorage.getItem('social_push_notifications.next_ask_permission' +
             (nextAskPermissionKeySuffix ? '.' + nextAskPermissionKeySuffix : ''));
         if (nextAskPermission && new Date() < new Date(nextAskPermission)) {
             return;
@@ -295,7 +299,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
             return; // this means that the web push notifications are not enabled in the settings
         }
         if (forcedPopupConfig) {
-            popupConfig = Object.assign({}, popupConfig, forcedPopupConfig);
+            Object.assign(popupConfig, forcedPopupConfig);
         }
         self._showNotificationRequestPopup(popupConfig, pushConfiguration, nextAskPermissionKeySuffix);
     },
@@ -336,7 +340,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
         notificationRequestPopup.on('deny', null, function () {
             var nextAskPermissionDate = new Date();
             nextAskPermissionDate.setDate(nextAskPermissionDate.getDate() + 7);
-            browser.localStorage.setItem('social_push_notifications.next_ask_permission' +
+            localStorage.setItem('social_push_notifications.next_ask_permission' +
                 (nextAskPermissionKeySuffix ? '.' + nextAskPermissionKeySuffix : ''),
                 nextAskPermissionDate);
         });
@@ -372,7 +376,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
     },
 
     _getJSONLocalStorageItem: function (key) {
-        var value = browser.localStorage.getItem(key);
+        var value = localStorage.getItem(key);
         if (value) {
             return JSON.parse(value);
         }
@@ -384,7 +388,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
      * The module will guarantee that no other push notification request for
      * the `nextAskPermissionKeySuffix` key will issued if the user dismissed
      * a request using the same key within the last 7 days.
-     *
+     * 
      * This can be useful in specific context, e.g:
      * When favoriting event.tracks, we want to re-ask the user to enable the push
      * notifications even if the user recently dismisses the default one. By
@@ -392,7 +396,7 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
      * the 7 days restriction set by the first request expires. When the user
      * dismisses the new request, a 7 days restriction will also be applied to the
      * provided key.
-     *
+     * 
      * @param {String} [nextAskPermissionKeySuffix] Suffix of the cache entry.
      * @param {Object} [forcedPopupConfig] Properties of the popup.
      * @param {String} forcedPopupConfig.title optional - Title of the popup.
@@ -408,4 +412,6 @@ publicWidget.registry.NotificationWidget =  publicWidget.Widget.extend({
     },
 });
 
-export default publicWidget.registry.NotificationWidget;
+return publicWidget.registry.NotificationWidget;
+
+});

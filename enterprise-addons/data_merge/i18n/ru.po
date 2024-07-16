@@ -3,20 +3,21 @@
 # 	* data_merge
 # 
 # Translators:
-# Ivan Kropotkin <yelizariev@itpp.dev>, 2023
+# Sergey Vilizhanin, 2022
+# Иван Дроздов <hiraetari@gmail.com>, 2022
+# Irina Fedulova <istartlin@gmail.com>, 2022
+# Ivan Kropotkin <yelizariev@itpp.dev>, 2022
+# Martin Trigaux, 2022
+# Сергей Шебанин <sergey@shebanin.ru>, 2022
 # ILMIR <karamov@it-projects.info>, 2023
-# Сергей Шебанин <sergey@shebanin.ru>, 2023
-# Alena Vlasova, 2023
-# Irina Fedulova <istartlin@gmail.com>, 2023
-# Martin Trigaux, 2023
 # Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2024-02-06 13:24+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
 "Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Russian (https://app.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
@@ -31,13 +32,6 @@ msgstr ""
 #, python-format
 msgid "%s (copy)"
 msgstr "%s (копия)"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_group.py:0
-#, python-format
-msgid "%s - Similarity: %s%%"
-msgstr "%s - Сходство: %s%%"
 
 #. module: data_merge
 #. odoo-javascript
@@ -57,6 +51,13 @@ msgstr ""
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
+msgid ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Model "
+"specific</span>"
+msgstr ""
+
+#. module: data_merge
+#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"me-1\">Every</span>"
 msgstr "<span class=\"me-1\">Каждый</span>"
 
@@ -64,11 +65,6 @@ msgstr "<span class=\"me-1\">Каждый</span>"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"oe_inline\">%</span>"
 msgstr "<span class=\"oe_inline\">%</span>"
-
-#. module: data_merge
-#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
-msgid "<span invisible=\"not custom_merge_method\">Model specific</span>"
-msgstr "<span invisible=\"not custom_merge_method\">Модель специфическая</span>"
 
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_rule_uniq_model_id_field_id
@@ -80,12 +76,12 @@ msgstr "Поле может появиться только один раз!"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__active
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__active
 msgid "Active"
-msgstr "Активный"
+msgstr "Активно"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__removal_mode__archive
 msgid "Archive"
-msgstr "Архив"
+msgstr "Архивировать"
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_model_view_search
@@ -142,7 +138,7 @@ msgstr "Настройка правил для выявления дублика
 #. module: data_merge
 #: model:ir.model,name:data_merge.model_res_partner
 msgid "Contact"
-msgstr "Контакты"
+msgstr "Контакт"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_ir_model__ref_merge_ir_act_server_id
@@ -155,12 +151,12 @@ msgstr ""
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__record_create_uid
 msgid "Created By"
-msgstr "Создано при содействии"
+msgstr "Создал"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__record_create_date
 msgid "Created On"
-msgstr "Создано"
+msgstr "Создан"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_uid
@@ -168,7 +164,7 @@ msgstr "Создано"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__create_uid
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__create_uid
 msgid "Created by"
-msgstr "Создано"
+msgstr "Создал"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_date
@@ -176,7 +172,7 @@ msgstr "Создано"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__create_date
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__create_date
 msgid "Created on"
-msgstr "Создано"
+msgstr "Дата создания"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__mix_by_company
@@ -190,18 +186,20 @@ msgstr "Пользовательский метод слияния"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_cleanup_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_cleanup
 msgid "Data Merge: Cleanup Records"
 msgstr "Слияние данных: Очистка записей"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_find_duplicates_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_find_duplicates
 msgid "Data Merge: Find Duplicate Records"
 msgstr "Слияние данных: Поиск дублирующихся записей"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__notify_frequency_period__days
 msgid "Days"
-msgstr "Дней"
+msgstr "Дни"
 
 #. module: data_merge
 #. odoo-python
@@ -209,7 +207,7 @@ msgstr "Дней"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 #, python-format
 msgid "Deduplicate"
-msgstr "Дублировать"
+msgstr "Убрать дубликаты"
 
 #. module: data_merge
 #: model:ir.ui.menu,name:data_merge.menu_data_merge_config_rules_deduplication
@@ -283,7 +281,7 @@ msgstr "Отменить"
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_record_view_search_merge_action
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_search
 msgid "Discarded"
-msgstr "Выброшенные"
+msgstr "Отменено"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__display_name
@@ -313,14 +311,7 @@ msgstr "Удаление дубликатов"
 #: model:ir.actions.act_window,name:data_merge.action_data_merge_record_notification
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "Duplicates"
-msgstr "Дубли"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_model.py:0
-#, python-format
-msgid "Duplicates to Merge"
-msgstr "Дубликаты для слияния"
+msgstr "Дубликаты"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__create_threshold
@@ -353,7 +344,7 @@ msgstr "Скрыть кнопку действия слияния"
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_duplicate
 msgid "I've identified"
-msgstr "Я определил"
+msgstr "Я идентифицировал"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__id
@@ -362,7 +353,7 @@ msgstr "Я определил"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__id
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_list
 msgid "ID"
-msgstr "ID"
+msgstr "Идентификатор"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_ir_model__is_merge_enabled
@@ -407,6 +398,14 @@ msgid "Is Master"
 msgstr "Мастер"
 
 #. module: data_merge
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_group____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_model____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_record____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_rule____last_update
+msgid "Last Modified on"
+msgstr "Последнее изменение"
+
+#. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__last_notification
 msgid "Last Notification"
 msgstr "Последнее уведомление"
@@ -417,7 +416,7 @@ msgstr "Последнее уведомление"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__write_uid
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__write_uid
 msgid "Last Updated by"
-msgstr "Последнее обновление"
+msgstr "Последний раз обновил"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__write_date
@@ -442,7 +441,7 @@ msgstr ""
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__merge_mode__manual
 msgid "Manual"
-msgstr "Руководство"
+msgstr "Вручную"
 
 #. module: data_merge
 #. odoo-python
@@ -537,7 +536,7 @@ msgstr "Модели"
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__notify_frequency_period__months
 msgid "Months"
-msgstr "Месяцев"
+msgstr "Месяц"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__name
@@ -562,12 +561,12 @@ msgstr "Уведомить"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__notify_frequency_period
 msgid "Notify Frequency Period"
-msgstr "Периодичность уведомлений"
+msgstr "Частота уведомлений"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__notify_user_ids
 msgid "Notify Users"
-msgstr "Уведомить пользователей"
+msgstr "Уведомлять пользователей"
 
 #. module: data_merge
 #. odoo-python
@@ -625,6 +624,7 @@ msgstr ""
 "объединены"
 
 #. module: data_merge
+#: model:ir.model,name:data_merge.model_ir_rule
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_search
 msgid "Rule"
 msgstr "Правило"
@@ -637,7 +637,7 @@ msgstr "Выберите модель для настройки правил д�
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__sequence
 msgid "Sequence"
-msgstr "Последовательность"
+msgstr "Нумерация"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__similarity
@@ -669,7 +669,7 @@ msgstr "Порог предложения"
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_model_check_notif_freq
 msgid "The notification frequency should be greater than 0"
-msgstr "Частота уведомлений должна быть больше 0"
+msgstr "Частота уведомления должна быть больше 0"
 
 #. module: data_merge
 #. odoo-python
@@ -729,12 +729,12 @@ msgstr "Обновление"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__used_in
 msgid "Used In"
-msgstr "Используется в"
+msgstr "Использовано в"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__notify_frequency_period__weeks
 msgid "Weeks"
-msgstr "Недель"
+msgstr "Неделя"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__mix_by_company

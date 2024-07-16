@@ -59,15 +59,6 @@ class IoTController(http.Controller):
                 urls[device.identifier] = device.display_url
         return json.dumps(urls)
 
-    @http.route('/iot/printer/status', type='json', auth='public')
-    def listen_iot_printer_status(self, print_id, device_identifier):
-        if isinstance(device_identifier, str) and isinstance(print_id, str) and request.env["iot.device"].sudo().search([("identifier", "=", device_identifier)]):
-            iot_channel = request.env['iot.channel'].sudo().get_iot_channel()
-            request.env['bus.bus']._sendone(iot_channel, 'print_confirmation', {
-                'print_id': print_id,
-                'device_identifier': device_identifier
-            })
-
     @http.route('/iot/setup', type='json', auth='public')
     def update_box(self, **kwargs):
         """
@@ -141,8 +132,6 @@ class IoTController(http.Controller):
             # Mark the received devices as connected, disconnect the others.
             connected_iot_devices.write({'connected': True})
             (previously_connected_iot_devices - connected_iot_devices).write({'connected': False})
-            iot_channel = request.env['iot.channel'].sudo().get_iot_channel()
-            return iot_channel
 
     def _is_iot_log_enabled(self):
         return str2bool(request.env['ir.config_parameter'].sudo().get_param('iot.should_log_iot_logs', True))
@@ -155,7 +144,7 @@ class IoTController(http.Controller):
 
         def log_line_transformation(log_line):
             split = log_line.split(IOT_LOG_LINE_SEPARATOR, 1)
-            return {'levelno': int(split[0]), 'line_formatted': split[1].decode('ascii')}
+            return {'levelno': int(split[0]), 'line_formatted': split[1].decode('utf-8')}
 
         def log_current_level():
             _iot_logger.log(

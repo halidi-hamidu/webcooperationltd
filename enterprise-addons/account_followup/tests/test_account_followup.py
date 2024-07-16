@@ -137,7 +137,7 @@ class TestAccountFollowupReports(AccountTestInvoicingCommon):
             # Every unreconciled invoice lines are blocked, the result from the query will be None
             self.assertPartnerFollowup(self.partner_a, None, None)
 
-            # It resets if we unblock
+            # It resets is we unblock
             self.partner_a.unreconciled_aml_ids.blocked = False
             self.assertPartnerFollowup(self.partner_a, 'in_need_of_action', self.second_followup_line)
 
@@ -184,12 +184,12 @@ class TestAccountFollowupReports(AccountTestInvoicingCommon):
             self.partner_a._execute_followup_partner(options={'snailmail': False})
             self.assertPartnerFollowup(self.partner_a, 'with_overdue_invoices', followup_30)
 
-        # action taken 13 days ago, current delay is 15 (same on repeat), nothing needed
-        with freeze_time('2022-02-14'):
+        # action taken 13 days ago, current delay is 14 (end of sequence), nothing needed
+        with freeze_time('2022-02-13'):
             self.assertPartnerFollowup(self.partner_a, 'with_overdue_invoices', followup_30)
 
-        # action taken 14 days ago, current delay is 15 (same on repeat), need to take action
-        with freeze_time('2022-02-15'):
+        # action taken 14 days ago, current delay is 14 (end of sequence), need to take action
+        with freeze_time('2022-02-14'):
             self.assertPartnerFollowup(self.partner_a, 'in_need_of_action', followup_30)
             self.partner_a._execute_followup_partner(options={'snailmail': False})
             self.assertPartnerFollowup(self.partner_a, 'with_overdue_invoices', followup_30)
@@ -356,3 +356,35 @@ class TestAccountFollowupReports(AccountTestInvoicingCommon):
             'manual_followup': True,
             'snailmail': False,
         })
+
+    def test_manual_reminder_get_template_mail_addresses(self):
+        """
+        When opening account_followup.manual_reminder, the partner should always be in `email_recipients_ids`
+        When adding a template, the template's partner_to, email_cc and email_to should be added to `email_recipient_ids` as well
+        """
+        mail_partner = self.env['res.partner'].create({
+            'name': 'Mai Lang',
+            'email': 'mail.ang@test.com',
+        })
+        mail_cc = self.env['res.partner'].create({
+            'name': 'John Carmac',
+            'email': 'john.carmac@example.me',
+        })
+
+        mail_template = self.env['mail.template'].create({
+            'name': 'reminder',
+            'model_id': self.env['ir.model']._get_id('res.partner'),
+            'email_cc': mail_cc.email,
+        })
+
+        reminder = self.env['account_followup.manual_reminder'].with_context(
+            active_model='res.partner',
+            active_ids=mail_partner.id,
+        ).create({})
+
+        self.assertTrue(mail_partner in reminder.email_recipient_ids, "Mai Lang should be in the Email Recipients List")
+
+        reminder.template_id = mail_template
+
+        self.assertTrue(mail_cc in reminder.email_recipient_ids, "John Carmac should be in the Email Recipients list.")
+        self.assertTrue(mail_partner in reminder.email_recipient_ids, "Mai Lang should still be in the Email Recipients List")

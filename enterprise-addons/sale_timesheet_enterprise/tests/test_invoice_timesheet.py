@@ -41,11 +41,6 @@ class TestInvoiceTimesheet(TestCommonSaleTimesheet):
             'order_id': sale_order.id,
         })
 
-        so_line_product_3 = self.env['sale.order.line'].create({
-            'product_id': self.product_delivery_timesheet2.id,
-            'order_id': sale_order.id,
-        })
-
         # let's log some timesheets
         timesheet_1 = self.env['account.analytic.line'].create({
             'date': fields.Date.today() - timedelta(days=1),
@@ -91,28 +86,19 @@ class TestInvoiceTimesheet(TestCommonSaleTimesheet):
         self.assertFalse(so_line_product_2.qty_delivered, "No hours delivered (as no timsheet linked to this so_line)")
 
         # Change the SO line on the task
-        task_id.sale_line_id = so_line_product_3
-        self.assertEqual(timesheet_2.so_line, so_line_product_1, "SO line must remain same for validated Timesheet")
-
-        # Make validated Timesheet to Draft to change SO line
-        timesheet_2.action_invalidate_timesheet()
-
-        # Change the SO line on the task
         task_id.sale_line_id = so_line_product_2
-        self.assertEqual(timesheet_2.so_line, so_line_product_2, "SO line must change for Timesheet which are Draft")
 
-        timesheet_2.action_validate_timesheet()
         self.assertEqual(so_line_product_1.qty_invoiced, 2, "2 hours must be invoiced (only timsheet 1)")
-        self.assertEqual(so_line_product_1.qty_delivered, 2, "Timesheet 1 stay on this so_line (as already invoiced), so 2 hours must be delivered")
+        self.assertEqual(so_line_product_1.qty_delivered, 5, "Timesheet 1 and 2 stay on this so_line (as already validated), so 5 hours must be delivered")
         self.assertFalse(so_line_product_2.qty_invoiced, "No hours yet invoiced")
-        self.assertEqual(so_line_product_2.qty_delivered, 3, "Timesheet 2 is linked to this new so_line (3 hours delivered)")
+        self.assertEqual(so_line_product_2.qty_delivered, 0, "No timesheet is linked to this new so_line (0 hours delivered)")
 
         # Create a third invoice for the remaining
         invoice_3 = sale_order._create_invoices()
-        self.assertEqual(so_line_product_1.qty_invoiced, 2, "2 hours must be invoiced (only timsheet 1)")
-        self.assertEqual(so_line_product_1.qty_delivered, 2, "Timesheet 1 stay on this so_line (as already invoiced), so 2 hours must be delivered")
-        self.assertEqual(so_line_product_2.qty_invoiced, 3, "Timesheet 2 is linked to this so_line (3 hours invoiced)")
-        self.assertEqual(so_line_product_2.qty_delivered, 3, "Timesheet 2 is linked to this so_line (3 hours delivered)")
+        self.assertEqual(so_line_product_1.qty_invoiced, 5, "5 hours must be invoiced (timesheet 1 and 2)")
+        self.assertEqual(so_line_product_1.qty_delivered, 5, "Timesheet 1 and 2 stay on this so_line (as already validated), so 5 hours must be delivered")
+        self.assertEqual(so_line_product_2.qty_invoiced, 0, "No timesheet is linked to this so_line (0 hours invoiced)")
+        self.assertEqual(so_line_product_2.qty_delivered, 0, "No Timesheet is linked to this so_line (0 hours delivered)")
 
         self.assertEqual(timesheet_1.timesheet_invoice_id, invoice_2, "Timesheet 1 is always linked to invoice 2")
         self.assertEqual(timesheet_2.timesheet_invoice_id, invoice_3, "Timesheet 2 is linked to invoice 3")

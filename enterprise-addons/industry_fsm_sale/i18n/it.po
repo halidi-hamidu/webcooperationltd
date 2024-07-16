@@ -3,15 +3,18 @@
 # 	* industry_fsm_sale
 # 
 # Translators:
-# Wil Odoo, 2023
+# Friederike Fasterling-Nesselbosch, 2022
+# Martin Trigaux, 2022
+# Sergio Zanchetta <primes2h@gmail.com>, 2023
+# Wil Odoo, 2024
 # Marianna Ciofani, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-26 16:11+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
 "Last-Translator: Marianna Ciofani, 2024\n"
 "Language-Team: Italian (https://app.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +24,19 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #. module: industry_fsm_sale
+#. odoo-python
+#: code:addons/industry_fsm_sale/models/project_task.py:0
+#: code:addons/industry_fsm_sale/models/project_task.py:0
+#, python-format
+msgid "%s - %s"
+msgstr "%s - %s"
+
+#. module: industry_fsm_sale
 #. odoo-javascript
 #: code:addons/industry_fsm_sale/static/src/js/tours/industry_fsm_sale_tour.js:0
 #, python-format
 msgid "<b>Invoice your time and material</b> to your customer."
-msgstr "<b>Fattura il tuo tempo e materiale</b> ai clienti."
+msgstr "<b>Fattura tempo e materiale</b> al cliente."
 
 #. module: industry_fsm_sale
 #. odoo-python
@@ -53,6 +64,19 @@ msgstr ""
 "                        </p>"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_task_form2_inherit_sale_timesheet
+msgid ""
+"<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
+"title=\"By saving this change, the customer phone number will also be "
+"updated.\" attrs=\"{'invisible': ['|', ('partner_id', '=', False), "
+"('is_task_phone_update', '=', False)]}\"/>"
+msgstr ""
+"<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
+"title=\"By saving this change, the customer phone number will also be "
+"updated.\" attrs=\"{'invisible': ['|', ('partner_id', '=', False), "
+"('is_task_phone_update', '=', False)]}\"/>"
+
+#. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
 msgid "<span>Disc.%</span>"
 msgstr "<span>Sconto %</span>"
@@ -67,11 +91,6 @@ msgstr "<span>Prodotti</span>"
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
 msgid "<strong class=\"mr16\">Subtotal</strong>"
 msgstr "<strong class=\"mr16\">Totale parziale</strong>"
-
-#. module: industry_fsm_sale
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
-msgid "<strong>Amount Due: </strong>"
-msgstr "<strong>Importo dovuto:</strong>"
 
 #. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
@@ -98,7 +117,7 @@ msgstr ""
 "È necessario impostare un cliente sull'attività per generare un rapportino."
 
 #. module: industry_fsm_sale
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.industry_fsm_sale_product_catalog_inherit_search_view
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
 msgid "Added Products"
 msgstr "Prodotti aggiunti"
 
@@ -111,8 +130,8 @@ msgstr "Importo"
 #: model:ir.model.constraint,message:industry_fsm_sale.constraint_project_project_fsm_imply_task_rate
 msgid "An FSM project must be billed at task rate or employee rate."
 msgstr ""
-"Un progetto FSM deve essere fatturato alla tariffa per attività o alla "
-"tariffa per dipendenti."
+"Un progetto FSM deve essere fatturato alla tariffa per lavoro o per "
+"dipendente."
 
 #. module: industry_fsm_sale
 #. odoo-python
@@ -123,13 +142,18 @@ msgstr "È stata creata una fattura: %s"
 
 #. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_account_analytic_line
-msgid "Analytic Account"
-msgstr "Conto analitico"
+msgid "Analytic Line"
+msgstr "Riga analitica"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_project__allow_billable
 msgid "Billable"
 msgstr "Fatturabile"
+
+#. module: industry_fsm_sale
+#: model:project.task.type,legend_blocked:industry_fsm_sale.field_service_project_stage_0
+msgid "Blocked"
+msgstr "Bloccato"
 
 #. module: industry_fsm_sale
 #. odoo-python
@@ -157,19 +181,19 @@ msgid ""
 "Choose a <b>name</b> for your product <i>(e.g. Bolts, Screws, Boiler, "
 "etc.).</i>"
 msgstr ""
-"Scegli un <b>nome</b> per il tuo prodotto <i> (es. bulloni, viti, caldaia, "
-"ecc.) </i>"
+"Scegli un <b>nome</b> per il prodotto <i>(es. Bulloni, viti, caldaia "
+"ecc...).</i>"
 
 #. module: industry_fsm_sale
 #. odoo-javascript
 #: code:addons/industry_fsm_sale/static/src/js/tours/industry_fsm_sale_tour.js:0
 #, python-format
 msgid ""
-"Click on a product to add it to your <b>list of materials</b>. <i>Tip: for "
-"large quantities, click on the number to edit it directly.</i>"
+"Click on your product to add it to your <b>list of materials</b>. <i>Tip: "
+"for large quantities, click on the number to edit it directly.</i>"
 msgstr ""
-"Fai clic su un prodotto per aggiungerlo all'<b>elenco dei materiali</b>. "
-"<i>Suggerimento: per grandi quantità, clicca sul numero per modificarlo "
+"Fai clic sul prodotto per aggiungerlo all'<b>elenco dei materiali</b>. "
+"<i>Suggerimento: per grandi quantità, fai clic sul numero per modificarlo "
 "direttamente.</i>"
 
 #. module: industry_fsm_sale
@@ -182,7 +206,7 @@ msgstr "Impostazioni di configurazione"
 #: code:addons/industry_fsm_sale/static/src/js/tours/industry_fsm_sale_tour.js:0
 #, python-format
 msgid "Confirm the creation of your <b>invoice</b>."
-msgstr "Conferma la creazione della tua <b>fattura</b>."
+msgstr "Conferma la creazione della <b>fattura</b>."
 
 #. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_task_view_list_fsm_sale_inherit
@@ -191,19 +215,19 @@ msgid "Create Invoice"
 msgstr "Crea fattura"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_task_form2_inherit
+msgid "Create new quotation"
+msgstr "Crea nuovo preventivo"
+
+#. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_view_form_inherit
 msgid "Create new quotations directly from tasks"
-msgstr "Crea nuovi preventivi direttamente dalle attività"
+msgstr "Creare nuovi preventivi direttamente dai lavori"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__currency_id
 msgid "Currency"
 msgstr "Valuta"
-
-#. module: industry_fsm_sale
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_view_form_inherit
-msgid "Default Service"
-msgstr "Servizio predefinito"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_sale_order_line__delivered_price_subtotal
@@ -221,6 +245,11 @@ msgid "Delivered Total Tax"
 msgstr "Imposta totale consegnato"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
+msgid "Description"
+msgstr "Descrizione"
+
+#. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__display_create_invoice_primary
 msgid "Display Create Invoice Primary"
 msgstr "Visualizza crea fattura primario"
@@ -231,11 +260,14 @@ msgid "Display Create Invoice Secondary"
 msgstr "Visualizza crea fattura secondario"
 
 #. module: industry_fsm_sale
-#. odoo-python
-#: code:addons/industry_fsm_sale/models/sale_order.py:0
-#, python-format
-msgid "Extra Quotation Created: %s"
-msgstr "Preventivo aggiuntivo creato: %s"
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_product_product_kanban_material
+msgid "Dropdown menu"
+msgstr "Menù a discesa"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_product_product_kanban_material
+msgid "Edit"
+msgstr "Modifica"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_project__allow_quotations
@@ -246,7 +278,12 @@ msgstr "Preventivi aggiuntivi"
 #. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_report_project_task_user_fsm
 msgid "FSM Tasks Analysis"
-msgstr "Analisi lavori da FSM"
+msgstr "Analisi lavori FSM"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Favorites"
+msgstr "Preferite"
 
 #. module: industry_fsm_sale
 #: model:product.template,name:industry_fsm_sale.field_service_product_product_template
@@ -264,6 +301,16 @@ msgid "Fully Invoiced"
 msgstr "Interamente fatturato"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Group By"
+msgstr "Raggruppa per"
+
+#. module: industry_fsm_sale
+#: model:project.task.type,legend_normal:industry_fsm_sale.field_service_project_stage_0
+msgid "In Progress"
+msgstr "In corso"
+
+#. module: industry_fsm_sale
 #. odoo-python
 #: code:addons/industry_fsm_sale/models/product_product.py:0
 #, python-format
@@ -279,6 +326,17 @@ msgstr "Valore non valido: %s"
 
 #. module: industry_fsm_sale
 #. odoo-python
+#: code:addons/industry_fsm_sale/models/product_template.py:0
+#, python-format
+msgid ""
+"The following products are currently associated with a Field Service "
+"project, you cannot change their Invoicing Policy or Type:%s"
+msgstr ""
+"I seguenti prodotti sono attualmente associati ad un progetto Servizi sul "
+"campo quindi non è possibile modificare la politica di fatturazione o il "
+"tipo: %s"
+
+#. module: industry_fsm_sale
 #: code:addons/industry_fsm_sale/models/project_task.py:0
 #, python-format
 msgid "Invoice"
@@ -300,17 +358,22 @@ msgstr "Stato fattura"
 msgid ""
 "Invoice your time and material to your customers once your tasks are done."
 msgstr ""
-"Fattura il tuo tempo e materiale ai tuoi clienti una volta che i tuoi "
-"compiti sono finiti."
+"Fattura tempo e materiale ai clienti non appena i lavori sono stati "
+"completati."
 
 #. module: industry_fsm_sale
 #. odoo-python
 #: code:addons/industry_fsm_sale/models/project_task.py:0
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_sharing_project_task_inherit_view_form
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_task_form2_inherit
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_task_view_form_quotation
 #, python-format
 msgid "Invoices"
 msgstr "Fatture"
+
+#. module: industry_fsm_sale
+#: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__is_task_phone_update
+msgid "Is Task Phone Update"
+msgstr "Il telefono dell'attività è aggiornato"
 
 #. module: industry_fsm_sale
 #. odoo-javascript
@@ -324,7 +387,7 @@ msgstr "<b>Traccia il materiale</b> che usi per i tuoi compiti."
 #: code:addons/industry_fsm_sale/static/src/js/tours/industry_fsm_sale_tour.js:0
 #, python-format
 msgid "Let's create a new <b>product</b>."
-msgstr "Crea un nuovo <b>prodotto</b>."
+msgstr "Creiamo un nuovo <b>prodotto</b>."
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__material_line_product_count
@@ -334,7 +397,7 @@ msgstr "Numero righe materiale prodotto"
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__material_line_total_price
 msgid "Material Line Total Price"
-msgstr "Linea materiale prezzo totale"
+msgstr "Prezzo totale riga del materiale"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_product_product__fsm_quantity
@@ -377,16 +440,36 @@ msgid "Portal Quotation Count"
 msgstr "Numero preventivi portale"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_product_product_kanban_material
+msgid "Price:"
+msgstr "Prezzo:"
+
+#. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_task__pricelist_id
 msgid "Pricelist"
 msgstr "Listino prezzi"
 
 #. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_product_template
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.industry_fsm_sale_product_catalog_kanban_view
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_product_product_kanban_material
 msgid "Product"
 msgstr "Prodotto"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Product Category"
+msgstr "Categoria prodotto"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Product Template"
+msgstr "Modello prodotto"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Product Type"
+msgstr "Tipologia prodotto"
 
 #. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_product_product
@@ -396,6 +479,7 @@ msgstr "Variante prodotto"
 #. module: industry_fsm_sale
 #: model:ir.actions.act_window,name:industry_fsm_sale.product_action_fsm
 #: model:ir.ui.menu,name:industry_fsm_sale.fsm_menu_settings_product
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_task_form2_inherit
 msgid "Products"
 msgstr "Prodotti"
@@ -437,17 +521,34 @@ msgstr "Numero preventivi"
 
 #. module: industry_fsm_sale
 #. odoo-python
+#: code:addons/industry_fsm_sale/models/sale_order.py:0
+#, python-format
+msgid "Quotation created: %s"
+msgstr "Preventivo creato: %s"
+
+#. module: industry_fsm_sale
+#. odoo-python
 #: code:addons/industry_fsm_sale/controllers/portal.py:0
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_sharing_project_task_inherit_view_form
-#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_task_form2_inherit
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_task_view_form_quotation
 #, python-format
 msgid "Quotations"
 msgstr "Preventivi"
 
 #. module: industry_fsm_sale
+#: model:project.task.type,legend_done:industry_fsm_sale.field_service_project_stage_0
+msgid "Ready"
+msgstr "Pronta"
+
+#. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.view_order_form_inherit_sale_project
 msgid "Related Task"
-msgstr "Attività collegata"
+msgstr "Lavoro correlato"
+
+#. module: industry_fsm_sale
+#: model:ir.model.fields,field_description:industry_fsm_sale.field_report_project_task_user_fsm__remaining_hours_so
+msgid "Remaining Hours on SO"
+msgstr "Ore residue su OdV"
 
 #. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_sale_advance_payment_inv
@@ -496,6 +597,11 @@ msgid "Service"
 msgstr "Servizio"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.product_search_form_view_inherit_fsm_sale
+msgid "Services"
+msgstr "Servizi"
+
+#. module: industry_fsm_sale
 #: model:ir.model,name:industry_fsm_sale.model_project_task
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_sale_order__task_id
 msgid "Task"
@@ -512,6 +618,12 @@ msgid "Task from which this quotation have been created"
 msgstr "Attività da cui è stato creato il preventivo"
 
 #. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_task_view_search_fsm_inherit_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.report_project_task_user_fsm_view_search_inherit_sale
+msgid "Tasks in Overtime"
+msgstr "Lavori con straordinari"
+
+#. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
 msgid "Taxes"
 msgstr "Imposte"
@@ -520,23 +632,17 @@ msgstr "Imposte"
 #: model:ir.model.constraint,message:industry_fsm_sale.constraint_project_project_material_imply_billable
 msgid "The material can be allowed only when the task can be billed."
 msgstr ""
-"Il materiale può essere ammesso solo quando l'attività può essere fatturata."
+"È possibile consentire il materiale solo quando il lavoro può essere "
+"fatturato."
 
 #. module: industry_fsm_sale
-#: model:ir.model.constraint,message:industry_fsm_sale.constraint_project_project_timesheet_product_required_if_billable_and_time
+#: model:ir.model.constraint,message:industry_fsm_sale.constraint_project_project_timesheet_product_required_if_billable_and_timesheets_and_fsm_projects
 msgid ""
 "The timesheet product is required when the fsm project can be billed and "
 "timesheets are allowed."
 msgstr ""
-"Il prodotto timesheet è richiesto quando il progetto fsm può essere "
-"fatturato e i fogli ore sono ammessi."
-
-#. module: industry_fsm_sale
-#. odoo-python
-#: code:addons/industry_fsm_sale/models/sale_order.py:0
-#, python-format
-msgid "This Sales Order has been created from Task: %s"
-msgstr "L'ordine di vendita è stato creato dall'attività: %s"
+"Il prodotto per il foglio ore è obbligatorio quando il progetto FSM può "
+"essere fatturato e sono consentiti i fogli ore."
 
 #. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.portal_my_task
@@ -547,9 +653,16 @@ msgstr "Tempo e materiale"
 #: model:ir.actions.act_window,name:industry_fsm_sale.project_task_action_to_invoice_fsm
 #: model:ir.model.fields.selection,name:industry_fsm_sale.selection__report_project_task_user_fsm__invoice_status__to_invoice
 #: model:ir.ui.menu,name:industry_fsm_sale.fsm_menu_all_tasks_invoice
+#: model:project.task.type,name:industry_fsm_sale.field_service_project_stage_0
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_task_view_search_fsm_inherit_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.report_project_task_user_fsm_view_search_inherit_sale
 msgid "To Invoice"
 msgstr "Da fatturare"
+
+#. module: industry_fsm_sale
+#: model_terms:ir.ui.view,arch_db:industry_fsm_sale.worksheet_time_and_material
+msgid "Total Price"
+msgstr "Prezzo totale"
 
 #. module: industry_fsm_sale
 #: model_terms:ir.actions.act_window,help:industry_fsm_sale.product_action_fsm
@@ -559,7 +672,7 @@ msgstr "Traccia e fattura il materiale usato per completare i tuoi compiti."
 #. module: industry_fsm_sale
 #: model_terms:ir.ui.view,arch_db:industry_fsm_sale.project_view_form_inherit
 msgid "Track the material used to complete tasks"
-msgstr "Traccia i materiali usati per completare le attività"
+msgstr "Tiene traccia dei materiali utilizzati per completare i lavori"
 
 #. module: industry_fsm_sale
 #: model:ir.model.fields,field_description:industry_fsm_sale.field_project_sale_line_employee_map__price_unit

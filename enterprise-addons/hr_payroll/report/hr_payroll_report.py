@@ -55,7 +55,7 @@ class HrPayrollReport(models.Model):
         select_str = """
             SELECT
                 row_number() over() as id,
-                CASE WHEN wd.id IS NOT DISTINCT FROM min_id.min_line THEN 1 ELSE 0 END as count,
+                CASE WHEN wd.id = min_id.min_line THEN 1 ELSE 0 END as count,
                 CASE WHEN wet.is_leave THEN 0 ELSE wd.number_of_days END as count_work,
                 CASE WHEN wet.is_leave THEN 0 ELSE wd.number_of_hours END as count_work_hours,
                 CASE WHEN wet.is_leave and wd.amount <> 0 THEN wd.number_of_days ELSE 0 END as count_leave,
@@ -83,13 +83,11 @@ class HrPayrollReport(models.Model):
                 continue
             handled_fields.append(field_name)
             select_str += """
-                SUM(
-                   DISTINCT CASE WHEN wd.id IS NOT DISTINCT FROM min_id.min_line THEN "%s".total ELSE 0 END
-                ) as "%s",""" % (field_name, field_name)
+                CASE WHEN wd.id = min_id.min_line THEN "%s".total ELSE 0 END as "%s",""" % (field_name, field_name)
         select_str += """
-                CASE WHEN wd.id IS NOT DISTINCT FROM min_id.min_line THEN pln.total ELSE 0 END as net_wage,
-                CASE WHEN wd.id IS NOT DISTINCT FROM min_id.min_line THEN plb.total ELSE 0 END as basic_wage,
-                CASE WHEN wd.id IS NOT DISTINCT FROM min_id.min_line THEN plg.total ELSE 0 END as gross_wage"""
+                CASE WHEN wd.id = min_id.min_line THEN pln.total ELSE 0 END as net_wage,
+                CASE WHEN wd.id = min_id.min_line THEN plb.total ELSE 0 END as basic_wage,
+                CASE WHEN wd.id = min_id.min_line THEN plg.total ELSE 0 END as gross_wage"""
         return select_str
 
     def _from(self, additional_rules):
@@ -118,7 +116,16 @@ class HrPayrollReport(models.Model):
 
     def _group_by(self, additional_rules):
         group_by_str = """
-            GROUP BY
+            GROUP BY """
+        handled_fields = []
+        for rule in additional_rules:
+            field_name = rule._get_report_field_name()
+            if field_name in handled_fields:
+                continue
+            handled_fields.append(field_name)
+            group_by_str += """
+                "%s".total,""" % (field_name)
+        group_by_str += """
                 e.id,
                 e.department_id,
                 d.master_department_id,

@@ -11,9 +11,10 @@ from odoo.addons.social.tests import common
 from odoo.addons.social.tests.tools import mock_void_external_calls
 from odoo.addons.base.tests.test_ir_cron import CronMixinCase
 from odoo.sql_db import Cursor
-from odoo.tests.common import users
+from odoo.tests.common import users, tagged
 
 
+@tagged("utm")
 class TestSocialBasics(common.SocialCase, CronMixinCase):
     @mock_void_external_calls()
     def test_cron_triggers(self):
@@ -121,8 +122,8 @@ class TestSocialBasics(common.SocialCase, CronMixinCase):
             msg='Should have added a counter at the end of the name')
         self.assertEqual(post_3.name, 'Source Name Social Post (Social Post created on 2022-01-02)',
             msg='Should not have generated the name from the content')
-        self.assertEqual(post_4.name, 'Message 1 (Social Post created on 2022-01-02) [3]',
-            msg='Should have fixed the counter of the given name')
+        self.assertEqual(post_4.name, 'Message 1 (Social Post created on 2022-01-02) [1337]',
+            msg='Should have kept the counter of the given name when possible to respect user input')
         self.assertEqual(post_5.name, 'Source Name Social Post (Social Post created on 2022-01-02) [2]',
             msg='Name already generated from the content of a different record')
 
@@ -136,15 +137,13 @@ class TestSocialBasics(common.SocialCase, CronMixinCase):
         """ Make sure that when a default_calendar_date is passed and the scheduled_date is changed,
         We take into account the new scheduled_date as calendar_date.
         See social.post#create for more details."""
-        default_calendar_date = fields.Datetime.now() + timedelta(hours=1)
-        form = Form(self.env['social.post'].with_context(default_calendar_date=default_calendar_date))
+        form = Form(self.env['social.post'].with_context(default_calendar_date='2022-05-29 05:00:00'))
         form.message = 'this is a message'
-        self.assertEqual(form.scheduled_date, default_calendar_date)
-        new_scheduled_date = default_calendar_date + timedelta(minutes=20)
-        form.scheduled_date = new_scheduled_date
+        self.assertEqual(form.scheduled_date, datetime(2022, 5, 29, 5, 0, 0))
+        form.scheduled_date = '2022-05-30 09:01:40'
         post = form.save()
-        self.assertEqual(post.calendar_date, new_scheduled_date)
-        self.assertEqual(post.scheduled_date, new_scheduled_date)
+        self.assertEqual(post.calendar_date, datetime(2022, 5, 30, 9, 1, 40))
+        self.assertEqual(post.scheduled_date, datetime(2022, 5, 30, 9, 1, 40))
 
     @classmethod
     def _get_social_media(cls):

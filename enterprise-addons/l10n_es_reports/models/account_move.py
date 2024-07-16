@@ -83,12 +83,12 @@ class AccountMove(models.Model):
         """
         posted = super()._post(soft)
         spanish_coa_list = [
-            'es_pymes',
-            'es_assoc',
-            'es_full',
+            self.env.ref('l10n_es.account_chart_template_pymes'),
+            self.env.ref('l10n_es.account_chart_template_assoc'),
+            self.env.ref('l10n_es.account_chart_template_full'),
         ]
         for record in posted.filtered(lambda move: move.is_invoice()):
-            if record.company_id.chart_template in spanish_coa_list and \
+            if record.company_id.chart_template_id in spanish_coa_list and \
             record.partner_id.country_id.code == "ES" and \
             record.l10n_es_reports_mod349_available and not record.l10n_es_reports_mod349_invoice_type:
                 raise UserError(_("Please select a Spanish invoice type for this invoice."))

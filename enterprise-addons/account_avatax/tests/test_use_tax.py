@@ -35,13 +35,13 @@ class TestAccountAvalaraUseTaxProductManagement(TestAccountAvataxCommon):
         self.env.company.avalara_use_upc = False
         with self._capture_request(return_value={'lines': [], 'summary': []}) as capture:
             invoice = self._create_invoice()
-            invoice.button_external_tax_calculation()
+            invoice.button_update_avatax()
         self.assertEqual(capture.val['json']['createTransactionModel']['lines'][0]['itemCode'], 'PROD1')
 
         self.env.company.avalara_use_upc = True
         with self._capture_request(return_value={'lines': [], 'summary': []}) as capture:
             invoice = self._create_invoice()
-            invoice.button_external_tax_calculation()
+            invoice.button_update_avatax()
         self.assertEqual(capture.val['json']['createTransactionModel']['lines'][0]['itemCode'], 'UPC:123456789')
 
     def test_item_description(self):
@@ -50,6 +50,6 @@ class TestAccountAvalaraUseTaxProductManagement(TestAccountAvataxCommon):
         """
         with self._capture_request(return_value={'lines': [], 'summary': []}) as capture:
             invoice = self._create_invoice()
-            invoice.button_external_tax_calculation()
+            invoice.button_update_avatax()
         line_description = capture.val['json']['createTransactionModel']['lines'][0]['description']
         self.assertEqual(invoice.invoice_line_ids.name, line_description)

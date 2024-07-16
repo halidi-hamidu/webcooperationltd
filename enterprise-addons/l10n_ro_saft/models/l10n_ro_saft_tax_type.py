@@ -1,4 +1,4 @@
-from odoo import fields, models, api
+from odoo import fields, models
 
 
 class L10nRoSaftTaxType(models.Model):
@@ -13,7 +13,5 @@ class L10nRoSaftTaxType(models.Model):
         ('code_unique', 'unique (code)', 'The code of the tax type must be unique !'),
     ]
 
-    @api.depends('code', 'description')
-    def _compute_display_name(self):
-        for record in self:
-            record.display_name = f'{record.code} {record.description}'
+    def name_get(self):
+        return [(tax_type.id, f'{tax_type.code} {tax_type.description}') for tax_type in self]

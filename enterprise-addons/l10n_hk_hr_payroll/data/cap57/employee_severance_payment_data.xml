@@ -9,7 +9,7 @@
         <field name="condition_python">result = employee.l10n_hk_years_of_service &gt;= 2</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-salary_base = min(contract._get_contract_wage(), payslip._rule_parameter('l10n_hk_final_payment_threshold'))
+salary_base = min(contract._get_contract_wage(), payslip.rule_parameter('l10n_hk_final_payment_threshold'))
 result = salary_base * 2 / 3 * employee.l10n_hk_years_of_service
         </field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_severance_payment"/>
@@ -22,7 +22,7 @@ result = salary_base * 2 / 3 * employee.l10n_hk_years_of_service
         <field name="sequence">200</field>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['ALW']</field>
+        <field name="amount_python_compute">result = categories.ALW</field>
         <field name="struct_id" ref="l10n_hk_hr_payroll.hr_payroll_structure_cap57_severance_payment"/>
         <field name="appears_on_employee_cost_dashboard" eval="True"/>
     </record>

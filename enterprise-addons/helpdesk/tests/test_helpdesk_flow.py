@@ -24,6 +24,8 @@ class TestHelpdeskFlow(HelpdeskCommon):
     @classmethod
     def setUpClass(cls):
         res = super().setUpClass()
+        cls.env["ir.config_parameter"].sudo().set_param("mail.catchall.domain", 'aqualung.com')
+
         ticket_model_id = cls.env['ir.model']._get_id('helpdesk.ticket')
         helpdesk_team_model_id = cls.env['ir.model']._get_id('helpdesk.team')
 
@@ -34,28 +36,6 @@ class TestHelpdeskFlow(HelpdeskCommon):
             'alias_parent_thread_id': cls.test_team.id,
             'alias_defaults': "{'team_id': %s}" % cls.test_team.id,
         })
-
-        cls.email_to_alias_from = 'client_a@someprovider.com'
-        cls.email_to_alias = """MIME-Version: 1.0
-Date: Thu, 27 Dec 2018 16:27:45 +0100
-Message-ID: blablabla1
-Subject: helpdesk team 1 in company 1
-From:  Client A <client_a@someprovider.com>
-To: helpdesk_team@test.mycompany.com
-Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
-
---000000000000a47519057e029630
-Content-Type: text/plain; charset="UTF-8"
-
-
---000000000000a47519057e029630
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-<div>A good message ter</div>
-
---000000000000a47519057e029630--
-"""
         return res
 
     def test_access_rights(self):
@@ -147,7 +127,7 @@ Content-Transfer-Encoding: quoted-printable
 
         with self._ticket_patch_now('2019-01-10 13:00:00'):
             # the helpdesk user takes the ticket
-            ticket1.user_id = self.helpdesk_user
+            ticket1.assign_ticket_to_self()
             # we verify the ticket is correctly assigned
             self.assertEqual(ticket1.user_id.id, ticket1._uid, "Assignation for ticket not correct")
             self.assertEqual(ticket1.assign_hours, 17, "Assignation time for ticket not correct")
@@ -265,14 +245,13 @@ Content-Transfer-Encoding: quoted-printable
             'alias_parent_thread_id': helpdesk_team1.id,
             'alias_defaults': "{'team_id': %s}" % helpdesk_team1.id,
         })
-        self.assertEqual((mail_alias0 + mail_alias1).alias_domain_id, self.mail_alias_domain)
 
-        new_message0 = f"""MIME-Version: 1.0
+        new_message0 = """MIME-Version: 1.0
 Date: Thu, 27 Dec 2018 16:27:45 +0100
 Message-ID: blablabla0
 Subject: helpdesk team 0 in company 0
 From:  A client <client_a@someprovider.com>
-To: {mail_alias0.display_name}
+To: helpdesk_team_0@aqualung.com
 Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
 
 --000000000000a47519057e029630
@@ -288,12 +267,12 @@ Content-Transfer-Encoding: quoted-printable
 --000000000000a47519057e029630--
 """
 
-        new_message1 = f"""MIME-Version: 1.0
+        new_message1 = """MIME-Version: 1.0
 Date: Thu, 27 Dec 2018 16:27:45 +0100
 Message-ID: blablabla1
 Subject: helpdesk team 1 in company 1
 From:  B client <client_b@someprovider.com>
-To: {mail_alias1.display_name}
+To: helpdesk_team_1@aqualung.com
 Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
 
 --000000000000a47519057e029630
@@ -311,9 +290,9 @@ Content-Transfer-Encoding: quoted-printable
         partners_exist = Partner.search([('email', 'in', ['client_a@someprovider.com', 'client_b@someprovider.com'])])
         self.assertFalse(partners_exist)
 
-        helpdesk_ticket0_id = self.env['mail.thread'].message_process(False, new_message0)
-        helpdesk_ticket1_id = self.env['mail.thread'].message_process(False, new_message1)
-        self.env.cr.flush()  # trigger pre-commit
+        helpdesk_ticket0_id = self.env['mail.thread'].message_process('helpdesk.ticket', new_message0)
+        helpdesk_ticket1_id = self.env['mail.thread'].message_process('helpdesk.ticket', new_message1)
+
         helpdesk_ticket0 = self.env['helpdesk.ticket'].browse(helpdesk_ticket0_id)
         helpdesk_ticket1 = self.env['helpdesk.ticket'].browse(helpdesk_ticket1_id)
 
@@ -364,7 +343,7 @@ Content-Transfer-Encoding: quoted-printable
             'company_id': company1.id,
         })
 
-        _mail_alias_0, mail_alias_1 = self.env['mail.alias'].create([
+        self.env['mail.alias'].create([
             {
                 'alias_name': 'helpdesk_team_0',
                 'alias_model_id': ticket_model.id,
@@ -381,12 +360,12 @@ Content-Transfer-Encoding: quoted-printable
             }
         ])
 
-        new_message1 = f"""MIME-Version: 1.0
+        new_message1 = """MIME-Version: 1.0
 Date: Thu, 27 Dec 2018 16:27:45 +0100
 Message-ID: blablabla1
 Subject: helpdesk team 1 in company 1
 From:  B client <client_b@someprovider.com>
-To: {mail_alias_1.display_name}
+To: helpdesk_team_1@aqualung.com
 Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
 
 --000000000000a47519057e029630
@@ -429,7 +408,7 @@ Date: Thu, 27 Dec 2018 16:27:45 +0100
 Message-ID: blablabla1
 Subject: helpdesk team 1 in company 1
 From:  Client with a §tràÑge name <client_b@someprovaîdère.com>
-To: helpdesk_team@test.mycompany.com
+To: helpdesk_team@aqualung.com
 Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
 
 --000000000000a47519057e029630
@@ -458,50 +437,30 @@ Content-Transfer-Encoding: quoted-printable
         stage = self.test_team._determine_stage()[self.test_team.id]
         stage.template_id = False
 
-        helpdesk_ticket = self.env['mail.thread'].message_process('helpdesk.ticket', self.email_to_alias)
+        new_message = """MIME-Version: 1.0
+Date: Thu, 27 Dec 2018 16:27:45 +0100
+Message-ID: blablabla1
+Subject: helpdesk team 1 in company 1
+From:  Client A <client_a@someprovider.com>
+To: helpdesk_team@aqualung.com
+Content-Type: multipart/alternative; boundary="000000000000a47519057e029630"
+
+--000000000000a47519057e029630
+Content-Type: text/plain; charset="UTF-8"
+
+
+--000000000000a47519057e029630
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div>A good message ter</div>
+
+--000000000000a47519057e029630--
+"""
+        helpdesk_ticket = self.env['mail.thread'].message_process('helpdesk.ticket', new_message)
         helpdesk_ticket = self.env['helpdesk.ticket'].browse(helpdesk_ticket)
 
         self.assertEqual(helpdesk_ticket.partner_id.name, "Client A")
-
-    def test_email_with_mail_template_portal_user(self):
-        """
-        Portal users receive an email when they create a ticket
-        """
-        self.stage_new.template_id = self.env.ref('helpdesk.new_ticket_request_email_template')
-        self.helpdesk_portal.email = self.email_to_alias_from
-
-        helpdesk_ticket = self.env['mail.thread'].message_process('helpdesk.ticket', self.email_to_alias)
-        helpdesk_ticket = self.env['helpdesk.ticket'].browse(helpdesk_ticket)
-        self.assertEqual(helpdesk_ticket.partner_id, self.helpdesk_portal.partner_id)
-
-        self.flush_tracking()
-
-        # check that when a portal user creates a ticket there is two message on the ticket:
-        # - the creation message note
-        # - the mail from the stage mail template
-        template_msg, creation_log = helpdesk_ticket.message_ids
-        self.assertEqual(template_msg.subtype_id, self.env.ref('mail.mt_note'))
-        self.assertEqual(creation_log.subtype_id, self.env.ref('helpdesk.mt_ticket_new'))
-
-    def test_email_with_mail_template_internal_user(self):
-        """
-        Internal users receive an email when they create a ticket by email.
-        """
-        self.stage_new.template_id = self.env.ref('helpdesk.new_ticket_request_email_template')
-        self.helpdesk_user.email = self.email_to_alias_from
-
-        helpdesk_ticket = self.env['mail.thread'].message_process('helpdesk.ticket', self.email_to_alias)
-        helpdesk_ticket = self.env['helpdesk.ticket'].browse(helpdesk_ticket)
-        self.assertEqual(helpdesk_ticket.partner_id, self.helpdesk_user.partner_id)
-
-        self.flush_tracking()
-
-        # check that when an internal user creates a ticket there is two messages on the ticket:
-        # - the creation message note
-        # - the mail from the stage mail template
-        template_msg, creation_log = helpdesk_ticket.message_ids
-        self.assertEqual(template_msg.subtype_id, self.env.ref('mail.mt_note'))
-        self.assertEqual(creation_log.subtype_id, self.env.ref('helpdesk.mt_ticket_new'))
 
     def test_team_assignation_balanced_sla(self):
         #We create an sla policy with minimum priority set as '2'
@@ -624,30 +583,6 @@ Content-Transfer-Encoding: quoted-printable
         helpdesk_ticket.website_message_ids = self.env['mail.message'].create(email_vals_list)
         self.assertEqual(helpdesk_ticket.first_response_hours, 2.0)
         self.assertEqual(helpdesk_ticket.avg_response_hours, 5 / 3)
-
-    def test_ticket_count_according_to_partner(self):
-        # 1) create a partner
-        partner = self.env['res.partner'].create({
-            'name': 'Freddy Krueger'
-        })
-
-        # 2) create one open and one closed ticket
-        open_ticket, closed_ticket = self.env['helpdesk.ticket'].with_user(self.helpdesk_user).create([{
-            'name': 'open ticket',
-            'team_id': self.test_team.id,
-            'partner_id': partner.id,
-        }, {
-            'name': 'solved ticket',
-            'team_id': self.test_team.id,
-            'partner_id': partner.id,
-            'stage_id': self.stage_done.id,
-        }])
-
-        # 3) check ticket count according to partner ticket
-        self.assertEqual(open_ticket.partner_open_ticket_count, 0, "There should be no other open ticket than this one for this partner")
-        self.assertEqual(open_ticket.partner_ticket_count, 1, "There should be one other ticket than this one for this partner")
-        self.assertEqual(closed_ticket.partner_open_ticket_count, 1, "There should be one other open ticket than this one for this partner")
-        self.assertEqual(closed_ticket.partner_ticket_count, 1, "There should be one other ticket than this one for this partner")
 
     @users('hm')
     def test_helpdesk_team_members_fallback(self):

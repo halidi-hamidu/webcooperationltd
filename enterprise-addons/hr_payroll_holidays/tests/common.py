@@ -6,7 +6,6 @@ from odoo.tests.common import TransactionCase, new_test_user
 
 from dateutil.relativedelta import relativedelta
 
-
 class TestPayrollHolidaysBase(TransactionCase):
 
     @classmethod

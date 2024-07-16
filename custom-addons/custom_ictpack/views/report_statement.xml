@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_statement">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.internal_layout">
+                        <div class="page">
+                            <div class="border border-top-0 border-right-0 border-left-0 border-info">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="text-center w-100">
+                                            <strong>
+                                                <span t-esc="o.company_id.name"/><br />
+                                                <span t-if="o.journal_id.type == 'bank'">BANK RECONCILIATION STATEMENT</span>
+                                                <span t-else="">BANK RECONCILIATION STATEMENT</span>
+                                            </strong>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 pb-2">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <p>
+                                            ACCOUNT NUMBER: <t t-if="o.journal_id.bank_account_id"> - <span t-field="o.journal_id.bank_account_id"/></t>
+                                        </p>
+                                        <p>
+                                            ACCOUNT NAME: <t t-if="o.journal_id.bank_account_id"> - <span t-field="o.journal_id.bank_account_id.partner_id"/></t>
+                                        </p>
+                                        <p>
+                                            DATE OF RECON: <span t-field="o.date"/>
+                                        </p>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table table-lg m-0 table-borderless border border-right-0 border-left-0 border-info">
+                                <tbody>
+                                    <tr class="pt-2 pb-2 pl-0 pr-0">
+                                        <td class="p-0 w-25">
+                                            <strong>Balance as per bank statement</strong>
+                                        </td>
+                                        <td class="text-right p-0">
+                                            <strong>
+                                                <span t-field="o.balance_end_real"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-0 w-25">
+                                            <strong>ADD: Uncredited cheque</strong>
+                                        </td>
+                                        <td class="text-right p-0">
+                                            <strong>
+                                                -
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-0 w-25">
+                                            <strong>LESS: Unpresented cheque</strong>
+                                        </td>
+                                        <td class="text-right p-0">
+                                            <strong>
+                                                -
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-0 w-25">
+                                            <strong>Balance as per cash book</strong>
+                                        </td>
+                                        <td class="text-right p-0">
+                                            <strong>
+                                                <span t-field="o.balance_end_real"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-0 w-25">
+                                            <strong>Discrepancy</strong>
+                                        </td>
+                                        <td class="text-right p-0">
+                                            <strong>
+                                                -
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <br />
+                            <p>Comments : </p>
+                            <br /><br />
+                            <table class="table table-borderless m-0">
+                                <tbody>
+                                    <tr class="pb-2">
+                                        <td class="pl-0 pr-0">
+                                           <span>Prepared By: </span>
+                                        </td>
+                                        <td class="p-0 w-25">
+                                            <span t-field="o.create_uid"/>
+                                        </td>
+                                        <td class="p-0 w-25">
+                                            .......................................................................
+                                        </td>
+                                    </tr>
+                                    <tr class="pb-2">
+                                        <td class="pl-0 pr-0">
+                                           <span>Approved By: </span>
+                                        </td>
+                                        <td class="p-0 w-25">
+                                            <span t-field="o.validated_by"/>
+                                        </td>
+                                        <td class="p-0 w-25">
+                                            .......................................................................
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <report
+            id="action_report_account_statement" 
+            model="account.bank.statement"
+            string="Bank Statement"
+            name="custom_ictpack.report_statement"
+            file="custom_ictpack.report_statement"
+            report_type="qweb-pdf"
+            menu="False"
+        />
+
+    </data>
+</odoo>

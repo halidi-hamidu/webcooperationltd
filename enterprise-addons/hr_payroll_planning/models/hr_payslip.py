@@ -36,13 +36,17 @@ class HrPayslip(models.Model):
             [('state', '=', 'published')],
             domain,
         ])
-        read_group = self.env['planning.slot']._read_group(domain, groupby=['employee_id', 'start_datetime:day'], aggregates=['__count'])
-        for employee, start_datetime_utc, count in read_group:
-            slips = slip_by_employee[employee.id]
-            start_date_employee = start_datetime_utc.astimezone(pytz.timezone(employee.tz)).date()
+        read_group = self.env['planning.slot'].read_group(domain, fields=['id'], groupby=['employee_id', 'start_datetime:day'], lazy=False)
+        employee_ids = list({planning['employee_id'][0] for planning in read_group})
+        employee_tz = {employee.id: pytz.timezone(employee.tz) for employee in self.env['hr.employee'].browse(employee_ids)}
+        for result in read_group:
+            employee_id = result['employee_id'][0]
+            slips = slip_by_employee[employee_id]
+            start_date_utc = datetime.strptime(result['__range']['start_datetime:day']['from'], '%Y-%m-%d %H:%M:%S')
+            start_date_employee = start_date_utc.astimezone(employee_tz[employee_id]).date()
             for slip in slips:
                 if slip.date_from <= start_date_employee and start_date_employee <= slip.date_to:
-                    slip.planning_slot_count += count
+                    slip.planning_slot_count += result['__count']
 
     def action_open_planning_slots(self):
         self.ensure_one()

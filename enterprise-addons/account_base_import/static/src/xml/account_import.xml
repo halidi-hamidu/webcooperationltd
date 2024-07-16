@@ -2,7 +2,15 @@
 
 <templates>
 
-    <t t-name="account_base_import.accountImportTemplate">
+    <t t-name="account_base_import.AccountListView.buttons" t-inherit="web.ListView.Buttons" owl="1">
+        <xpath expr="//button[hasclass('o_list_button_add')]" position="after">
+            <button type="button" class="btn btn-secondary" t-on-click="() => this._importAccountAction()">
+                Import
+            </button>
+        </xpath>
+    </t>
+
+    <t t-name="account_base_import.accountImportTemplate" owl="1">
         <ControlPanel display="{
             'top-right': false,
             'bottom-left': false,
@@ -20,7 +28,7 @@
                 </div>
                 <t t-if="countryCode === 'BE'">
                     <div class="winbooks-import pt-4">
-                        <h2 class="text-primary">
+                        <h2 class="text-odoo">
                             Winbooks
                         </h2>
                         <p>
@@ -36,7 +44,7 @@
                 </t>
                 <t t-if="['FR', 'LU'].includes(countryCode)">
                     <div class="fec-import pt-4">
-                        <h2 class="text-primary">
+                        <h2 class="text-odoo">
                             FEC
                         </h2>
                         <p>
@@ -49,41 +57,8 @@
                         </p>
                     </div>
                 </t>
-                <t t-if="['DK', 'LT', 'LU', 'NO', 'RO'].includes(countryCode)">
-                    <div class="saft-import pt-4">
-                        <h2 class="text-primary">
-                            SAF-T
-                        </h2>
-                        <p>
-                            Most accounting software in Europe support exporting SAF-T file for audit purposes.
-                            Use the
-                            <a class="fw-bold" href="#" t-on-click.prevent="() => this._openModuleInstallation('account_saft_import')">
-                                SAF-T Import module
-                            </a>
-                            to import the SAF-T file. <br/>
-                            We will setup your charts of accounts and the history of journal entries, that will stay in draft.
-                        </p>
-                    </div>
-                </t>
-                <t t-if="countryCode === 'SE'">
-                    <div class="sie-import pt-4">
-                        <h2 class="text-odoo">
-                            SIE 5
-                        </h2>
-                        <p>
-                            The SIE standard file format is very common in Sweden for several purposes such as auditing, importing and exporting data from and to other accounting softwares.
-                            <a class="fw-bold" href="#" t-on-click.prevent="() => this._openModuleInstallation('l10n_se_sie_import')">
-                                SIE Import module
-                            </a>
-                            is required to import the SIE and SIE entry files.
-                            For general SIE, we will setup your charts of accounts balances, journals, partners, and the history of journal entries (journals data must be present in the file).
-                            For the SIE entry, only entries and partners will be created, the rest must already be present in the system.
-
-                        </p>
-                    </div>
-                </t>
                 <div class="excel-import pt-4">
-                    <h2 class="text-primary">
+                    <h2 class="text-odoo">
                         Excel Import
                     </h2>
                     <p>

@@ -116,9 +116,7 @@ class ResCompany(models.Model):
             if c.l10n_cl_dte_service_provider == 'SIIDEMO':
                 c._create_demo_caf_files()
                 sales_journals = self.env['account.journal'].search([
-                    *self.env['account.journal']._check_company_domain(c),
-                    ('type', '=', 'sale'), ('l10n_latam_use_documents', '=', True),
-                ])
+                    ('type', '=', 'sale'), ('l10n_latam_use_documents', '=', True), ('company_id', '=', c.id)])
                 for sj in sales_journals:
                     sj.l10n_cl_point_of_sale_type = 'online'
 
@@ -161,12 +159,12 @@ class ResCompany(models.Model):
         a natural person) shares it with the rest of the users for that company.
         """
         if user_id is not None:
-            user_certificates = self.sudo().l10n_cl_certificate_ids.filtered(
+            user_certificates = self.l10n_cl_certificate_ids.filtered(
                 lambda x: x._is_valid_certificate() and x.user_id.id == user_id and
                           x.company_id.id == self.id)
             if user_certificates:
                 return user_certificates[0]
-        shared_certificates = self.sudo().l10n_cl_certificate_ids.filtered(
+        shared_certificates = self.l10n_cl_certificate_ids.filtered(
             lambda x: x._is_valid_certificate() and not x.user_id and x.company_id.id == self.id)
         if not shared_certificates:
             raise UserError(_('There is not a valid certificate for the company: %s') % self.name)

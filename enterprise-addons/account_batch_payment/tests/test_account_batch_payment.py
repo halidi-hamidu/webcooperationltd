@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from odoo import Command
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 
@@ -79,37 +78,77 @@ class TestAccountBatchPayment(AccountTestInvoicingCommon):
         payments[0].action_draft()
         self.assertEqual(batch_payment.amount, 100)
 
-    def test_batch_payment_sub_company(self):
-        """Test the creation of a batch payment from a sub company"""
-        self.company_data['company'].write({'child_ids': [Command.create({'name': 'Good Company'})]})
-        child_comp = self.company_data['company'].child_ids[0]
+    def test_batch_payment_foreign_currency(self):
+        """
+        Make sure that payments in foreign currency are converted for the total amount to be displayed
+            currency rate = 1$:10'☺'
+            amount_company_currency = 100$
+            amount_foreign_currency = 100☺ -> 10$
+            => batch.amount = 110$
+        """
+        payments = self.env['account.payment']
+        company_currency = self.env.company.currency_id
+        foreign_currency = self.currency_data['currency']
 
-        # needed for computation of payment.destination_account_id
-        (self.env['ir.property']
-         .search([('name', '=', 'property_account_receivable_id'), ('company_id', '=', self.company_data['company'].id)], limit=1)
-         .copy({'company_id': child_comp.id}))
-
-        self.env.user.write({
-            'company_ids': [Command.set((self.company_data['company'] + child_comp).ids)],
-            'company_id': child_comp.id,
+        self.env['res.currency.rate'].create({
+            'name': '2024-05-14',
+            'rate': 10,
+            'currency_id': foreign_currency.id,
+            'company_id': self.env.company.id,
         })
 
-        payment = self.env['account.payment'].with_company(child_comp).create({
-            'amount': 100.0,
-            'payment_type': 'inbound',
-            'partner_type': 'customer',
-            'partner_id': self.partner_a.id,
-        })
-        payment.action_post()
+        for currency in (company_currency, foreign_currency):
+            payments += self.env['account.payment'].create({
+                'amount': 100.0,
+                'payment_type': 'inbound',
+                'partner_type': 'supplier',
+                'partner_id': self.partner_a.id,
+                'currency_id': currency.id,
+                'date': '2024-05-14',
+            })
 
-        context = {
-            **self.env.context,
-            'allowed_company_ids': self.env.company.ids,
-            'active_ids': payment.ids,
-            'active_model': 'account.payment',
-        }
+        payments.action_post()
+        batch_payment_action = payments.create_batch_payment()
+        batch_payment = self.env['account.batch.payment'].browse(batch_payment_action.get('res_id'))
+        self.assertEqual(batch_payment.amount, 110)
 
-        batch = self.env['account.batch.payment'].with_context(context).create({
-            'journal_id': payment.journal_id.id,
+    def test_batch_payment_journal_foreign_currency(self):
+        """
+        Test that, if a bank journal is set in a foreign currency, the batch payment will be correctly converted
+        currency rate = 1$:10'☺'
+        payment of 100☺ -> 100☺
+        payment of 100$ -> 1000☺
+        Total -> 1100
+        """
+        payments = self.env['account.payment']
+        company_currency = self.env.company.currency_id
+        foreign_currency = self.currency_data['currency']
+
+        self.env['res.currency.rate'].create({
+            'name': '2024-05-14',
+            'rate': 10,
+            'currency_id': foreign_currency.id,
+            'company_id': self.env.company.id,
         })
-        self.assertTrue(batch)
+        bank_journal_foreign = self.env['account.journal'].create({
+            'name': 'Bank2',
+            'type': 'bank',
+            'code': 'BNK2',
+            'currency_id': foreign_currency.id,
+        })
+
+        for currency in (company_currency, foreign_currency):
+            payments += self.env['account.payment'].create({
+                'amount': 100.0,
+                'payment_type': 'inbound',
+                'partner_type': 'supplier',
+                'partner_id': self.partner_a.id,
+                'currency_id': currency.id,
+                'date': '2024-05-14',
+                'journal_id': bank_journal_foreign.id
+            })
+
+        payments.action_post()
+        batch_payment_action = payments.create_batch_payment()
+        batch_payment = self.env['account.batch.payment'].browse(batch_payment_action.get('res_id'))
+        self.assertEqual(batch_payment.amount, 1100)

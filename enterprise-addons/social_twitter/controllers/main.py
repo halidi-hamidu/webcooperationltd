@@ -42,9 +42,7 @@ class SocialTwitterController(SocialController):
 
             try:
                 self._twitter_create_accounts(oauth_token, oauth_verifier, media)
-            except SocialValidationException as e:
-                return request.render('social.social_http_error_view', {'error_message': e.get_message(), 'documentation_data': e.get_documentation_data()})
-            except UserError as e:
+            except (SocialValidationException, UserError) as e:
                 return request.render('social.social_http_error_view',
                                       {'error_message': str(e)})
 
@@ -81,12 +79,15 @@ class SocialTwitterController(SocialController):
         stream_post = self._get_social_stream_post(stream_post_id, 'twitter')
         answering_to = answering_to if comment_id else stream_post.twitter_screen_name
 
+        # Add mention in the message if not present and remove other mentions.
+        # This is needed when answering to a tweet, otherwise the new tweet will not be
+        # displayed as a response on Twitter.
         message = request.env["social.live.post"]._remove_mentions(message, [answering_to])
+        if f'@{answering_to.lower()}' not in message.lower():
+            message = f"@{answering_to} {message}"
 
-        files = request.httprequest.files.getlist('attachment')
-        attachment = files and files[0]
         try:
-            return json.dumps(stream_post._twitter_comment_add(stream, comment_id, message, attachment))
+            return json.dumps(stream_post._twitter_comment_add(stream, comment_id, message))
         except Exception as e:
             return json.dumps({'error': str(e)})
 
@@ -165,10 +166,8 @@ class SocialTwitterController(SocialController):
         ], limit=1)
         if not tweet:
             return json.dumps({'error': _('This Tweet has been deleted.')})
-        files = request.httprequest.files.getlist('attachment')
-        attachment = files and files[0]
         try:
-            return json.dumps(tweet._twitter_tweet_quote(message, attachment))
+            return json.dumps(tweet._twitter_tweet_quote(message))
         except UserError as error:
             return json.dumps({
                 'error': str(error)
@@ -192,11 +191,7 @@ class SocialTwitterController(SocialController):
         )
 
         if response.status_code != 200:
-            message = _('Twitter did not provide a valid access token or it may have expired.')
-            documentation_link = 'https://help.twitter.com/en/forms/account-access'
-            documentation_link_label = _('Read More about Twitter Accounts')
-            documentation_link_icon_class = 'fa fa-twitter'
-            raise SocialValidationException(message, documentation_link, documentation_link_label, documentation_link_icon_class)
+            raise SocialValidationException(_('Twitter did not provide a valid access token or it may have expired.'))
 
         response_values = {
             response_value.split('=')[0]: response_value.split('=')[1]
@@ -237,8 +232,11 @@ class SocialTwitterController(SocialController):
                 'image': base64.b64encode(requests.get(twitter_account_information['profile_image_url'], timeout=10).content)
             })
 
-    def _twitter_get_account_information(self, media, oauth_token, oauth_token_secret):
-        """Get the information about the Twitter account."""
+    def _twitter_get_account_information(self, media, oauth_token, oauth_token_secret, screen_name=None):
+        """Get the information about the Twitter account.
+
+        TODO: screen_name is not used, remove in master
+        """
         twitter_account_info_url = url_join(
             request.env['social.media']._TWITTER_ENDPOINT,
             '/2/users/me')

@@ -42,9 +42,8 @@ class TestL10nClExportsDte(TestL10nClEdiCommon):
             'name': 'Today',
             'line_ids': [
                 (0, 0, {
-                    'value': 'percent',
-                    'value_amount': 100,
-                    'nb_days': 0,
+                    'value': 'balance',
+                    'days': 0,
                 }),
             ],
         })

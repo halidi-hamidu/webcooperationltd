@@ -2,21 +2,16 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
-from odoo import fields, models
+from odoo import models
 
 
 class AccountJournal(models.Model):
     _inherit = 'account.journal'
 
-    debit_sepa_pain_version = fields.Selection(
-        [
-            ('pain.008.001.02', 'Default (Pain 008.001.02)'),
-            ('pain.008.001.08', 'Updated 2023 (Pain 008.001.08)'),
-        ],
-        required=True,
-        string='SEPA Direct Debit Pain Version',
-        default='pain.008.001.02',
-    )
+    def _get_debit_sepa_pain_version(self):
+        """Hook to update the Direct Debit SEPA version."""
+        self.ensure_one()
+        return 'pain.008.001.02'
 
     def _default_inbound_payment_methods(self):
         res = super()._default_inbound_payment_methods()

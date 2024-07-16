@@ -3,18 +3,21 @@
 # 	* social_twitter
 # 
 # Translators:
-# Ivana Bartonkova, 2023
-# Wil Odoo, 2023
+# Jan Horzinka <jan.horzinka@centrum.cz>, 2022
+# Martin Trigaux, 2022
+# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
+# Jiří Podhorecký, 2022
+# Jakub Smolka, 2023
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
-# Jakub Smolka, 2024
+# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:47+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Jakub Smolka, 2024\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:49+0000\n"
+"Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Czech (https://app.transifex.com/odoo/teams/41243/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,6 +65,11 @@ msgid "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
 msgstr ""
 
 #. module: social_twitter
+#: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
+msgid "<span class=\"fst-italic\">Empty tweet</span>"
+msgstr ""
+
+#. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
 msgid "@twitteraccount ·"
 msgstr ""
@@ -82,7 +90,6 @@ msgstr ""
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 #, python-format
@@ -115,7 +122,7 @@ msgstr ""
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfigurační nastavení"
+msgstr "Nastavení konfigurace"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -130,12 +137,12 @@ msgstr "Tajný klíč spotřebitele"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__create_uid
 msgid "Created by"
-msgstr "Vytvořeno uživatelem"
+msgstr "Vytvořeno od"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__create_date
 msgid "Created on"
-msgstr "Vytvořeno dne"
+msgstr "Vytvořeno"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__description
@@ -145,27 +152,12 @@ msgstr "Popis"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__display_name
 msgid "Display Name"
-msgstr "Zobrazovací název"
+msgstr "Zobrazované jméno"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_post__has_twitter_accounts
 #: model:ir.model.fields,field_description:social_twitter.field_social_post_template__has_twitter_accounts
 msgid "Display Twitter Preview"
-msgstr ""
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
-#, python-format
-msgid ""
-"Easy, tiger! No spamming allowed. Let's stick to three replies per Tweet."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
-#, python-format
-msgid "Empty tweet"
 msgstr ""
 
 #. module: social_twitter
@@ -189,6 +181,13 @@ msgstr ""
 msgid ""
 "Failed to delete the Tweet\n"
 "%s."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Failed to fetch the conversation id: '%s' using the account %s."
 msgstr ""
 
 #. module: social_twitter
@@ -233,14 +232,19 @@ msgid "Keyword"
 msgstr "Klíčové slovo"
 
 #. module: social_twitter
+#: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account____last_update
+msgid "Last Modified on"
+msgstr "Naposled změněno"
+
+#. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_uid
 msgid "Last Updated by"
-msgstr "Naposledy upraveno uživatelem"
+msgstr "Naposledy upraveno od"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_date
 msgid "Last Updated on"
-msgstr "Naposledy upraveno dne"
+msgstr "Naposled upraveno"
 
 #. module: social_twitter
 #. odoo-javascript
@@ -273,7 +277,14 @@ msgstr "Zmínky"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__name
 msgid "Name"
-msgstr "Název"
+msgstr "Jméno"
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Oops! Couldn't find this tweet on Twitter.com"
+msgstr ""
 
 #. module: social_twitter
 #. odoo-python
@@ -287,7 +298,7 @@ msgstr "Vyberte prosím účet Twitter pro tento typ streamu."
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #, python-format
 msgid "Post"
-msgstr "Příspěvek"
+msgstr "Zaúčtovat"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
@@ -333,13 +344,6 @@ msgstr "Re-tweety"
 
 #. module: social_twitter
 #. odoo-python
-#: code:addons/social_twitter/controllers/main.py:0
-#, python-format
-msgid "Read More about Twitter Accounts"
-msgstr ""
-
-#. module: social_twitter
-#. odoo-python
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
 msgid "Replies from Tweets older than 7 days must be accessed on Twitter.com"
@@ -380,12 +384,12 @@ msgstr ""
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_account
 msgid "Social Account"
-msgstr "Účet sociální sítě"
+msgstr "Sociální účet"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_live_post
 msgid "Social Live Post"
-msgstr "Zveřejněný příspěvek na sociální sítě"
+msgstr "Sociální živý příspěvek"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_media
@@ -395,7 +399,7 @@ msgstr "Sociální sítě"
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_post
 msgid "Social Post"
-msgstr "Příspěvek"
+msgstr "Příspěvků sociálních sítí"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_post_template
@@ -405,12 +409,12 @@ msgstr "Šablona příspěvku"
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_stream
 msgid "Social Stream"
-msgstr "Stream sociální sítě"
+msgstr "Tok na sociálních sítích"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_stream_post
 msgid "Social Stream Post"
-msgstr "Stream příspěvku sociální sítě"
+msgstr "Stream příspěvků v sociálních sítích"
 
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_social_twitter_account
@@ -445,13 +449,6 @@ msgstr ""
 #: code:addons/social_twitter/controllers/main.py:0
 #, python-format
 msgid "This Tweet has been deleted."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "This tweet is outdated, please refresh the stream and try again."
 msgstr ""
 
 #. module: social_twitter
@@ -492,11 +489,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:social_twitter.field_res_config_settings__twitter_consumer_secret_key
 msgid "Twitter Consumer Secret Key"
 msgstr "Tajný klíč spotřebitele na Twitteru"
-
-#. module: social_twitter
-#: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_conversation_id
-msgid "Twitter Conversation ID"
-msgstr ""
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -615,8 +607,8 @@ msgid "Undo Retweet"
 msgstr ""
 
 #. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Unknown"
 msgstr "Neznámá"
@@ -658,6 +650,15 @@ msgstr ""
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
 msgid "You are not authenticated"
+msgstr ""
+
+#. module: social_twitter
+#. odoo-javascript
+#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
+#, python-format
+msgid ""
+"You can comment only three times a tweet as it may be considered as spamming"
+" by Twitter"
 msgstr ""
 
 #. module: social_twitter

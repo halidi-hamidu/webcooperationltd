@@ -9,6 +9,25 @@ import base64
 import re
 from datetime import datetime
 
+# deprecated, will be removed in master
+def check_valid_SEPA_str(string):
+    if re.search('[^-A-Za-z0-9/?:().,\'&<>+ ]', string) is not None:
+        raise ValidationError(_("The text used in SEPA files can only contain the following characters :\n\n"
+            "a b c d e f g h i j k l m n o p q r s t u v w x y z\n"
+            "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z\n"
+            "0 1 2 3 4 5 6 7 8 9\n"
+            "/ - ? : ( ) . , ' + & < > (space)"))
+
+# deprecated, will be removed in master
+def _check_sepa_str_validity(*strings):
+    try:
+        for string in strings:
+            if string:
+                check_valid_SEPA_str(string)
+        return True
+    except ValidationError:
+        return False
+
 
 class AccountBatchPayment(models.Model):
     _inherit = 'account.batch.payment'
@@ -24,7 +43,7 @@ class AccountBatchPayment(models.Model):
         switch_to_generic_warnings = {'no_iban', 'no_eur'}
         for record in self:
             sct_warnings = record._get_sct_genericity_warnings()
-            record.sct_generic = any(warning.get('code') in switch_to_generic_warnings for warning in sct_warnings)
+            record.sct_generic = any(warning.get('code') in switch_to_generic_warnings for warning in sct_warnings) or record.journal_id.sepa_pain_version == 'iso_20022'
 
     def _get_methods_generating_files(self):
         rslt = super(AccountBatchPayment, self)._get_methods_generating_files()
@@ -34,11 +53,17 @@ class AccountBatchPayment(models.Model):
     def validate_batch(self):
         for batch in self.filtered(lambda x: x.payment_method_code == 'sepa_ct'):
             if batch.journal_id.bank_account_id.acc_type != 'iban':
-                raise UserError(_("The account %s, of journal '%s', is not of type IBAN.\nA valid IBAN account is required to use SEPA features.", batch.journal_id.bank_account_id.acc_number, batch.journal_id.name))
+                raise UserError(_("The account %s, of journal '%s', is not of type IBAN.\nA valid IBAN account is required to use SEPA features.") % (batch.journal_id.bank_account_id.acc_number, batch.journal_id.name))
 
         return super(AccountBatchPayment, self).validate_batch()
 
     def _get_sct_genericity_warnings(self):
+        self.ensure_one()
+
+        if self.journal_id.sepa_pain_version == 'iso_20022':
+            # Forcing generic SEPA; so no genericity warning
+            return []
+
         rslt = []
         no_iban_payments = self.env['account.payment']
         no_eur_payments = self.env['account.payment']
@@ -132,8 +157,6 @@ class AccountBatchPayment(models.Model):
             'ref' : payment.ref,
             'partner_id' : payment.partner_id.id,
             'partner_bank_id': payment.partner_bank_id.id,
-            'partner_country_code': payment.partner_id.country_id.code,
-            'sepa_uetr': payment.sepa_uetr,
         }
 
     def _generate_payment_template(self, payments):

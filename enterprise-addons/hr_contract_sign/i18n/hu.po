@@ -3,33 +3,26 @@
 # 	* hr_contract_sign
 # 
 # Translators:
-# Tamás Dombos, 2023
-# Ákos Nagy <akos.nagy@oregional.hu>, 2023
-# krnkris, 2023
-# Martin Trigaux, 2023
-# Tamás Németh <ntomasz81@gmail.com>, 2023
-# gezza <geza.nagy@oregional.hu>, 2024
+# Krisztián Juhász <juhasz.krisztian@josafar.hu>, 2022
+# gezza <geza.nagy@oregional.hu>, 2022
+# krnkris, 2022
+# Ákos Nagy <akos.nagy@oregional.hu>, 2022
+# Martin Trigaux, 2022
+# Tamás Németh <ntomasz81@gmail.com>, 2022
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: gezza <geza.nagy@oregional.hu>, 2024\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
+"Last-Translator: Tamás Németh <ntomasz81@gmail.com>, 2022\n"
 "Language-Team: Hungarian (https://app.transifex.com/odoo/teams/41243/hu/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: hu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#. module: hr_contract_sign
-#. odoo-python
-#: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
-#, python-format
-msgid "%(user_name)s requested a new signature on the following documents:"
-msgstr ""
 
 #. module: hr_contract_sign
 #. odoo-python
@@ -42,14 +35,15 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
 #, python-format
-msgid "%s does not have a private email set."
+msgid "%s does not have a work or private email set."
 msgstr ""
 
 #. module: hr_contract_sign
 #. odoo-python
 #: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
 #, python-format
-msgid "%s does not have a work email set."
+msgid ""
+"%s requested a new signature on the following documents:<br/><ul>%s</ul>%s"
 msgstr ""
 
 #. module: hr_contract_sign
@@ -58,16 +52,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.res_users_request_sign_view_form
 msgid "<span class=\"o_stat_text\">Signature Requests</span>"
 msgstr "<span class=\"o_stat_text\">Aláírási kérések</span>"
-
-#. module: hr_contract_sign
-#: model:ir.model,name:hr_contract_sign.model_mail_activity_plan_template
-msgid "Activity plan template"
-msgstr "Tevékenység terv sablon"
-
-#. module: hr_contract_sign
-#: model:ir.model,name:hr_contract_sign.model_mail_activity_schedule
-msgid "Activity schedule plan Wizard"
-msgstr "Tevékenység ütemezés terv varázsló"
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
@@ -120,7 +104,7 @@ msgid "Document Signature"
 msgstr "Dokumentum aláírás"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__sign_template_id
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__sign_template_id
 msgid "Document to sign"
 msgstr ""
 
@@ -138,23 +122,9 @@ msgid ""
 msgstr ""
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_to
-msgid "Email"
-msgstr "E-mail"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields,help:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_to
-msgid ""
-"Email used to send the signature request.\n"
-"                - Work takes the email defined in \"work email\"\n"
-"                - Private takes the email defined in Private Information\n"
-"                - If the selected email is not defined, the available one will be used."
-msgstr ""
-
-#. module: hr_contract_sign
 #: model:ir.model,name:hr_contract_sign.model_hr_employee
 msgid "Employee"
-msgstr "Munkavállaló"
+msgstr "Alkalmazott"
 
 #. module: hr_contract_sign
 #: model:ir.model,name:hr_contract_sign.model_hr_contract
@@ -163,13 +133,13 @@ msgstr "Alkalmazotti szerződés"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__employee_role_id
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__employee_role_id
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__employee_role_id
 msgid "Employee Role"
 msgstr ""
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,help:hr_contract_sign.field_hr_contract_sign_document_wizard__employee_role_id
-#: model:ir.model.fields,help:hr_contract_sign.field_mail_activity_plan_template__employee_role_id
+#: model:ir.model.fields,help:hr_contract_sign.field_hr_plan_activity_type__employee_role_id
 msgid ""
 "Employee's role on the templates to sign. The same role must be present in "
 "all the templates"
@@ -178,7 +148,7 @@ msgstr ""
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__employee_ids
 msgid "Employees"
-msgstr "Munkavállalók"
+msgstr "Alkalmazottak"
 
 #. module: hr_contract_sign
 #: model:sign.item.role,name:hr_contract_sign.sign_item_role_job_responsible
@@ -196,9 +166,14 @@ msgid "ID"
 msgstr "Azonosító"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__is_signature_request
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__is_signature_request
 msgid "Is Signature Request"
 msgstr ""
+
+#. module: hr_contract_sign
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard____last_update
+msgid "Last Modified on"
+msgstr "Legutóbb frissítve"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__write_uid
@@ -208,12 +183,7 @@ msgstr "Frissítette"
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__write_date
 msgid "Last Updated on"
-msgstr "Frissítve"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_displayed
-msgid "Mail Displayed"
-msgstr ""
+msgstr "Frissítve ekkor"
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
@@ -257,17 +227,23 @@ msgid "Optional Message..."
 msgstr "Opcionális üzenet..."
 
 #. module: hr_contract_sign
+#: model:ir.model,name:hr_contract_sign.model_hr_plan_wizard
+msgid "Plan Wizard"
+msgstr "Tervkészítő"
+
+#. module: hr_contract_sign
+#: model:ir.model,name:hr_contract_sign.model_hr_plan_activity_type
+msgid "Plan activity type"
+msgstr ""
+
+#. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__possible_template_ids
 msgid "Possible Template"
 msgstr ""
 
 #. module: hr_contract_sign
-#: model:ir.model.fields.selection,name:hr_contract_sign.selection__hr_contract_sign_document_wizard__mail_to__private
-msgid "Private"
-msgstr "Privát"
-
-#. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract__sign_request_ids
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_history__sign_request_ids
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_employee__sign_request_ids
 msgid "Requested Signatures"
 msgstr "Kért aláírások"
@@ -278,7 +254,7 @@ msgid "Responsible"
 msgstr "Felelős"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__responsible_count
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__responsible_count
 msgid "Responsible Count"
 msgstr "Felelősök száma"
 
@@ -301,7 +277,7 @@ msgstr ""
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__sign_template_responsible_ids
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__sign_template_responsible_ids
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__sign_template_responsible_ids
 msgid "Sign Template Responsible"
 msgstr ""
 
@@ -312,8 +288,9 @@ msgstr ""
 
 #. module: hr_contract_sign
 #. odoo-python
-#: code:addons/hr_contract_sign/wizard/mail_activity_schedule.py:0
+#: code:addons/hr_contract_sign/wizard/hr_plan_wizard.py:0
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_contract_history_view_form
+#: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_contract_sign_view_form
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_employee_sign_view_form
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
 #, python-format
@@ -321,9 +298,11 @@ msgid "Signature Request"
 msgstr "Aláírási kérés"
 
 #. module: hr_contract_sign
-#: model:ir.actions.server,name:hr_contract_sign.action_signature_request_wizard
-msgid "Signature request"
-msgstr "Aláírás kérelem"
+#. odoo-python
+#: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
+#, python-format
+msgid "Signature Request - %s"
+msgstr "Aláírási kérés - %s"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__subject
@@ -336,23 +315,9 @@ msgid "Template Warning"
 msgstr ""
 
 #. module: hr_contract_sign
-#. odoo-python
-#: code:addons/hr_contract_sign/models/hr_contract.py:0
-#, python-format
-msgid ""
-"This sign request has been canceled due to the cancellation of the related "
-"contract."
-msgstr ""
-
-#. module: hr_contract_sign
 #: model:ir.model,name:hr_contract_sign.model_res_users
 msgid "User"
 msgstr "Felhasználó"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields.selection,name:hr_contract_sign.selection__hr_contract_sign_document_wizard__mail_to__work
-msgid "Work"
-msgstr ""
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign

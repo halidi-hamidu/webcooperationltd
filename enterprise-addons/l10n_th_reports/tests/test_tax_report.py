@@ -14,7 +14,7 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @classmethod
     def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass('th')
+        super().setUpClass('l10n_th.chart')
         cls.partner_b.write({
             'country_id': cls.env.ref('base.th').id,
             "vat": "12345678",
@@ -42,8 +42,8 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2023-06-30')
     def test_pnd53_report(self):
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_3')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_2')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 3% (Service)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 2% (Advertising)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
 
         move = self.env['account.move'].create({
             'move_type': 'in_invoice',
@@ -73,7 +73,7 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
         self.env.flush_all()
 
         report = self.env.ref('l10n_th.tax_report_pnd53')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.pnd53.report.handler'].l10n_th_print_pnd_tax_report_pnd53(options)['file_content']
         expected = ("No.,Tax ID,Title,Contact Name,Street,Street2,City,State,Zip,Branch Number,Invoice/Bill Date,Tax Rate,Total Amount,WHT Amount,WHT Condition,Tax Type\n"
@@ -84,8 +84,8 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2023-06-30')
     def test_pnd3_report(self):
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_pers_1')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_pers_2')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Personal Withholding Tax 1% (Transportation)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Personal Withholding Tax 2% (Advertising)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
 
         move = self.env['account.move'].create({
             'move_type': 'in_invoice',
@@ -115,7 +115,7 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
         self.env.flush_all()
 
         report = self.env.ref('l10n_th.tax_report_pnd3')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.pnd3.report.handler'].l10n_th_print_pnd_tax_report_pnd3(options)['file_content']
         expected = ("No.,Tax ID,Title,Contact Name,Street,Street2,City,State,Zip,Branch Number,Invoice/Bill Date,Tax Rate,Total Amount,WHT Amount,WHT Condition,Tax Type\n"
@@ -127,12 +127,12 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
     @freeze_time('2023-06-30')
     def test_vat_tax_report_branch_name(self):
         self.partner_b.is_company = True
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_3')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_output_vat')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 3% (Service)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Output VAT 7%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
         self.init_invoice("out_invoice", self.partner_b, "2023-05-20", amounts=[1000, 1000], taxes=[tax_1, tax_2], post=True)
 
         report = self.env.ref('l10n_th.tax_report')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.tax.report.handler'].l10n_th_print_sale_tax_report(options)['file_content']
         expected = [
@@ -146,12 +146,12 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2023-06-30')
     def test_vat_sales_tax_report(self):
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_3')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_output_vat')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 3% (Service)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Output VAT 7%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
         self.init_invoice("out_invoice", self.partner_b, "2023-05-20", amounts=[1000, 1000], taxes=[tax_1, tax_2], post=True)
 
         report = self.env.ref('l10n_th.tax_report')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.tax.report.handler'].l10n_th_print_sale_tax_report(options)['file_content']
         expected = [
@@ -165,16 +165,20 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2023-06-30')
     def test_vat_purchase_tax_report_full_refund(self):
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_3')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_input_vat')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 3% (Service)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Input VAT 7%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
         self.init_invoice("in_invoice", self.partner_b, "2023-05-20", amounts=[1000, 1000], taxes=[tax_1, tax_2], post=True)
 
         # Reversed move should not be included in the report
         move_to_reverse = self.init_invoice("in_invoice", self.partner_b, "2023-05-20", amounts=[1000, 1000], taxes=[tax_1, tax_2], post=True)
-        move_to_reverse._reverse_moves([{"invoice_date": move_to_reverse.date}], cancel=True)
+        default_values = {
+            **self.env["account.move.reversal"]._prepare_default_reversal(move_to_reverse),
+            'journal_id': self.company_data['default_journal_purchase'].id,
+        }
+        move_to_reverse._reverse_moves([default_values], cancel=True)
 
         report = self.env.ref('l10n_th.tax_report')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.tax.report.handler'].l10n_th_print_purchase_tax_report(options)['file_content']
         expected = [
@@ -188,23 +192,30 @@ class L10nThaiTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2023-06-30')
     def test_vat_purchase_tax_report_partial_refund(self):
-        tax_1 = self.env.ref(f'account.{self.company_data["company"].id}_tax_wht_co_3')
-        tax_2 = self.env.ref(f'account.{self.company_data["company"].id}_tax_input_vat')
+        tax_1 = self.env['account.tax'].search([('name', '=', 'Company Withholding Tax 3% (Service)'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_2 = self.env['account.tax'].search([('name', '=', 'Input VAT 7%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
         move_to_partial_refund = self.init_invoice("in_invoice", self.partner_b, "2023-05-20", amounts=[1000, 1000], taxes=[tax_1, tax_2], post=True)
-        reverse_move = move_to_partial_refund._reverse_moves([{"invoice_date": move_to_partial_refund.date, "date": move_to_partial_refund.date}])
+        default_values = {
+            **self.env["account.move.reversal"]._prepare_default_reversal(move_to_partial_refund),
+            'journal_id': self.company_data['default_journal_purchase'].id,
+        }
+        reverse_move = move_to_partial_refund._reverse_moves([default_values])
         reverse_move.write({'invoice_line_ids': [
             Command.update(line.id, {
                 'price_unit': 500,
             }) for line in reverse_move.invoice_line_ids
         ]})
         reverse_move.action_post()
+        lines_to_reconcile = reverse_move.line_ids.filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
+        move_to_partial_refund.js_assign_outstanding_line(lines_to_reconcile.id)
+
         report = self.env.ref('l10n_th.tax_report')
-        options = report.get_options()
+        options = report._get_options()
 
         report_data = self.env['l10n_th.tax.report.handler'].l10n_th_print_purchase_tax_report(options)['file_content']
         expected = [
             ['No.', 'Tax Invoice No.', 'Reference', 'Invoice Date', 'Contact Name', 'Tax ID', 'Company Information', 'Total Amount', 'Total Excluding VAT Amount', 'Vat Amount'],
-            [1.0, 'RBILL/2023/05/0001', '', 45066.0, 'Partner B', '12345678', '', -1040.0, -1000.0, -70.0],
+            [1.0, 'RBILL/2023/05/0001', 'Reversal of: BILL/2023/05/0001', 45066.0, 'Partner B', '12345678', '', -1040.0, -1000.0, -70.0],
             [2.0, 'BILL/2023/05/0001', '', 45066.0, 'Partner B', '12345678', '', 2080.0, 2000.0, 140.0],
             ['', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', ''],

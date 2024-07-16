@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, _
+from odoo import models
 from odoo.tools.misc import get_lang
 
 
@@ -10,49 +10,16 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
     _inherit = 'account.disallowed.expenses.report.handler'
     _description = 'Disallowed Expenses Fleet Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'templates': {
-                'AccountReportFilters': 'account_disallowed_expenses_fleet.DisallowedExpensesFleetReportFilters',
-            }
-        }
-
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
 
-        # Initialize vehicle_split filter by default
-        options['vehicle_split'] = previous_options.get('vehicle_split', True)
+        # Initialize vehicle_split filter
+        options['vehicle_split'] = previous_options.get('vehicle_split', False)
 
         # Check if there are multiple rates
         period_domain = [('date_from', '>=', options['date']['date_from']), ('date_from', '<=', options['date']['date_to'])]
-        rg = self.env['fleet.disallowed.expenses.rate']._read_group(
-            period_domain,
-            ['vehicle_id'],
-            having=[('__count', '>', 1)],
-            limit=1,
-        )
-        options['multi_rate_in_period'] = options.get('multi_rate_in_period') or bool(rg)
-
-    def _custom_line_postprocessor(self, report, options, lines, warnings=None):
-        if warnings is not None:
-            # Check for expense accounts without disallowed expense category
-            accounts = self.env['account.move.line']._read_group(
-                [
-                    ('date', '<=', options['date']['date_to']),
-                    ('date', '>=', options['date']['date_from']),
-                    ('parent_state', '=', 'posted'),
-                    ('account_type', '=', 'expense'),
-                    ('vehicle_id', '!=', None),
-                    ('account_id.disallowed_expenses_category_id', '=', None),
-                ],
-                ['account_id'],
-            )
-            if accounts:
-                warnings['account_disallowed_expenses_fleet.warning_missing_disallowed_category'] = {
-                    'alert_type': 'warning',
-                    'args': [account[0].id for account in accounts],
-                }
-        return lines
+        rg = self.env['fleet.disallowed.expenses.rate']._read_group(period_domain, ['rate'], 'vehicle_id')
+        options['multi_rate_in_period'] = options.get('multi_rate_in_period') or any(cat['vehicle_id_count'] > 1 for cat in rg)
 
     def _get_query(self, options, line_dict_id=None):
         # EXTENDS account_disallowed_expenses.
@@ -67,9 +34,9 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
             ARRAY_AGG(vehicle.name) vehicle_name,
             SUM(aml.balance * (
                 CASE WHEN fleet_rate.rate IS NOT NULL
-                THEN
+                THEN 
                     CASE WHEN rate.rate IS NOT NULL
-                    THEN
+                    THEN 
                         CASE WHEN fleet_rate.rate < rate.rate
                         THEN fleet_rate.rate
                         ELSE rate.rate
@@ -94,25 +61,33 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
         where += current.get('account_id') and not current.get('vehicle_id') and options.get('vehicle_split') and """
               AND vehicle.id IS NULL""" or ""
 
-        group_by = f" GROUP BY category.id, COALESCE(category.name->>'{lang}', category.name->>'en_US')"
+        group_by = " GROUP BY category.id"
 
         if len(current) == 1 and current.get('category_id'):
             # Expanding a category
             if options.get('vehicle_split'):
-                group_by += ", (CASE WHEN aml.vehicle_id IS NOT NULL THEN aml.vehicle_id ELSE aml.account_id END)"
-                order_by = " ORDER BY (CASE WHEN aml.vehicle_id IS NOT NULL THEN aml.vehicle_id ELSE aml.account_id END)"
+                # In the case of a split by `vehicle_id`, we want one report line per `vehicle_id`.
+                # For those without a `vehicle_id`, we want one report line per `account_id`.
+                # Thus, we first group based on the `vehicle_id` and then group by `account_id`
+                # for those without a vehicle (which means grouping again by `vehicle_id` for those having one).
+                # NOTE: We can't directly `GROUP BY COALESCE(aml.vehicle_id, aml.account_id)` because it could
+                # group rows having a `vehicle_id` with lines having an `account_id` if they share the same number as id.
+                # See `test_disallowed_expenses_account_id_and_vehicle_id_confusion_regression_test`.
+
+                group_by += ", aml.vehicle_id, COALESCE(aml.vehicle_id, aml.account_id)"
+                order_by = " ORDER BY aml.vehicle_id, COALESCE(aml.vehicle_id, aml.account_id)"
             else:
                 group_by += ", account.id"
                 order_by = " ORDER BY account.id"
         elif current.get('vehicle_id') and not current.get('account_id'):
             # Expanding a vehicle
-            group_by += ", vehicle.id, vehicle.name, account.id"
-            order_by = " ORDER BY vehicle.id, vehicle.name, account.id"
+            group_by += ", vehicle.id, account.id"
+            order_by = " ORDER BY vehicle.id, account.id"
         elif current.get('account_id') and options.get('multi_rate_in_period'):
             # Expanding an account
             if options.get('vehicle_split'):
-                group_by += ",vehicle.id, vehicle.name, rate.rate, fleet_rate.rate"
-                order_by = " ORDER BY vehicle.id, vehicle.name, rate.rate, fleet_rate.rate"
+                group_by += ", vehicle.id, rate.rate, fleet_rate.rate"
+                order_by = " ORDER BY vehicle.id, rate.rate, fleet_rate.rate"
             else:
                 group_by += ", rate.rate, fleet_rate.rate"
                 order_by = " ORDER BY rate.rate, fleet_rate.rate"
@@ -145,8 +120,8 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
     def _build_line_id(self, options, current, level, parent=False, markup=None):
         # OVERRIDES account_disallowed_expenses.
 
-        report = self.env['account.report'].browse(options['report_id'])
-        parent_line_id = None
+        report = self.env['account.report']
+        parent_line_id = ''
         line_id = report._get_generic_line_id('account.disallowed.expenses.category', current['category_id'])
         if current.get('vehicle_id') and options.get('vehicle_split'):
             parent_line_id = line_id
@@ -264,7 +239,7 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
         fleet_rate = self._get_single_value(values, 'fleet_rate')
         account_rate = self._get_single_value(values, 'account_rate')
 
-        current_rate = None
+        current_rate = ''
         if fleet_rate is not False:
             if fleet_rate is not None:
                 if account_rate:
@@ -283,12 +258,3 @@ class DisallowedExpensesFleetCustomHandler(models.AbstractModel):
 
     def _filter_current(self, current, fields):
         return {key: val for key, val in current.items() if key in fields}
-
-    def action_open_accounts(self, options, params):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _("Accounts missing a disallowed expense category"),
-            'res_model': 'account.account',
-            'views': [(False, 'list'), (False, 'form')],
-            'domain': [('id', 'in', params['args'])],
-        }

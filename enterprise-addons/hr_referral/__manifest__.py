@@ -34,7 +34,6 @@
     'application': True,
     'pre_init_hook': '_pre_init_referral',
     'post_init_hook': '_update_stage',
-    'uninstall_hook': 'uninstall_hook',
     'assets': {
         'web.assets_backend': [
             'hr_referral/static/src/views/*.js',
@@ -45,7 +44,7 @@
             'hr_referral/static/src/scss/progress_bar.scss',
             'hr_referral/static/src/**/*.xml',
         ],
-        "web.assets_web_dark": [
+        "web.dark_mode_assets_backend": [
             'hr_referral/static/src/scss/hr_referral.dark.scss',
         ],
 

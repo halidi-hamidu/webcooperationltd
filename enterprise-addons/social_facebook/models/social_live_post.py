@@ -112,15 +112,13 @@ class SocialLivePostFacebook(models.Model):
                 except UserError as e:
                     self.write({
                         'state': 'failed',
-                        'failure_reason': str(e)
+                        'failure_reason': e.name
                     })
                     return
                 images_attachments = post._format_images_facebook(facebook_target_id, account.facebook_access_token)
                 if images_attachments:
-                    params.update({
-                        f'attached_media[{index}]': json.dumps(attachment)
-                        for index, attachment in enumerate(images_attachments)
-                    })
+                    for index, image_attachment in enumerate(images_attachments):
+                        params.update({'attached_media[' + str(index) + ']': json.dumps(image_attachment)})
 
             link_url = self.env['social.post']._extract_url_from_message(self.message)
             # can't combine with images

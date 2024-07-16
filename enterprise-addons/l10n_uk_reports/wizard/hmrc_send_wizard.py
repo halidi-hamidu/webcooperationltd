@@ -15,6 +15,9 @@ class HmrcSendWizard(models.TransientModel):
     def default_get(self, fields_list):
         res = super(HmrcSendWizard, self).default_get(fields_list)
 
+        # Check obligations: should be logged in by now
+        self.env['l10n_uk.vat.obligation'].import_vat_obligations()
+
         if 'obligation_id' in fields_list:
             obligations = self.env['l10n_uk.vat.obligation'].search([('status', '=', 'open')])
             if not obligations:

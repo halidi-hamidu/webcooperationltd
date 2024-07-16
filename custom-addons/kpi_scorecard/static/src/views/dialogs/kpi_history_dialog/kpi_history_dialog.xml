@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="kpi_scorecard.KpiHistoryDialog" owl="1">
+        <Dialog size="props.size" title="props.title" withBodyPadding="false" modalRef="modalRef">
+            <div class="kpi-chart-dialog">
+                <KpiChart kpiId="props.kpiId" kpiPeriodLength="props.kpiPeriodLength" kpiPeriodCompanyId="props.kpiPeriodCompanyId" kpiChartType="'line'" showTargets="true" showActual="true"/>
+                <div t-if="state.fullHistory" class="mt16 ml16 mr16 mb64">
+                    <h3>Full KPI History</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr class="active">
+                                <th>Period</th>
+                                <th class="text-center">Target</th>
+                                <th class="text-center">Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.fullHistory" t-as="kpiTarget" t-key="kpiTarget.id">
+                                <tr t-attf-class="text-#{kpiTarget.result == 'success' and 'success' or kpiTarget.result == 'failure' and 'danger' or 'muted'}">
+                                    <td><span class="ml4"><t t-esc="kpiTarget.period_id"/></span></td>
+                                    <td class="text-center"><strong t-esc="kpiTarget.formatted_target_value"/></td>
+                                    <td class="text-center"><strong t-esc="kpiTarget.formatted_actual_value"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+
+</templates>

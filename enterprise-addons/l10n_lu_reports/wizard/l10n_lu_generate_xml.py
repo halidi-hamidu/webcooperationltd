@@ -34,7 +34,7 @@ class L10nLuGenerateXML(models.TransientModel):
                 raise RedirectWarning(
                     message=_("Some fields required for the export are missing or invalid. Please verify them."),
                     action={
-                        'name': _("Company: %s", agent.name),
+                        'name': _("Company : %s", agent.name),
                         'type': 'ir.actions.act_window',
                         'view_mode': 'form',
                         'res_model': 'res.partner',
@@ -49,7 +49,7 @@ class L10nLuGenerateXML(models.TransientModel):
                 )
         report_gen_options = self.env.context.get('report_generation_options', {})
         report = self.env['account.report'].browse(report_gen_options.get('report_id'))
-        options = report.get_options({**report_gen_options, 'export_mode': 'file'})
+        options = report._get_options(report_gen_options)
         filename = self.env['l10n_lu.report.handler'].get_report_filename(options)
         agent_vat = agent.vat if agent else self._get_export_vat()
         company_vat = self._get_export_vat()
@@ -75,7 +75,7 @@ class L10nLuGenerateXML(models.TransientModel):
                     "The company's Matr. Number hasn't been defined. Please configure it in the company's information."
                 ),
                 action={
-                    'name': _("Company: %s", company.name),
+                    'name': _("Company : %s", company.name),
                     'type': 'ir.actions.act_window',
                     'view_mode': 'form',
                     'res_model': 'res.company',
@@ -95,10 +95,17 @@ class L10nLuGenerateXML(models.TransientModel):
             'matr_number': company.matr_number or "NE",
             'rcs_number': company.company_registry or "NE",
         }
-        declarations_data = self._lu_get_declarations(declaration_template_values)
-        self._save_xml_report(declarations_data, lu_template_values, filename)
-        url = "web/content/?model=" + self._name + "&id=" + str(
-            self.id) + "&filename_field=filename&field=report_data&download=true&filename=" + self.filename
+        if lu_annual_report:
+            declarations_data = lu_annual_report._lu_get_declarations(declaration_template_values)
+            self._save_xml_report(declarations_data, lu_template_values, filename, lu_annual_report)
+            url = "web/content/?model=" + lu_annual_report._name + "&id=" + str(
+                lu_annual_report.id) + "&filename_field=filename&field=report_data&download=true&filename=" + \
+                  lu_annual_report.filename
+        else:
+            declarations_data = self._lu_get_declarations(declaration_template_values)
+            self._save_xml_report(declarations_data, lu_template_values, filename)
+            url = "web/content/?model=" + self._name + "&id=" + str(
+                self.id) + "&filename_field=filename&field=report_data&download=true&filename=" + self.filename
 
         return {
                     'name': 'XML Report',

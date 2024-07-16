@@ -3,7 +3,7 @@
 
 import logging
 
-from odoo import api, Command, fields, models, tools
+from odoo import api, fields, models, tools, _
 from odoo.exceptions import UserError
 from odoo.tools import html_sanitize, is_html_empty
 
@@ -17,6 +17,8 @@ class RequestAppraisal(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
+        if not self.env.user.email:
+            raise UserError(_("Unable to post message, please configure the sender's email address."))
         result = super(RequestAppraisal, self).default_get(fields)
         if not set(fields) & set(['employee_id', 'template_id', 'recipient_ids']):
             return result
@@ -36,7 +38,7 @@ class RequestAppraisal(models.TransientModel):
 
             result.update({
                 'template_id': template.id,
-                'recipient_ids': [Command.set(recipients.ids)],
+                'recipient_ids': recipients.ids,
                 'employee_id': employee.id,
                 'appraisal_id': appraisal.id,
             })
@@ -59,6 +61,10 @@ class RequestAppraisal(models.TransientModel):
 
     appraisal_id = fields.Many2one('hr.appraisal', required=True)
     user_body = fields.Html('User Contents')
+    email_from = fields.Char(
+        'From', required=True,
+        default=lambda self: self.env.user.email_formatted,
+    )
     author_id = fields.Many2one(
         'res.partner', 'Author', required=True,
         default=lambda self: self.env.user.partner_id.id,
@@ -68,16 +74,11 @@ class RequestAppraisal(models.TransientModel):
 
     @api.depends('employee_id')
     def _compute_subject(self):
-        for wizard_su in self.filtered(lambda w: w.employee_id and w.template_id).sudo():
-            wizard_su.subject = wizard_su.template_id._render_template(
-                wizard_su.template_id.subject,
-                'res.users',
-                self.env.user.ids,
-                engine='inline_template',
-                options={'post_process': True}
-            )[self.env.user.id]
+        for wizard in self.filtered('employee_id'):
+            if wizard.template_id:
+                wizard.subject = self.sudo()._render_template(wizard.template_id.subject, 'res.users', self.env.user.ids, post_process=True)[self.env.user.id]
 
-    @api.depends('template_id', 'recipient_ids', 'user_body')
+    @api.depends('template_id', 'recipient_ids')
     def _compute_body(self):
         for wizard in self:
             user_body = wizard.user_body
@@ -91,13 +92,7 @@ class RequestAppraisal(models.TransientModel):
                     'url': "ctx['url']",
                     'user_body': user_body
                 }
-                wizard.body = self.with_context(ctx).sudo()._render_template(
-                    wizard.template_id.body_html,
-                    'res.users',
-                    self.env.user.ids,
-                    engine='qweb',
-                    options={'post_process': False}
-                )[self.env.user.id]
+                wizard.body = self.with_context(ctx).sudo()._render_template(wizard.template_id.body_html, 'res.users', self.env.user.ids, post_process=False, engine='qweb')[self.env.user.id]
             elif not wizard.body:
                 wizard.body = ''
 
@@ -116,22 +111,24 @@ class RequestAppraisal(models.TransientModel):
             email(s), rendering any template patterns on the fly if needed """
         self.ensure_one()
         appraisal = self.appraisal_id
+        appraisal.message_subscribe(partner_ids=self.recipient_ids.ids)
 
         ctx = {
             'url': '/mail/view?model=%s&res_id=%s' % ('hr.appraisal', appraisal.id),
         }
         context_self = self.with_context(ctx)
-        subject = context_self._render_field('subject', appraisal.ids)[appraisal.id]
+        subject = context_self._render_field('subject', appraisal.ids, post_process=False)[appraisal.id]
+        # hack to prepare the rendering of the body for ctx
         context_self.body = context_self.body.replace('href', 't-att-href')
-        body = context_self._render_field('body', appraisal.ids)[appraisal.id]
+        body = context_self._render_field('body', appraisal.ids, engine='qweb', post_process=True)[appraisal.id]
 
-        appraisal.with_context(mail_post_autofollow=True).message_post(
-            author_id=self.author_id.id,
-            body=body,
-            email_layout_xmlid='mail.mail_notification_light',
-            message_type='comment',
-            partner_ids=self.recipient_ids.ids,
+        appraisal.message_post(
             subject=subject,
+            body=body,
+            message_type='comment',
+            email_from=self.author_id.email,
+            email_layout_xmlid='mail.mail_notification_light',
+            partner_ids=self.recipient_ids.ids,
             attachment_ids=self.template_id.attachment_ids.ids,
         )
 

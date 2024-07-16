@@ -12,5 +12,10 @@
     'data': [
         'views/hr_holidays_gantt_view.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'hr_holidays_gantt/static/**/*',
+        ],
+    },
     'license': 'OEEL-1',
 }

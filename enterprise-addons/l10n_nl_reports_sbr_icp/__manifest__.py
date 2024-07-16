@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Netherlands - SBR ICP',
-    'countries': ['nl'],
+    'icon': '/l10n_nl/static/description/icon.png',
     'version': '0.3',
     'category': 'Accounting/Localizations/SBR',
     'summary': 'EC Sales (ICP) SBR for Dutch localization',

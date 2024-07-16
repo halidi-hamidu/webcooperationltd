@@ -16,4 +16,4 @@ class HrDepartureWizard(models.TransientModel):
             ('employee_id', '=', self.employee_id.id),
             ('end_datetime', '>=', departure_date),
         ])
-        planning_slots._manage_archived_resources(departure_date)
+        self.env['hr.employee']._manage_archived_employee_shifts(planning_slots, departure_date)

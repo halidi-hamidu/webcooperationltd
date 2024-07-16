@@ -51,18 +51,7 @@ class MarketingAutomationCase(MassMailCase):
         traces = self.env['marketing.trace'].search([
             ('activity_id', 'in', activity.ids),
         ])
-        traces_info = []
-        for trace in traces:
-            record = all_records.filtered(lambda r: r.id == trace.res_id)
-            if record:
-                traces_info.append(
-                    f'Trace: doc {trace.res_id} - activity {trace.activity_id.id} - status {trace.state} (rec {record.email_normalized}-{record.id})'
-                )
-            else:
-                traces_info.append(
-                    f'Trace: doc {trace.res_id} - activity {trace.activity_id.id} - status {trace.state}'
-                )
-        debug_info = '\n'.join(traces_info)
+        debug_info = '\n'.join(f'Trace: doc {trace.res_id} - activity {trace.activity_id.id} - status {trace.state}' for trace in traces)
         self.assertEqual(
             set(traces.mapped('res_id')), set(all_records.ids),
             f'Should find one trace / record. Found\n{debug_info}'
@@ -91,23 +80,23 @@ class MarketingAutomationCase(MassMailCase):
                 fields_values['schedule_date'] = info.get('schedule_date')
             for trace in linked_traces:
                 record = records.filtered(lambda r: r.id == trace.res_id)
-                trace_info = f'Trace: doc {trace.res_id} ({record.email_normalized}-{record.name})'
+                debug_info = f'Trace: doc {trace.res_id} ({record.email_normalized}-{record.name})'
 
                 # asked marketing.trace values
                 self.assertEqual(
                     trace.state, info['status'],
-                    f"Received {trace.state} instead of {info['status']} for {trace_info}\nDebug\n{debug_info}")
+                    f"Received {trace.state} instead of {info['status']} for {debug_info}")
                 for fname, fvalue in fields_values.items():
                     with self.subTest(fname=fname, fvalue=fvalue):
                         if fname == 'state_msg_content':
                             self.assertIn(
                                 fvalue, trace['state_msg'],
-                                f"Marketing Trace: expected {fvalue} for {fname}, not found in {trace['state_msg']} for {trace_info}"
+                                f"Marketing Trace: expected {fvalue} for {fname}, not found in {trace['state_msg']} for {debug_info}"
                             )
                         else:
                             self.assertEqual(
                                 trace[fname], fvalue,
-                                f'Marketing Trace: expected {fvalue} for {fname}, got {trace[fname]} for {trace_info}'
+                                f'Marketing Trace: expected {fvalue} for {fname}, got {trace[fname]} for {debug_info}'
                             )
 
             # check sub-records (mailing related notably)

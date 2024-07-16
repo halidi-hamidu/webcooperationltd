@@ -17,7 +17,7 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
 
         ProductTemplate = cls.env['product.template']
         ProductAttributeVal = cls.env['product.attribute.value']
-        Pricing = cls.env['sale.subscription.pricing']
+        Pricing = cls.env['product.pricing']
         Pricelist = cls.env['product.pricelist']
 
         # create product 1
@@ -28,7 +28,7 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
         })
         Pricing.create([
             {
-                'plan_id': cls.plan_week.id,
+                'recurrence_id': cls.recurrence_week.id,
                 'price': 5.0,
                 'product_template_id': cls.sub_product.id,
             }
@@ -42,7 +42,7 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
         })
         Pricing.create([
             {
-                'plan_id': cls.plan_month.id,
+                'recurrence_id': cls.recurrence_month.id,
                 'price': 25.0,
                 'product_template_id': cls.sub_product_2.id,
             }
@@ -56,16 +56,14 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
         cls.pricelist_111 = Pricelist.create({
             'name': 'Pricelist111',
             'selectable': True,
-            'company_id': False,
         })
         cls.pricelist_222 = Pricelist.create({
             'name': 'Pricelist222',
             'selectable': True,
-            'company_id': False,
         })
         Pricing.create([
             {
-                'plan_id': cls.plan_year.id,
+                'recurrence_id': cls.recurrence_year.id,
                 'price': 111.0,
                 'product_template_id': cls.sub_product_3.id,
                 'pricelist_id': cls.pricelist_111.id,
@@ -73,7 +71,7 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
         ])
         Pricing.create([
             {
-                'plan_id': cls.plan_year.id,
+                'recurrence_id': cls.recurrence_year.id,
                 'price': 222.0,
                 'product_template_id': cls.sub_product_3.id,
                 'pricelist_id': cls.pricelist_222.id,
@@ -103,21 +101,21 @@ class TestWebsiteSaleSubscriptionCommon(TestSubscriptionCommon):
         }))]
 
         pricing1 = Pricing.create({
-            'plan_id': cls.plan_week.id,
+            'recurrence_id': cls.recurrence_week.id,
             'price': 10,
             'product_template_id': cls.sub_with_variants.id,
             'product_variant_ids': [Command.link(cls.sub_with_variants.product_variant_ids[0].id)],
         })
 
         pricing2 = Pricing.create({
-            'plan_id': cls.plan_month.id,
+            'recurrence_id': cls.recurrence_month.id,
             'price': 25,
             'product_template_id': cls.sub_with_variants.id,
             'product_variant_ids': [Command.link(cls.sub_with_variants.product_variant_ids[-1].id)],
         })
 
         cls.sub_with_variants.write({
-            'product_subscription_pricing_ids': [Command.set([pricing1.id, pricing2.id])]
+            'product_pricing_ids': [Command.set([pricing1.id, pricing2.id])]
         })
 
         cls.partner = cls.env['res.partner'].create({

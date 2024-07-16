@@ -7,15 +7,17 @@
     'summary': 'POS Barcode scan in Mobile',
     'version': '1.0',
     'description': """ """,
-    'depends': ['pos_hr', 'web_mobile'],
+    'depends': ['pos_hr', 'web_mobile', 'barcodes_mobile'],
     'installable': True,
     'auto_install': True,
     'license': 'OEEL-1',
     'assets': {
-        'point_of_sale._assets_pos': [
-            # We need the barcode scanner style. FIXME POSREF: use the barcode scanner component
-            'barcodes/static/src/components/barcode_scanner.scss',
-            'pos_hr_mobile/static/src/**/*',
+        'point_of_sale.assets': [
+            'pos_hr_mobile/static/src/js/LoginScreenMobile.js',
+            'pos_hr_mobile/static/src/scss/barcode_mobile.scss',
+            'barcodes_mobile/static/src/scss/barcode_mobile.scss',
+            'pos_hr_mobile/static/src/xml/**/*',
+            'web/static/src/webclient/barcode/*.scss',
         ],
     }
 }

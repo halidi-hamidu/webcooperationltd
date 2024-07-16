@@ -40,7 +40,7 @@ class TestWorkEntryPlanning(TransactionCase):
         slots = self.env['planning.slot'].create(planning_slot_vals)
         # Publishing the slots should not create any work entries for our employee since
         # we do not have an already generated period yet
-        slots.action_planning_publish_and_send()
+        slots.action_publish()
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertFalse(work_entries)
         # This should generate one work entry per slot
@@ -87,7 +87,7 @@ class TestWorkEntryPlanning(TransactionCase):
                 'end_datetime': datetime(2021, 9, 16, 19, 0, 0),
             },
         ])
-        slots.action_planning_publish_and_send()
+        slots.action_publish()
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertFalse(work_entries)
 
@@ -113,7 +113,7 @@ class TestWorkEntryPlanning(TransactionCase):
                 'end_datetime': datetime(2021, 9, 30, 17, 0, 0),
             }
         ])
-        boundaries_slots.action_planning_publish_and_send()
+        boundaries_slots.action_publish()
         self.contract.generate_work_entries(date(2021, 9, 1), date(2021, 9, 30))
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertEqual(len(work_entries), len(boundaries_slots))
@@ -123,7 +123,7 @@ class TestWorkEntryPlanning(TransactionCase):
             'start_datetime': datetime(2021, 9, 14, 14, 0, 0),
             'end_datetime': datetime(2021, 9, 14, 17, 0, 0),
         })
-        inner_slot.action_send()
+        inner_slot.action_publish()
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertEqual(len(boundaries_slots) + len(inner_slot), len(work_entries))
 
@@ -140,14 +140,14 @@ class TestWorkEntryPlanning(TransactionCase):
             'date_generated_to': datetime(2021, 9, 30, 23, 59, 59),
         })
         # Should create a work entry
-        slot.action_send()
+        slot.action_publish()
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertTrue(work_entries)
         # Should archive the above created work entry
         slot.action_unpublish()
         self.assertFalse(work_entries.active)
         # Should recreate a new work entry
-        slot.action_send()
+        slot.action_publish()
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertTrue(work_entries)
         # Should archive the new work entry
@@ -162,7 +162,7 @@ class TestWorkEntryPlanning(TransactionCase):
             'end_datetime': datetime(2021, 9, 10, 23, 59, 59),
             'allocated_hours': 38,
         })
-        slot.action_send()
+        slot.action_publish()
         self.contract.generate_work_entries(date(2021, 9, 1), date(2021, 9, 30))
         work_entries = self.env['hr.work.entry'].search([('employee_id', '=', self.employee.id)])
         self.assertTrue(work_entries)

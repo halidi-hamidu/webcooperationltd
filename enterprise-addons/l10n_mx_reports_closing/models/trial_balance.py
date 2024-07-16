@@ -6,13 +6,6 @@ from odoo import models, fields, _
 class L10nMXTrialBalanceCustomHandler(models.AbstractModel):
     _inherit = 'account.trial.balance.report.handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'templates': {
-                'AccountReportFilters': 'l10n_mx_reports_closing.TrialBalanceFilters',
-            },
-        }
-
     def _l10n_mx_set_options_month_13(self, options):
         ''' Configure the options dict if the 'Month 13' option is active.
 
@@ -83,13 +76,12 @@ class L10nMXTrialBalanceCustomHandler(models.AbstractModel):
         '''
         report_date_to = fields.Date.to_date(options['date']['date_to'])
         first_day_of_fiscalyear = self.env.company.compute_fiscalyear_dates(report_date_to)['date_from']
-        first_day_of_fiscalyear_str = fields.Date.to_string(first_day_of_fiscalyear)
 
         forced_domain = options.setdefault('forced_domain', [])
         forced_domain += [
             '|',
             ('move_id.l10n_mx_closing_move', '=', False),
-            '&', ('move_id.l10n_mx_closing_move', '=', True), ('date', '<', first_day_of_fiscalyear_str),
+            '&', ('move_id.l10n_mx_closing_move', '=', True), ('date', '<', first_day_of_fiscalyear),
         ]
 
     def _custom_options_initializer(self, report, options, previous_options=None):

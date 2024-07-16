@@ -3,18 +3,21 @@
 # 	* sale_stock_renting
 # 
 # Translators:
-# Ivana Bartonkova, 2023
+# Pauline Thiry <pth@odoo.com>, 2022
+# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
+# Martin Trigaux, 2022
+# Jiří Podhorecký, 2022
+# Michal Veselý <michal@veselyberanek.net>, 2022
 # Jakub Smolka, 2023
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
-# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-26 16:12+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Wil Odoo, 2024\n"
+"POT-Creation-Date: 2022-12-15 13:30+0000\n"
+"PO-Revision-Date: 2022-09-22 05:48+0000\n"
+"Last-Translator: Aleš Fiala <f.ales1@seznam.cz>, 2023\n"
 "Language-Team: Czech (https://app.transifex.com/odoo/teams/41243/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -47,7 +50,7 @@ msgstr ""
 
 #. module: sale_stock_renting
 #: model_terms:ir.ui.view,arch_db:sale_stock_renting.res_config_settings_inherit_view_form
-msgid "Activate to use stock deliveries and receipts for rental orders"
+msgid "<span class=\"o_form_label\">Default Padding Time</span>"
 msgstr ""
 
 #. module: sale_stock_renting
@@ -78,6 +81,11 @@ msgid "Available for Rent"
 msgstr "Dostupné k pronájmu"
 
 #. module: sale_stock_renting
+#: model_terms:ir.ui.view,arch_db:sale_stock_renting.rental_configurator_view_form
+msgid "Available)"
+msgstr ""
+
+#. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_res_company
 msgid "Companies"
 msgstr "Společnosti"
@@ -85,15 +93,16 @@ msgstr "Společnosti"
 #. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfigurační nastavení"
+msgstr "Nastavení konfigurace"
 
 #. module: sale_stock_renting
-#: model_terms:ir.ui.view,arch_db:sale_stock_renting.res_config_settings_inherit_view_form
-msgid "Default Padding Time"
-msgstr ""
+#: model:ir.model,name:sale_stock_renting.model_rental_wizard
+msgid "Configure the rental of a product"
+msgstr "Konfigurace pronájmu produktu"
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,help:sale_stock_renting.field_rental_order_wizard_line__tracking
+#: model:ir.model.fields,help:sale_stock_renting.field_rental_wizard__tracking
 #: model:ir.model.fields,help:sale_stock_renting.field_sale_order_line__tracking
 msgid "Ensure the traceability of a storable product in your warehouse."
 msgstr "Zajistěte sledovatelnost skladovatelného produktu ve vašem skladu."
@@ -120,18 +129,19 @@ msgstr "Je dostupný"
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,field_description:sale_stock_renting.field_rental_order_wizard_line__is_product_storable
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__is_product_storable
 msgid "Is Product Storable"
 msgstr ""
 
 #. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_account_move
 msgid "Journal Entry"
-msgstr "Účetní záznam"
+msgstr "Položka deníku"
 
 #. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_stock_lot
 msgid "Lot/Serial"
-msgstr "Šarže/sériové číslo"
+msgstr "Šarže / seriové číslo"
 
 #. module: sale_stock_renting
 #: model_terms:ir.ui.view,arch_db:sale_stock_renting.res_config_settings_inherit_view_form
@@ -142,7 +152,12 @@ msgstr "Minimální doba mezi dvěma pronájmy"
 #. odoo-python
 #: code:addons/sale_stock_renting/models/sale_order_line.py:0
 #, python-format
-msgid "No valid quant has been found in location %s for serial number %s!"
+msgid "No valid quant has been found in location %s for serial number %s !"
+msgstr ""
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,help:sale_stock_renting.field_rental_wizard__lot_ids
+msgid "Only available serial numbers are suggested."
 msgstr ""
 
 #. module: sale_stock_renting
@@ -201,9 +216,34 @@ msgid "Product"
 msgstr "Produkt"
 
 #. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__product_uom_id
+msgid "Product UoM"
+msgstr "MJ produktu"
+
+#. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_product_product
 msgid "Product Variant"
-msgstr "Produktová varianta"
+msgstr "Varianta výrobku"
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__qty_available_during_period
+msgid "Quantity available for given period (Stock - In Rent)"
+msgstr ""
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__rentable_qty
+msgid "Quantity available in stock for given period"
+msgstr ""
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__rented_qty_during_period
+msgid "Quantity reserved"
+msgstr "Rezervované množství"
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,help:sale_stock_renting.field_rental_wizard__rented_qty_during_period
+msgid "Quantity reserved by other Rental lines during the given period"
+msgstr ""
 
 #. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_sale_rental_report
@@ -216,21 +256,11 @@ msgid "Rental Schedule"
 msgstr "Kalendář pronájmů"
 
 #. module: sale_stock_renting
-#: model_terms:ir.ui.view,arch_db:sale_stock_renting.res_config_settings_inherit_view_form
-msgid "Rental Transfers"
-msgstr ""
-
-#. module: sale_stock_renting
 #. odoo-python
 #: code:addons/sale_stock_renting/models/sale_order_line.py:0
 #: code:addons/sale_stock_renting/models/sale_order_line.py:0
 #, python-format
-msgid "Rental move:"
-msgstr ""
-
-#. module: sale_stock_renting
-#: model:ir.model.fields,field_description:sale_stock_renting.field_res_config_settings__group_rental_stock_picking
-msgid "Rental pickings"
+msgid "Rental move :"
 msgstr ""
 
 #. module: sale_stock_renting
@@ -244,11 +274,6 @@ msgid "Reserved Lot"
 msgstr ""
 
 #. module: sale_stock_renting
-#: model:ir.model,name:sale_stock_renting.model_stock_return_picking
-msgid "Return Picking"
-msgstr "Vratkový přesun"
-
-#. module: sale_stock_renting
 #: model:ir.model.fields,field_description:sale_stock_renting.field_rental_order_wizard_line__returnable_lot_ids
 msgid "Returnable Lot"
 msgstr ""
@@ -260,20 +285,20 @@ msgid "Returned Lot"
 msgstr ""
 
 #. module: sale_stock_renting
-#: model:ir.model,name:sale_stock_renting.model_sale_order
-msgid "Sales Order"
-msgstr "Prodejní objednávka"
-
-#. module: sale_stock_renting
 #: model:ir.model,name:sale_stock_renting.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Položka prodejní objednávky"
+msgstr "Řádek zakázky"
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,field_description:sale_stock_renting.field_product_product__preparation_time
 #: model:ir.model.fields,field_description:sale_stock_renting.field_product_template__preparation_time
 msgid "Security Time"
 msgstr ""
+
+#. module: sale_stock_renting
+#: model_terms:ir.ui.view,arch_db:sale_stock_renting.rental_configurator_view_form
+msgid "Select available serial numbers."
+msgstr "Vybrat dostupná sériová čísla."
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,field_description:sale_stock_renting.field_sale_rental_report__lot_id
@@ -284,20 +309,31 @@ msgid "Serial Number"
 msgstr "Sériové číslo"
 
 #. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__lot_ids
 #: model_terms:ir.ui.view,arch_db:sale_stock_renting.rental_order_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:sale_stock_renting.report_rental_order_document
 msgid "Serial Numbers"
 msgstr "Seriová čísla"
 
 #. module: sale_stock_renting
-#: model:ir.model,name:sale_stock_renting.model_stock_move
-msgid "Stock Move"
-msgstr "Pohyb zásob"
+#: model_terms:ir.ui.view,arch_db:sale_stock_renting.rental_configurator_view_form
+msgid "Serials Tracking"
+msgstr ""
 
 #. module: sale_stock_renting
-#: model:ir.model,name:sale_stock_renting.model_stock_rule
-msgid "Stock Rule"
-msgstr "Zásobovací pravidlo"
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__rentable_lot_ids
+msgid "Serials available in Stock"
+msgstr "Seriová čísla dostupná na skladě"
+
+#. module: sale_stock_renting
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__rented_lot_ids
+msgid "Serials in rent for given period"
+msgstr ""
+
+#. module: sale_stock_renting
+#: model_terms:ir.ui.view,arch_db:sale_stock_renting.rental_configurator_view_form
+msgid "Stock"
+msgstr "Sklad"
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,help:sale_stock_renting.field_product_product__preparation_time
@@ -318,6 +354,7 @@ msgstr ""
 
 #. module: sale_stock_renting
 #: model:ir.model.fields,field_description:sale_stock_renting.field_rental_order_wizard_line__tracking
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__tracking
 #: model:ir.model.fields,field_description:sale_stock_renting.field_sale_order_line__tracking
 msgid "Tracking"
 msgstr "Sledování"
@@ -337,11 +374,6 @@ msgid "Unavailable Lot"
 msgstr ""
 
 #. module: sale_stock_renting
-#: model:res.groups,name:sale_stock_renting.group_rental_stock_picking
-msgid "Use pickings for rental orders"
-msgstr ""
-
-#. module: sale_stock_renting
 #. odoo-javascript
 #: code:addons/sale_stock_renting/static/src/widgets/qty_at_date_widget.xml:0
 #, python-format
@@ -349,10 +381,17 @@ msgid "View Rentals"
 msgstr ""
 
 #. module: sale_stock_renting
-#: model:ir.model,name:sale_stock_renting.model_stock_warehouse
+#: model:ir.model.fields,field_description:sale_stock_renting.field_rental_wizard__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock_renting.field_sale_rental_schedule__warehouse_id
 msgid "Warehouse"
 msgstr "Sklad"
+
+#. module: sale_stock_renting
+#. odoo-python
+#: code:addons/sale_stock_renting/wizard/rental_configurator.py:0
+#, python-format
+msgid "You cannot change the product of a picked-up line."
+msgstr ""
 
 #. module: sale_stock_renting
 #. odoo-python

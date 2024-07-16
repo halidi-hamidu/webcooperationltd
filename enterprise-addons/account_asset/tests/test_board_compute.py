@@ -26,6 +26,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             'account_depreciation_id': cls.company_data['default_account_assets'].copy().id,
             'account_depreciation_expense_id': cls.company_data['default_account_expense'].id,
             'journal_id': cls.company_data['default_journal_misc'].id,
+            'asset_type': "purchase",
             'acquisition_date': "2020-02-01",
             'prorata_computation_type': 'none',
             'original_value': value,
@@ -47,7 +48,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             'state': state,
         }
 
-    def test_linear_5_years_no_prorata_asset(self):
+    def test_linear_purchase_5_years_no_prorata_asset(self):
         self.car.validate()
 
         self.assertEqual(self.car.state, 'open')
@@ -60,7 +61,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=12000, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_linear_5_years_no_prorata_with_imported_amount_asset(self):
+    def test_linear_purchase_5_years_no_prorata_with_imported_amount_asset(self):
         self.car.write({'already_depreciated_amount_import': 1000})
         self.car.validate()
 
@@ -74,7 +75,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=12000, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_linear_5_years_no_prorata_with_salvage_value_asset(self):
+    def test_linear_purchase_5_years_no_prorata_with_salvage_value_asset(self):
         self.car.write({'salvage_value': 1000})
         self.car.validate()
 
@@ -89,7 +90,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=11800, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_linear_5_years_constant_periods_asset(self):
+    def test_linear_purchase_5_years_constant_periods_asset(self):
         self.car.write({
             'prorata_computation_type': 'constant_periods',
             'prorata_date': '2020-07-01',
@@ -107,7 +108,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2025-12-31', depreciation_value=6000, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_linear_5_years_daily_computation_asset(self):
+    def test_linear_purchase_5_years_daily_computation_asset(self):
         self.car.write({
             'prorata_computation_type': 'daily_computation',
             'prorata_date': '2020-07-01',
@@ -125,7 +126,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2025-12-31', depreciation_value=5947.43, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_degressive_5_years_no_prorata_asset(self):
+    def test_degressive_purchase_5_years_no_prorata_asset(self):
         self.car.write({
             'method': 'degressive',
             'method_progress_factor': 0.3,
@@ -142,7 +143,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=9800, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_degressive_5_years_no_prorata_with_imported_amount_asset(self):
+    def test_degressive_purchase_5_years_no_prorata_with_imported_amount_asset(self):
         self.car.write({
             'method': 'degressive',
             'method_progress_factor': 0.3,
@@ -160,7 +161,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=9800, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_degressive_5_years_no_prorata_with_salvage_value_asset(self):
+    def test_degressive_purchase_5_years_no_prorata_with_salvage_value_asset(self):
         self.car.write({
             'method': 'degressive',
             'method_progress_factor': 0.3,
@@ -179,7 +180,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=9636.66, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_degressive_then_linear_5_years_no_prorata_asset(self):
+    def test_degressive_then_linear_purchase_5_years_no_prorata_asset(self):
         asset = self.create_asset(value=60000, periodicity="yearly", periods=5, method="degressive_then_linear", degressive_factor=0.3)
         asset.validate()
         self.assertEqual(asset.state, 'open')
@@ -192,7 +193,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=5400, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_degressive_then_linear_5_years_no_prorata_negative_asset(self):
+    def test_degressive_then_linear_purchase_5_years_no_prorata_negative_asset(self):
         asset = self.create_asset(value=-60000, periodicity="yearly", periods=5, method="degressive_then_linear", degressive_factor=0.3)
         asset.validate()
         self.assertEqual(asset.state, 'open')
@@ -205,7 +206,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=-5400, remaining_value=0, depreciated_value=-60000, state='draft'),
         ])
 
-    def test_degressive_than_linear_5_years_no_prorata_with_imported_amount_asset(self):
+    def test_degressive_than_linear_purchase_5_years_no_prorata_with_imported_amount_asset(self):
         asset = self.create_asset(value=60000, periodicity="yearly", periods=5, method="degressive_then_linear", degressive_factor=0.3, import_depreciation=1000)
         asset.validate()
         self.assertEqual(asset.state, 'open')
@@ -218,7 +219,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=5400, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_degressive_than_linear_5_years_no_prorata_with_imported_amount_negative_asset(self):
+    def test_degressive_than_linear_purchase_5_years_no_prorata_with_imported_amount_negative_asset(self):
         asset = self.create_asset(value=-60000, periodicity="yearly", periods=5, method="degressive_then_linear", degressive_factor=0.3, import_depreciation=-1000)
         asset.validate()
         self.assertEqual(asset.state, 'open')
@@ -231,7 +232,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=-5400, remaining_value=0, depreciated_value=-59000, state='draft'),
         ])
 
-    def test_degressive_than_linear_5_years_no_prorata_with_salvage_value_asset(self):
+    def test_degressive_than_linear_purchase_5_years_no_prorata_with_salvage_value_asset(self):
         asset = self.create_asset(value=60000, periodicity="yearly", periods=5, salvage_value=1000, method="degressive_then_linear", degressive_factor=0.3)
         asset.validate()
         self.assertEqual(asset.state, 'open')
@@ -245,7 +246,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=5310, remaining_value=0, depreciated_value=59000, state='draft'),
         ])
 
-    def test_degressive_then_linear_36_month_constant_period_asset(self):
+    def test_degressive_then_linear_purchase_36_month_constant_period_asset(self):
         """
         The depreciation amount is computed that way: Compute a degressive amount for each year and split it by month linearly.
         The depreciation value could vary by one currency unit to absorb small differences that are created over time.
@@ -304,6 +305,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             degressive_factor=0.3,
             acquisition_date="2021-07-01",
             prorata_computation_type="constant_periods",
+            asset_type="expense",
         )
         asset.validate()
         self.assertRecordValues(asset.depreciation_move_ids, [
@@ -326,6 +328,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             degressive_factor=0.6,
             acquisition_date="2021-07-01",
             prorata_computation_type="constant_periods",
+            asset_type="expense",
         )
         asset.validate()
         self.assertRecordValues(asset.depreciation_move_ids, [
@@ -362,7 +365,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2023-11-30', depreciation_value=22.22, remaining_value=0.00, depreciated_value=10000.00, state='draft'),
         ])
 
-    def test_linear_60_months_no_prorata_asset(self):
+    def test_linear_purchase_60_months_no_prorata_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -438,7 +441,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=1000, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_linear_60_months_no_prorata_with_imported_amount_asset(self):
+    def test_linear_purchase_60_months_no_prorata_with_imported_amount_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -514,7 +517,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=1000.0, remaining_value=0.0, depreciated_value=58500.0, state='draft'),
         ])
 
-    def test_linear_60_months_no_prorata_with_salvage_value_asset(self):
+    def test_linear_purchase_60_months_no_prorata_with_salvage_value_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -593,7 +596,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=966.67, remaining_value=0.0, depreciated_value=58000.0, state='draft'),
         ])
 
-    def test_linear_60_months_constant_periods_asset(self):
+    def test_linear_purchase_60_months_constant_periods_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -672,7 +675,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2025-06-30', depreciation_value=1000, remaining_value=0, depreciated_value=60000, state='draft'),
         ])
 
-    def test_linear_60_months_daily_computation_asset(self):
+    def test_linear_purchase_60_months_daily_computation_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -752,7 +755,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2025-06-30', depreciation_value=985.76, remaining_value=0.0, depreciated_value=60000.0, state='draft'),
         ])
 
-    def test_degressive_60_months_no_prorata_asset(self):
+    def test_degressive_purchase_60_months_no_prorata_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -994,7 +997,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2027-06-30', depreciation_value=1144.27, remaining_value=0.00, depreciated_value=100000.00, state='draft'),
         ])
 
-    def test_degressive_60_months_no_prorata_with_imported_amount_asset(self):
+    def test_degressive_purchase_60_months_no_prorata_with_imported_amount_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -1072,7 +1075,7 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2024-12-31', depreciation_value=816.67, remaining_value=0.0, depreciated_value=58000.0, state='draft'),
         ])
 
-    def test_degressive_60_months_no_prorata_with_salvage_value_asset(self):
+    def test_degressive_purchase_60_months_no_prorata_with_salvage_value_asset(self):
         self.car.write({
             'method_number': 60,
             'method_period': '1',
@@ -1195,33 +1198,6 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
             self._get_depreciation_move_values(date='2027-12-31', depreciation_value=6971.25, remaining_value=0.00, depreciated_value=100000.00, state='draft'),
         ])
 
-    def test_compute_board_in_mass(self):
-        book = self.create_asset(value=35, periodicity="monthly", periods=2, method="linear", salvage_value=0)
-        shelf = self.create_asset(value=250, periodicity="monthly", periods=8, method="linear", salvage_value=0)
-        screw = self.create_asset(value=1, periodicity="monthly", periods=1, method="linear", salvage_value=0)
-
-        (book + screw).validate()
-        (book + shelf + screw).compute_depreciation_board()
-
-        self.assertRecordValues(book.depreciation_move_ids, [
-            self._get_depreciation_move_values(date='2020-01-31', depreciation_value=17.5, remaining_value=17.5, depreciated_value=17.5, state='posted'),
-            self._get_depreciation_move_values(date='2020-02-29', depreciation_value=17.5, remaining_value=0, depreciated_value=35, state='posted'),
-        ])
-
-        self.assertRecordValues(shelf.depreciation_move_ids, [
-            self._get_depreciation_move_values(date='2020-01-31', depreciation_value=31.25, remaining_value=218.75, depreciated_value=31.25, state='draft'),
-            self._get_depreciation_move_values(date='2020-02-29', depreciation_value=31.25, remaining_value=187.5, depreciated_value=62.5, state='draft'),
-            self._get_depreciation_move_values(date='2020-03-31', depreciation_value=31.25, remaining_value=156.25, depreciated_value=93.75, state='draft'),
-            self._get_depreciation_move_values(date='2020-04-30', depreciation_value=31.25, remaining_value=125, depreciated_value=125, state='draft'),
-            self._get_depreciation_move_values(date='2020-05-31', depreciation_value=31.25, remaining_value=93.75, depreciated_value=156.25, state='draft'),
-            self._get_depreciation_move_values(date='2020-06-30', depreciation_value=31.25, remaining_value=62.5, depreciated_value=187.5, state='draft'),
-            self._get_depreciation_move_values(date='2020-07-31', depreciation_value=31.25, remaining_value=31.25, depreciated_value=218.75, state='draft'),
-            self._get_depreciation_move_values(date='2020-08-31', depreciation_value=31.25, remaining_value=0, depreciated_value=250, state='draft'),
-        ])
-
-        self.assertRecordValues(screw.depreciation_move_ids, [
-            self._get_depreciation_move_values(date='2020-01-31', depreciation_value=1, remaining_value=0, depreciated_value=1, state='posted'),
-        ])
     def test_copy_prorata_date(self):
         """ Verifies that prorata date and acquisition date are copied when duplicate an asset
             For this test, the prorata computation type is set to None.
@@ -1288,12 +1264,12 @@ class TestAccountAssetNew(AccountTestInvoicingCommon):
 
         self.assertEqual(self.car.state, 'draft')
         self.assertEqual(self.car.book_value, 60000)
-        self.assertRecordValues(self.car.depreciation_move_ids, [
-            self._get_depreciation_move_values(date='2021-12-31', depreciation_value=12000, remaining_value=48000, depreciated_value=12000, state='draft'),
-            self._get_depreciation_move_values(date='2022-12-31', depreciation_value=12000, remaining_value=36000, depreciated_value=24000, state='draft'),
-            self._get_depreciation_move_values(date='2023-12-31', depreciation_value=12000, remaining_value=24000, depreciated_value=36000, state='draft'),
-            self._get_depreciation_move_values(date='2024-12-31', depreciation_value=12000, remaining_value=12000, depreciated_value=48000, state='draft'),
+        self.assertRecordValues(self.car.depreciation_move_ids.sorted(lambda m: (m.date, m.id), reverse=True), [
             self._get_depreciation_move_values(date='2025-12-31', depreciation_value=12000, remaining_value=0, depreciated_value=60000, state='draft'),
+            self._get_depreciation_move_values(date='2024-12-31', depreciation_value=12000, remaining_value=12000, depreciated_value=48000, state='draft'),
+            self._get_depreciation_move_values(date='2023-12-31', depreciation_value=12000, remaining_value=24000, depreciated_value=36000, state='draft'),
+            self._get_depreciation_move_values(date='2022-12-31', depreciation_value=12000, remaining_value=36000, depreciated_value=24000, state='draft'),
+            self._get_depreciation_move_values(date='2021-12-31', depreciation_value=12000, remaining_value=48000, depreciated_value=12000, state='draft'),
         ])
 
     def test_post_moves_after_lock_date(self):

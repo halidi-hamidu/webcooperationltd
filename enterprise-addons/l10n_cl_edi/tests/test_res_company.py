@@ -54,7 +54,7 @@ class TestResCompany(TransactionCase):
             'login': 'certificate_user',
             'groups_id': [(6, 0, self.env.user.groups_id.ids), (4, self.env.ref('account.group_account_user').id)],
         })
-        user_certificate = self.env['l10n_cl.certificate'].sudo().create({
+        user_certificate = self.env['l10n_cl.certificate'].create({
             'signature_filename': 'Not Valid User Certificate',
             'subject_serial_number': '23841194-7',
             'signature_pass_phrase': 'asadadad',
@@ -75,7 +75,7 @@ class TestResCompany(TransactionCase):
             'login': 'certificate_user',
             'groups_id': [(6, 0, self.env.user.groups_id.ids), (4, self.env.ref('account.group_account_user').id)],
         })
-        user_certificate = self.env['l10n_cl.certificate'].sudo().create({
+        user_certificate = self.env['l10n_cl.certificate'].create({
             'signature_filename': 'Valid User Certificate',
             'subject_serial_number': '23841194-7',
             'signature_pass_phrase': 'asadadad',

@@ -54,6 +54,7 @@ class Form325(models.Model):
         string='Sender',
         required=True,
         ondelete='restrict',
+        states={'generated': [('readonly', True)]},
     )
     sender_name = fields.Char(
         string='Sender Name',
@@ -145,6 +146,7 @@ class Form325(models.Model):
         help="Indicates if the 325 is a test",
         required=True,
         default=False,
+        states={'generated': [('readonly', True)]},
         tracking=True,
     )
     sending_type = fields.Selection(
@@ -157,6 +159,7 @@ class Form325(models.Model):
         required=True,
         help="This field allows to make an original sending(correspond to first send) "
              "or a grouped corrections(if you have made some mistakes before).",
+        states={'generated': [('readonly', True)]},
         tracking=True,
     )
     treatment_type = fields.Selection([
@@ -169,6 +172,7 @@ class Form325(models.Model):
         default='0',
         required=True,
         help="This field represents the nature of the form.",
+        states={'generated': [('readonly', True)]},
         tracking=True,
     )
     currency_id = fields.Many2one(
@@ -183,10 +187,8 @@ class Form325(models.Model):
         compute='_compute_form_281_50_total_amount',
     )
 
-    @api.depends('reference_year', 'is_test')
-    def _compute_display_name(self):
-        for f_325 in self:
-            f_325.display_name = f"325 - {f_325.reference_year}{' - TEST' if f_325.is_test else ''}"
+    def name_get(self):
+        return [(f_325.id, f"325 - {f_325.reference_year}{' - TEST' if f_325.is_test else ''}") for f_325 in self]
 
     @api.depends('form_281_50_ids')
     def _compute_form_281_50_count(self):
@@ -367,7 +369,7 @@ class Form325(models.Model):
                 - All account.move.line must be between the first day and the last day
                 of the reference year.
                 - All account.move.line must be in a posted account.move.
-            These information are group by partner!
+            These information are group by partner !
             :param tag_ids: used to compute the balance (normally account with 281.50 - XXXXX tag).
             :return: {partner_id: float}
         """

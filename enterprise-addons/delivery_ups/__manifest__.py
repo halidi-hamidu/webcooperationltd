@@ -7,7 +7,8 @@
     'category': 'Inventory/Delivery',
     'sequence': 275,
     'version': '1.0',
-    'depends': ['stock_delivery', 'mail'],
+    'application': False,
+    'depends': ['delivery', 'mail'],
     'data': [
         'data/delivery_ups_data.xml',
         'views/delivery_ups_view.xml',

@@ -4,7 +4,7 @@ import { patch } from "@web/core/utils/patch";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 
 
-patch(Dropdown.prototype, {
+patch(Dropdown.prototype, 'knowledge_embedded_view_dropdown', {
     /**
      * Embedded view in knowledge can become the active element,
      * but dropdowns should be able to be closed by clicking.
@@ -14,7 +14,7 @@ patch(Dropdown.prototype, {
      */
     isInActiveElement() {
         return (
-            super.isInActiveElement() ||
+            this._super() ||
             (
                 this.ui.activeElement !== this.myActiveEl &&
                 this.myActiveEl &&

@@ -19,6 +19,7 @@ class TestHelpdeskTimesheetCommon(TestCommonTimesheet):
 
         cls.analytic_plan = cls.env['account.analytic.plan'].create({
             'name': 'Plan',
+            'company_id': False,
         })
 
         cls.analytic_account = cls.env['account.analytic.account'].create({
@@ -38,4 +39,10 @@ class TestHelpdeskTimesheetCommon(TestCommonTimesheet):
             'name': 'Test Team',
             'use_helpdesk_timesheet': True,
             'project_id': cls.project.id,
+        })
+
+        cls.helpdesk_ticket = cls.env['helpdesk.ticket'].create({
+            'name': 'Test Ticket',
+            'team_id': cls.helpdesk_team.id,
+            'partner_id': cls.partner.id,
         })

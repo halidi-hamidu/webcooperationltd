@@ -5,6 +5,7 @@
 import base64
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.modules.module import get_module_resource
 from odoo.tests import tagged
 from odoo.tools import file_open
 
@@ -13,7 +14,7 @@ from odoo.tools import file_open
 class TestCodaFile(AccountTestInvoicingCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.bank_journal = cls.company_data['default_journal_bank']

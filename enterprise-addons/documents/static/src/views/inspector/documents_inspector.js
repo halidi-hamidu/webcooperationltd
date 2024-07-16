@@ -1,35 +1,31 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
+import { debounce } from '@bus/workers/websocket_worker_utils';
+import { device } from "web.config";
+import { str_to_datetime } from "web.time";
 import { session } from "@web/session";
 import { KeepLast } from "@web/core/utils/concurrency";
 import { intersection } from "@web/core/utils/arrays";
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";
 import { x2ManyCommands } from "@web/core/orm_service";
-import { browser } from "@web/core/browser/browser";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { FileUploader } from "@web/views/fields/file_handler";
-import { Chatter } from "@mail/core/web/chatter";
+import { ChatterContainer } from "@mail/components/chatter_container/chatter_container";
 import { DocumentsInspectorField } from "./documents_inspector_field";
 import { download } from "@web/core/network/download";
 import { onNewPdfThumbnail } from "../helper/documents_pdf_thumbnail_service";
-import dUtils from "@documents/views/helper/documents_utils";
-import { useTriggerRule, toggleArchive } from "@documents/views/hooks";
-import { deserializeDateTime, serializeDate } from "@web/core/l10n/dates";
-import { utils as uiUtils } from "@web/core/ui/ui_service";
-import {
-    Component,
-    markup,
-    useEffect,
-    useState,
-    useRef,
-    onPatched,
-    onWillUpdateProps,
-    onWillStart,
-} from "@odoo/owl";
+import { useTriggerRule } from "@documents/views/hooks";
 
-const { DateTime } = luxon;
+const { Component, markup, useEffect, useState, useRef, onPatched, onWillUpdateProps, onWillStart } = owl;
+
+async function toggleArchive(model, resModel, resIds, doArchive) {
+    const method = doArchive ? "action_archive" : "action_unarchive";
+    const action = await model.orm.call(resModel, method, [resIds]);
+    if (action && Object.keys(action).length !== 0) {
+        model.action.doAction(action);
+    }
+}
 
 export const inspectorFields = [
     "attachment_id",
@@ -38,7 +34,6 @@ export const inspectorFields = [
     "available_rule_ids",
     "checksum",
     "display_name",
-    "file_extension",
     "folder_id",
     "thumbnail_status",
     "lock_uid",
@@ -57,26 +52,10 @@ export const inspectorFields = [
     "tag_ids",
     "type",
     "url",
-    "url_preview_image",
     "file_size",
 ];
 
 export class DocumentsInspector extends Component {
-    static props = [
-        "archInfo", // Archinfo of the view
-        "count", // Current number of records displayed in the view
-        "fileSize", // Total size of (in MB) of records displayed in the view
-        "documents", // Array of records
-        "fields",
-    ];
-
-    static components = {
-        AutoComplete,
-        Chatter,
-        DocumentsInspectorField,
-        FileUploader,
-    };
-
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
@@ -86,12 +65,12 @@ export class DocumentsInspector extends Component {
         this.chatterContainer = useRef("chatterContainer");
         this.keepLast = new KeepLast();
         this.previewLockCount = 0;
-        this.deserializeDateTime = deserializeDateTime;
+        this.str_to_datetime = str_to_datetime;
         const { triggerRule } = useTriggerRule();
         this._triggerRule = triggerRule;
         const { bus: fileUploadBus } = useService("file_upload");
         useBus(fileUploadBus, "FILE_UPLOAD_LOADED", (ev) => {
-            const documentId = ev.detail.upload.data.get("document_id");
+            let documentId = ev.detail.upload.data.get("document_id");
             if (documentId && this.resIds.includes(Number.parseInt(documentId))) {
                 this.state.previousAttachmentDirty = true;
             }
@@ -106,15 +85,10 @@ export class DocumentsInspector extends Component {
         });
         const updateLockedState = (props) => {
             this.isLocked =
-                (props.documents.find(
-                    (rec) => rec.data.lock_uid && rec.data.lock_uid[0] !== session.uid
-                ) &&
-                    true) ||
+                (props.selection.find((rec) => rec.data.lock_uid && rec.data.lock_uid[0] !== session.uid) && true) ||
                 false;
-            const folderIds = props.documents.map((rec) => rec.data.folder_id[0]);
-            const folders = this.env.searchModel
-                .getFolders()
-                .filter((folder) => folderIds.includes(folder.id));
+            const folderIds = props.selection.map((rec) => rec.data.folder_id[0]);
+            const folders = this.env.searchModel.getFolders().filter((folder) => folderIds.includes(folder.id));
             this.isEditDisabled = !!folders.find((folder) => !folder.has_write_access);
         };
         onWillStart(() => {
@@ -127,42 +101,49 @@ export class DocumentsInspector extends Component {
             this.updateAttachmentHistory(nextProps);
         });
 
+        // Chatter
+        const chatterCloseHandler = () => {
+            this.state.showChatter = this.isMobile;
+        };
         const chatterReloadHandler = async () => {
-            const record = this.props.documents[0];
+            const record = this.props.selection[0];
             if (!record) {
                 return;
             }
             await record.load();
+            await record.model.notify();
         };
         useEffect(
             (el) => {
                 if (!el) {
                     return;
                 }
+                el.addEventListener("o-close-chatter", chatterCloseHandler);
                 el.addEventListener("reload", chatterReloadHandler);
                 return () => {
+                    el.removeEventListener("o-close-chatter", chatterCloseHandler);
                     el.removeEventListener("reload", chatterReloadHandler);
                 };
             },
-            () => [
-                this.chatterContainer.el &&
-                    this.chatterContainer.el.querySelector(".o-mail-Chatter"),
-            ]
+            () => [this.chatterContainer.el && this.chatterContainer.el.querySelector(".o_Chatter")]
         );
+        this.onRestorePreviousAttachment = debounce(this.onRestorePreviousAttachment, 300, true);
 
         // Pdf thumbnails
-        this.pdfService = useService("documents_pdf_thumbnail");
-        onWillStart(() => {
-            this.pdfService.enqueueRecords(this.props.documents);
-        });
-        onWillUpdateProps((nextProps) => {
-            this.pdfService.enqueueRecords(nextProps.documents);
-        });
-        onNewPdfThumbnail(({ detail }) => {
-            if (this.props.documents.find((rec) => rec.resId === detail.record.resId)) {
-                this.render(true);
-            }
-        });
+        if (this.props.withFilePreview) {
+            this.pdfService = useService("documents_pdf_thumbnail");
+            onWillStart(async () => {
+                this.pdfService.enqueueRecords(this.props.selection);
+            })
+            onWillUpdateProps(async (nextProps) => {
+                this.pdfService.enqueueRecords(nextProps.selection);
+            })
+            onNewPdfThumbnail(({ detail }) => {
+                if (this.props.selection.find(rec => rec.resId === detail.record.resId)) {
+                    this.render(true);
+                }
+            });
+        }
 
         //Mobile specific
         if (!this.env.isSmall) {
@@ -173,7 +154,7 @@ export class DocumentsInspector extends Component {
         onWillUpdateProps((nextProps) => {
             // Only open the inspector if there is only one selected element and
             //  it was not previously selected.
-            this.shouldOpenInspector = nextProps.documents.length === 1;
+            this.shouldOpenInspector = nextProps.selection.length === 1;
         });
         onPatched(() => {
             if (!this.inspectorMobileRef.el) {
@@ -186,11 +167,7 @@ export class DocumentsInspector extends Component {
     }
 
     get resIds() {
-        return this.props.documents.map((rec) => rec.resId);
-    }
-
-    get isDebugMode() {
-        return Boolean(odoo.debug);
+        return this.props.selection.map((rec) => rec.resId);
     }
 
     get isMobile() {
@@ -199,16 +176,16 @@ export class DocumentsInspector extends Component {
 
     updateAttachmentHistory(nextProps) {
         const props = nextProps || this.props;
-        const record = props.documents[0];
-        if (props.documents.length !== 1) {
+        const record = props.selection[0];
+        if (props.selection.length !== 1) {
             this.state.showChatter = this.isMobile;
         }
-        if (!record || props.documents.length !== 1 || !record.data.previous_attachment_ids.count) {
+        if (!record || props.selection.length !== 1 || !record.data.previous_attachment_ids.count) {
             this.keepLast.add(Promise.resolve());
             this.state.previousAttachmentData = null;
             return;
         }
-        const previousRecord = this.props.documents.length === 1 && this.props.documents[0];
+        const previousRecord = this.props.selection.length === 1 && this.props.selection[0];
         if (
             nextProps &&
             previousRecord &&
@@ -221,13 +198,7 @@ export class DocumentsInspector extends Component {
             this.orm
                 .searchRead(
                     "ir.attachment",
-                    [
-                        [
-                            "id",
-                            "in",
-                            record.data.previous_attachment_ids.records.map((rec) => rec.resId),
-                        ],
-                    ],
+                    [["id", "in", record.data.previous_attachment_ids.records.map((rec) => rec.resId)]],
                     ["name", "create_date", "create_uid"],
                     {
                         order: "create_date desc",
@@ -238,16 +209,6 @@ export class DocumentsInspector extends Component {
                     this.state.previousAttachmentDirty = false;
                 })
         );
-    }
-
-    async _reloadSearchModel() {
-        await this.env.searchModel._fetchSections(
-            this.env.searchModel.getSections(
-                (s) => s.type === "category" && s.fieldName === "folder_id"
-            ),
-            []
-        );
-        await this.env.searchModel._notify();
     }
 
     getCurrentFolder() {
@@ -264,10 +225,9 @@ export class DocumentsInspector extends Component {
     getRecordAdditionalData(record) {
         const additionalData = {
             isGif: new RegExp("image.*(gif)").test(record.data.mimetype),
-            isImage: new RegExp("image.*(jpeg|jpg|png|webp)").test(record.data.mimetype),
+            isImage: new RegExp("image.*(jpeg|jpg|png)").test(record.data.mimetype),
             isYoutubeVideo: false,
             youtubeToken: undefined,
-            url_preview_image: record.data.url_preview_image,
         };
         if (record.data.url && record.data.url.length) {
             const youtubeUrlMatch = record.data.url.match(
@@ -285,7 +245,7 @@ export class DocumentsInspector extends Component {
      * Returns the classes to give to the file preview
      */
     getPreviewClasses(record, additionalData) {
-        const nbPreviews = this.props.documents.length;
+        const nbPreviews = this.props.selection.length;
         const classes = ["o_document_preview"];
         if (record.data.type === "empty") {
             classes.push("o_document_request_preview");
@@ -293,12 +253,7 @@ export class DocumentsInspector extends Component {
         if (nbPreviews === 1) {
             classes.push("o_documents_single_preview");
         }
-        if (
-            additionalData.isImage ||
-            additionalData.isYoutubeVideo ||
-            record.data.url_preview_image ||
-            (record.isPdf() && record.hasThumbnail())
-        ) {
+        if (additionalData.isImage || additionalData.isYoutubeVideo || (record.isPdf() && record.hasThumbnail())) {
             classes.push("o_documents_preview_image");
         } else {
             classes.push("o_documents_preview_mimetype");
@@ -310,7 +265,7 @@ export class DocumentsInspector extends Component {
     }
 
     isPdfOnly() {
-        return this.props.documents.every((record) => record.isPdf());
+        return this.props.selection.every((record) => record.isPdf());
     }
 
     download(records) {
@@ -322,8 +277,8 @@ export class DocumentsInspector extends Component {
         } else {
             download({
                 data: {
-                    file_ids: records.map((rec) => rec.resId),
-                    zip_name: `documents-${serializeDate(DateTime.now())}.zip`,
+                    file_ids: records.map(rec => rec.resId),
+                    zip_name: `documents-${moment().format("YYYY-MM-DD")}.zip`,
                 },
                 url: "/document/zip",
             });
@@ -331,61 +286,50 @@ export class DocumentsInspector extends Component {
     }
 
     onDownload() {
-        const documents = this.props.documents.filter((rec) => rec.data.type !== "empty");
+        const documents = this.props.selection.filter((rec) => rec.data.type !== "empty");
         if (!documents.length) {
             return;
         }
-        const linkDocuments = documents.filter((el) => el.data.type === "url");
-        const noLinkDocuments = documents.filter((el) => el.data.type !== "url");
+        const linkDocuments = documents.filter(el => el.data.type === 'url');
+        const noLinkDocuments = documents.filter(el => el.data.type !== 'url');
         // Manage link documents
         if (documents.length === 1 && linkDocuments.length) {
             // Redirect to the link
             let url = linkDocuments[0].data.url;
             url = /^(https?|ftp):\/\//.test(url) ? url : "http://" + url;
             window.open(url, "_blank");
-        } else if (noLinkDocuments.length) {
+        }
+        else if (noLinkDocuments.length) {
             // Download all documents which are not links
             this.download(noLinkDocuments);
         }
     }
 
+    // Override during tests.
+    _writeInClipboard(text) {
+        navigator.clipboard.writeText(text);
+    }
+
     async onShare() {
-        const resIds = this.props.documents
-            .filter((rec) => rec._values.type !== "empty")
-            .map((rec) => rec._values.id);
-        const linkProportion = await dUtils.get_link_proportion(this.orm, resIds ? resIds : false);
+        const resIds = this.resIds;
         if (!this.generatedUrls[resIds]) {
-            const vals = await this.createShareVals();
             this.generatedUrls[resIds] = await this.orm.call(
                 "documents.share",
                 "action_get_share_url",
-                [vals]
+                [{
+                    document_ids: [x2ManyCommands.replaceWith(this.resIds)],
+                    folder_id: this.env.searchModel.getSelectedFolderId(),
+                    type: "ids",
+                }],
             );
         }
-        setTimeout(async () => {
-            await browser.navigator.clipboard.writeText(this.generatedUrls[resIds]);
-            if (linkProportion == "some") {
-                this.notificationService.add(
-                    _t("The share url has been copied to your clipboard. Links were excluded."),
-                    { type: "warning" }
-                );
-            } else {
-                this.notificationService.add(_t("The share url has been copied to your clipboard."), {
-                    type: "success",
-                });
-            }
-        });
-    }
-
-    async createShareVals() {
-        const resIds = this.props.documents
-            .filter((rec) => rec._values.type !== "empty")
-            .map((rec) => rec.resId);
-        return {
-            document_ids: [x2ManyCommands.set(resIds)],
-            folder_id: this.env.searchModel.getSelectedFolderId(),
-            type: "ids",
-        };
+        this._writeInClipboard(this.generatedUrls[resIds]);
+        this.notificationService.add(
+            this.env._t("The share url has been copied to your clipboard."),
+            {
+                type: "success",
+            },
+        );
     }
 
     async onReplace(ev) {
@@ -393,13 +337,11 @@ export class DocumentsInspector extends Component {
             return;
         }
         const index = Number(ev.target.getAttribute("data-index"));
-        const record = this.props.documents[index];
+        const record = this.props.selection[index];
 
         await this.env.documentsView.bus.trigger("documents-upload-files", {
             files: ev.target.files,
-            folderId:
-                this.env.searchModel.getSelectedFolderId() ||
-                (record.data.folder_id && record.data.folder_id[0]),
+            folderId: this.env.searchModel.getSelectedFolderId() || (record.data.folder_id && record.data.folder_id[0]),
             recordId: record.resId,
             tagIds: this.env.searchModel.getSelectedTagIds(),
         });
@@ -408,54 +350,39 @@ export class DocumentsInspector extends Component {
 
     async onLock() {
         await this.doLockAction(async () => {
-            const record = this.props.documents[0];
+            const record = this.props.selection[0];
             await this.orm.call("documents.document", "toggle_lock", this.resIds);
             await record.load();
+            await record.model.notify();
         });
     }
 
+    async _toggleArchive(state) {
+        const record = this.props.selection[0];
+        await toggleArchive(record.model, record.resModel, this.resIds, state);
+        await record.model.load();
+        await record.model.notify();
+        await this.env.documentsView.bus.trigger("documents-close-preview");
+    }
+
     async onArchive() {
-        const record = this.props.documents[0];
-        const callback = async () => {
-            await toggleArchive(record.model, record.resModel, this.resIds, true);
-        };
-        record.openDeleteConfirmationDialog(record.model.root, callback, false);
+        await this._toggleArchive(true);
     }
 
     async onUnarchive() {
-        const record = this.props.documents[0];
-        await toggleArchive(record.model, record.resModel, this.resIds, false);
-        this.env.documentsView.bus.trigger("documents-close-preview");
-        await this._reloadSearchModel();
+        await this._toggleArchive(false);
     }
 
-    onDelete() {
-        const records = this.props.documents;
-        const callback = async () => {
-            const model = records[0].model;
-            await model.root.deleteRecords(records);
-            await model.load(this.env.model.config);
-            await model.notify();
-        };
-        records[0].openDeleteConfirmationDialog(records[0].model.root, callback, true);
+    async onDelete() {
+        await this.props.selection[0].model.root.deleteRecords(this.props.selection);
+        await this.env.documentsView.bus.trigger("documents-close-preview");
     }
 
     getFieldProps(fieldName, additionalProps) {
-        // `documents` might come from a state, and can be a Proxy object at this point
-        // and make an infinite loop (the record is given to `Field`, which will change
-        // some attributes (see @evalContext), and so trigger the update of the state
-        // 2 components above, that will re-instantiate the component `Field` and then
-        // re-modify the attributes, etc) so we convert it back to the target
-        // of the proxy object. Ideally, objects should be unproxyfied when we pass them
-        // by props (to avoid that type of loop).
-        const rec = this.props.documents[0];
-        const record = Object.create(rec.constructor.prototype);
-        Object.assign(record, rec);
-
         const props = {
-            record: record,
+            record: this.props.selection[0],
             name: fieldName,
-            documents: [...this.props.documents],
+            selection: this.props.selection,
             inspectorReadonly: this.isLocked || this.isEditDisabled,
             lockAction: this.doLockAction.bind(this),
         };
@@ -466,20 +393,18 @@ export class DocumentsInspector extends Component {
     }
 
     _getCommonM2M(field) {
-        const documents = this.props.documents;
-        let commonData = documents[0].data[field].records.map((rec) => rec.resId);
-        for (let idx = 1; idx < documents.length; idx++) {
+        const selection = this.props.selection;
+        let commonData = selection[0].data[field].records.map((rec) => rec.resId);
+        for (let idx = 1; idx < selection.length; idx++) {
             if (commonData.length === 0) {
                 break;
             }
             commonData = intersection(
                 commonData,
-                documents[idx].data[field].records.map((rec) => rec.resId)
+                selection[idx].data[field].records.map((rec) => rec.resId)
             );
         }
-        return commonData.map((id) =>
-            documents[0].data[field].records.find((data) => data.resId === id)
-        );
+        return commonData.map((id) => selection[0].data[field].records.find((data) => data.resId === id));
     }
 
     getCommonTags() {
@@ -501,7 +426,7 @@ export class DocumentsInspector extends Component {
 
     getCommonRules() {
         let commonRules = this._getCommonM2M("available_rule_ids");
-        if (this.props.documents.length > 1) {
+        if (this.props.selection.length > 1) {
             commonRules = commonRules.filter((rule) => !rule.data.limited_to_single_record);
         }
         return commonRules;
@@ -514,14 +439,19 @@ export class DocumentsInspector extends Component {
     }
 
     async removeTag(tag) {
-        const resIds = this.props.documents.map((r) => r.resId);
-        await this.env.searchModel.updateRecordTagId(resIds, tag.id, 3);
+        const record = this.props.selection[0];
+        await record.model.root._multiSave(record, {
+            tag_ids: [x2ManyCommands.forget(tag.id)],
+        });
+        await this.env.searchModel.reload();
     }
 
     async addTag(tag, { input }) {
-        const resIds = this.props.documents.map((r) => r.resId);
-        await this.env.searchModel.updateRecordTagId(resIds, tag.value);
-
+        const record = this.props.selection[0];
+        await record.model.root._multiSave(record, {
+            tag_ids: [x2ManyCommands.linkTo(tag.value)],
+        });
+        await this.env.searchModel.reload();
         input.focus();
     }
 
@@ -535,9 +465,7 @@ export class DocumentsInspector extends Component {
                         request = request.toLowerCase();
                         return additionalTags
                             .filter((tag) =>
-                                (tag.group_name + " > " + tag.display_name)
-                                    .toLowerCase()
-                                    .includes(request)
+                                (tag.group_name + " > " + tag.display_name).toLowerCase().includes(request)
                             )
                             .map((tag) => {
                                 return {
@@ -549,27 +477,22 @@ export class DocumentsInspector extends Component {
                     },
                 },
             ],
-            placeholder: _t(" + Add a tag"),
+            placeholder: this.env._t(" + Add a tag"),
         };
     }
 
     async onClickResModel() {
-        const record = this.props.documents[0];
-        const action = await this.orm.call(
-            record.data.res_model,
-            "get_formview_action",
-            [[record.data.res_id]],
-            {
-                context: record.model.user.context,
-            }
-        );
+        const record = this.props.selection[0];
+        const action = await this.orm.call(record.data.res_model, "get_formview_action", [[record.data.res_id]], {
+            context: record.model.user.context,
+        });
         await this.action.doAction(action);
     }
 
     async triggerRule(rule) {
         await this._triggerRule(
-            this.props.documents.map((rec) => rec.resId),
-            rule.resId
+            this.props.selection.map(rec => rec.resId),
+            rule.resId,
         );
     }
 
@@ -580,8 +503,8 @@ export class DocumentsInspector extends Component {
         await this.doLockAction(async () => {
             this.deleting = true;
             await this.orm.unlink("ir.attachment", [attachmentId]);
-            const record = this.props.documents[0];
-            const model = this.props.documents[0].model;
+            const record = this.props.selection[0];
+            const model = this.props.selection[0].model;
             await record.load();
             this.state.previousAttachmentDirty = true;
             await model.notify();
@@ -594,13 +517,14 @@ export class DocumentsInspector extends Component {
     }
 
     async onRestorePreviousAttachment(attachmentId) {
-        const record = this.props.documents[0];
+        const record = this.props.selection[0];
         await this.doLockAction(async () => {
             await this.orm.write("documents.document", [record.resId], {
                 attachment_id: attachmentId,
             });
-            await record.load();
+            await record.model.load();
             this.state.previousAttachmentDirty = true;
+            await record.model.notify();
         });
     }
 
@@ -608,7 +532,7 @@ export class DocumentsInspector extends Component {
         if ((isPdfSplit && !this.isPdfOnly()) || this.previewLockCount) {
             return;
         }
-        const documents = this.props.documents.filter((rec) => rec.isViewable());
+        const documents = this.props.selection.filter(rec => rec.isViewable());
         if (!documents.length) {
             return;
         }
@@ -618,26 +542,22 @@ export class DocumentsInspector extends Component {
             isPdfSplit,
             rules: this.getCommonRules(),
             hasPdfSplit: !this.isLocked && !this.isEditDisabled,
+            selection: documents,
         });
     }
 
     async onEditModel() {
-        const record = this.props.documents[0];
+        const record = this.props.selection[0];
         let defaultResourceRef = false;
         if (record.data.res_model && record.data.res_id) {
             defaultResourceRef = `${record.data.res_model},${record.data.res_id}`;
         }
-        const models = await this.orm.searchRead(
-            "ir.model",
-            [["model", "=", record.data.res_model]],
-            ["id"],
-            {
-                limit: 1,
-            }
-        );
+        const models = await this.orm.searchRead("ir.model", [["model", "=", record.data.res_model]], ["id"], {
+            limit: 1,
+        });
         this.action.doAction(
             {
-                name: _t("Edit the linked record"),
+                name: this.env._t("Edit the linked record"),
                 type: "ir.actions.act_window",
                 res_model: "documents.link_to_record_wizard",
                 views: [[false, "form"]],
@@ -652,16 +572,17 @@ export class DocumentsInspector extends Component {
             {
                 onClose: async () => {
                     await record.model.load();
+                    record.model.notify();
                 },
             }
         );
     }
 
     onDeleteModel() {
-        const recordId = this.props.documents[0].resId;
-        const model = this.props.documents[0].model;
+        const recordId = this.props.selection[0].resId;
+        const model = this.props.selection[0].model;
         this.dialogService.add(ConfirmationDialog, {
-            body: _t("Do you really want to unlink this record?"),
+            body: this.env._t("Do you really want to unlink this record?"),
             confirm: async () => {
                 await this.orm.call("documents.workflow.rule", "unlink_record", [[recordId]]);
                 await model.load();
@@ -677,7 +598,14 @@ export class DocumentsInspector extends Component {
     }
 }
 
-if (uiUtils.isSmall()) {
+DocumentsInspector.components = {
+    AutoComplete,
+    ChatterContainer,
+    DocumentsInspectorField,
+    FileUploader,
+};
+
+if (device.isMobile) {
     DocumentsInspector.template = "documents.DocumentsInspectorMobile";
 } else {
     DocumentsInspector.template = "documents.DocumentsInspector";

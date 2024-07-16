@@ -1,6 +1,6 @@
 import base64
 
-from odoo.tests.common import HttpCase
+from odoo.tests.common import HttpCase, tagged
 
 
 class LoadMenusTests(HttpCase):
@@ -20,7 +20,7 @@ class LoadMenusTests(HttpCase):
 
     def test_web_icon(self):
         self.menu.web_icon = False
-        self.menu.web_icon_data = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+BCQAHBQICJmhD1AAAAABJRU5ErkJggg=="
+        self.menu.web_icon_data = base64.b64encode(b"encode")
 
         menu_loaded = self.url_open("/web/webclient/load_menus/1234")
 
@@ -33,8 +33,7 @@ class LoadMenusTests(HttpCase):
                 "id": self.menu.id,
                 "name": "test_menu",
                 "webIcon": False,
-                "webIconData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+BCQAHBQICJmhD1AAAAABJRU5ErkJggg==",
-                "webIconDataMimetype": "image/png",
+                "webIconData": "data:image/png;base64,ZW5jb2Rl",
                 "xmlid": ""
             },
             "root": {
@@ -48,10 +47,18 @@ class LoadMenusTests(HttpCase):
                 "name": "root",
                 "webIcon": None,
                 "webIconData": None,
-                "webIconDataMimetype": None,
                 "xmlid": "",
-                "backgroundImage": None,
+                'backgroundImage': None,
             }
         }
 
         self.assertDictEqual(menu_loaded.json(), expected)
+
+
+@tagged("-at_install", "post_install")
+class TestWebEnterprise(HttpCase):
+    def test_studio_list_upsell(self):
+        invoice_action = self.env.ref("account.action_move_out_invoice_type", raise_if_not_found=False)
+        if not invoice_action:
+            return
+        self.start_tour("/web#action=account.action_move_out_invoice_type", "web_enterprise.test_studio_list_upsell", login="admin")

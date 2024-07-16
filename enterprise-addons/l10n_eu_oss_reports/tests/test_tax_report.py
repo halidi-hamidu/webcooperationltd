@@ -17,10 +17,6 @@ class OSSTaxReportTest(TestAccountReportsCommon):
         cls.env.company.vat = 'BE0477472701'
         cls.env.company.currency_id = cls.env.ref('base.EUR')
 
-        cls.env['account.tax.group'].create({
-            'name': 'tax_group',
-            'country_id': cls.env.ref('base.be').id,
-        })
         tax_21, tax_06 = cls.env['account.tax'].create([
             {
                 'name': "tax_21",
@@ -103,12 +99,11 @@ class OSSTaxReportTest(TestAccountReportsCommon):
                 ("16.0% LU VAT (16.0%)",   1000,              160),
                 ("7.0% LU VAT (7.0%)",     -500,              -35),
                 ("Total Luxembourg",         '',              125),
-                ("Netherlands",              '',              0.0),
-                ("21.0% NL VAT (21.0%)",    0.0,              0.0),
-                ("Total Netherlands",        '',              0.0),
+                ("Netherlands",              '',               ''),
+                ("21.0% NL VAT (21.0%)",     '',               ''),
+                ("Total Netherlands",        '',               ''),
                 ("Total Sales",              '',               85),
             ],
-            options,
         )
 
     def test_generate_oss_xml_be(self):
@@ -198,12 +193,6 @@ class TestTaxReportOSSNoMapping(TestAccountReportsCommon):
         report_line_refund_base_line = cls._create_tax_report_line('Refund base', cls.tax_report, sequence=2, tag_name='refund_base_line')
 
         # Create an OSS tax from scratch
-        cls.env['account.tax.group'].create({
-            'name': 'tax_group',
-            'country_id': cls.company_data['company'].account_fiscal_country_id.id,
-            'tax_payable_account_id': cls.company_data['default_account_expense'].id,
-            'tax_receivable_account_id': cls.company_data['default_account_revenue'].id,
-        })
         oss_tag = cls.env.ref('l10n_eu_oss.tag_oss')
         cls.oss_tax = cls.env['account.tax'].create({
             'name': 'OSS tax for DK',
@@ -266,9 +255,8 @@ class TestTaxReportOSSNoMapping(TestAccountReportsCommon):
             [   0,                    1],
             [
                 ('Invoice base', 100.00),
-                ('Refund base',    0.00),
+                ('Refund base',      ''),
             ],
-            options,
         )
 
     def test_closing_entry(self):
@@ -314,5 +302,4 @@ class TestTaxReportOSSNoMapping(TestAccountReportsCommon):
                 ("Total Denmark",              '',             25.0),
                 ("Total Sales",                '',             25.0),
             ],
-            options,
         )

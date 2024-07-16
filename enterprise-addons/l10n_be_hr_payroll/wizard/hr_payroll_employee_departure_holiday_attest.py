@@ -165,10 +165,12 @@ class HrPayslipEmployeeDepartureHoliday(models.TransientModel):
             'name': '%s - %s' % (struct_n_id.payslip_name, self.employee_id.display_name),
             'employee_id': self.employee_id.id,
             'contract_id': self.employee_id.contract_id.id,
-            'struct_id': struct_n_id.id,
             'date_from': (self.employee_id.contract_id.date_end or fields.Date.today) + relativedelta(day=1),
             'date_to': (self.employee_id.contract_id.date_end or fields.Date.today) + relativedelta(day=31),
         })
+        if not termination_payslip_n.contract_id:
+            termination_payslip_n.contract_id = self.employee_id.contract_id
+        termination_payslip_n.struct_id = struct_n_id.id
         termination_payslip_n.worked_days_line_ids = [(5, 0, 0)]
 
         monthly_payslips = self.env['hr.payslip'].search([
@@ -250,10 +252,12 @@ class HrPayslipEmployeeDepartureHoliday(models.TransientModel):
             'name': '%s - %s' % (struct_n1_id.payslip_name, self.employee_id.display_name),
             'employee_id': self.employee_id.id,
             'contract_id': self.employee_id.contract_id.id,
-            'struct_id': struct_n1_id.id,
             'date_from': (self.employee_id.contract_id.date_end or fields.Date.today) + relativedelta(day=1),
             'date_to': (self.employee_id.contract_id.date_end or fields.Date.today) + relativedelta(day=31),
         })
+        if not termination_payslip_n1.contract_id:
+            termination_payslip_n1.contract_id = self.employee_id.contract_id
+        termination_payslip_n1.struct_id = struct_n1_id.id
         termination_payslip_n1.worked_days_line_ids = [(5, 0, 0)]
 
         # As regards the recovery of amounts for European holidays (“additional holidays”), the

@@ -62,6 +62,44 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
             {'amls': aml, 'model': rule},
         )
 
+    def test_partial_payment_matching_sale_orders(self):
+        self.partner_a.property_product_pricelist.currency_id = self.company_data['currency']
+
+        # Create a sale order for 2300
+        so1 = self.env['sale.order'].create({
+            'partner_id': self.partner_a.id,
+            'partner_invoice_id': self.partner_a.id,
+            'partner_shipping_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': self.product_a.id,
+                'product_uom_qty': 2,
+                'price_unit': 1000.0,
+            })],
+        })
+        so1.action_quotation_sent()
+
+        # Invoice
+        so1.action_confirm()
+        invoice = so1._create_invoices()
+        invoice.action_post()
+
+        # Partially pay the invoice for 1150
+        payment = self.env['account.payment.register']\
+            .with_context(active_ids=invoice.ids, active_model='account.move')\
+            .create({'amount': 1150})\
+            ._create_payments()
+        payment_aml = payment._seek_for_lines()[0]
+
+        # Statement line for the same amount
+        st_line = self._create_st_line(amount=1150.0, payment_ref=f"turlututu {so1.name} tsoin tsoin")
+        rule = self._create_reconcile_model()
+
+        # Match the payment
+        self.assertDictEqual(
+            rule._apply_rules(st_line, st_line._retrieve_partner()),
+            {'amls': payment_aml, 'model': rule},
+        )
+
     def test_matching_sale_orders_with_legend(self):
         sequence = self.env['ir.sequence'].sudo().search(
             [('code', '=', 'sale.order'), ('company_id', 'in', (self.env.company.id, False))],

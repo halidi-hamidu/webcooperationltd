@@ -1,6 +1,6 @@
 /** @odoo-module */
 
-import * as spreadsheet from "@odoo/o-spreadsheet";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
 const { otRegistry } = spreadsheet.registries;
 
 otRegistry
@@ -9,12 +9,16 @@ otRegistry
         ...toTransform,
         id: (parseInt(toTransform.id, 10) + 1).toString(),
     }))
-    .addTransformation("REMOVE_ODOO_LIST", ["RENAME_ODOO_LIST"], (toTransform, executed) => {
-        if (toTransform.listId === executed.listId) {
-            return undefined;
+    .addTransformation(
+        "REMOVE_ODOO_LIST",
+        ["RENAME_ODOO_LIST", "UPDATE_ODOO_LIST_DOMAIN"],
+        (toTransform, executed) => {
+            if (toTransform.listId === executed.listId) {
+                return undefined;
+            }
+            return toTransform;
         }
-        return toTransform;
-    })
+    )
     .addTransformation("REMOVE_ODOO_LIST", ["RE_INSERT_ODOO_LIST"], (toTransform, executed) => {
         if (toTransform.id === executed.listId) {
             return undefined;

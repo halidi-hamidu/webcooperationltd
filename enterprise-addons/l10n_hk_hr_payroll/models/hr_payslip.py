@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
-import re
-
 from collections import defaultdict
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo import api, fields, models
 from odoo.osv import expression
 from odoo.tools.float_utils import float_compare
 
@@ -60,47 +56,63 @@ class Payslip(models.Model):
             return self._get_contract_wage()
         return res
 
+    def _get_daily_wage(self):
+        self.ensure_one()
+        res = {
+            "average": 0,
+            "moving": 0,
+        }
+        date_from, date_to = min(self.mapped('date_from')), max(self.mapped('date_to'))
+        payslips_per_employee = self._get_last_year_payslips_per_employee(date_from, date_to)
+        wage = self.contract_id.wage
+        payslip_day = (self.date_to - self.date_from).days + 1
+        res['average'] = wage / payslip_day
+        moving_daily_wage = sum(self.input_line_ids.filtered(lambda line: line.code == 'MOVING_DAILY_WAGE').mapped('amount'))
+        if moving_daily_wage:
+            res['moving'] = moving_daily_wage
+        else:
+            payslips = payslips_per_employee[self.employee_id]
+            domain = self._get_last_year_payslips_domain(self.date_from, self.date_to)
+            last_year_payslips = payslips.filtered_domain(domain).sorted(lambda x: x.date_from)
+            if last_year_payslips:
+                gross = last_year_payslips._get_line_values(['713_GROSS'], compute_sum=True)['713_GROSS']['sum']['total']
+                gross -= last_year_payslips._get_total_non_full_pay()
+                actual_worked_days = 0
+                for payslip in last_year_payslips:
+                    actual_worked_days += payslip._get_actual_work_days(skip_non_full_pay=True)
+                if actual_worked_days > 0:
+                    res['moving'] = gross / actual_worked_days
+        return res
+
+    def _get_actual_work_days(self, skip_non_full_pay=False):
+        self.ensure_one()
+
+        def _filtered_worked_days_line(line):
+            if line.code in ['LEAVE90', 'OUT']:
+                return True
+            if skip_non_full_pay and line.work_entry_type_id.l10n_hk_non_full_pay:
+                return True
+            return False
+
+        day_count = (self.date_to - self.date_from).days + 1
+        skip_worked_days_count = sum(self.worked_days_line_ids.filtered(_filtered_worked_days_line).mapped('number_of_days'))
+        return day_count - skip_worked_days_count
+
+    def _get_actual_work_rate(self):
+        self.ensure_one()
+        days_count = (self.date_to - self.date_from).days + 1
+        actual_work_days = self._get_actual_work_days()
+        return actual_work_days / days_count
+
     @api.model
     def _get_last_year_payslips_domain(self, date_from, date_to, employee_ids=None):
         domain = [
             ('state', 'in', ['paid', 'done']),
             ('date_from', '>=', date_from + relativedelta(months=-12, day=1)),
-            ('date_to', '<', date_to + relativedelta(day=1)),
-            ('struct_id', '=', self.env.ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary').id),
-        ]
+            ('date_to', '<', date_to + relativedelta(day=1))]
         if employee_ids:
             domain = expression.AND([domain, [('employee_id', 'in', employee_ids)]])
         return domain
-
-    def _get_moving_daily_wage(self):
-        self.ensure_one()
-
-        moving_daily_wage = sum(self.input_line_ids.filtered(lambda line: line.code == 'MOVING_DAILY_WAGE').mapped('amount'))
-        if moving_daily_wage:
-            return moving_daily_wage
-
-        payslips_per_employee = self._get_last_year_payslips_per_employee(self.date_from, self.date_to)
-        payslips = payslips_per_employee[self.employee_id]
-        domain = self._get_last_year_payslips_domain(self.date_from, self.date_to)
-        last_year_payslips = payslips.filtered_domain(domain).sorted(lambda slip: slip.date_from)
-        if last_year_payslips:
-            gross = last_year_payslips._get_line_values(['713_GROSS'], compute_sum=True)['713_GROSS']['sum']['total']
-            gross -= last_year_payslips._get_total_non_full_pay()
-            number_of_days = last_year_payslips._get_number_of_worked_days(only_full_pay=True)
-            if number_of_days > 0:
-                return gross / number_of_days
-        return 0
-
-    def _get_number_of_non_full_pay_days(self):
-        wds = self.worked_days_line_ids.filtered(lambda wd: wd.work_entry_type_id.l10n_hk_non_full_pay)
-        return sum([wd.number_of_days for wd in wds])
-
-    def _get_number_of_worked_days(self, only_full_pay=False):
-        wds = self.worked_days_line_ids.filtered(lambda wd: wd.code not in ['LEAVE90', 'OUT'])
-        number_of_days = sum([wd.number_of_days for wd in wds])
-        if only_full_pay:
-            return number_of_days - self._get_number_of_non_full_pay_days()
-        return number_of_days
 
     def _get_last_year_payslips_per_employee(self, date_from, date_to):
         domain = self._get_last_year_payslips_domain(date_from, date_to, self.employee_id.ids)
@@ -109,11 +121,6 @@ class Payslip(models.Model):
         for payslip in payslips:
             payslips_per_employee[payslip.employee_id] += payslip
         return payslips_per_employee
-
-    def _get_credit_time_lines(self):
-        if self.struct_id.country_id.code != 'HK':
-            return super()._get_credit_time_lines()
-        return []
 
     def _get_worked_day_lines_values(self, domain=None):
         self.ensure_one()
@@ -129,16 +136,17 @@ class Payslip(models.Model):
         date_from = datetime.combine(self.date_from, datetime.min.time())
         date_to = datetime.combine(self.date_to, datetime.max.time())
         remainig_work_entries_domain = expression.AND([domain, [('leave_id.date_from', '<', self.date_from)]])
+        work_entries = defaultdict(tuple)
         work_entries_dict = self.env['hr.work.entry']._read_group(
             self.contract_id._get_work_hours_domain(date_from, date_to, domain=remainig_work_entries_domain, inside=True),
+            ['hours:sum(duration)', 'leave_id', 'work_entry_type_id'],
             ['leave_id', 'work_entry_type_id'],
-            ['duration:sum'],
+            lazy=False
         )
-        work_entries = defaultdict(tuple)
-        work_entries.update({
-            (work_entry_type.id, leave.id): hours
-            for leave, work_entry_type, hours in work_entries_dict
-        })
+        work_entries.update({(
+            data['work_entry_type_id'][0] if data['work_entry_type_id'] else False,
+            data['leave_id'][0] if data['leave_id'] else False
+        ): data['hours'] for data in work_entries_dict})
         for work_entry, hours in work_entries.items():
             work_entry_id, leave_id = work_entry
             work_entry_type = self.env['hr.work.entry.type'].browse(work_entry_id)
@@ -161,38 +169,28 @@ class Payslip(models.Model):
 
         contract = self.contract_id
         if contract.resource_calendar_id:
-            if not check_out_of_contract:
-                return res
-            out_days, out_hours = 0, 0
             reference_calendar = self._get_out_of_contract_calendar()
-            domain = expression.AND([domain, [('work_entry_type_id.is_leave', '=', True)]])
-            if self.date_from < contract.date_start:
-                start = fields.Datetime.to_datetime(self.date_from)
-                stop = fields.Datetime.to_datetime(contract.date_start) + relativedelta(days=-1, hour=23, minute=59)
-                out_time = reference_calendar.get_work_duration_data(start, stop, compute_leaves=False, domain=domain)
-                out_days += out_time['days']
-                out_hours += out_time['hours']
-            if contract.date_end and contract.date_end < self.date_to:
-                start = fields.Datetime.to_datetime(contract.date_end) + relativedelta(days=1)
-                stop = fields.Datetime.to_datetime(self.date_to) + relativedelta(hour=23, minute=59)
-                out_time = reference_calendar.get_work_duration_data(start, stop, compute_leaves=False, domain=domain)
-                out_days += out_time['days']
-                out_hours += out_time['hours']
-            if out_days or out_hours:
+            payslip_days = (self.date_to - self.date_from).days + 1
+            remaining_days, remaining_hours = payslip_days, payslip_days * reference_calendar.hours_per_day
+            for worked_days in res:
+                remaining_days -= worked_days['number_of_days']
+                remaining_hours -= worked_days['number_of_hours']
+
+            if remaining_days or remaining_hours:
                 work_entry_type = self.env.ref('hr_payroll.hr_work_entry_type_out_of_contract')
                 existing = False
                 for worked_days in res:
                     if worked_days['work_entry_type_id'] == work_entry_type.id:
-                        worked_days['number_of_days'] += out_days
-                        worked_days['number_of_hours'] += out_hours
+                        worked_days['number_of_days'] += remaining_days
+                        worked_days['number_of_hours'] += remaining_hours
                         existing = True
                         break
                 if not existing:
                     res.append({
                         'sequence': work_entry_type.sequence,
                         'work_entry_type_id': work_entry_type.id,
-                        'number_of_days': out_days,
-                        'number_of_hours': out_hours,
+                        'number_of_days': remaining_days,
+                        'number_of_hours': remaining_hours,
                     })
         return res
 
@@ -203,112 +201,6 @@ class Payslip(models.Model):
                 continue
             total += wd_line.amount
         return total
-
-    def _generate_h2h_autopay(self, header_data: dict) -> str:
-        ctime = datetime.now()
-        header = (
-            f'H{header_data["digital_pic_id"]:<11}HKMFPS02{"":<3}'
-            f'{header_data["customer_ref"]:<35}{ctime:%Y/%m/%d%H:%M:%S}'
-            f'{"":<1}{header_data["authorisation_type"]}{"":<2}PH{"":<79}\n'
-        )
-        return header
-
-    def _generate_hsbc_autopay(self, header_data: dict, payments_data: dict) -> str:
-        acc_number = re.sub(r"[^0-9]", "", header_data['autopay_partner_bank_id'].acc_number)
-        header = (
-            f'PHF{header_data["payment_set_code"]}{header_data["ref"]:<12}{header_data["payment_date"]:%Y%m%d}'
-            f'{acc_number + "SA" + header_data["currency"]:<35}'
-            f'{header_data["currency"]}{header_data["payslips_count"]:07}{int(header_data["amount_total"] * 100):017}'
-            f'{"":<1}{"":<311}\n'
-        )
-        datas = []
-        for payment in payments_data:
-            datas.append(
-                f'PD{payment["bank_code"]:<3}{payment["type"].upper()}{payment["autopay_field"]:<34}'
-                f'{int(payment["amount"] * 100):017}{payment["identifier"]:<35}{payment["ref"]:<35}'
-                f'{payment["bank_account_name"]:<140}{"":<130}'
-            )
-        data = '\n'.join(datas)
-        return header + data
-
-    def _create_apc_file(self, payment_date, payment_set_code: str, batch_type: str = 'first', ref: str = None, file_name: str = None, **kwargs):
-        invalid_payslips = self.filtered(lambda p: p.currency_id.name not in ['HKD', 'CNY'])
-        if invalid_payslips:
-            raise UserError(_("Only accept HKD or CNY currency.\nInvalid currency for the following payslips:\n%s", '\n'.join(invalid_payslips.mapped('name'))))
-        companies = self.mapped('company_id')
-        if len(companies) > 1:
-            raise UserError(_("Only support generating the HSBC autopay report for one company."))
-        currencies = self.mapped('currency_id')
-        if len(currencies) > 1:
-            raise UserError(_("Only support generating the HSBC autopay report for one currency"))
-        invalid_employees = self.mapped('employee_id').filtered(lambda e: not e.bank_account_id)
-        if invalid_employees:
-            raise UserError(_("Some employees (%s) don't have a bank account.", ','.join(invalid_employees.mapped('name'))))
-        invalid_employees = self.mapped('employee_id').filtered(lambda e: not e.l10n_hk_autopay_account_type)
-        if invalid_employees:
-            raise UserError(_("Some employees (%s) haven't set the autopay type.", ','.join(invalid_employees.mapped('name'))))
-        invalid_banks = self.employee_id.bank_account_id.mapped('bank_id').filtered(lambda b: not b.l10n_hk_bank_code)
-        if invalid_banks:
-            raise UserError(_("Some banks (%s) don't have a bank code", ','.join(invalid_banks.mapped('name'))))
-        invalid_bank_accounts = self.mapped('employee_id').filtered(
-            lambda e: e.l10n_hk_autopay_account_type in ['bban', 'hkid'] and not e.bank_account_id.acc_holder_name)
-        if invalid_bank_accounts:
-            raise UserError(_("Some bank accounts (%s) don't have a bank account name.", ','.join(invalid_bank_accounts.mapped('bank_account_id.acc_number'))))
-        rule_code = {'first': 'MEA', 'second': 'SBA'}[batch_type]
-        payslips = self.filtered(lambda p: p.struct_id.code == 'CAP57MONTHLY' and p.line_ids.filtered(lambda line: line.code == rule_code))
-        if not payslips:
-            raise UserError(_("No payslip to generate the HSBC autopay report."))
-
-        autopay_type = self.company_id.l10n_hk_autopay_type
-        if autopay_type == 'h2h':
-            h2h_header_data = {
-                'authorisation_type': kwargs.get('authorisation_type'),
-                'customer_ref': kwargs.get('customer_ref', ''),
-                'digital_pic_id': kwargs.get('digital_pic_id'),
-                'payment_date': payment_date,
-            }
-
-        header_data = {
-            'ref': ref,
-            'currency': payslips.currency_id.name,
-            'amount_total': sum(payslips.line_ids.filtered(lambda line: line.code == rule_code).mapped('amount')),
-            'payment_date': payment_date,
-            'payslips_count': len(payslips),
-            'payment_set_code': payment_set_code,
-            'autopay_partner_bank_id': payslips.company_id.l10n_hk_autopay_partner_bank_id,
-        }
-
-        payments_data = []
-        for payslip in payslips:
-            payments_data.append({
-                'id': payslip.id,
-                'ref': payslip.employee_id.l10n_hk_autopay_ref or '',
-                'type': payslip.employee_id.l10n_hk_autopay_account_type,
-                'amount': sum(payslip.line_ids.filtered(lambda line: line.code == rule_code).mapped('amount')),
-                'identifier': re.sub(r'[^a-zA-Z0-9]', '', payslip.employee_id.identification_id or ''),
-                'bank_code': payslip.employee_id.get_l10n_hk_autopay_bank_code(),
-                'autopay_field': payslip.employee_id.get_l10n_hk_autopay_field(),
-                'bank_account_name': payslip.employee_id.bank_account_id.acc_holder_name or '',
-            })
-
-        apc_doc = payslips._generate_hsbc_autopay(header_data, payments_data)
-        if autopay_type == 'h2h':
-            apc_doc = payslips._generate_h2h_autopay(h2h_header_data) + apc_doc
-        apc_binary = base64.encodebytes(apc_doc.encode('ascii'))
-
-        file_name = file_name and file_name.replace('.apc', '')
-        if batch_type == 'first':
-            payslips.mapped('payslip_run_id').write({
-                'l10n_hk_autopay_export_first_batch_date': payment_date,
-                'l10n_hk_autopay_export_first_batch': apc_binary,
-                'l10n_hk_autopay_export_first_batch_filename': (file_name or 'HSBC_Autopay_export_first_batch') + '.apc',
-            })
-        else:
-            payslips.mapped('payslip_run_id').write({
-                'l10n_hk_autopay_export_second_batch_date': payment_date,
-                'l10n_hk_autopay_export_second_batch': apc_binary,
-                'l10n_hk_autopay_export_second_batch_filename': (file_name or 'HSBC_Autopay_export_second_batch') + '.apc',
-            })
 
     def write(self, vals):
         res = super().write(vals)

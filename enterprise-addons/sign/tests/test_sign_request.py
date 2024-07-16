@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests.common import Form, new_test_user
 from .sign_request_common import SignRequestCommon
 from odoo import Command
 from odoo.exceptions import UserError, ValidationError
 
-from datetime import datetime, timedelta
 
 class TestSignRequest(SignRequestCommon):
     def test_sign_request_create(self):
@@ -173,6 +171,10 @@ class TestSignRequest(SignRequestCommon):
         sign_request_item_customer._edit_and_sign(self.customer_sign_values)
 
         # refuse
+        self.assertFalse(sign_request_3_roles.refusal_allowed, 'The default value for refusal_allowed should be False')
+        with self.assertRaises(UserError, msg='Refuse should not be allowed'):
+            sign_request_item_employee._refuse("bad document")
+        sign_request_3_roles.refusal_allowed = True
         with self.assertRaises(UserError, msg='A signed sign.request.item cannot be refused'):
             sign_request_item_customer._refuse("bad document")
         sign_request_item_customer_token = sign_request_item_customer.access_token
@@ -296,6 +298,7 @@ class TestSignRequest(SignRequestCommon):
         self.assertEqual(len(sign_request_3_roles.activity_search(['mail.mail_activity_data_todo'], user_id=self.user_1.id)), 1, 'An activity for the new signer should be created')
 
         # refuse
+        sign_request_3_roles.refusal_allowed = True
         sign_request_item_employee._refuse('bad request')
 
         # reassign
@@ -448,19 +451,3 @@ class TestSignRequest(SignRequestCommon):
         )
 
         self.assertEqual(mail.reply_to, responsible_email, 'reply_to is not set as the responsible email')
-
-    def test_sign_send_request_without_order(self):
-        wizard = Form(self.env['sign.send.request'].with_context(active_id=self.template_3_roles.id, sign_directly_without_mail=False))
-        self.assertEqual([record['mail_sent_order'] for record in wizard.signer_ids._records], [1, 1, 1])
-
-    def test_sign_send_request_order_with_order(self):
-        wizard = Form(self.env['sign.send.request'].with_context(active_id=self.template_3_roles.id, sign_directly_without_mail=False))
-        wizard.set_sign_order = True
-        self.assertEqual([record['mail_sent_order'] for record in wizard.signer_ids._records], [1, 2, 3])
-
-    def test_archived_requests_dont_send_reminders(self):
-        """ Create a request with old validity and archived, trigger cron reminder and ensure no reminder was created. """
-        archived_request = self.create_sign_request_no_item(signer=self.partner_1, cc_partners=self.partner_4)
-        archived_request.write({'active': False, 'validity': datetime.now() - timedelta(days=2)})
-        self.env['sign.request']._cron_reminder()
-        self.assertTrue(archived_request.state != 'expired')

@@ -5,6 +5,7 @@ import logging
 import requests
 
 from datetime import timedelta
+from markupsafe import Markup
 
 from odoo import fields, models, _
 from odoo.exceptions import ValidationError
@@ -203,6 +204,12 @@ class DeliverCarrier(models.Model):
             'warning_message': result.get('warning_message')
         }
 
+    def _create_tracking_link(self, awb_number):
+        """
+        Returns the html tracking link for a given AWB number.
+        """
+        return Markup("<a target='_blank' href='https://shiprocket.co/tracking/%s'>%s</a>") % (awb_number, awb_number)
+
     def shiprocket_send_shipping(self, pickings):
         """
         Send shipment to shiprocket. Once the shiprocket order is
@@ -239,7 +246,7 @@ class DeliverCarrier(models.Model):
                     label_data = _get_document_data(response['label_url'])
                     attachments = [("%s-%s.pdf" % (courier_name, carrier_tracking_ref), label_data)]
                     log_message = _("Label generated of %s with Tracking Number: %s",
-                                    courier_name, carrier_tracking_ref)
+                                    courier_name, self._create_tracking_link(carrier_tracking_ref))
                     picking.message_post(body=log_message, attachments=attachments)
                 # if shiprocket_pickup_request is enable then only shiprocket generate manifest(s).
                 if self.shiprocket_manifests_generate and response.get('manifest_url'):

@@ -11,12 +11,8 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 class TestCreditTime(AccountTestInvoicingCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
-
-        cls.env.company.partner_id.tz = "Europe/Brussels"
-        cls.env['resource.calendar'].search([]).tz = "Europe/Brussels"
-        cls.env.user.tz = "Europe/Brussels"
 
         cls.company_data['company'].country_id = cls.env.ref('base.be')
 
@@ -28,24 +24,18 @@ class TestCreditTime(AccountTestInvoicingCommon):
             'attendance_ids': [
                 (5, 0, 0),
                 (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Monday Lunch', 'dayofweek': '0', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Monday Afternoon', 'dayofweek': '0', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday Lunch', 'dayofweek': '1', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Tuesday Afternoon', 'dayofweek': '1', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Wednesday Morning', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Wednesday Lunch', 'dayofweek': '2', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Wednesday Afternoon', 'dayofweek': '2', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday Lunch', 'dayofweek': '3', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Thursday Afternoon', 'dayofweek': '3', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday Lunch', 'dayofweek': '4', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Friday Afternoon', 'dayofweek': '4', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'})
             ],
         })
         cls.classic_38h_calendar = cls.env.company.resource_calendar_id
-        cls.env.ref('hr_contract.structure_type_employee_cp200').default_resource_calendar_id = cls.classic_38h_calendar
 
         cls.employee = cls.env['hr.employee'].create({
             'name': 'My Credit Time Employee',
@@ -224,16 +214,12 @@ class TestCreditTime(AccountTestInvoicingCommon):
             'full_time_required_hours': 38,
             'attendance_ids': [
                 (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Monday Lunch', 'dayofweek': '0', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Monday Afternoon', 'dayofweek': '0', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday Lunch', 'dayofweek': '1', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Tuesday Afternoon', 'dayofweek': '1', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday Lunch', 'dayofweek': '3', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Thursday Afternoon', 'dayofweek': '3', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'}),
                 (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday Lunch', 'dayofweek': '4', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
                 (0, 0, {'name': 'Friday Afternoon', 'dayofweek': '4', 'hour_from': 13, 'hour_to': 16.6, 'day_period': 'afternoon'})
             ],
         })
@@ -340,7 +326,7 @@ class TestCreditTime(AccountTestInvoicingCommon):
         self.assertEqual(payslip_new_contract.contract_id, new_contract)
         self.assertEqual(len(payslip_new_contract.worked_days_line_ids), 3) # Attendance, credit time, out of contract
         attendance_line = payslip_new_contract.worked_days_line_ids[0]
-        self.assertAlmostEqual(attendance_line.amount, 2067.69, places=2)
+        self.assertAlmostEqual(attendance_line.amount, 2123.08, places=2)
         self.assertEqual(attendance_line.number_of_days, 16.0)
         self.assertEqual(float_compare(attendance_line.number_of_hours, 121.6, 2), 0)
         out_of_contract_line = payslip_new_contract.worked_days_line_ids[1]
@@ -353,31 +339,31 @@ class TestCreditTime(AccountTestInvoicingCommon):
         self.assertEqual(float_compare(credit_time_line.number_of_hours, 22.8, 2), 0)
 
         payslip_results = {
-            'BASIC': 2067.69,
+            'BASIC': 2123.08,
             'ATN.INT': 0.0,
             'ATN.MOB': 0.0,
             'ATN.LAP': 0.0,
-            'SALARY': 2067.69,
-            'ONSS': -270.25,
-            'EmpBonus.1': 28.9,
+            'SALARY': 2123.08,
+            'ONSS': -277.49,
+            'EmpBonus.1': 16.75,
             'ATN.CAR': 0,
-            'GROSSIP': 1826.35,
-            'IP.PART': -516.92,
-            'GROSS': 1309.42,
-            'P.P': -69.59,
-            'P.P.DED': 9.58,
+            'GROSSIP': 1862.34,
+            'IP.PART': -530.77,
+            'GROSS': 1331.57,
+            'P.P': -72.4,
+            'P.P.DED': 5.55,
             'ATN.CAR.2': 0.0,
             'ATN.INT.2': 0.0,
             'ATN.MOB.2': 0.0,
             'ATN.LAP.2': 0.0,
-            'M.ONSS': -9.3,
+            'M.ONSS': -13.51,
             'MEAL_V_EMP': -17.44,
             'PUB.TRANS': 0.0,
             'CAR.PRIV': 29.82,
             'REP.FEES': 98.08,
-            'IP': 516.92,
-            'IP.DED': -38.77,
-            'NET': 1828.72,
+            'IP': 530.77,
+            'IP.DED': -39.81,
+            'NET': 1852.64,
         }
         error = []
         line_values = payslip_new_contract._get_line_values(payslip_results.keys())

@@ -54,12 +54,14 @@ class Form28150(models.Model):
     partner_name = fields.Char(
         string='Partner Name',
         help='Name of the partner when the form was created',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_name', store=True, readonly=False,
     )
     partner_address = fields.Char(
         string='Address',
         help='Address of the partner when the form was created',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_address', store=True, readonly=False,
     )
@@ -67,33 +69,39 @@ class Form28150(models.Model):
         comodel_name='res.country',
         string='Country',
         help='Country of the partner when the form was created',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_country_id', store=True, readonly=False,
     )
     partner_zip = fields.Char(
         string='Zip',
         help='Zip of the partner when the form was created',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_zip', store=True, readonly=False,
     )
     partner_city = fields.Char(
         string='City',
         help='City of the partner when the form was created',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_city', store=True, readonly=False,
     )
     partner_job_position = fields.Char(
         string='Job position',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_job_position', store=True, readonly=False,
     )
     partner_citizen_identification = fields.Char(
         string='Citizen identification number',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_citizen_identification', store=True, readonly=False,
     )
     partner_bce_number = fields.Char(
         string='BCE number',
+        states={'generated': [('readonly', True)]},
         tracking=True,
         compute='_compute_partner_bce_number', store=True, readonly=False,
     )
@@ -143,10 +151,8 @@ class Form28150(models.Model):
         readonly=True,
     )
 
-    @api.depends('reference_year', 'partner_name')
-    def _compute_display_name(self):
-        for record in self:
-            record.display_name = f"{record.reference_year} {record.partner_name}"
+    def name_get(self):
+        return [(record.id, f"{record.reference_year} {record.partner_name}") for record in self]
 
     def assign_official_id(self):
         """Assigns an official_id pulled from `ir.sequence` or, if in test mode, from a simple enumerate"""

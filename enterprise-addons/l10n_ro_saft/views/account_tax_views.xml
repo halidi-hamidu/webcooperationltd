@@ -7,8 +7,8 @@
             <field name="inherit_id" ref="account.view_tax_form"/>
             <field name="arch" type="xml">
                 <field name="country_id" position="after">
-                    <field name="l10n_ro_saft_tax_type_id" invisible="amount_type == 'group' or country_code != 'RO'"/>
-                    <field name="l10n_ro_saft_tax_code" invisible="amount_type == 'group' or country_code != 'RO'"/>
+                    <field name="l10n_ro_saft_tax_type_id" attrs="{'invisible':['|', ('amount_type','=', 'group'), ('country_code', '!=', 'RO')]}"/>
+                    <field name="l10n_ro_saft_tax_code" attrs="{'invisible':['|', ('amount_type','=', 'group'), ('country_code', '!=', 'RO')]}"/>
                 </field>
             </field>
         </record>

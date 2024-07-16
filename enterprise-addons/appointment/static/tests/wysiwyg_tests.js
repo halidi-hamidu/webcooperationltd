@@ -4,7 +4,7 @@ import { registry } from "@web/core/registry";
 import { makeView, setupViewRegistries } from "@web/../tests/views/helpers";
 import { patchWithCleanup, triggerEvent } from '@web/../tests/helpers/utils';
 import { makeFakeDialogService } from '@web/../tests/helpers/mock_services';
-import { Wysiwyg } from '@web_editor/js/wysiwyg/wysiwyg';
+import Wysiwyg from 'web_editor.wysiwyg';
 import { insertText } from '@web_editor/js/editor/odoo-editor/test/utils'
 import { setSelection } from '@web_editor/js/editor/odoo-editor/src/utils/utils';
 
@@ -23,6 +23,7 @@ function onMount() {
 }
 
 function assertHistorySteps(assert, editable, originalContent) {
+    wysiwyg.odooEditor.clean();
     const currentContent = editable.innerHTML;
     wysiwyg.odooEditor.historyUndo();
     wysiwyg.odooEditor.clean();
@@ -68,13 +69,39 @@ QUnit.module('appointment.wysiwyg', {
             { force: true },
         );
         patchWithCleanup(Wysiwyg.prototype, {
-            init() {
-                super.init(...arguments);
+            init: function () {
+                this._super.apply(this, arguments);
                 wysiwyg = this;
             }
         });
     }
 }, function () {
+
+    QUnit.test('Insert link with "/Calendar"', async function (assert) {
+        assert.expect(3);
+
+        await makeView({
+            type: 'form',
+            serverData,
+            resModel: 'note',
+            arch: '<form>' +
+                '<field name="body" widget="html" style="height: 100px"/>' +
+                '</form>',
+            resId: 1,
+        });
+        const { editor, editable, originalContent } = onMount();
+
+        // Type powerbox command + 'Enter'
+        setSelection(editable.querySelector('p'), 0);
+        await insertText(editor, '/Calendar');
+        await triggerEvent(editable, null, 'keydown', { key: 'Enter' });
+        editor.clean();
+
+        assert.strictEqual(editable.innerHTML,
+            `<p><a href="${window.location.origin}/appointment">Our Appointment Types</a></p>`);
+
+        assertHistorySteps(assert, editable, originalContent);
+    });
 
     QUnit.test('Insert link with "/Appointment"', async function (assert) {
         assert.expect(3);
@@ -98,6 +125,35 @@ QUnit.module('appointment.wysiwyg', {
 
         assert.strictEqual(editable.innerHTML,
             `<p><a href="${linkUrl}">Schedule an Appointment</a></p>`);
+
+        assertHistorySteps(assert, editable, originalContent);
+    });
+
+    QUnit.test('Replace existing link with "/Calendar" link', async function (assert) {
+        assert.expect(3);
+
+        await makeView({
+            type: 'form',
+            serverData,
+            resModel: 'note',
+            arch: '<form>' +
+                '<field name="body" widget="html" style="height: 100px"/>' +
+                '</form>',
+            resId: 2,
+        });
+        const { editor, editable, originalContent } = onMount();
+
+        // Place cursor at beginning of link's label, after the ZWNBSP.
+        const p = editable.querySelector('p');
+        setSelection(p.querySelector('a').childNodes[1], 0);
+
+        // Type powerbox command + 'Enter'
+        await insertText(editor, '/Calendar');
+        await triggerEvent(editable, null, 'keydown', { key: 'Enter' });
+        editor.clean();
+
+        assert.strictEqual(editable.innerHTML,
+            `<p><a href="${window.location.origin}/appointment">Our Appointment Types</a></p>`);
 
         assertHistorySteps(assert, editable, originalContent);
     });

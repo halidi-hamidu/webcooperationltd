@@ -41,7 +41,7 @@ class TestHrAppraisalFeedback(TransactionCase):
             'questions_layout': 'one_page',
             'questions_selection': 'all',
             'access_mode': 'public',
-            'survey_type': 'appraisal',
+            'is_appraisal': True
         })
 
     def test_appraisal_feedback_deadline(self):

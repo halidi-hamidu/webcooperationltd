@@ -1,38 +1,27 @@
-/* @odoo-module */
-
-import { contains } from "@web/../tests/utils";
-
+/** @odoo-module **/
 import {
     click,
     getFixture,
+    legacyExtraNextTick,
     makeDeferred,
     nextTick,
     patchWithCleanup,
-    editInput,
     triggerEvents,
 } from "@web/../tests/helpers/utils";
 import { registerCleanup } from "@web/../tests/helpers/cleanup";
 
-import { toggleSearchBarMenu, toggleMenuItem } from "@web/../tests/search/helpers";
+import { toggleFilterMenu, toggleMenuItem } from "@web/../tests/search/helpers";
 import { companyService } from "@web/webclient/company_service";
 import { commandService } from "@web/core/commands/command_service";
 import { createEnterpriseWebClient } from "@web_enterprise/../tests/helpers";
-import { doAction, getActionManagerServerData } from "@web/../tests/webclient/helpers";
-import {
-    leaveStudio,
-    openStudio,
-    registerStudioDependencies,
-    fillActionFieldsDefaults,
-} from "@web_studio/../tests/helpers";
+import { getActionManagerServerData } from "@web/../tests/webclient/helpers";
+import { leaveStudio, openStudio, registerStudioDependencies } from "@web_studio/../tests/helpers";
 import { registry } from "@web/core/registry";
 import { session } from "@web/session";
-import { patch } from "@web/core/utils/patch";
-import { StudioView } from "@web_studio/client_action/view_editor/studio_view";
-import { ViewEditor } from "@web_studio/client_action/view_editor/view_editor";
+import { patch, unpatch } from "@web/core/utils/patch";
+import { StudioView } from "@web_studio/client_action/studio_view";
 import { StudioClientAction } from "@web_studio/client_action/studio_client_action";
-import { ListEditorRenderer } from "@web_studio/client_action/view_editor/editors/list/list_editor_renderer";
-import { onMounted } from "@odoo/owl";
-import { selectorContains } from "@web_studio/../tests/client_action/view_editors/view_editor_tests_utils";
+import { ListEditorRenderer } from "@web_studio/client_action/view_editors/list/list_editor_renderer";
 
 // -----------------------------------------------------------------------------
 // Tests
@@ -44,12 +33,6 @@ QUnit.module("Studio", (hooks) => {
     hooks.beforeEach(() => {
         target = getFixture();
         serverData = getActionManagerServerData();
-
-        const actions = serverData.actions;
-        for (const actId of Object.keys(actions)) {
-            actions[actId] = fillActionFieldsDefaults(actions[actId]);
-        }
-
         registerStudioDependencies();
         const serviceRegistry = registry.category("services");
         serviceRegistry.add("company", companyService);
@@ -134,19 +117,11 @@ QUnit.module("Studio", (hooks) => {
         await createEnterpriseWebClient({ serverData });
         assert.containsOnce(target, ".o_main_navbar");
 
-        assert.containsNone(target, ".o_main_navbar .o_web_studio_navbar_item button");
-    });
-
-    QUnit.test("Studio icon matches the clickbot selector", async function (assert) {
-        // This test looks stupid, but if you ever need to adapt the selector,
-        // you must adapt it as well in the clickbot (in web), otherwise Studio
-        // might not be tested anymore by the click_everywhere test.
-        await createEnterpriseWebClient({ serverData });
-        assert.containsOnce(target, ".o_web_studio_navbar_item:not(.o_disabled) i");
+        assert.containsNone(target, ".o_main_navbar .o_web_studio_navbar_item a");
     });
 
     QUnit.test("open Studio with act_window", async function (assert) {
-        assert.expect(21);
+        assert.expect(22);
 
         const mockRPC = async (route) => {
             assert.step(route);
@@ -156,7 +131,7 @@ QUnit.module("Studio", (hooks) => {
 
         // open app Partners (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
 
         assert.containsOnce(target, ".o_kanban_view");
         assert.verifySteps(
@@ -168,15 +143,15 @@ QUnit.module("Studio", (hooks) => {
             ],
             "should have loaded the action"
         );
-        assert.containsOnce(target, ".o_main_navbar .o_web_studio_navbar_item button");
+        assert.containsOnce(target, ".o_main_navbar .o_web_studio_navbar_item a");
 
         await openStudio(target);
 
         assert.verifySteps(
             [
-                "/web/dataset/call_kw/partner/get_views",
-
+                "/web_studio/activity_allowed",
                 "/web_studio/get_studio_view_arch",
+                "/web/dataset/call_kw/partner/get_views",
                 "/web/dataset/call_kw/partner/web_search_read",
             ],
             "should have opened the action in Studio"
@@ -184,7 +159,7 @@ QUnit.module("Studio", (hooks) => {
 
         assert.containsOnce(
             target,
-            ".o_web_studio_editor_manager .o_web_studio_kanban_view_editor",
+            ".o_web_studio_client_action .o_web_studio_kanban_view_editor",
             "the kanban view should be opened"
         );
         assert.containsOnce(
@@ -205,7 +180,7 @@ QUnit.module("Studio", (hooks) => {
             "should have reloaded the previous action edited by Studio"
         );
 
-        assert.containsNone(target, ".o_web_studio_editor_manager", "Studio should be closed");
+        assert.containsNone(target, ".o_web_studio_client_action", "Studio should be closed");
         assert.containsOnce(
             target,
             ".o_kanban_view .o_kanban_record:contains(yop)",
@@ -221,7 +196,6 @@ QUnit.module("Studio", (hooks) => {
         // the menu is rendered once the action is ready, so potentially in the next animation frame
         await nextTick();
         await click(target, ".o_menu_sections .o_nav_entry:nth-child(2)");
-        await nextTick();
         assert.containsOnce(target, ".o_list_view");
 
         await click(target.querySelector(".o_data_row .o_data_cell")); // open a record
@@ -230,7 +204,7 @@ QUnit.module("Studio", (hooks) => {
         await openStudio(target);
         assert.containsOnce(
             target,
-            ".o_web_studio_editor_manager .o_web_studio_form_view_editor",
+            ".o_web_studio_client_action .o_web_studio_form_view_editor",
             "the form view should be opened"
         );
         assert.strictEqual(
@@ -247,7 +221,7 @@ QUnit.module("Studio", (hooks) => {
 
         // open app Partners (act window action), sub menu Partners (action 3)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
         assert.strictEqual(
             $(target).find(".o_kanban_record:contains(yop)").length,
             1,
@@ -255,6 +229,7 @@ QUnit.module("Studio", (hooks) => {
         );
 
         await click(target.querySelector(".o_kanban_record")); // open a record
+        await legacyExtraNextTick();
         assert.containsOnce(target, ".o_form_view");
         assert.strictEqual(
             $(target).find(".o_form_view input:propValue(yop)").length,
@@ -263,10 +238,10 @@ QUnit.module("Studio", (hooks) => {
         );
 
         let prom = makeDeferred();
-        const unpatch = patch(StudioView.prototype, {
+        patch(StudioView.prototype, "web_studio.Test.StudioView", {
             setup() {
-                super.setup();
-                onMounted(() => {
+                this._super();
+                owl.onMounted(() => {
                     prom.resolve();
                 });
             },
@@ -276,11 +251,11 @@ QUnit.module("Studio", (hooks) => {
         prom = makeDeferred();
         await webClient.env.services.studio.reload();
         await prom;
-        unpatch();
+        unpatch(StudioView.prototype, "web_studio.Test.StudioView");
 
         assert.containsOnce(
             target,
-            ".o_web_studio_editor_manager .o_web_studio_form_view_editor",
+            ".o_web_studio_client_action .o_web_studio_form_view_editor",
             "the studio view should be opened after reloading"
         );
         assert.strictEqual(
@@ -296,17 +271,14 @@ QUnit.module("Studio", (hooks) => {
         await createEnterpriseWebClient({ serverData });
         // open app Partners (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
         assert.containsOnce(target, ".o_kanban_view");
 
         await openStudio(target);
-        assert.containsOnce(
-            target,
-            ".o_web_studio_editor_manager .o_web_studio_kanban_view_editor"
-        );
+        assert.containsOnce(target, ".o_web_studio_client_action .o_web_studio_kanban_view_editor");
 
         // click on tab "Views"
-        await click(target.querySelector(".o_web_studio_menu .o_menu_sections a"));
+        await click(target.querySelector(".o_web_studio_menu .o_web_studio_menu_item a"));
         assert.containsOnce(target, ".o_web_studio_action_editor");
 
         // open list view
@@ -315,17 +287,18 @@ QUnit.module("Studio", (hooks) => {
                 ".o_web_studio_views .o_web_studio_view_type[data-type=list] .o_web_studio_thumbnail"
             )
         );
+        await legacyExtraNextTick();
 
-        assert.containsOnce(target, ".o_web_studio_editor_manager .o_web_studio_list_view_editor");
+        assert.containsOnce(target, ".o_web_studio_client_action .o_web_studio_list_view_editor");
 
         await leaveStudio(target);
 
-        assert.containsNone(target, ".o_web_studio_editor_manager", "Studio should be closed");
+        assert.containsNone(target, ".o_web_studio_client_action", "Studio should be closed");
         assert.containsOnce(target, ".o_list_view", "the list view should be opened");
     });
 
     QUnit.test("navigation in Studio with act_window", async function (assert) {
-        assert.expect(26);
+        assert.expect(28);
 
         const mockRPC = async (route) => {
             assert.step(route);
@@ -334,7 +307,7 @@ QUnit.module("Studio", (hooks) => {
         await createEnterpriseWebClient({ serverData, mockRPC });
         // open app Partners (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
 
         assert.verifySteps(
             [
@@ -350,9 +323,9 @@ QUnit.module("Studio", (hooks) => {
 
         assert.verifySteps(
             [
-                "/web/dataset/call_kw/partner/get_views",
-
+                "/web_studio/activity_allowed",
                 "/web_studio/get_studio_view_arch",
+                "/web/dataset/call_kw/partner/get_views",
                 "/web/dataset/call_kw/partner/web_search_read",
             ],
             "should have opened the action in Studio"
@@ -360,7 +333,7 @@ QUnit.module("Studio", (hooks) => {
 
         assert.containsOnce(
             target,
-            ".o_web_studio_editor_manager .o_web_studio_kanban_view_editor",
+            ".o_web_studio_client_action .o_web_studio_kanban_view_editor",
             "the kanban view should be opened"
         );
         assert.strictEqual(
@@ -375,13 +348,14 @@ QUnit.module("Studio", (hooks) => {
 
         // open app Ponies (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
+        await legacyExtraNextTick();
 
         assert.verifySteps(
             [
                 "/web/action/load",
-                "/web/dataset/call_kw/pony/get_views",
-
+                "/web_studio/activity_allowed",
                 "/web_studio/get_studio_view_arch",
+                "/web/dataset/call_kw/pony/get_views",
                 "/web/dataset/call_kw/pony/web_search_read",
             ],
             "should have opened the navigated action in Studio"
@@ -389,7 +363,7 @@ QUnit.module("Studio", (hooks) => {
 
         assert.containsOnce(
             target,
-            ".o_web_studio_editor_manager .o_web_studio_list_view_editor",
+            ".o_web_studio_client_action .o_web_studio_list_view_editor",
             "the list view should be opened"
         );
         assert.strictEqual(
@@ -409,7 +383,7 @@ QUnit.module("Studio", (hooks) => {
             "should have reloaded the previous action edited by Studio"
         );
 
-        assert.containsNone(target, ".o_web_studio_editor_manager", "Studio should be closed");
+        assert.containsNone(target, ".o_web_studio_client_action", "Studio should be closed");
         assert.containsOnce(target, ".o_list_view", "the list view should be opened");
         assert.strictEqual(
             $(target).find(".o_list_view .o_data_cell").text(),
@@ -442,7 +416,7 @@ QUnit.module("Studio", (hooks) => {
         });
         // open app Partners (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
 
         assert.containsOnce(target, ".o_kanban_view");
 
@@ -457,20 +431,24 @@ QUnit.module("Studio", (hooks) => {
     });
 
     QUnit.test("user context is unpolluted when entering studio in error", async (assert) => {
-        assert.expectErrors();
         patchWithCleanup(StudioClientAction.prototype, {
             setup() {
                 throw new Error("Boom");
             },
         });
+        registry.category("services").add("error", { start() {} });
+
+        const handler = (ev) => {
+            assert.strictEqual(ev.reason.cause.message, "Boom");
+            assert.step("error");
+            ev.preventDefault();
+        };
+        window.addEventListener("unhandledrejection", handler);
+        registerCleanup(() => window.removeEventListener("unhandledrejection", handler));
 
         const mockRPC = (route, args) => {
             if (route === "/web/dataset/call_kw/partner/get_views") {
-                const context = args.kwargs.context;
-                const options = args.kwargs.options;
-                assert.step(
-                    `get_views, context studio: "${context.studio}", option studio: "${options.studio}"`
-                );
+                assert.step(`get_views, context studio: "${args.kwargs.context.studio}"`);
             }
         };
         await createEnterpriseWebClient({
@@ -479,86 +457,23 @@ QUnit.module("Studio", (hooks) => {
         });
         // open app Partners (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
-        assert.verifySteps([`get_views, context studio: "undefined", option studio: "undefined"`]);
+        await legacyExtraNextTick();
+        assert.verifySteps([`get_views, context studio: "undefined"`]);
 
         assert.containsOnce(target, ".o_kanban_view");
 
         await openStudio(target);
+        assert.verifySteps(["error"]);
 
         assert.containsNone(target, ".o_web_studio_kanban_view_editor");
         assert.containsOnce(target, ".o_kanban_view");
-        assert.verifyErrors(["Boom"]);
 
         await click(target.querySelector(".o_menu_sections a[data-menu-xmlid=menu_12]"));
-        await nextTick();
         assert.containsOnce(target, ".o_list_view");
-        assert.verifySteps([`get_views, context studio: "undefined", option studio: "undefined"`]);
-    });
-
-    QUnit.test("user context is not polluted when getting views", async (assert) => {
-        const mockRPC = (route, args) => {
-            if (route === "/web/dataset/call_kw/partner/get_views") {
-                const context = args.kwargs.context;
-                const options = args.kwargs.options;
-                assert.step(
-                    `get_views, context studio: "${context.studio}", option studio: "${options.studio}"`
-                );
-            }
-            if (route === "/web_studio/get_studio_action") {
-                assert.step("get_studio_action");
-                return {
-                    type: "ir.actions.act_window",
-                    res_model: "partner",
-                    views: [[false, "list"]],
-                };
-            }
-            if (args.method === "web_search_read") {
-                assert.step(`web_search_read, context studio: "${args.kwargs.context.studio}"`);
-            }
-        };
-        await createEnterpriseWebClient({
-            serverData,
-            mockRPC,
-        });
-        // open app Partners (act window action)
-        await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
-        assert.verifySteps([
-            `get_views, context studio: "undefined", option studio: "undefined"`,
-            `web_search_read, context studio: "undefined"`,
-        ]);
-
-        assert.containsOnce(target, ".o_kanban_view");
-
-        await openStudio(target);
-        assert.verifySteps([
-            `get_views, context studio: "undefined", option studio: "true"`,
-            `web_search_read, context studio: "1"`,
-        ]);
-        assert.containsOnce(target, ".o_web_studio_kanban_view_editor");
-
-        await click(target.querySelector(".o_menu_sections a[data-menu-xmlid=menu_12]"));
-        await nextTick();
-        assert.containsOnce(target, ".o_list_view");
-        assert.verifySteps([
-            `get_views, context studio: "undefined", option studio: "true"`,
-            `web_search_read, context studio: "1"`,
-        ]);
-
-        await click(
-            selectorContains(target, ".o_web_studio_menu .o_menu_sections a", "Automations")
-        );
-        await contains(".o_web_studio_editor  :not(.o_web_studio_view_renderer) .o_list_view");
-        assert.verifySteps([
-            "get_studio_action",
-            `get_views, context studio: "undefined", option studio: "undefined"`,
-            `web_search_read, context studio: "1"`,
-        ]);
+        assert.verifySteps([`get_views, context studio: "undefined"`]);
     });
 
     QUnit.test("error bubbles up if first rendering", async (assert) => {
-        assert.expectErrors();
         const _console = window.console;
         window.console = Object.assign(Object.create(_console), {
             warn(msg) {
@@ -574,6 +489,15 @@ QUnit.module("Studio", (hooks) => {
                 throw new Error("Boom");
             },
         });
+        registry.category("services").add("error", { start() {} });
+
+        const handler = (ev) => {
+            assert.strictEqual(ev.reason.cause.cause.message, "Boom");
+            assert.step("error");
+            ev.preventDefault();
+        };
+        window.addEventListener("unhandledrejection", handler);
+        registerCleanup(() => window.removeEventListener("unhandledrejection", handler));
 
         await createEnterpriseWebClient({
             serverData,
@@ -582,70 +506,22 @@ QUnit.module("Studio", (hooks) => {
         await click(target.querySelector(".o_app[data-menu-xmlid=app_1]"));
         await nextTick();
         await click(target.querySelector(".o_menu_sections [data-menu-xmlid=menu_12]"));
-        await nextTick();
         assert.containsOnce(target, ".o_list_view");
 
         await openStudio(target);
-        assert.verifyErrors(["Boom"]);
+        assert.verifySteps([
+            "[Owl] Unhandled error. Destroying the root component", // (legacy) owl_compatibility-specific
+            "error",
+        ]);
         // FIXME : due to https://github.com/odoo/owl/issues/1298,
         // the visual result is not asserted here, ideally we'd want to be in the studio
         // action, with a blank editor
-    });
-
-    QUnit.test("error when new app's view is invalid", async (assert) => {
-        assert.expectErrors();
-
-        serverData.menus.root.children.push(99);
-        serverData.menus[99] = {
-            id: 99,
-            children: [],
-            actionID: 99,
-            xmlid: "testMenu",
-            name: "test",
-            appID: 99,
-        };
-        serverData.actions[99] = {
-            xmlid: "testAction",
-            id: 99,
-            type: "ir.actions.act_window",
-            res_model: "partner",
-            views: [[false, "list"]],
-            help: "",
-            name: "test action",
-            groups_id: [],
-        };
-
-        await createEnterpriseWebClient({
-            serverData,
-            mockRPC: async (route, args) => {
-                if (route === "/web_studio/create_new_app") {
-                    return { menu_id: 99, action_id: 99 };
-                }
-                if (route === "/web_studio/get_studio_view_arch") {
-                    return Promise.reject(new Error("Boom"));
-                }
-            },
-        });
-
-        await click(target, ".o_web_studio_navbar_item button");
-        await click(target, ".o_web_studio_new_app");
-        await click(target, ".o_web_studio_app_creator_next");
-        await editInput(target, ".o_web_studio_app_creator_name input", "testApp");
-        await click(target, ".o_web_studio_app_creator_next");
-        await editInput(target, ".o_web_studio_menu_creator input", "testMenu");
-        await click(target, ".o_web_studio_app_creator_next");
-        await click(target, ".o_web_studio_model_configurator_next");
-        await contains(".o_web_studio_action_editor");
-        // Wait for the error event to be handled
-        await nextTick();
-        assert.verifyErrors(["Boom"]);
     });
 
     QUnit.test("open same record when leaving form", async function (assert) {
         await createEnterpriseWebClient({ serverData });
         // open app Ponies (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
-        await nextTick();
         assert.containsOnce(target, ".o_list_view");
         // Dont'pick the first record for testing
         await click(target.querySelectorAll(".o_data_row .o_data_cell")[1]);
@@ -662,7 +538,7 @@ QUnit.module("Studio", (hooks) => {
             ).textContent,
             "Applejack"
         );
-        assert.containsOnce(target, ".o_web_studio_editor_manager .o_web_studio_form_view_editor");
+        assert.containsOnce(target, ".o_web_studio_client_action .o_web_studio_form_view_editor");
 
         await leaveStudio(target);
         assert.containsOnce(target, ".o_form_view");
@@ -691,8 +567,6 @@ QUnit.module("Studio", (hooks) => {
             name: "Partners Action 99",
             res_model: "partner",
             type: "ir.actions.act_window",
-            help: "",
-            groups_id: [],
             views: [
                 [42, "grid"],
                 [2, "list"],
@@ -710,14 +584,10 @@ QUnit.module("Studio", (hooks) => {
 
         await createEnterpriseWebClient({
             serverData,
-            async mockRPC(route, args) {
-                if (args.method === "grid_unavailability") {
-                    return {};
-                }
-            },
+            legacyParams: { withLegacyMockServer: true },
         });
         await click(target.querySelector(".o_app[data-menu-xmlid=app_9]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
 
         assert.containsOnce(target, ".o_grid_view");
 
@@ -743,7 +613,7 @@ QUnit.module("Studio", (hooks) => {
             });
             // open app Ponies (act window action)
             await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
-            await nextTick(); // BlankComponent, first, wait for the real action
+            await legacyExtraNextTick();
 
             assert.ok(
                 [...target.querySelectorAll(".o_list_table .o_data_row")].length > 0,
@@ -751,6 +621,7 @@ QUnit.module("Studio", (hooks) => {
             );
 
             await openStudio(target);
+            await legacyExtraNextTick();
 
             assert.containsNone(
                 target,
@@ -782,7 +653,7 @@ QUnit.module("Studio", (hooks) => {
         });
         // open app Ponies (act window action)
         await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
-        await nextTick(); // BlankComponent, first, wait for the real action
+        await legacyExtraNextTick();
 
         assert.ok(
             [...target.querySelectorAll(".o_kanban_view .o_kanban_examples_ghost")].length > 0,
@@ -790,6 +661,7 @@ QUnit.module("Studio", (hooks) => {
         );
 
         await openStudio(target);
+        await legacyExtraNextTick();
 
         assert.containsOnce(
             target,
@@ -849,21 +721,21 @@ QUnit.module("Studio", (hooks) => {
         });
         assert.verifySteps([]);
         await click(target.querySelector(".o_app[data-menu-xmlid=app_43]"));
-        await nextTick();
         assert.containsOnce(target, ".o_kanban_view");
         assert.verifySteps([
-            `web_search_read: {"specification":{"display_name":{}},"offset":0,"order":"","limit":40,"context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"bin_size":true,"current_company_id":1},"count_limit":10001,"domain":[]}`,
+            `web_search_read: {"limit":40,"offset":0,"order":"","context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"bin_size":true},"count_limit":10001,"domain":[],"fields":["display_name"]}`,
         ]);
-        await toggleSearchBarMenu(target);
+
+        await toggleFilterMenu(target);
         await toggleMenuItem(target, "Apple");
         assert.verifySteps([
-            `web_search_read: {"specification":{"display_name":{}},"offset":0,"order":"","limit":40,"context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"bin_size":true,"current_company_id":1},"count_limit":10001,"domain":[["name","ilike","Apple"]]}`,
+            `web_search_read: {"limit":40,"offset":0,"order":"","context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"bin_size":true},"count_limit":10001,"domain":[["name","ilike","Apple"]],"fields":["display_name"]}`,
         ]);
 
         await openStudio(target);
         assert.containsOnce(target, ".o_web_studio_kanban_view_editor");
         assert.verifySteps([
-            `web_search_read: {"specification":{"display_name":{}},"offset":0,"order":"","limit":1,"context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"studio":1,"bin_size":true,"current_company_id":1},"count_limit":10001,"domain":[["name","ilike","Apple"]]}`,
+            `web_search_read: {"limit":1,"offset":0,"order":"","context":{"lang":"en","uid":7,"tz":"taht","allowed_company_ids":[1],"studio":1,"bin_size":true},"count_limit":10001,"domain":[["name","ilike","Apple"]],"fields":["display_name"]}`,
         ]);
         assert.strictEqual(target.querySelector(".o_kanban_record").textContent, "Applejack");
     });
@@ -891,11 +763,10 @@ QUnit.module("Studio", (hooks) => {
                 context: "{'default_type': 'foo'}",
                 res_id: 4,
                 xml_id: "action_43",
-                groups_id: [],
             };
 
             const mockRPC = async (route, args) => {
-                if (route === "/web/dataset/call_kw/pony/web_read") {
+                if (route === "/web/dataset/call_kw/pony/read") {
                     // We pass here twice: once for the "classic" action
                     // and once when entering studio
                     assert.strictEqual(args.kwargs.context.default_type, "foo");
@@ -913,7 +784,7 @@ QUnit.module("Studio", (hooks) => {
                 mockRPC,
             });
             await click(target.querySelector(".o_app[data-menu-xmlid=app_43]"));
-            await nextTick(); // BlankComponent, first, wait for the real action
+            await legacyExtraNextTick();
 
             assert.containsOnce(target, ".o_form_view");
 
@@ -921,7 +792,7 @@ QUnit.module("Studio", (hooks) => {
 
             assert.containsOnce(
                 target,
-                ".o_web_studio_editor_manager .o_web_studio_form_view_editor",
+                ".o_web_studio_client_action .o_web_studio_form_view_editor",
                 "the form view should be opened"
             );
 
@@ -934,7 +805,7 @@ QUnit.module("Studio", (hooks) => {
 
             assert.containsOnce(
                 target,
-                ".o_web_studio_editor_manager .o_web_studio_form_view_editor",
+                ".o_web_studio_client_action .o_web_studio_form_view_editor",
                 "the form view should be opened"
             );
         }
@@ -953,7 +824,7 @@ QUnit.module("Studio", (hooks) => {
             const webClient = await createEnterpriseWebClient({ serverData });
             assert.containsOnce(target, ".o_home_menu");
 
-            webClient.env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", () => {
+            webClient.env.bus.on("ACTION_MANAGER:UI-UPDATED", null, () => {
                 assert.containsOnce(target, ".o_kanban_view");
                 assert.hasClass(target.querySelector(".o_web_studio_navbar_item"), "o_disabled");
                 def.resolve();
@@ -1030,148 +901,5 @@ QUnit.module("Studio", (hooks) => {
         await click(target.querySelector(".o_command_palette .o_command"));
         await nextTick();
         assert.containsOnce(target, "div.o_notification[role=alert]");
-    });
-
-    QUnit.test("leaving studio with a pending rendering in Studio", async (assert) => {
-        serverData.models.pony.fields.selection = {
-            type: "selection",
-            selection: [["1", "1"]],
-            manual: true,
-        };
-        serverData.models.pony.records = [{ id: 1, selection: "1" }];
-
-        serverData.views["pony,false,form"] = `<form><field name="selection" /></form>`;
-        let vem;
-        patchWithCleanup(ViewEditor.prototype, {
-            setup() {
-                super.setup();
-                vem = this;
-            },
-        });
-
-        const loadActionDef = makeDeferred();
-        let enableRPCWatch = false;
-        const mockRPC = async (route, args) => {
-            if (!enableRPCWatch) {
-                return;
-            }
-            let res;
-            if (route === "/web/action/load") {
-                await loadActionDef;
-            }
-            if (args.method === "web_read") {
-                res = [{ id: args.args[0], selection: "2" }];
-            }
-
-            assert.step(route);
-            return res;
-        };
-
-        await createEnterpriseWebClient({ serverData, mockRPC });
-        await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
-        await contains(".o_data_cell");
-        await click(target.querySelector(".o_data_cell"));
-        await contains(".o_form_view");
-        await openStudio(target);
-        await contains(".o_studio");
-
-        await contains(".o_field_widget[name='selection']", { text: "1" });
-
-        enableRPCWatch = true;
-        await click(target.querySelector(".o_web_studio_leave"));
-        vem.viewEditorModel.fields.selection.selection.push(["2", "2"]);
-        await contains(".o_field_widget[name='selection']", { text: "2" });
-
-        loadActionDef.resolve();
-        await loadActionDef;
-        await contains("body:not(:has(.o_studio)) .o_form_view");
-
-        assert.verifySteps([
-            "/web/dataset/call_kw/pony/web_read",
-            "/web/action/load",
-            "/web/dataset/call_kw/pony/get_views",
-            "/web/dataset/call_kw/pony/web_read",
-        ]);
-    });
-
-    QUnit.test("create new menu uses the studio context key", async (assert) => {
-        serverData.models.pony.fields.selection = {
-            type: "selection",
-            selection: [["1", "1"]],
-            manual: true,
-        };
-        serverData.models.pony.records = [{ id: 1, selection: "1" }];
-
-        serverData.views["pony,false,form"] = `<form><field name="selection" /></form>`;
-        const mockRPC = async (route, args) => {
-            if (route === "/web_studio/create_new_menu") {
-                assert.strictEqual(args.context.studio, 1);
-                return { action_id: 3 };
-            }
-        };
-
-        await createEnterpriseWebClient({ serverData, mockRPC });
-        await click(target.querySelector(".o_app[data-menu-xmlid=app_2]"));
-        await contains(".o_data_cell");
-        await click(target.querySelector(".o_data_cell"));
-        await contains(".o_form_view");
-        await openStudio(target);
-        await contains(".o_studio");
-        await click(target, ".o_web_create_new_model");
-        await editInput(target, '.modal input[name="model_name"]', "ABCD");
-        await click(target, ".modal footer .btn-primary");
-        await click(target, ".modal .o_web_studio_model_configurator_next");
-    });
-
-    QUnit.test("auto-save feature works in studio (not editing a view)", async (assert) => {
-        serverData.models["base.automation"] = {
-            fields: {},
-            records: [],
-        };
-
-        serverData.views[
-            "base.automation,false,list"
-        ] = `<tree><field name="display_name" /></tree>`;
-        serverData.views["base.automation,false,search"] = `<search/>`;
-
-        serverData.views[
-            "base.automation,false,form"
-        ] = `<form><field name="display_name" /></form>`;
-        const mockRPC = (route, args) => {
-            if (route === "/web_studio/get_studio_action") {
-                return {
-                    name: "Automated Actions",
-                    type: "ir.actions.act_window",
-                    res_model: "base.automation",
-                    views: [
-                        [false, "list"],
-                        [false, "form"],
-                    ],
-                };
-            }
-
-            if (args.method === "web_save") {
-                assert.step(`web_save: ${args.model}: ${JSON.stringify(args.args)}`);
-            }
-        };
-        const webClient = await createEnterpriseWebClient({ serverData, mockRPC });
-        await doAction(webClient.env, 1);
-        await openStudio(target);
-        const menuAutomations = Array.from(target.querySelectorAll(".o_menu_sections a")).find(
-            (el) => el.textContent === "Automations"
-        );
-        await click(menuAutomations);
-        await click(target.querySelectorAll(".o_web_studio_editor .o_list_button_add")[1]);
-        await editInput(
-            target,
-            ".o_field_widget[name='display_name'] input",
-            "created base automation"
-        );
-        await click(target, ".o_web_studio_leave");
-        assert.verifySteps([
-            'web_save: base.automation: [[],{"display_name":"created base automation"}]',
-        ]);
-        assert.containsNone(target, ".o_studio");
-        assert.containsOnce(target, ".o_kanban_view");
     });
 });

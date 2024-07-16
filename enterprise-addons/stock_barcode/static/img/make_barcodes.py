@@ -44,7 +44,7 @@ def create_page(barcodes, font_size_and_texts):
 
 # same on all GS1 pages
 footer = [(45, 45, "Don't have any barcode scanner? Right click on your screen > Inspect > Console and type the following command:"),
-          (45, 35, '   odoo.__WOWL_DEBUG__.root.env.services.barcode.bus.trigger("barcode_scanned", {barcode:"setyourbarcodehere"})'),
+          (45, 35, '   odoo.__DEBUG__.services["web.core"].bus.trigger("barcode_scanned", "setyourbarcodehere", $(".o_web_client")[0])'),
           (45, 25, 'and replace "setyourbarcodehere" by the barcode you would like to scan OR use our mobile app.'),
           (45, 15, 'For GS1 barcodes, remove all "("s and ")"s')]
 

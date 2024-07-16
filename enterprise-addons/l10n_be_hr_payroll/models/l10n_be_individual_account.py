@@ -1,33 +1,48 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import base64
 import datetime
 import logging
 
 from collections import OrderedDict
 from odoo import api, fields, models, _
 from odoo.fields import Datetime
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
 
 class L10nBeIndividualAccount(models.Model):
     _name = 'l10n_be.individual.account'
-    _inherit = 'hr.payroll.declaration.mixin'
     _description = 'HR Individual Account Report By Employee'
 
+    @api.model
+    def default_get(self, field_list=None):
+        if self.env.company.country_id.code != "BE":
+            raise UserError(_('You must be logged in a Belgian company to use this feature'))
+        return super().default_get(field_list)
+
+    def _get_selection(self):
+        current_year = datetime.datetime.now().year
+        return [(str(i), i) for i in range(1990, current_year + 1)]
+
+    year = fields.Selection(
+        selection='_get_selection', string='Year', required=True,
+        default=lambda x: str(datetime.datetime.now().year - 1))
     name = fields.Char(
         string="Description", required=True, compute='_compute_name', readonly=False, store=True)
-
-    def _country_restriction(self):
-        return 'BE'
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    line_ids = fields.One2many(
+        'l10n_be.individual.account.line', 'sheet_id', compute='_compute_line_ids', store=True, readonly=False)
 
     @api.depends('year')
     def _compute_name(self):
         for sheet in self:
             sheet.name = _('Individual Accounts - Year %s', sheet.year)
 
-    def action_generate_declarations(self):
+    @api.depends('year', 'company_id')
+    def _compute_line_ids(self):
         for sheet in self:
             all_payslips = self.env['hr.payslip'].search([
                 ('date_to', '<=', datetime.date(int(sheet.year), 12, 31)),
@@ -36,14 +51,11 @@ class L10nBeIndividualAccount(models.Model):
                 ('company_id', '=', sheet.company_id.id),
             ])
             all_employees = all_payslips.mapped('employee_id')
-            sheet.write({
+            sheet.update({
                 'line_ids': [(5, 0, 0)] + [(0, 0, {
                     'employee_id': employee.id,
-                    'res_model': 'l10n_be.individual.account',
-                    'res_id': sheet.id,
                 }) for employee in all_employees]
             })
-        return super().action_generate_declarations()
 
     def _get_rendering_data(self, employees):
         self.ensure_one()
@@ -59,14 +71,12 @@ class L10nBeIndividualAccount(models.Model):
         ])
         employees = payslips.employee_id
         lines = payslips.line_ids.filtered(lambda l: l.salary_rule_id.appears_on_payslip)
-        payslip_rules = [(rule.code, rule.sequence) for rule in lines.salary_rule_id] + [('ECOVOUCHERS', 10000)]
+        payslip_rules = [(rule.code, rule.sequence) for rule in lines.salary_rule_id]
         payslip_rules = sorted(payslip_rules, key=lambda x: x[1])
         worked_days = payslips.worked_days_line_ids
-        other_inputs = payslips.input_line_ids
 
         result = {
             employee: {
-                'year': self.year,
                 'rules': OrderedDict(
                     (rule[0], {
                         'year': {'name': False, 'total': 0},
@@ -83,32 +93,14 @@ class L10nBeIndividualAccount(models.Model):
             } for employee in employees
         }
 
-        for other_input in other_inputs:
-            if other_input.input_type_id.code != "ECOVOUCHERS":
-                continue
-            slip = other_input.payslip_id
-            rule = result[slip.employee_id]['rules']['ECOVOUCHERS']
-            month = slip.date_from.month - 1
-            line_name = _('Ecovouchers')
-            rule['month'][month]['name'] = line_name
-            rule['month'][month]['total'] += other_input.amount
-            rule['quarter'][(month) // 3]['name'] = line_name
-            rule['quarter'][(month) // 3]['total'] += other_input.amount
-            rule['year']['name'] = line_name
-            rule['year']['total'] += other_input.amount
-
         for line in lines:
-            line = line.with_context(lang=line.slip_id.employee_id.lang or self.env.user.lang)
             rule = result[line.employee_id]['rules'][line.salary_rule_id.code]
             month = line.slip_id.date_from.month - 1
-            line_name = rule['month'][month]['name']
-            if not line_name or (line.slip_id.struct_id.type_id.default_struct_id == line.slip_id.struct_id):
-                line_name = line.salary_rule_id.name
-            rule['month'][month]['name'] = line_name
+            rule['month'][month]['name'] = line.name
             rule['month'][month]['total'] += line.total
-            rule['quarter'][(month) // 3]['name'] = line_name
+            rule['quarter'][(month) // 3]['name'] = line.name
             rule['quarter'][(month) // 3]['total'] += line.total
-            rule['year']['name'] = line_name
+            rule['year']['name'] = line.name
             rule['year']['total'] += line.total
 
             rule['month'][month]['total'] = round(rule['month'][month]['total'], 2)
@@ -116,25 +108,66 @@ class L10nBeIndividualAccount(models.Model):
             rule['year']['total'] = round(rule['year']['total'], 2)
 
         for worked_day in worked_days:
-            worked_day = worked_day.with_context(lang=worked_day.payslip_id.employee_id.lang or self.env.user.lang)
             work = result[worked_day.payslip_id.employee_id]['worked_days'][worked_day.code]
             month = worked_day.payslip_id.date_from.month - 1
 
-            worked_day_name = worked_day.work_entry_type_id.name
-            work['month'][month]['name'] = worked_day_name
+            work['month'][month]['name'] = worked_day.name
             work['month'][month]['number_of_days'] += worked_day.number_of_days
             work['month'][month]['number_of_hours'] += worked_day.number_of_hours
-            work['quarter'][(month) // 3]['name'] = worked_day_name
+            work['quarter'][(month) // 3]['name'] = worked_day.name
             work['quarter'][(month) // 3]['number_of_days'] += worked_day.number_of_days
             work['quarter'][(month) // 3]['number_of_hours'] += worked_day.number_of_hours
-            work['year']['name'] = worked_day_name
+            work['year']['name'] = worked_day.name
             work['year']['number_of_days'] += worked_day.number_of_days
             work['year']['number_of_hours'] += worked_day.number_of_hours
+
         return result
 
-    def _get_pdf_report(self):
-        return self.env.ref('l10n_be_hr_payroll.action_report_individual_account')
+    def action_generate_pdf(self):
+        self.line_ids.write({'pdf_to_generate': True})
+        self.env.ref('hr_payroll.ir_cron_generate_payslip_pdfs')._trigger()
 
-    def _get_pdf_filename(self, employee):
+    def _process_files(self, files):
         self.ensure_one()
-        return _('%s-individual-account-%s', employee.name, self.year)
+        for employee, filename, data in files:
+            line = self.line_ids.filtered(lambda l: l.employee_id == employee)
+            line.write({
+                'pdf_file': base64.encodebytes(data),
+                'pdf_filename': filename,
+            })
+
+
+class L10nBeIndividualAccountLine(models.Model):
+    _name = 'l10n_be.individual.account.line'
+    _description = 'HR Individual Account Report By Employee Line'
+
+    employee_id = fields.Many2one('hr.employee')
+    pdf_file = fields.Binary('PDF File', readonly=True, attachment=False)
+    pdf_filename = fields.Char()
+    sheet_id = fields.Many2one('l10n_be.individual.account')
+    pdf_to_generate = fields.Boolean()
+
+    def _generate_pdf(self):
+        report_sudo = self.env["ir.actions.report"].sudo()
+        report_id = self.env.ref('l10n_be_hr_payroll.action_report_individual_account').id
+
+        for sheet in self.sheet_id:
+            lines = self.filtered(lambda l: l.sheet_id == sheet)
+            rendering_data = sheet._get_rendering_data(lines.employee_id)
+
+            pdf_files = []
+            sheet_count = len(rendering_data)
+            counter = 1
+            for employee, employee_data in rendering_data.items():
+                _logger.info('Printing Individual Account sheet (%s/%s)', counter, sheet_count)
+                counter += 1
+                employee_lang = employee.sudo().address_home_id.lang
+                sheet_filename = _('%s-individual-account-%s', employee.name, sheet.year)
+                sheet_file, dummy = report_sudo.with_context(lang=employee_lang)._render_qweb_pdf(
+                    report_id,
+                    [employee.id], data={
+                        'year': int(sheet.year),
+                        'employee_data': {employee: employee_data}})
+                pdf_files.append((employee, sheet_filename, sheet_file))
+            if pdf_files:
+                sheet._process_files(pdf_files)

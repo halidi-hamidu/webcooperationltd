@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import json
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -48,15 +47,18 @@ class ConsolidationPeriod(models.Model):
         Compute the dashboard sections
         :return:
         """
+        Section = self.env['consolidation.group']
         for record in self:
             domain = [('period_id', '=', record.id), ('group_id.show_on_dashboard', '=', True)]
-            grouped_res = self.env['consolidation.journal.line']._read_group(domain, ['group_id'], ['amount:sum'])
+            rfields = ['group_id.id', 'total:sum(amount)']
+            group_by = ['group_id']
+            grouped_res = self.env['consolidation.journal.line']._read_group(domain, rfields, group_by)
 
             results = [
-                {"name": group.name, "value": record._format_value(amount_sum)}
-                for group, amount_sum in grouped_res
+                '{"name": "%s", "value": "%s"}' % (Section.browse(value['group_id'][0]).name, record._format_value(value['total']))
+                for value in grouped_res
             ]
-            record.dashboard_sections = json.dumps(results)
+            record.dashboard_sections = '[%s]' % ','.join(results)
 
     @api.depends('journal_ids')
     def _compute_journal_ids_count(self):
@@ -100,14 +102,14 @@ class ConsolidationPeriod(models.Model):
                 ('consolidation_account_chart_filtered_ids', '=', False),
                 ('used', '=', True)
             ]
-            values = Account.with_context(context)._read_group(domain, ['company_id'], ['__count'])
+            values = Account.with_context(context).read_group(domain, ['amount:count(id)', 'company_id.id'],
+                                                              ['company_id'])
 
             results = [
-                {"company_id": company.id, "name": company.name, "value": count}
-                for company, count in values
-            ]
+                '{"company_id": %s,"name": "%s", "value": "%s"}' % (val['company_id'][0], Company.browse(val['company_id'][0]).name, val['amount'])
+                for val in values]
 
-            record.company_unmapped_accounts_counts = json.dumps(results)
+            record.company_unmapped_accounts_counts = '[%s]' % ','.join(results)
 
     @api.onchange('date_analysis_end')
     def generate_guessed_company_periods(self):
@@ -201,7 +203,7 @@ class ConsolidationPeriod(models.Model):
                 'search_default_not_mapped': True,
                 'search_default_used': True,
             },
-            'display_name': _('Account Mapping: %s (for %s)', company.name, self.chart_id.name)
+            'display_name': _('Account Mapping: %s (for %s)') % (company.name, self.chart_id.name)
         })
         return action
 
@@ -251,10 +253,10 @@ class ConsolidationPeriod(models.Model):
         return action
 
     def action_save_onboarding_create_step(self):
-        """Validate the onboarding step of creating the first analysis period."""
-        self.env['onboarding.onboarding.step'].action_validate_step(
-            'account_consolidation.onboarding_onboarding_step_create_consolidation_period'
-        )
+        """
+        Save the "done" state of onboarding step of create first analysis period
+        """
+        self.env.user.company_id.sudo().set_onboarding_step_done('consolidation_create_period_state')
 
     # PROTECTEDS
 
@@ -365,7 +367,7 @@ class ConsolidationPeriod(models.Model):
         """
         self.ensure_one()
         for company_period in self.company_period_ids:
-            company_period._generate_journal()
+            company_period.generate_journal()
 
     def _generate_consolidations_journals(self):
         """
@@ -374,7 +376,7 @@ class ConsolidationPeriod(models.Model):
         """
         self.ensure_one()
         for consolidation_composition in self.using_composition_ids:
-            consolidation_composition._generate_journal()
+            consolidation_composition.generate_journal()
 
     def _format_value(self, value, currency=False):
         """
@@ -421,12 +423,13 @@ class ConsolidationPeriodComposition(models.Model):
             if comp.composed_period_id == comp.using_period_id:
                 raise ValidationError(_("The Composed Analysis Period must be different from the Analysis Period"))
 
-    @api.depends('composed_period_id')
-    def _compute_display_name(self):
+    def name_get(self):
+        result = []
         for record in self:
-            record.display_name = record.composed_period_id.display_name
+            result.append((record.id, record.composed_period_id.display_name))
+        return result
 
-    def _generate_journal(self):
+    def generate_journal(self):
         """
         (Re)generate the journal representing this analysis period composition. Also (re)generate subsequent non-locked
         period journals.
@@ -441,7 +444,7 @@ class ConsolidationPeriodComposition(models.Model):
         journals.unlink()
         # update composed analysis period journals (recursive)
         self.composed_period_id.action_generate_journals()
-        journal_lines_values = self._get_journal_lines_values()
+        journal_lines_values = self.get_journal_lines_values()
         self.env['consolidation.journal'].create({
             'name': self.composed_period_id.chart_name,
             'auto_generated': True,
@@ -451,7 +454,7 @@ class ConsolidationPeriodComposition(models.Model):
             'line_ids': [(0, 0, value) for value in journal_lines_values]
         })
 
-    def _get_journal_lines_values(self):
+    def get_journal_lines_values(self):
         """
         Get all the journal line values in order to create them.
         :return: a list of dict containing values for journal lines creation
@@ -483,8 +486,8 @@ class ConsolidationPeriodComposition(models.Model):
             ('account_id.used_in_ids', '=', consolidation_account.id),
             ('period_id', '=', self.composed_period_id.id)
         ]
-        amounts = self.env['consolidation.journal.line'].sudo()._read_group(domain, [], ['amount:sum'])
-        amount = amounts[0][0]
+        amounts = self.env['consolidation.journal.line'].sudo()._read_group(domain, ['amount:sum(amount)'], [])
+        amount = amounts[0]['amount'] or 0.0
         return (self.rate_consolidation / 100.0) * (amount * self.currency_rate)
 
     # COMPUTEDS
@@ -573,35 +576,18 @@ class ConsolidationCompanyPeriod(models.Model):
         self.conversion_rate = self.env['consolidation.rate'].get_rate_for(date, company_id, chart_id)
 
     # ORM OVERRIDES
-    @api.depends('company_name', 'date_company_begin', 'date_company_end', 'period_id')
-    def _compute_display_name(self):
-        """
-        Set the display name of the company period. It's based on the dates and the analysis period dates to avoid too
-        much information to be uselessly shown.
-        """
+    def name_get(self):
+        result = []
         for record in self:
-            generic_name = record.company_name if record.company_name else '?'
-            date_begin = record.date_company_begin if record.date_company_begin else '?'
-            date_end = record.date_company_end if record.date_company_end else '?'
-            ap = record.period_id
-            date_analysis_begin = ap.date_analysis_begin if ap.date_analysis_begin else '?'
-            date_analysis_end = ap.date_analysis_end if ap.date_analysis_end else '?'
+            result.append((record.id, record._get_display_name()))
+        return result
 
-            if date_analysis_begin == date_begin and date_analysis_end == date_end:
-                record.display_name = generic_name
-            elif date_begin.month == date_end.month and date_begin.year == date_end.year:
-                record.display_name = '%s (%s)' % (generic_name, date_begin.strftime('%b %Y'))
-            elif date_begin.year == date_end.year:
-                record.display_name = '%s (%s-%s)' % (generic_name, date_begin.strftime('%b'), date_end.strftime('%b %Y'))
-            else:
-                record.display_name = '%s (%s-%s)' % (generic_name, date_begin.strftime('%b %Y'), date_end.strftime('%b %Y'))
-
-    def _generate_journal(self):
+    def generate_journal(self):
         """
         Generate the journal representing this company_period.
         """
         self.ensure_one()
-        journal_lines_values = self._get_journal_lines_values()
+        journal_lines_values = self.get_journal_lines_values()
         self.env['consolidation.journal'].create({
             'name': _("%s Consolidated Accounting", self.company_name),
             'auto_generated': True,
@@ -611,7 +597,7 @@ class ConsolidationCompanyPeriod(models.Model):
             'chart_id': self.chart_id.id,
         })
 
-    def _get_journal_lines_values(self):
+    def get_journal_lines_values(self):
         """
         Get all the journal line values in order to create them.
         :return: a list of dict containing values for journal lines creation
@@ -621,8 +607,9 @@ class ConsolidationCompanyPeriod(models.Model):
         journal_lines_values = []
         historical_account_ids = self.period_id.chart_id.account_ids.filtered(lambda x: x.currency_mode == 'hist')
         non_hist_account_ids = self.period_id.chart_id.account_ids - historical_account_ids
+        currency_rate_cache = {}
         for consolidation_account in historical_account_ids:
-            journal_lines_values += self._get_historical_journal_lines_values(consolidation_account)
+            journal_lines_values += self._get_historical_journal_lines_values(consolidation_account, currency_rate_cache)
 
         for consolidation_account in non_hist_account_ids:
             # Maybe there is a better way to group all move line ids and total balance by consolidation account
@@ -647,8 +634,8 @@ class ConsolidationCompanyPeriod(models.Model):
         """
         self.ensure_one()
         domain = self._get_move_lines_domain(consolidation_account)
-        res = self.env['account.move.line']._read_group(domain, [], ['balance:sum', 'id:array_agg'])
-        return res[0]
+        res = self.env['account.move.line']._read_group(domain, ['balance:sum', 'id:array_agg'], [])
+        return res[0]['balance'] or 0.0, res[0]['id'] or []
 
     def _apply_rates(self, amount, consolidation_account):
         """
@@ -667,7 +654,7 @@ class ConsolidationCompanyPeriod(models.Model):
             amount = self._convert(amount, consolidation_account.currency_mode)
         return self._apply_consolidation_rate(amount)
 
-    def _apply_historical_rates(self, move_line):
+    def _apply_historical_rates(self, move_line, currency_rate_cache=None):
         """
         Apply all the needed rates to a move line using its historical rate. Needed rates are :
         - consolidation rate, which is only based on this company period,
@@ -683,11 +670,15 @@ class ConsolidationCompanyPeriod(models.Model):
         else:
             amount = move_line.balance
             currency = move_line.company_currency_id
-            if currency != self.currency_chart_id:
-                amount = currency._convert(amount, self.currency_chart_id, self.company_id, move_line.date)
+            if amount and currency != self.currency_chart_id:
+                cache_key = (currency, self.currency_chart_id, self.company_id, move_line.date)
+                currency_rate = (currency_rate_cache is not None and currency_rate_cache.get(cache_key)) or currency._get_conversion_rate(*cache_key)
+                amount = self.currency_chart_id.round(amount*currency_rate)
+                if currency_rate_cache is not None:
+                    currency_rate_cache[cache_key] = currency_rate
         return self._apply_consolidation_rate(amount)
 
-    def _get_historical_journal_lines_values(self, consolidation_account):
+    def _get_historical_journal_lines_values(self, consolidation_account, currency_rate_cache=None):
         """
         Get all the journal line values for a given consolidation account when using historical currency mode.
         :param consolidation_account: the consolidation account
@@ -699,7 +690,7 @@ class ConsolidationCompanyPeriod(models.Model):
         move_lines = self.env['account.move.line'].search(domain)
         return [{"account_id": consolidation_account.id,
                  "currency_amount": move_line.balance,
-                 "amount": self._apply_historical_rates(move_line),
+                 "amount": self._apply_historical_rates(move_line, currency_rate_cache),
                  'move_line_ids': [(6, 0, [move_line.id])]} for move_line in move_lines]
 
     def _get_move_lines_domain(self, consolidation_account):
@@ -753,3 +744,27 @@ class ConsolidationCompanyPeriod(models.Model):
         """
         self.ensure_one()
         return (self.rate_consolidation / 100.0) * amount
+
+    def _get_display_name(self):
+        """
+        Get the display name of the company period. It's based on the dates and the analysis period dates to avoid too
+        much information to be uselessly shown.
+        :return: The computed display name
+        :rtype: str
+        """
+        self.ensure_one()
+        generic_name = self.company_name if self.company_name else '?'
+        date_begin = self.date_company_begin if self.date_company_begin else '?'
+        date_end = self.date_company_end if self.date_company_end else '?'
+        ap = self.period_id
+        date_analysis_begin = ap.date_analysis_begin if ap.date_analysis_begin else '?'
+        date_analysis_end = ap.date_analysis_end if ap.date_analysis_end else '?'
+
+        if date_analysis_begin == date_begin and date_analysis_end == date_end:
+            return generic_name
+        if date_begin.month == date_end.month and date_begin.year == date_end.year:
+            return '%s (%s)' % (generic_name, date_begin.strftime('%b %Y'))
+        elif date_begin.year == date_end.year:
+            return '%s (%s-%s)' % (generic_name, date_begin.strftime('%b'), date_end.strftime('%b %Y'))
+        else:
+            return '%s (%s-%s)' % (generic_name, date_begin.strftime('%b %Y'), date_end.strftime('%b %Y'))

@@ -11,7 +11,7 @@ from odoo.addons.account_reports.tests.account_sales_report_common import Accoun
 class EstonianTaxReportTest(AccountSalesReportCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='ee'):
+    def setUpClass(cls, chart_template_ref='l10n_ee.l10nee_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.partner_ee_1 = cls.env['res.partner'].create({
@@ -90,7 +90,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
                     ('company_id', '=', cls.company_data['company'].id)
                 ], limit=1),
             'vat_in_0_kms_41_1': cls.env['account.tax'].with_context(active_test=False).search([
-                    ('name', '=', '22% KMS §41¹'),
+                    ('name', '=', '0% KMS §41¹'),
                     ('type_tax_use', '=', 'purchase'),
                     ('amount', '=', 22),
                     ('company_id', '=', cls.company_data['company'].id)
@@ -147,7 +147,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
                     ('company_id', '=', cls.company_data['company'].id)
                 ], limit=1),
             'vat_out_0_kms_41_1': cls.env['account.tax'].with_context(active_test=False).search([
-                    ('name', '=', '22% KMS §41¹'),
+                    ('name', '=', '0% KMS §41¹'),
                     ('type_tax_use', '=', 'sale'),
                     ('amount', '=', 22),
                     ('company_id', '=', cls.company_data['company'].id)
@@ -222,7 +222,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
         move.action_post()
 
         report = self.env.ref('l10n_ee.tax_report_vat')
-        options = report.get_options()
+        options = report._get_options()
 
         expected_xml = """
             <vatDeclaration>
@@ -319,7 +319,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
         }).action_post()
 
         report = self.env.ref('l10n_ee.tax_report_vat')
-        options = report.get_options()
+        options = report._get_options()
 
         expected_xml = """
             <vatDeclaration>
@@ -607,7 +607,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
         move.action_post()
 
         report = self.env.ref('l10n_ee.tax_report_vat')
-        options = report.get_options()
+        options = report._get_options()
 
         expected_xml = """
             <vatDeclaration>
@@ -749,7 +749,7 @@ class EstonianTaxReportTest(AccountSalesReportCommon):
         moves.action_post()
 
         report = self.env.ref('l10n_ee.tax_report_vat')
-        options = report.get_options()
+        options = report._get_options()
         expected_xml = """
             <vatDeclaration>
             <taxPayerRegCode>12345678</taxPayerRegCode>

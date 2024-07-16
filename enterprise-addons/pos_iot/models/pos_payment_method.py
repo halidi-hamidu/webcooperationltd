@@ -29,6 +29,6 @@ class PoSPaymentMethod(models.Model):
                 domain.append(('manufacturer', '=', 'Ingenico'))
             elif payment_method.use_payment_terminal == 'worldline':
                 domain.append(('manufacturer', '=', 'Worldline'))
-            elif payment_method.use_payment_terminal == 'six_iot':
+            if payment_method.use_payment_terminal == 'six_iot':
                 domain.append(('manufacturer', '=', 'Six'))
             payment_method.payment_terminal_ids = self.env['iot.device'].search(domain)

@@ -7,6 +7,7 @@
     'category': 'Productivity/Data Cleaning',
     'summary': 'Warn user in case of products merging',
     'description': """Warn user in case of products merging""",
+    'website': '',
     'depends': ['data_merge', 'stock_account'],
     'auto_install': True,
     'license': 'OEEL-1',

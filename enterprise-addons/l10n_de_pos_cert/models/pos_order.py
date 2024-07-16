@@ -21,7 +21,7 @@ class PosOrder(models.Model):
     @api.model
     def _order_fields(self, ui_order):
         fields = super()._order_fields(ui_order)
-        if self.env.company.l10n_de_is_germany_and_fiskaly() and ui_order.get('fiskaly_uuid'):
+        if self.env.company.l10n_de_is_germany_and_fiskaly():
             fields['l10n_de_fiskaly_transaction_uuid'] = ui_order['fiskaly_uuid']
             if 'tss_info' in ui_order:
                 for key, value in ui_order['tss_info'].items():

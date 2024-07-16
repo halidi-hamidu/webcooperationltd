@@ -30,11 +30,12 @@ MODELS_TO_EXPORT = [
     'ir.model.access',
     'ir.rule',
     'ir.default',
+    'studio.approval.rule',
 ]
 # list of fields to export by model
 FIELDS_TO_EXPORT = {
     'base.automation': [
-        'action_server_ids', 'active', 'filter_domain', 'filter_pre_domain',
+        'action_server_id', 'active', 'filter_domain', 'filter_pre_domain',
         'last_run', 'on_change_field_ids', 'trg_date_id', 'trg_date_range',
         'trg_date_range_type', 'trigger'
     ],
@@ -66,7 +67,7 @@ FIELDS_TO_EXPORT = {
         'help', 'index', 'model', 'model_id', 'name', 'on_delete', 'readonly', 'related',
         'relation', 'relation_field', 'relation_table', 'required', 'selectable', 'selection',
         'size', 'state', 'store', 'tracking', 'translate',
-        'ttype', "currency_field",
+        'ttype'
     ],
     'ir.rule': [
         'active', 'domain_force', 'groups', 'model_id', 'name', 'perm_create', 'perm_read',
@@ -74,22 +75,24 @@ FIELDS_TO_EXPORT = {
     ],
     'ir.ui.menu': ['action', 'active', 'groups_id', 'name', 'parent_id', 'sequence', 'web_icon'],
     'ir.ui.view': [
-        'active', 'arch', 'groups_id', 'inherit_id', 'key', 'mode', 'model', 'name',
+        'active', 'arch', 'field_parent', 'groups_id', 'inherit_id', 'key', 'mode', 'model', 'name',
         'priority', 'type'
     ],
     'mail.template': [
         'auto_delete', 'body_html', 'email_cc', 'email_from', 'email_to', 'lang',
         'model_id', 'name', 'partner_to', 'ref_ir_act_window',
-        'reply_to', 'report_template_ids', 'scheduled_date',
+        'reply_to', 'report_name', 'report_template', 'scheduled_date',
         'subject', 'use_default_to'
     ],
     'res.groups': ['color', 'comment', 'implied_ids', 'name', 'share'],
     'ir.default': ['field_id', 'condition', 'json_value'],
+    'studio.approval.rule': ['group_id', 'model_id', 'method', 'action_id', 'name', 'message',
+        'exclusive_user', 'domain', 'can_validate'],
 }
 # list of relational fields to NOT export, by model
 FIELDS_NOT_TO_EXPORT = {
     'base.automation': ['trg_date_calendar_id'],
-    'ir.actions.server': ['partner_ids'],
+    'ir.actions.server': ['fields_lines', 'partner_ids'],
     'ir.filters': ['user_id'],
     'mail.template': ['attachment_ids', 'mail_server_id'],
     'report.paperformat': ['report_ids'],
@@ -160,10 +163,7 @@ def generate_module(module, data):
                     record_deps[record] |= rel_records
             if record._name == 'ir.model.fields' and record.ttype == 'monetary':
                 # add a dependency on the currency field
-                if record.currency_field:
-                    rel_record = record._get(record.model, record.currency_field)
-                else:
-                    rel_record = record._get(record.model, 'currency_id') or record._get(record.model, 'x_currency_id')
+                rel_record = record._get(record.model, 'currency_id') or record._get(record.model, 'x_currency_id')
                 rel_xmlid = get_xmlid(rel_record, check=False)
                 if rel_xmlid and rel_xmlid.split('.')[0] != module.name:
                     # data depends on a record from another module
@@ -312,6 +312,7 @@ def get_fields_to_export(record):
         # deduce the fields_to_export from available data
         fields_to_export = set(record._fields.keys())
         fields_to_export -= set(models.MAGIC_COLUMNS)
+        fields_to_export.discard(record.CONCURRENCY_CHECK_FIELD)
         if FIELDS_NOT_TO_EXPORT.get(record._name):
             fields_to_export -= set(FIELDS_NOT_TO_EXPORT.get(record._name))
     return fields_to_export

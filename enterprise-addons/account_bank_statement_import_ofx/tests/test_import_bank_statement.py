@@ -3,6 +3,7 @@
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 from odoo.tools import file_open
+from odoo.modules.module import get_module_resource
 
 
 @tagged('post_install', '-at_install')
@@ -41,13 +42,19 @@ class TestAccountBankStatementImportOFX(AccountTestInvoicingCommon):
         imported_statement = self.env['account.bank.statement'].search([('company_id', '=', self.env.company.id)])
         self.assertRecordValues(imported_statement, [{
             'reference': 'test_ofx.ofx',
-            'balance_start': 2516.56,
+            'balance_start': 182516.56,
             'balance_end_real': 2156.56,
         }])
         self.assertRecordValues(imported_statement.line_ids.sorted('payment_ref'), [
             {
                 'payment_ref': 'Axelor Scuba',
                 'amount': -100.0,
+                'partner_id': False,
+                'account_number': False,
+            },
+            {
+                'payment_ref': 'COMMA',
+                'amount': -90000.00,
                 'partner_id': False,
                 'account_number': False,
             },
@@ -68,5 +75,11 @@ class TestAccountBankStatementImportOFX(AccountTestInvoicingCommon):
                 'amount': -80.0,
                 'partner_id': partner_norbert.id,
                 'account_number': partner_bank_norbert.acc_number,
+            },
+            {
+                'payment_ref': 'PERIOD',
+                'amount': -90000.0,
+                'partner_id': False,
+                'account_number': False,
             },
         ])

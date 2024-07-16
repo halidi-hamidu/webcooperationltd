@@ -6,21 +6,21 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     auto_generated = fields.Boolean(string='Auto Generated Document', copy=False, default=False)
-    auto_invoice_id = fields.Many2one('account.move', string='Source Invoice', readonly=True, copy=False, index='btree_not_null')
+    auto_invoice_id = fields.Many2one('account.move', string='Source Invoice', readonly=True, copy=False)
 
     def _post(self, soft=True):
         # OVERRIDE to generate cross invoice based on company rules.
         invoices_map = {}
         posted = super()._post(soft)
         for invoice in posted.filtered(lambda move: move.is_invoice()):
-            company_sudo = self.env['res.company'].sudo()._find_company_from_partner(invoice.partner_id.id)
-            if company_sudo and company_sudo.rule_type == 'invoice_and_refund' and not invoice.auto_generated:
-                invoices_map.setdefault(company_sudo, self.env['account.move'])
-                invoices_map[company_sudo] += invoice
-        for company_sudo, invoices in invoices_map.items():
-            context = dict(self.env.context, default_company_id=company_sudo.id)
+            company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
+            if company and company.rule_type == 'invoice_and_refund' and not invoice.auto_generated:
+                invoices_map.setdefault(company, self.env['account.move'])
+                invoices_map[company] += invoice
+        for company, invoices in invoices_map.items():
+            context = dict(self.env.context, default_company_id=company.id)
             context.pop('default_journal_id', None)
-            invoices.with_user(company_sudo.intercompany_user_id.id).with_context(context).with_company(company_sudo.id)._inter_company_create_invoices()
+            invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
         return posted
 
     def _inter_company_create_invoices(self):
@@ -89,11 +89,10 @@ class AccountMove(models.Model):
             'currency_id': self.currency_id.id,
             'auto_generated': True,
             'auto_invoice_id': self.id,
-            'company_id': self.env.company.id,
             'invoice_date': self.invoice_date,
             'invoice_date_due': self.invoice_date_due,
             'payment_reference': self.payment_reference,
-            'invoice_origin': _('%s Invoice: %s', self.company_id.name, self.name),
+            'invoice_origin': _('%s Invoice: %s') % (self.company_id.name, self.name),
             'fiscal_position_id': fiscal_position_id,
         }
 
@@ -131,19 +130,12 @@ class AccountMoveLine(models.Model):
             "company_id": company_b.id,
         })
 
-        analytic_distribution = {}
-        if self.analytic_distribution:
-            account_ids = self._get_analytic_account_ids()
-            accounts_with_company = self.env['account.analytic.account'].browse(account_ids).filtered('company_id')
-
-            for key, val in self.analytic_distribution.items():
-                is_company_account = False
-                for account_id in key.split(','):
-                    if int(account_id) in accounts_with_company.ids:
-                        is_company_account = True
-                        break
-                if not is_company_account:
-                    analytic_distribution[key] = val
+        account_ids = [int(account_id) for account_id in self.analytic_distribution or {}]
+        accounts = self.env['account.analytic.account'].browse(account_ids)
+        analytic_distribution = {
+            str(account_id): self.analytic_distribution[str(account_id)]
+            for account_id in accounts.filtered(lambda r: not r.company_id).ids
+        }
 
         if company_b_default_distribution or analytic_distribution:
             vals['analytic_distribution'] = dict(company_b_default_distribution, **analytic_distribution)

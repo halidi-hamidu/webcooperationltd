@@ -55,7 +55,8 @@ class L10nInGSTReturnPeriod(models.Model):
             'folder_id': self._get_gstr_document_folder().id,
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         })
-        self.gstr1_spreadsheet = xlsx_doc.clone_xlsx_into_spreadsheet(archive_source=True)
+        self.gstr1_spreadsheet = xlsx_doc.clone_xlsx_into_spreadsheet()
+        xlsx_doc.active = False
         return self.action_open_gstr1_spreadsheet()
 
     def _get_gstr_document_folder(self):

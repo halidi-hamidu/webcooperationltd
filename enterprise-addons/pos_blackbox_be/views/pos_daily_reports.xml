@@ -61,6 +61,14 @@
             <h2 t-else="">Multiple Report</h2>
         </xpath>
 
+        <xpath expr="//h3[@id='sales_title']" position="replace">
+            <h3 id="sales_title">Sales (NS)</h3>
+        </xpath>
+
+        <xpath expr="//h3[@id='refunds_title']" position="replace">
+            <h3 id="refunds_title">Refund (NR)</h3>
+        </xpath>
+
         <xpath expr="//t[@id='taxe_sales']" position="replace">
             <table  class="table table-sm">
                 <thead><tr>
@@ -172,6 +180,26 @@
                 </table>
             </t>
         </xpath>
+        <xpath expr="//strong[@id='turnover']" position="before">
+            <strong id="turnover_ns">Total NS: 
+                <t t-if="currency['position']">
+                    <t t-esc='products_info["total"]' t-options="{'widget': 'float', 'precision': currency['precision']}"/><t t-esc='currency["symbol"]' />
+                </t>
+                <t t-else="" >
+                    <t t-esc='products_info["total"]' /><t t-esc='currency["total_paid"]' t-options="{'widget': 'float', 'precision': currency['precision']}"/>
+                </t>    
+            </strong>
+            <br/>
+            <strong id="turnover_nr">Total NR: 
+                <t t-if="currency['position']">
+                    <t t-esc='refund_info["total"]' t-options="{'widget': 'float', 'precision': currency['precision']}"/><t t-esc='currency["symbol"]' />
+                </t>
+                <t t-else="" >
+                    <t t-esc='refund_info["total"]' /><t t-esc='currency["total_paid"]' t-options="{'widget': 'float', 'precision': currency['precision']}"/>
+                </t>    
+            </strong>
+            <br/>
+        </xpath>
     </template>
 
     <record id="action_report_pos_user" model="ir.actions.report">
@@ -189,7 +217,7 @@
         <field name="model">pos.session</field>
         <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']" position="inside">
+            <div class="oe_button_box" position="inside">
                 <button class="oe_stat_button" name="%(action_report_pos_user)d" type="action" icon="fa-file-text-o">
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">User Report</span>
@@ -200,7 +228,7 @@
                         <span class="o_stat_text">Journal File</span>
                     </div>
                 </button>
-            </xpath>
+            </div>
         </field>
     </record>
 
@@ -296,13 +324,17 @@
                                 <div class="row">
                                     <div class="col-12">
                                         Revenue per category (NS):
-                                        <t t-foreach="user['revenue_per_category']" t-as="category">
-                                            <div class="category-row">
-                                                <span class="category-name"><t t-esc="category[0]"/>:</span>
-                                                <span class="category-amount" t-esc="category[1]"
-                                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                            </div>
-                                        </t>
+                                        <table style="margin-left: 20px">
+                                            <t t-foreach="user['revenue_per_category']" t-as="category">
+                                                <tr>
+                                                    <td><t t-esc="category[0]"/></td>
+                                                    <td style="padding-left: 5px">
+                                                        <t t-esc="category[1]"
+                                                           t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                    </table>
                                     </div>
                                 </div>
                                 <div class="row">

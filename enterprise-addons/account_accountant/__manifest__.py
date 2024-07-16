@@ -28,7 +28,6 @@ It assigns manager and user access rights to the Administrator for the accountin
         'views/account_journal_dashboard_views.xml',
         'views/account_move_views.xml',
         'views/account_payment_views.xml',
-        'views/account_reconcile_views.xml',
         'views/account_reconcile_model_views.xml',
         'views/account_accountant_menuitems.xml',
         'views/digest_views.xml',
@@ -37,8 +36,6 @@ It assigns manager and user access rights to the Administrator for the accountin
         'views/bank_rec_widget_views.xml',
 
         'wizard/account_change_lock_date.xml',
-        'wizard/account_auto_reconcile_wizard.xml',
-        'wizard/account_reconcile_wizard.xml',
         'wizard/reconcile_model_wizard.xml',
     ],
     'demo': ['data/account_accountant_demo.xml'],
@@ -50,8 +47,13 @@ It assigns manager and user access rights to the Administrator for the accountin
     'assets': {
         'web.assets_backend': [
             'account_accountant/static/src/js/tours/account_accountant.js',
+            'account_accountant/static/src/js/reconciliation/*.js',
+            'account_accountant/static/src/scss/account_reconciliation.scss',
             'account_accountant/static/src/components/**/*',
             'account_accountant/static/src/**/*.xml',
+        ],
+        'web.dark_mode_assets_backend': [
+            'account_accountant/static/src/scss/*.dark.scss',
         ],
         'web.assets_tests': [
             'account_accountant/static/tests/tours/**/*',

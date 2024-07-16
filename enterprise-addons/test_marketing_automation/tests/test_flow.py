@@ -39,11 +39,8 @@ class TestMarketAutoFlow(TestMACommon, CronMixinCase):
                 'name': 'Wrong Email',
             }, {
                 'email_from': cls.test_records_base[1].email_from,
-                'mobile': cls.test_records_base[1].mobile,
-                # compared to < 17, we need the name to be the same, as duplicate
-                # comparison is now done on sent content + recipient, not just
-                # the recipient itself
-                'name': cls.test_records_base[1].name,
+                'mobile': '0455990011',
+                'name': 'Email dupe record1'
             },
         ])
         (cls.test_records_failure_wrong, cls.test_records_failure_dupe) = cls.test_records_failure
@@ -467,7 +464,7 @@ for record in records:
                 'fields_values': {
                     'schedule_date': date_reference_reply + relativedelta(hours=1),
                 },
-                'trace_status': 'pending',
+                'trace_status': 'sent',
             }, {
                 'status': 'scheduled',
                 'records': test_records_init - test_records_1_replied,
@@ -483,7 +480,7 @@ for record in records:
         # ACT2_1 FOLLOWUP: CLICK ON LINKS -> ACT3_1: CONFIRMATION SMS SENT
         # ------------------------------------------------------------
 
-        self._clear_outgoing_sms()
+        self._clear_outoing_sms()
         # TDE CLEANME: improve those tools, but sms gateway resets finding existing
         # sms, which is why we do in two steps
         test_records_1_clicked = test_records_1_replied[0]
@@ -514,7 +511,7 @@ for record in records:
                 },
                 # mailing trace
                 'trace_content': f'Confirmation for {test_records_1_clicked.name}',
-                'trace_status': 'pending',
+                'trace_status': 'sent',
             }, {
                 'status': 'scheduled',
                 'records': test_records_1_replied - test_records_1_clicked,
@@ -529,7 +526,7 @@ for record in records:
         # ------------------------------------------------------------
 
         date_reference_new = date_reference + relativedelta(days=1, hours=2)
-        self._clear_outgoing_sms()
+        self._clear_outoing_sms()
         with freeze_time(date_reference_new), \
              mute_logger('odoo.addons.marketing_automation.models.marketing_activity'), \
              self.capture_triggers('marketing_automation.ir_cron_campaign_execute_activities') as captured_triggers:

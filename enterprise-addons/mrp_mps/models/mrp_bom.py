@@ -17,9 +17,11 @@ class MrpBom(models.Model):
                     ('product_id', 'in', self.product_id.ids),
                     ('product_id.product_tmpl_id', 'in', self.product_tmpl_id.ids),
         ]
-        grouped_data = self.env['mrp.production.schedule']._read_group(
-            domain, ['product_id'], ['__count'])
-        product_schedule_counts = {product.id: count for product, count in grouped_data}
+        grouped_data = self.env['mrp.production.schedule'].read_group(
+            domain, ['product_id'], ['product_id'])
+        product_schedule_counts = {}
+        for data in grouped_data:
+            product_schedule_counts[data['product_id'][0]] = data['product_id_count']
         for bom in self:
             schedule_count = 0
             if bom.product_id:
@@ -29,12 +31,3 @@ class MrpBom(models.Model):
             for product_id in bom.bom_line_ids.product_id.ids + ids:
                 schedule_count += product_schedule_counts.get(product_id, 0)
             bom.schedule_count = schedule_count
-
-    def action_open_mps_view(self):
-        self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("mrp_mps.action_mrp_mps")
-        action['domain'] = ["|", ('product_id.bom_line_ids.bom_id', '=', self.id),
-                            "|", ('product_id.variant_bom_ids', '=', self.id),
-                            "&", ('product_tmpl_id.bom_ids.product_id', '=', False),
-                            ('product_tmpl_id.bom_ids', '=', self.id)]
-        return action

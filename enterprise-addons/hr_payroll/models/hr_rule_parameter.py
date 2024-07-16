@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tools.safe_eval import safe_eval
+import ast
 
 from odoo import api, fields, models, _
 from odoo.tools import ormcache
-from odoo.tools.misc import format_date
 from odoo.exceptions import UserError
 
 
@@ -24,14 +23,6 @@ class HrSalaryRuleParameterValue(models.Model):
     _sql_constraints = [
         ('_unique', 'unique (rule_parameter_id, date_from)', "Two rules with the same code cannot start the same day"),
     ]
-
-    @api.constrains('parameter_value')
-    def _check_parameter_value(self):
-        for value in self:
-            try:
-                safe_eval(value.parameter_value)
-            except Exception as e:
-                raise UserError(_('Wrong rule parameter value for %s at date %s.\n%s', value.rule_parameter_name, format_date(self.env, value.date_from), str(e)))
 
 
 class HrSalaryRuleParameter(models.Model):
@@ -59,8 +50,8 @@ class HrSalaryRuleParameter(models.Model):
             ('code', '=', code),
             ('date_from', '<=', date)], limit=1)
         if rule_parameter:
-            return safe_eval(rule_parameter.parameter_value)
+            return ast.literal_eval(rule_parameter.parameter_value)
         if raise_if_not_found:
-            raise UserError(_("No rule parameter with code %r was found for %s ", code, date))
+            raise UserError(_("No rule parameter with code '%s' was found for %s ") % (code, date))
         else:
             return None

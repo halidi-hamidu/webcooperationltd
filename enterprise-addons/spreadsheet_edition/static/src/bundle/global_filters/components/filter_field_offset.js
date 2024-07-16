@@ -1,26 +1,19 @@
 /** @odoo-module */
 
-import { Component } from "@odoo/owl";
-import { _t } from "@web/core/l10n/translation";
+const { Component } = owl;
+import { _t, _lt } from "@web/core/l10n/translation";
 
 const FIELD_OFFSETS = [
     { value: 0, description: "" },
-    { value: -1, description: _t("Previous") },
-    { value: -2, description: _t("Before previous") },
-    { value: 1, description: _t("Next") },
-    { value: 2, description: _t("After next") },
+    { value: -1, description: _lt("Previous") },
+    { value: -2, description: _lt("Before previous") },
+    { value: 1, description: _lt("Next") },
+    { value: 2, description: _lt("After next") },
 ];
 
 export class FilterFieldOffset extends Component {
     setup() {
         this.fieldsOffsets = FIELD_OFFSETS;
-    }
-
-    /**
-     * @param {Event & { target: HTMLSelectElement }} ev
-     */
-    onOffsetSelected(ev) {
-        this.props.onOffsetSelected(parseInt(ev.target.value));
     }
 
     get title() {

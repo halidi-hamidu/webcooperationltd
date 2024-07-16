@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Netherlands - SBR Status information service',
-    'countries': ['nl'],
+    'icon': '/l10n_nl/static/description/icon.png',
     'version': '0.3',
     'category': 'Accounting/Localizations/SBR',
     'summary': 'Adds the use of a service checking the status of the submitted documents to Digipoort',

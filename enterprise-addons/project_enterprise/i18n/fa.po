@@ -3,19 +3,21 @@
 # 	* project_enterprise
 # 
 # Translators:
+# F Hariri <fhari1234@gmail.com>, 2023
 # Hamid Darabi, 2023
-# fardin mardani, 2023
+# Mohsen Mohammadi <iammohsen.123@gmail.com>, 2023
 # Hamed Mohammadi <hamed@dehongi.com>, 2023
-# Hanna Kheradroosta, 2023
 # Martin Trigaux, 2023
+# fardin mardani, 2023
+# Hanna Kheradroosta, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Martin Trigaux, 2023\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:48+0000\n"
+"Last-Translator: Hanna Kheradroosta, 2024\n"
 "Language-Team: Persian (https://app.transifex.com/odoo/teams/41243/fa/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,33 +29,46 @@ msgstr ""
 #. odoo-python
 #: code:addons/project_enterprise/models/project_task.py:0
 #, python-format
-msgid "%s has %s tasks at the same time."
+msgid "%s other task(s) for the same employee at the same time."
 msgstr ""
 
 #. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form
 msgid ""
-"<i class=\"fa fa-exclamation-circle me-2\" role=\"img\" title=\"Dependency "
-"warning\"/>"
+"<i class=\"fa fa-long-arrow-right mx-2 oe_edit_only\" aria-label=\"Arrow icon\" title=\"Arrow\"/>\n"
+"                        <i class=\"fa fa-long-arrow-right mx-2 oe_read_only\" aria-label=\"Arrow icon\" title=\"Arrow\" attrs=\"{'invisible': [('planned_date_begin', '=', False), ('planned_date_end', '=', False)]}\"/>"
+msgstr ""
+"<i class=\"fa fa-long-arrow-right mx-2 oe_edit_only\" aria-label=\"Arrow icon\" title=\"Arrow\"/>\n"
+"                        <i class=\"fa fa-long-arrow-right mx-2 oe_read_only\" aria-label=\"Arrow icon\" title=\"Arrow\" attrs=\"{'invisible': [('planned_date_begin', '=', False), ('planned_date_end', '=', False)]}\"/>"
+
+#. module: project_enterprise
+#: model_terms:ir.ui.view,arch_db:project_enterprise.project_sharing_project_task_view_form_inherited
+msgid ""
+"<i class=\"fa fa-long-arrow-right mx-2 oe_edit_only\" aria-label=\"Arrow icon\" title=\"Arrow\"/>\n"
+"                    <i class=\"fa fa-long-arrow-right mx-2 oe_read_only\" aria-label=\"Arrow icon\" title=\"Arrow\" attrs=\"{'invisible': [('planned_date_begin', '=', False), ('planned_date_end', '=', False)]}\"/>"
+msgstr ""
+
+#. module: project_enterprise
+#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_kanban_inherited
+msgid ""
+"<i class=\"fa fa-long-arrow-right mx-2 oe_read_only\" aria-label=\"Arrow "
+"icon\" title=\"Arrow\" attrs=\"{'invisible': [('planned_date_begin', '=', "
+"False), ('planned_date_end', '=', False)]}\"/>"
 msgstr ""
 
 #. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_sharing_project_task_view_kanban_inherited
-#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_kanban_inherited
 msgid ""
-"<i class=\"fa fa-long-arrow-right mx-2 oe_read_only\" aria-label=\"Arrow "
-"icon\" title=\"Arrow\" invisible=\"not planned_date_begin\"/>"
+"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"Arrow icon\" "
+"title=\"Arrow\"/>"
 msgstr ""
+"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"Arrow icon\" "
+"title=\"Arrow\"/>"
 
 #. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_project_view_gantt
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_gantt
 msgid "<i class=\"fa fa-long-arrow-right\" title=\"Arrow\"/>"
-msgstr ""
-
-#. module: project_enterprise
-#: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form
-msgid "<i class=\"fa fa-random me-2\" role=\"img\" title=\"Planning overlap\"/>"
 msgstr ""
 
 #. module: project_enterprise
@@ -73,18 +88,8 @@ msgid "<strong>Customer — </strong>"
 msgstr "<strong>مشتری — </strong>"
 
 #. module: project_enterprise
-#: model_terms:ir.ui.view,arch_db:project_enterprise.portal_my_task
-msgid "<strong>Deadline:</strong>"
-msgstr "<strong>موعد نهایی:</strong>"
-
-#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_gantt
 msgid "<strong>Milestone — </strong>"
-msgstr ""
-
-#. module: project_enterprise
-#: model_terms:ir.ui.view,arch_db:project_enterprise.portal_my_task
-msgid "<strong>Planned Date:</strong>"
 msgstr ""
 
 #. module: project_enterprise
@@ -98,19 +103,46 @@ msgid "<strong>Project — </strong>"
 msgstr "<strong>پروژه — </strong>"
 
 #. module: project_enterprise
-#: model:ir.model.fields,field_description:project_enterprise.field_project_task__user_ids
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__allocated_hours
+msgid "Allocated Hours"
+msgstr "ساعت اختصاص داده شده"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__allocation_type
+msgid "Allocation Type"
+msgstr "نوع تخصیص"
+
+#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view_no_title
 msgid "Assignees"
 msgstr "محول شده به"
 
 #. module: project_enterprise
-#: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form
-msgid "Check it out <i class=\"oi oi-chevron-right ms-2\"/>"
+#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_confirm_schedule_wizard_form
+msgid "Cancel"
+msgstr "لغو"
+
+#. module: project_enterprise
+#. odoo-python
+#: code:addons/project_enterprise/models/project_task.py:0
+#, python-format
+msgid "Caution: some tasks have not been scheduled"
 msgstr ""
 
 #. module: project_enterprise
-#: model:ir.model.fields,field_description:project_enterprise.field_project_task__partner_id
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__create_uid
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__create_uid
+msgid "Created by"
+msgstr "ایجاد شده توسط"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__create_date
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__create_date
+msgid "Created on"
+msgstr "ایجادشده در"
+
+#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view_no_title
 msgid "Customer"
@@ -122,19 +154,73 @@ msgid "Date"
 msgstr "تاریخ"
 
 #. module: project_enterprise
-#: model:ir.model.fields,field_description:project_enterprise.field_project_task__dependency_warning
-msgid "Dependency Warning"
-msgstr ""
-
-#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form_in_gantt
 msgid "Discard"
 msgstr "رها کردن"
 
 #. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__display_name
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__display_name
+msgid "Display Name"
+msgstr "نام نمایشی"
+
+#. module: project_enterprise
 #: model:ir.model.fields,field_description:project_enterprise.field_project_task__display_warning_dependency_in_gantt
 msgid "Display Warning Dependency In Gantt"
 msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__duration
+#: model:ir.model.fields.selection,name:project_enterprise.selection__project_task__allocation_type__duration
+msgid "Duration"
+msgstr "مدت زمان"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__date_end
+msgid "End Date"
+msgstr "تاریخ پایان"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__planned_date_end
+#: model:ir.model.fields,field_description:project_enterprise.field_report_project_task_user__planned_date_end
+msgid "End date"
+msgstr "تاریخ پایان"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__id
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__id
+msgid "ID"
+msgstr "شناسه"
+
+#. module: project_enterprise
+#. odoo-javascript
+#: code:addons/project_enterprise/static/src/js/task_gantt_utils.js:0
+#, python-format
+msgid "Invalid scale interval"
+msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard____last_update
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard____last_update
+msgid "Last Modified on"
+msgstr "آخرین اصلاح در"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__write_uid
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__write_uid
+msgid "Last Updated by"
+msgstr "آخرین تغییر توسط"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__write_date
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__write_date
+msgid "Last Updated on"
+msgstr "آخرین بروز رسانی در"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__line_ids
+msgid "Lines"
+msgstr "سطرها"
 
 #. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view
@@ -146,6 +232,13 @@ msgstr "موعد"
 #: model:ir.model.fields,field_description:project_enterprise.field_project_task__partner_mobile
 msgid "Mobile"
 msgstr "موبایل"
+
+#. module: project_enterprise
+#. odoo-python
+#: code:addons/project_enterprise/wizard/task_confirm_schedule_wizard.py:0
+#, python-format
+msgid "No task has been scheduled in the future."
+msgstr ""
 
 #. module: project_enterprise
 #. odoo-python
@@ -161,17 +254,13 @@ msgstr ""
 #: code:addons/project_enterprise/models/project_task.py:0
 #, python-format
 msgid ""
-"Operation not supported, you should always compare dependency_warning to "
-"True or False."
+"Operation not supported, you should always compare planning_overlap to 0 "
+"value with = or > operator."
 msgstr ""
 
 #. module: project_enterprise
-#. odoo-python
-#: code:addons/project_enterprise/models/project_task.py:0
-#, python-format
-msgid ""
-"Operation not supported, you should always compare planning_overlap to True "
-"or False."
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__overlap_warning
+msgid "Overlap Warning"
 msgstr ""
 
 #. module: project_enterprise
@@ -180,6 +269,12 @@ msgstr ""
 #, python-format
 msgid "Overlapping Tasks"
 msgstr ""
+
+#. module: project_enterprise
+#: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view
+#: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view_no_title
+msgid "Phone"
+msgstr "تلفن"
 
 #. module: project_enterprise
 #. odoo-python
@@ -191,11 +286,6 @@ msgid "Planned Date"
 msgstr "تاریخ برنامه ریزی شده"
 
 #. module: project_enterprise
-#: model:ir.model.fields,field_description:project_enterprise.field_project_task__planned_date_start
-msgid "Planned Date Start"
-msgstr ""
-
-#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_project_view_gantt
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_gantt
 msgid "Planning"
@@ -203,19 +293,11 @@ msgstr "برنامه ریزی"
 
 #. module: project_enterprise
 #: model:ir.model.fields,field_description:project_enterprise.field_project_task__planning_overlap
+#: model:ir.model.fields,field_description:project_enterprise.field_report_project_task_user__planning_overlap
 msgid "Planning Overlap"
 msgstr ""
 
 #. module: project_enterprise
-#. odoo-javascript
-#: code:addons/project_enterprise/static/src/views/project_task_map/project_task_map_model.js:0
-#, python-format
-msgid "Private"
-msgstr "خصوصی"
-
-#. module: project_enterprise
-#: model:ir.model,name:project_enterprise.model_project_project
-#: model:ir.model.fields,field_description:project_enterprise.field_project_task__project_id
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_map_view
 msgid "Project"
 msgstr "پروژه"
@@ -226,9 +308,34 @@ msgid "Project Milestone"
 msgstr ""
 
 #. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task__project_color
+msgid "Project color"
+msgstr "رنگ پروژه"
+
+#. module: project_enterprise
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form_in_gantt
 msgid "Save"
 msgstr "ذخیره"
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__schedule_task
+msgid "Schedule Task"
+msgstr ""
+
+#. module: project_enterprise
+#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_confirm_schedule_wizard_form
+msgid "Schedule Tasks"
+msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__selected_line_count
+msgid "Selected Line Count"
+msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__show_warnings
+msgid "Show Warnings"
+msgstr ""
 
 #. module: project_enterprise
 #. odoo-python
@@ -238,6 +345,11 @@ msgid ""
 "Some tasks weren't planned because the closest available starting date was "
 "too far ahead in the future"
 msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__date_begin
+msgid "Start Date"
+msgstr "تاریخ آغاز"
 
 #. module: project_enterprise
 #: model:ir.model.fields,field_description:project_enterprise.field_project_task__planned_date_begin
@@ -252,6 +364,7 @@ msgstr "آدرس"
 
 #. module: project_enterprise
 #: model:ir.model,name:project_enterprise.model_project_task
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__task_id
 msgid "Task"
 msgstr "وظیفه"
 
@@ -261,20 +374,50 @@ msgid "Task Recurrence"
 msgstr "تکرار وظیفه"
 
 #. module: project_enterprise
+#: model:ir.model,name:project_enterprise.model_project_task_confirm_schedule_line_wizard
+msgid "Task confirm schedule line wizard"
+msgstr ""
+
+#. module: project_enterprise
+#: model:ir.model,name:project_enterprise.model_project_task_confirm_schedule_wizard
+msgid "Task confirm schedule wizard"
+msgstr ""
+
+#. module: project_enterprise
 #: model:ir.model,name:project_enterprise.model_report_project_task_user
 msgid "Tasks Analysis"
 msgstr "تحلیل کارها"
 
 #. module: project_enterprise
-#. odoo-python
-#: code:addons/project_enterprise/models/project_task.py:0
-#, python-format
-msgid "Tasks have been successfully scheduled for the upcoming periods."
+#: model_terms:ir.ui.view,arch_db:project_enterprise.report_project_task_user_view_search_inherited
+#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_search_form_inherit_enterprise
+msgid "Tasks in Conflict"
+msgstr "تداخل در وظایف"
+
+#. module: project_enterprise
+#: model_terms:ir.ui.view,arch_db:project_enterprise.view_task_confirm_schedule_wizard_form
+msgid ""
+"The following tasks have not been scheduled because the corresponding\n"
+"                        employees are unavailable. The next possible dates for these tasks are:"
 msgstr ""
 
 #. module: project_enterprise
 #: model:ir.model.constraint,message:project_enterprise.constraint_project_task_planned_dates_check
 msgid "The planned start date must be before the planned end date."
+msgstr ""
+
+#. module: project_enterprise
+#. odoo-python
+#: code:addons/project_enterprise/wizard/task_confirm_schedule_wizard.py:0
+#, python-format
+msgid "The task has been successfully scheduled."
+msgstr ""
+
+#. module: project_enterprise
+#. odoo-python
+#: code:addons/project_enterprise/wizard/task_confirm_schedule_wizard.py:0
+#, python-format
+msgid "The tasks have been successfully scheduled."
 msgstr ""
 
 #. module: project_enterprise
@@ -297,16 +440,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/project_enterprise/models/project_task.py:0
 #, python-format
-msgid "This task cannot be planned before Tasks %s, on which it depends."
-msgstr ""
-
-#. module: project_enterprise
-#. odoo-python
-#: code:addons/project_enterprise/models/project_task.py:0
-#, python-format
 msgid ""
-"This user isn't expected to have any tasks assigned during this period "
-"because they don't have any running contract. Planned hours :"
+"This user isn't expected to have task during this period. Planned hours :"
 msgstr ""
 
 #. module: project_enterprise
@@ -316,21 +451,19 @@ msgstr "برگه ساعت کارکرد"
 
 #. module: project_enterprise
 #. odoo-javascript
-#: code:addons/project_enterprise/static/src/views/project_task_map/project_task_map_model.js:0
+#: code:addons/project_enterprise/static/src/js/task_gantt_model.js:0
 #, python-format
-msgid "Unassigned"
-msgstr "محول نشده"
+msgid "Unassigned Tasks"
+msgstr "وظایف واگذار نشده"
 
 #. module: project_enterprise
-#. odoo-javascript
-#: code:addons/project_enterprise/static/src/task_gantt_popover.xml:0
 #: model_terms:ir.ui.view,arch_db:project_enterprise.project_task_view_form_in_gantt
-#, python-format
 msgid "Unschedule"
 msgstr ""
 
 #. module: project_enterprise
 #: model:ir.model,name:project_enterprise.model_res_users
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_wizard__user_id
 msgid "User"
 msgstr "کاربر"
 
@@ -341,26 +474,23 @@ msgstr "نام کاربر"
 
 #. module: project_enterprise
 #. odoo-javascript
-#: code:addons/project_enterprise/static/src/task_gantt_renderer.js:0
+#: code:addons/project_enterprise/static/src/js/task_gantt_controller.js:0
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__warning
 #, python-format
 msgid "Warning"
 msgstr "هشدار"
 
 #. module: project_enterprise
+#: model:ir.model.fields,field_description:project_enterprise.field_project_task_confirm_schedule_line_wizard__parent_id
+msgid "Wizard"
+msgstr "تَردست"
+
+#. module: project_enterprise
+#: model:ir.model.fields.selection,name:project_enterprise.selection__project_task__allocation_type__working_hours
+msgid "Working Hours"
+msgstr "ساعت های کاری"
+
+#. module: project_enterprise
 #: model:ir.model.fields,field_description:project_enterprise.field_project_task__partner_zip
 msgid "Zip"
 msgstr "کدپستی"
-
-#. module: project_enterprise
-#. odoo-javascript
-#: code:addons/project_enterprise/static/src/task_gantt_model.js:0
-#, python-format
-msgid "👤 Unassigned"
-msgstr ""
-
-#. module: project_enterprise
-#. odoo-javascript
-#: code:addons/project_enterprise/static/src/task_gantt_model.js:0
-#, python-format
-msgid "🔒 Private"
-msgstr ""

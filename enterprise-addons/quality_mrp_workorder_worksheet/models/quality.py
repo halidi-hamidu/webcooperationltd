@@ -17,5 +17,4 @@ class QualityCheck(models.Model):
 
     def action_fill_sheet(self):
         self.ensure_one()
-        # we need to access the worksheet through the wizard to do the checks
-        return self.action_open_quality_check_wizard()
+        return self.action_quality_worksheet()

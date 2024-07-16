@@ -1,14 +1,13 @@
 /** @odoo-module */
 
-import { registry } from "@web/core/registry";
+import tour from 'web_tour.tour';
 import { endKnowledgeTour, openCommandBar } from '../knowledge_tour_utils.js';
-import { stepUtils } from "@web_tour/tour_service/tour_utils";
 
 
-registry.category("web_tour.tours").add('knowledge_outline_command_tour', {
+tour.register('knowledge_outline_command_tour', {
     url: '/web',
     test: true,
-    steps: () => [stepUtils.showAppsMenuItem(), {
+}, [tour.stepUtils.showAppsMenuItem(), {
     // open the Knowledge App
     trigger: '.o_app[data-menu-xmlid="knowledge.knowledge_menu_root"]',
 }, { // open the command bar
@@ -17,7 +16,7 @@ registry.category("web_tour.tours").add('knowledge_outline_command_tour', {
         openCommandBar(this.$anchor[0]);
     },
 }, { // click on the /outline command
-    trigger: '.oe-powerbox-commandName:contains("Index")',
+    trigger: '.oe-powerbox-commandName:contains("Article Structure")',
     run: 'click',
 }, { // wait for the block to appear in the editor
     trigger: '.o_knowledge_behavior_type_articles_structure',
@@ -25,4 +24,4 @@ registry.category("web_tour.tours").add('knowledge_outline_command_tour', {
     trigger: '.o_knowledge_behavior_type_articles_structure button[title="Update"]',
     run: 'click',
 }, ...endKnowledgeTour()
-]});
+]);

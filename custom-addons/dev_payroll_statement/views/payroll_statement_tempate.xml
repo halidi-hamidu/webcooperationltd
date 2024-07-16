@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<template id="payroll_statement_template">  
+		<t t-call="dev_payroll_statement.payroll_header_layout">
+		<t t-foreach="docs" t-as="o">
+			<div class="page" style="font-size:12px;color:#000">
+				<style>
+					table th{
+						border-bottom:1px solid black;
+						padding:5px;
+						color:#000;
+					}
+					.group_line{
+						border-bottom:1px solid black;
+						border-top:1px solid black;
+						padding:5px;
+						background:#f4f5f7;
+						color:#000;
+					}
+					table td{
+						border-bottom:1px solid #e5e5e5;
+						padding:5px;
+						color:#000;
+					}
+				</style>
+				<div class="row">
+					<div class="col-xs-12 text-center">
+						<h3>Employee Payroll Statement</h3>
+					</div>
+					<div class="col-xs-6">
+						<b>Company :</b> <span t-esc="o.company_id.name"/>
+					</div>
+					<div class="col-xs-2 pull-right">
+						<b>Start Date :</b> <span t-esc="o.start_date.strftime('%d-%m-%Y')"/><br/>
+						<b>End Date :</b> <span t-esc="o.end_date.strftime('%d-%m-%Y')"/>
+					</div>
+				</div>
+				<t t-set="payslip_ids" t-value="o.get_payslip()" />
+				<t t-set="code_list" t-value="o.get_code_list(payslip_ids)" />
+				<div class="row mt16 mb16"/>
+				<div class="col-xs-12">
+					<table width="100%">
+						<thead>
+						<tr>
+		                    <th width="5%">Month</th>
+		                    <th width="15%">Employee Name</th>
+		                    <th width="15%">Department</th>
+		                    <t t-foreach="code_list" t-as="code">
+		                    	<th class="text-right"><span t-esc="code"/></th>
+		                    </t>
+		                </tr>
+		                </thead>
+		                <tbody>
+				            <t t-foreach="o.get_lines(payslip_ids,code_list)" t-as="line">
+				            	<tr style="page-break-inside: avoid">
+				            		<td colspan="3" class="group_line">
+				            			<b><span t-esc="line.get('month')"/></b>
+				            		</td>
+				            		<t t-foreach="code_list" t-as="code">
+						            	<td class="group_line"></td>
+						            </t>
+				            	</tr>
+				            	<t t-foreach="line.get('values')" t-as="l_val">
+				            		<tr style="page-break-inside: avoid">
+				            			<td>
+				            			</td>
+				            			<td>
+				            				<span t-esc="l_val.get('employee')"/>
+				            			</td>
+				            			<td>
+				            				<span t-esc="l_val.get('department')"/>
+				            			</td>
+				            			<t t-foreach="l_val.get('lines')" t-as="l_val_line">
+								        	<td class="text-right"><span t-esc="'%.2f'%(l_val_line)"/></td>
+								        </t>
+				            		</tr>
+				            	</t>
+								<tr style="page-break-inside: avoid">
+									<td>
+									</td>
+									<td>
+
+									</td>
+									<td>
+										<b class="text-right">Total</b>
+									</td>
+									<t t-foreach="o.get_totals(line.get('values'),code_list)" t-as="tt">
+										<td class="text-right"><b><span t-esc="'%.2f'%(tt)"/></b></td>
+									</t>
+								</tr>
+				            </t>
+		                </tbody>
+					</table>
+				</div>
+			</div>
+		</t>
+		</t>
+	</template>
+</odoo>
+

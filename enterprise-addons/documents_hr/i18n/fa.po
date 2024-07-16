@@ -3,20 +3,20 @@
 # 	* documents_hr
 # 
 # Translators:
-# Ali Reza Feizi Derakhshi, 2023
+# Mohammad Tahmasebi <hit.tah75@gmail.com>, 2023
 # Hamed Mohammadi <hamed@dehongi.com>, 2023
+# Hanna Kheradroosta, 2023
 # Hamid Darabi, 2023
 # Martin Trigaux, 2023
-# Hanna Kheradroosta, 2023
-# F Hariri <fhari1234@gmail.com>, 2023
+# Farid Hariri <fhari1234@gmail.com>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0beta+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: F Hariri <fhari1234@gmail.com>, 2023\n"
+"POT-Creation-Date: 2022-10-04 09:42+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
+"Last-Translator: Farid Hariri <fhari1234@gmail.com>, 2023\n"
 "Language-Team: Persian (https://app.transifex.com/odoo/teams/41243/fa/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,9 +27,20 @@ msgstr ""
 #. module: documents_hr
 #: model_terms:ir.ui.view,arch_db:documents_hr.res_config_settings_view_form
 msgid ""
-"<span name=\"documents_hr_tags\" class=\"o_form_label\" invisible=\"1\">\n"
-"                                Default tags\n"
-"                            </span>"
+"<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
+"specific.\" aria-label=\"Values set here are company-specific.\" "
+"groups=\"base.group_multi_company\" role=\"img\"/>"
+msgstr ""
+"<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
+"specific.\" aria-label=\"Values set here are company-specific.\" "
+"groups=\"base.group_multi_company\" role=\"img\"/>"
+
+#. module: documents_hr
+#: model_terms:ir.ui.view,arch_db:documents_hr.res_config_settings_view_form
+msgid ""
+"<span name=\"documents_hr_tags\" class=\"o_form_label\" invisible=\"1\" attrs=\"{'invisible' : [('documents_hr_settings', '=', False)]}\">\n"
+"                                    Default tags\n"
+"                                </span>"
 msgstr ""
 
 #. module: documents_hr
@@ -37,15 +48,15 @@ msgstr ""
 msgid ""
 "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"width:100%; margin:0px auto;\"><tbody>\n"
 "        <tr><td valign=\"top\" style=\"text-align: left; font-size: 14px;\">\n"
-"            Dear <t t-esc=\"object.name\"></t>, your personal documents access link is available for you.<br><br>\n"
-"            You'll find all your personal HR documents in this folder.<br><br>\n"
-"            Please keep this link secure.<br><br>\n"
+"            Dear <t t-esc=\"object.name\"/>, your personal documents access link is available for you.<br/><br/>\n"
+"            You'll find all your personal HR documents in this folder.<br/><br/>\n"
+"            Please keep this link secure.<br/><br/>\n"
 "            <div style=\"text-align: center; padding: 16px 0px 16px 0px; font-size: 14px;\">\n"
 "                <a t-attf-href=\"{{ object.documents_share_id.full_url }}\" target=\"_blank\" style=\"background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
 "                    Your Documents\n"
 "                </a>\n"
 "            </div>\n"
-"            Have a nice day,<br>\n"
+"            Have a nice day,<br/>\n"
 "            The HR Team\n"
 "        </td></tr>\n"
 "    </tbody></table>\n"
@@ -70,7 +81,7 @@ msgstr "گواهینامه ها"
 #. module: documents_hr
 #: model:ir.model,name:documents_hr.model_res_company
 msgid "Companies"
-msgstr "شرکت‌ها"
+msgstr "شرکت"
 
 #. module: documents_hr
 #: model:ir.model,name:documents_hr.model_res_config_settings
@@ -93,7 +104,6 @@ msgid "Document Count"
 msgstr ""
 
 #. module: documents_hr
-#. odoo-python
 #: code:addons/documents_hr/models/res_users.py:0
 #: model:documents.facet,name:documents_hr.documents_hr_documents
 #: model:ir.model.fields,field_description:documents_hr.field_res_users__document_count
@@ -119,11 +129,10 @@ msgid "Employee"
 msgstr "کارمند"
 
 #. module: documents_hr
-#. odoo-python
 #: code:addons/documents_hr/models/hr_employee.py:0
 #, python-format
 msgid ""
-"Employee's related user and private email must be set to use \"Send Access Link\" function:\n"
+"Employee's private email must be set to use \"Send Access Link\" function:\n"
 "%s"
 msgstr ""
 
@@ -138,7 +147,6 @@ msgid "HR"
 msgstr "منابع انسانی"
 
 #. module: documents_hr
-#. odoo-python
 #: code:addons/documents_hr/models/hr_employee.py:0
 #, python-format
 msgid "HR Documents: %s"
@@ -155,11 +163,6 @@ msgid "Human Resources"
 msgstr "منابع انسانی"
 
 #. module: documents_hr
-#: model:ir.model.fields,field_description:documents_hr.field_hr_departure_wizard__private_email
-msgid "Private Email"
-msgstr "ایمیل شخصی"
-
-#. module: documents_hr
 #: model:ir.model.fields,field_description:documents_hr.field_hr_departure_wizard__send_hr_documents_access_link
 msgid "Send Access Link"
 msgstr ""
@@ -172,8 +175,7 @@ msgstr ""
 #. module: documents_hr
 #: model:ir.model.fields,help:documents_hr.field_hr_departure_wizard__send_hr_documents_access_link
 msgid ""
-"Send a share link to the private email of the employee with all the HR files"
-" he owns in Documents app"
+"Send an email to the user with a share link to all the documents he owns."
 msgstr ""
 
 #. module: documents_hr
@@ -182,7 +184,6 @@ msgid "Sent manually when recording an employee departure"
 msgstr ""
 
 #. module: documents_hr
-#. odoo-python
 #: code:addons/documents_hr/models/hr_employee.py:0
 #, python-format
 msgid "The access link has been sent to the employee."
@@ -199,12 +200,11 @@ msgid "Workspace"
 msgstr "فضای کار"
 
 #. module: documents_hr
-#. odoo-python
 #: code:addons/documents_hr/models/hr_employee.py:0
 #, python-format
 msgid ""
-"You must set a work contact address on the Employee in order to use "
-"Document's features."
+"You must set a private address on the Employee in order to use Document's "
+"features."
 msgstr ""
 
 #. module: documents_hr

@@ -27,5 +27,5 @@ class TestWebsiteSaleTaxcloudController(TestAccountTaxcloudCommon):
 
         with MockRequest(self.env, website=self.website):
             self.website.sale_get_order(force_create=True)
-            with self.assertRaisesRegex(ValidationError, 'This address does not appear to be valid.'):
+            with self.assertRaises(ValidationError):
                 self.Controller.shop_payment_validate()

@@ -54,7 +54,7 @@ class StockPickingBatch(models.Model):
         self.ensure_one()
         view = self.env.ref('stock_barcode.stock_barcode_cancel_operation_view')
         return {
-            'name': _('Cancel this batch transfer?'),
+            'name': _('Cancel this batch transfer ?'),
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'stock_barcode.cancel.operation',
@@ -129,7 +129,6 @@ class StockPickingBatch(models.Model):
     def _get_fields_stock_barcode(self):
         return [
             'company_id',
-            'move_ids',
             'move_line_ids',
             'name',
             'picking_type_id',

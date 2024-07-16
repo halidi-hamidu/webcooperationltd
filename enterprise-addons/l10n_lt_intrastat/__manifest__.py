@@ -2,8 +2,7 @@
 
 {
     'name': 'Lithuanian Intrastat Declaration',
-    'countries': ['lt'],
-    'version': '1.0',
+    'icon': '/l10n_lt/static/description/icon.png',
     'category': 'Accounting/Localizations/Reporting',
     'description': """
         Generates Intrastat XML report for declaration.

@@ -1,45 +1,39 @@
 # -*- coding: utf-8 -*-
 
 import base64
-
-from odoo.tests import Form
-
-from odoo.exceptions import UserError
-from odoo.tests.common import tagged
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.tests.common import tagged, TransactionCase
 
 GIF = b"R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs="
 TEXT = base64.b64encode(bytes("workflow bridge account", 'utf-8'))
 
 
 @tagged('post_install', '-at_install', 'test_document_bridge')
-class TestCaseDocumentsBridgeAccount(AccountTestInvoicingCommon):
+class TestCaseDocumentsBridgeAccount(TransactionCase):
 
-    @classmethod
-    def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass(chart_template_ref=chart_template_ref)
-        cls.folder_a = cls.env['documents.folder'].create({
+    def setUp(self):
+        super(TestCaseDocumentsBridgeAccount, self).setUp()
+        self.folder_a = self.env['documents.folder'].create({
             'name': 'folder A',
         })
-        cls.folder_a_a = cls.env['documents.folder'].create({
+        self.folder_a_a = self.env['documents.folder'].create({
             'name': 'folder A - A',
-            'parent_folder_id': cls.folder_a.id,
+            'parent_folder_id': self.folder_a.id,
         })
-        cls.document_txt = cls.env['documents.document'].create({
+        self.document_txt = self.env['documents.document'].create({
             'datas': TEXT,
             'name': 'file.txt',
             'mimetype': 'text/plain',
-            'folder_id': cls.folder_a_a.id,
+            'folder_id': self.folder_a_a.id,
         })
-        cls.document_gif = cls.env['documents.document'].create({
+        self.document_gif = self.env['documents.document'].create({
             'datas': GIF,
             'name': 'file.gif',
             'mimetype': 'image/gif',
-            'folder_id': cls.folder_a.id,
+            'folder_id': self.folder_a.id,
         })
 
-        cls.workflow_rule_vendor_bill = cls.env['documents.workflow.rule'].create({
-            'domain_folder_id': cls.folder_a.id,
+        self.workflow_rule_vendor_bill = self.env['documents.workflow.rule'].create({
+            'domain_folder_id': self.folder_a.id,
             'name': 'workflow rule create vendor bill on f_a',
             'create_model': 'account.move.in_invoice',
         })
@@ -209,53 +203,3 @@ class TestCaseDocumentsBridgeAccount(AccountTestInvoicingCommon):
         self.assertEqual(move.partner_id, partner_1)
         move.partner_id = partner_2
         self.assertEqual(self.document_txt.partner_id, partner_2)
-
-    def test_workflow_create_misc_entry(self):
-        misc_entry_rule = self.env.ref('documents_account.misc_entry_rule')
-        misc_entry_rule.journal_id = misc_entry_rule.suitable_journal_ids[0]
-        misc_entry_action = misc_entry_rule.apply_actions([self.document_txt.id, self.document_gif.id])
-        move = self.env['account.move'].browse(self.document_txt.res_id)
-        self.assertEqual(misc_entry_action.get('res_model'), 'account.move')
-        self.assertEqual(move.move_type, 'entry')
-        self.assertTrue(move.journal_id in misc_entry_rule.suitable_journal_ids)
-
-    def test_workflow_create_bank_statement_raise(self):
-        with self.assertRaises(UserError): # Could not make sense of the given file.
-            self.env.ref('documents_account.bank_statement_rule').apply_actions([self.document_txt.id, self.document_gif.id])
-
-    def test_workflow_create_vendor_bill(self):
-        vendor_bill_entry_rule = self.env.ref('documents_account.vendor_bill_rule_financial')
-        vendor_bill_entry_action = vendor_bill_entry_rule.apply_actions([self.document_txt.id])
-        move = self.env['account.move'].browse(self.document_txt.res_id)
-        self.assertEqual(vendor_bill_entry_action.get('res_model'), 'account.move')
-        self.assertEqual(move.move_type, 'in_invoice')
-        self.assertTrue(move.journal_id in vendor_bill_entry_rule.suitable_journal_ids)
-
-    def test_workflow_create_vendor_receipt(self):
-        # Activate the group for the vendor receipt
-        self.env['res.config.settings'].create({'group_show_purchase_receipts': True}).execute()
-        self.assertTrue(self.env.user.has_group('account.group_purchase_receipts'), 'The "purchase Receipt" feature should be enabled.')
-        vendor_receipt_rule = self.env.ref('documents_account.documents_vendor_receipt_rule')
-        vendor_receipt_action = vendor_receipt_rule.apply_actions([self.document_txt.id])
-        move = self.env['account.move'].browse(self.document_txt.res_id)
-        self.assertEqual(vendor_receipt_action.get('res_model'), 'account.move')
-        self.assertEqual(move.move_type, 'in_receipt')
-        self.assertTrue(move.journal_id in vendor_receipt_rule.suitable_journal_ids)
-
-    def test_workflow_rule_form_journal(self):
-        rule_financial = self.env.ref('documents_account.vendor_bill_rule_financial')
-        rule_financial.journal_id = rule_financial.suitable_journal_ids[0]
-        with Form(rule_financial) as rule:
-            # our accounting action has a journal_id
-            self.assertTrue(rule.journal_id)
-
-            # switching it to non-accouting action resets its journal_id on write/create
-            rule.create_model = 'link.to.record'
-            rule.save()
-            self.assertFalse(rule.journal_id)
-
-            # switching back gives us the rigth journal_id on write/create
-            rule.create_model = 'account.move.out_invoice'
-            rule.save()
-            self.assertTrue(rule.journal_id.type == 'sale')
-            self.assertTrue(rule.journal_id in rule.suitable_journal_ids)

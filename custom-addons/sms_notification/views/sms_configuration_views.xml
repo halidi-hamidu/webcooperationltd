@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form_sms_notification" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.sms.notification</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="25"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('settings')]" position="inside">
+                    <div class="app_settings_block" data-string="sms_notification" string="SMS Notification"
+                         data-key="sms_notification" groups="base.group_system">
+                        <h2>SMS Notification Configurations</h2>
+                        <h3 class="font-weight-bold" style="margin:20px;">InfoBip</h3>
+                        <div class="row mt16 o_settings_container" name="sms_notification_setting_container">
+                            <div class="col-xs-12 col-md-6 o_setting_box">
+                                <div>
+                                    <div class="row">
+                                        <label class="col-3" for="infobip_base_url"/>
+                                        <field name="infobip_base_url" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row mt16">
+                                        <label class="col-3" for="infobip_api_key"/>
+                                        <field name="infobip_api_key" password="True" class="col-8 oe_inline"/>
+                                    </div>
+                                    <div class="row mt16">
+                                        <label class="col-3" for="infobip_sender_id"/>
+                                        <field name="infobip_sender_id" class="col-8 oe_inline"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_sms_notification_configuration" model="ir.actions.act_window">
+            <field name="name">SMS Notification Settings</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module' : 'sms_notification'}</field>
+        </record>
+
+        <menuitem id="sms_notification_settings" name="SMS Notification Settings" parent="sale.menu_sale_config"
+                  action="action_sms_notification_configuration" groups="base.group_system"/>
+
+    </data>
+</odoo>

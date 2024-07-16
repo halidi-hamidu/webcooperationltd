@@ -12,7 +12,7 @@
     'installable': True,
     'license': 'OEEL-1',
     'assets': {
-        'point_of_sale._assets_pos': [
+        'point_of_sale.assets': [
             'pos_iot_six/static/src/js/models.js',
             'pos_iot_six/static/src/js/payment_six.js',
         ],

@@ -3,16 +3,18 @@
 # 	* social_twitter
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
+# Wichanon Jamwutthipreecha, 2022
 # Rasareeyar Lappiam, 2024
+# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:47+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Rasareeyar Lappiam, 2024\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:49+0000\n"
+"Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Thai (https://app.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,6 +64,11 @@ msgid "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
 msgstr "<i class=\"fa fa-retweet me-1\" title=\"รีทวีตของทวีต\"/>"
 
 #. module: social_twitter
+#: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
+msgid "<span class=\"fst-italic\">Empty tweet</span>"
+msgstr ""
+
+#. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
 msgid "@twitteraccount ·"
 msgstr "@twitteraccount ·"
@@ -82,7 +89,6 @@ msgstr "การรับรองความถูกต้องล้มเ
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 #, python-format
@@ -124,12 +130,12 @@ msgstr "ตั้งค่าการกำหนดค่า"
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
 msgid "Consumer Key"
-msgstr "รหัสผู้บริโภค"
+msgstr "Consumer Key"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
 msgid "Consumer Secret Key"
-msgstr "รหัสลับผู้บริโภค"
+msgstr "Consumer Secret Key"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__create_uid
@@ -156,21 +162,6 @@ msgstr "แสดงชื่อ"
 #: model:ir.model.fields,field_description:social_twitter.field_social_post_template__has_twitter_accounts
 msgid "Display Twitter Preview"
 msgstr "แสดงตัวอย่าง Twitter"
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
-#, python-format
-msgid ""
-"Easy, tiger! No spamming allowed. Let's stick to three replies per Tweet."
-msgstr "ไม่อนุญาตให้มีการส่งสแปม เรามาตอบสามคำตอบต่อทวีตกันดีกว่า"
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
-#, python-format
-msgid "Empty tweet"
-msgstr "ทวีตว่าง"
 
 #. module: social_twitter
 #. odoo-javascript
@@ -201,9 +192,16 @@ msgstr ""
 #. odoo-python
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
+msgid "Failed to fetch the conversation id: '%s' using the account %s."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
 msgid ""
 "Failed to fetch the tweets in the same thread: '%s' using the account %s."
-msgstr "ไม่สามารถเรียกทวีตในชุดข้อความเดียวกัน: '%s' โดยใช้บัญชี %s ได้"
+msgstr "ไม่สามารถเรียกทวีตในชุดข้อความเดียวกัน: '%s' โดยใช้บัญชี %s"
 
 #. module: social_twitter
 #. odoo-python
@@ -237,6 +235,11 @@ msgstr "เกินขีดจำกัดการโพสต์ Twitter ห
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_keyword
 msgid "Keyword"
 msgstr "คำสำคัญ"
+
+#. module: social_twitter
+#: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account____last_update
+msgid "Last Modified on"
+msgstr "แก้ไขครั้งล่าสุดเมื่อ"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_uid
@@ -281,6 +284,13 @@ msgstr "ชื่อ"
 
 #. module: social_twitter
 #. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Oops! Couldn't find this tweet on Twitter.com"
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
 #: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Please select a Twitter account for this stream type."
@@ -318,7 +328,7 @@ msgstr "ชื่อผู้เขียนทวีตที่อ้างถ
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_quoted_tweet_message
 msgid "Quoted tweet message"
-msgstr "ข้อความทวีตที่อ้างอิง"
+msgstr "ข้อความทวีตที่ยกมา"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_quoted_tweet_profile_image_url
@@ -328,19 +338,12 @@ msgstr "URL รูปภาพโปรไฟล์ทวีตที่ยก�
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 msgid "RT"
-msgstr "รีทวีต"
+msgstr "RT"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_retweet_count
 msgid "Re-tweets"
 msgstr "รีทวีต"
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/controllers/main.py:0
-#, python-format
-msgid "Read More about Twitter Accounts"
-msgstr "อ่านเพิ่มเติมเกี่ยวกับบัญชี Twitter"
 
 #. module: social_twitter
 #. odoo-python
@@ -449,13 +452,6 @@ msgid "This Tweet has been deleted."
 msgstr "ทวีตนี้ถูกลบแล้ว"
 
 #. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "This tweet is outdated, please refresh the stream and try again."
-msgstr "ทวีตนี้ล้าสมัยแล้ว โปรดรีเฟรชสตรีมแล้วลองอีกครั้ง"
-
-#. module: social_twitter
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_follow
 msgid "Tweets of"
 msgstr "ทวีตของ"
@@ -487,17 +483,12 @@ msgstr "ความคิดเห็น Twitter"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_res_config_settings__twitter_consumer_key
 msgid "Twitter Consumer Key"
-msgstr "รหัสผู้บริโภคของ Twitter"
+msgstr "Twitter Consumer Key"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_res_config_settings__twitter_consumer_secret_key
 msgid "Twitter Consumer Secret Key"
-msgstr "รหัสลับผู้บริโภคของ Twitter"
-
-#. module: social_twitter
-#: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_conversation_id
-msgid "Twitter Conversation ID"
-msgstr "รหัสการสนทนาของ Twitter"
+msgstr "Twitter Consumer Secret Key"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -522,12 +513,12 @@ msgstr "การถูกใจทวิตเตอร์"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_account__twitter_oauth_token
 msgid "Twitter OAuth Token"
-msgstr "โทเค็น OAuth ของ Twitter"
+msgstr "Twitter OAuth Token"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_account__twitter_oauth_token_secret
 msgid "Twitter OAuth Token Secret"
-msgstr "ความลับโทเค็น OAuth ของ Twitter"
+msgstr "Twitter OAuth Token Secret"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_post__twitter_post_limit_message
@@ -561,7 +552,7 @@ msgstr "รหัสทวีตที่อ้างถึงใน Twitter"
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_retweeted_tweet_id_str
 msgid "Twitter Retweet ID"
-msgstr "รหัสรีทวีตของทวิตเตอร์"
+msgstr "รหัสรีทวีตของ Twitter"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_screen_name
@@ -588,14 +579,14 @@ msgstr "การถูกใจของผู้ใช้ Twitter"
 #: code:addons/social_twitter/controllers/main.py:0
 #, python-format
 msgid "Twitter did not provide a valid access token or it may have expired."
-msgstr "Twitter ไม่ได้ให้โทเค็นการเข้าถึงที่ถูกต้อง หรือโทเค็นอาจหมดอายุแล้ว"
+msgstr "Twitter ไม่ได้ให้โทเคนการเข้าถึงที่ถูกต้อง หรือโทเคนอาจหมดอายุแล้ว"
 
 #. module: social_twitter
 #. odoo-python
 #: code:addons/social_twitter/controllers/main.py:0
 #, python-format
 msgid "Twitter did not provide a valid access token."
-msgstr "Twitter ไม่ได้ให้โทเค็นการเข้าถึงที่ถูกต้อง"
+msgstr "Twitter ไม่ได้ให้โทเคนการเข้าถึงที่ถูกต้อง"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_live_post__twitter_tweet_id
@@ -615,8 +606,8 @@ msgid "Undo Retweet"
 msgstr "ยกเลิกการรีทวีต"
 
 #. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Unknown"
 msgstr "ไม่ทราบ"
@@ -661,6 +652,15 @@ msgstr ""
 #, python-format
 msgid "You are not authenticated"
 msgstr "คุณไม่ได้รับการรับรองความถูกต้อง"
+
+#. module: social_twitter
+#. odoo-javascript
+#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
+#, python-format
+msgid ""
+"You can comment only three times a tweet as it may be considered as spamming"
+" by Twitter"
+msgstr ""
 
 #. module: social_twitter
 #: model:ir.model.constraint,message:social_twitter.constraint_social_stream_post_tweet_uniq

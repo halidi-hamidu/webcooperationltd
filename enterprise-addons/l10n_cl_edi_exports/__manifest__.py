@@ -2,11 +2,11 @@
 
 {
     "name": """Electronic Exports of Goods for Chile""",
-    'countries': ['cl'],
+    'icon': '/l10n_cl/static/description/icon.png',
     'version': '1.0',
     'category': 'Localization/Chile',
     'description': '''
-Even when the quantity of packages is apparently only inherent to stock application, we need a field for this
+Even when the quantity of packages is apparently only inherent to stock application, we need a field for this 
 in the invoice, because that info could also depend on the DUS declaration.
 We should also consider that there may be users without the inventory application installed and keep a less
 complex logic.
@@ -28,4 +28,5 @@ complex logic.
             'data/l10n_cl.customs_port.csv',
     ],
     'installable': True,
+    'application': False,
 }

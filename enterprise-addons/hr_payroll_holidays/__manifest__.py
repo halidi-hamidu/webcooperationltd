@@ -11,7 +11,6 @@
         'security/hr_payroll_holidays_security.xml',
         'views/res_config_settings_views.xml',
         'views/hr_leave_views.xml',
-        'views/hr_allocation_views.xml',
         'views/hr_payslip_run_views.xml',
         'views/hr_payslip_views.xml',
         'data/mail_activity_data.xml',

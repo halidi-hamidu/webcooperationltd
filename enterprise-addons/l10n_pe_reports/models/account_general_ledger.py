@@ -8,7 +8,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import groupby
 from odoo.tools.float_utils import float_repr
-from odoo.addons.l10n_pe_reports.models.res_company import CHART_OF_ACCOUNTS
 
 
 class GeneralLedgerCustomHandler(models.AbstractModel):
@@ -97,7 +96,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         ledger = self.env['account.report'].browse(options['report_id'])
         # Options ---------------------------------
         # We don't need all companies
-        options['companies'] = [{'name': self.env.company.name, 'id': self.env.company.id}]
+        options.pop('multi_company', None)
 
         # Prepare query to get lines
         domain = ledger._get_options_domain(options, "strict_range")
@@ -127,7 +126,6 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                           'account_move_line__account.code AS account_code',
                           'account_move_line__account.name AS account_name',
                           'account_move_line__journal.name AS journal_name',
-                          'account_move_line__move.l10n_pe_sunat_transaction_type',
                           'account_move_line__currency.name AS currency_name',
                           'account_move_line.move_id',
                           'account_move_line__move.date AS move_date',
@@ -141,7 +139,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                           'account_move_line__move__partner__country.code AS country_code',
                           )
 
-        self.env.cr.execute(qu)
+        self.env.cr.execute(qu[0], qu[1])
         lines_data = self._cr.dictfetchall()
 
         data = []
@@ -151,8 +149,21 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         for _move_id, line_vals in groupby(lines_data, lambda line: line["move_id"]):
             for count, line in enumerate(line_vals, start=1):
                 serie_folio = ple._get_serie_folio(line["move_name"]  or "")
-                transaction_type = line["l10n_pe_sunat_transaction_type"]
-                ple_journal_type = "M" if not transaction_type else ("A" if transaction_type == "opening" else "C" if transaction_type == "closing" else "")
+                serie = serie_folio["serie"].replace(" ", "").replace("/", "")
+                if (
+                    (
+                        line["document_type"]
+                        and line["document_type"] not in ["01", "03", "07", "08"]
+                    )
+                    or
+                    (
+                        len(serie) > 4
+                        and line["move_type"] in self.env["account.move"].get_purchase_types()
+                        and line["document_type"] in ["01", "03", "07", "08"]
+                    )
+                ):
+                    serie = serie[1:]
+                ple_journal_type = "M"
                 ple_document_type = _get_ple_document_type(line["move_type"], line["country_code"], line["document_type"])
                 data.append(
                     {
@@ -166,7 +177,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                         "partner_type": line["partner_document_type"] or "",
                         "partner_number": line["partner_vat"] or "",
                         "document_type": line["document_type"] if ple_document_type else "00",
-                        "serie": serie_folio["serie"].replace(" ", "").replace("/", ""),
+                        "serie": serie,
                         "folio": serie_folio["folio"].replace(" ", ""),
                         "date": line["date"].strftime("%d/%m/%Y") if line["move_date"] else "",
                         "due_date": line["move_date_due"].strftime("%d/%m/%Y") if line["move_date_due"] else "",
@@ -175,12 +186,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                         "glosa_ref": "",
                         "debit": float_repr(line["debit"], precision_digits=2),
                         "credit": float_repr(line["credit"], precision_digits=2),
-                        "book": "%s&%s&%s&%s" % (
-                            ple_document_type,
-                            "%s00" % period[:6],
-                            line["move_id"],
-                            "%s%s" % (ple_journal_type, count)
-                        ) if ple_document_type else "",
+                        "book": "",
                         "state": "1",
                     }
                 )
@@ -194,15 +200,14 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
 
         data = []
         period = options["date"]["date_from"].replace("-", "")
-        chart = self.env.company.l10n_pe_chart_of_accounts
         for account in accounts:
             data.append(
                 {
                     "period": period[:8],
                     "code": account.code,
                     "name": account.name[:100],
-                    "chart_account_code": (chart or "").zfill(2),
-                    "chart_account_name": dict(CHART_OF_ACCOUNTS).get(chart, ""),
+                    "chart_account_code": "01",
+                    "chart_account_name": "Plan contable empresarial",
                     "corporative_account": "",
                     "corporative_account_name": "",
                     "state": "1",

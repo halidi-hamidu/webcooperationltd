@@ -1,6 +1,8 @@
 /** @odoo-module **/
 
-import { Component } from "@odoo/owl";
+import { bus } from 'web.core';
+import { formatFloat } from "@web/views/fields/formatters";
+const { Component } = owl;
 
 export default class LineComponent extends Component {
     get destinationLocationPath () {
@@ -56,12 +58,21 @@ export default class LineComponent extends Component {
         }
     }
 
+    applyRounding(value){
+        if (!value) {
+            return value;
+        }
+        const digits = [false, this.env.model.precision];
+        const options = { digits, decimalPoint: ".", thousandsSep: "" };
+        return parseFloat(formatFloat(value, options));
+    }
+
     get qtyDemand() {
-        return this.env.model.getQtyDemand(this.line);
+        return this.applyRounding(this.env.model.getQtyDemand(this.line));
     }
 
     get qtyDone() {
-        return this.env.model.getQtyDone(this.line);
+        return this.applyRounding(this.env.model.getQtyDone(this.line));
     }
 
     get quantityIsSet() {
@@ -76,6 +87,10 @@ export default class LineComponent extends Component {
         return this.props.line;
     }
 
+    get requireLotNumber() {
+        return true;
+    }
+
     get sourceLocationPath() {
         return this._getLocationPath(this.env.model._defaultLocation(), this.line.location_id);
     }
@@ -83,20 +98,23 @@ export default class LineComponent extends Component {
     get componentClasses() {
         return [
             this.isComplete ? 'o_line_completed' : 'o_line_not_completed',
-            this.env.model.lineIsFaulty(this) ? 'o_faulty' : '',
+            this.env.model.lineIsFaulty(this.line) ? 'o_faulty' : '',
             this.isSelected ? 'o_selected o_highlight' : ''
         ].join(' ');
     }
 
     _getLocationPath(rootLocation, currentLocation) {
         let locationName = currentLocation.display_name;
-        if (this.env.model.shouldShortenLocationName) {
-            if (rootLocation && rootLocation.id != currentLocation.id) {
-                const name = rootLocation.display_name;
-                locationName = locationName.replace(name, '...');
-            }
+        if (this.env.model.shouldShortenLocationName && this.env.model._isSublocation &&
+            this.env.model._isSublocation(currentLocation, rootLocation) &&
+            rootLocation && rootLocation.id != currentLocation.id) {
+            locationName = locationName.replace(rootLocation.display_name, '...');
         }
         return locationName.replace(new RegExp(currentLocation.name + '$'), '');
+    }
+
+    edit() {
+        bus.trigger('edit-line', { line: this.line });
     }
 
     addQuantity(quantity, ev) {
@@ -113,5 +131,4 @@ export default class LineComponent extends Component {
         this.env.model.setOnHandQuantity(this.line);
     }
 }
-LineComponent.props = ["displayUOM", "line", "subline?", "editLine"];
 LineComponent.template = 'stock_barcode.LineComponent';

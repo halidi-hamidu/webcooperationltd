@@ -1,12 +1,10 @@
+# -*- coding: utf-8 -*-
+from lxml import etree
 from odoo import _, api, fields, models
-from odoo.addons.base.models.res_bank import sanitize_account_number
 from odoo.exceptions import UserError
-from odoo.tools import html2plaintext
 
 from dateutil.relativedelta import relativedelta
-from itertools import product
-from lxml import etree
-from markupsafe import Markup
+
 
 class AccountBankStatement(models.Model):
     _inherit = 'account.bank.statement'
@@ -38,6 +36,29 @@ class AccountBankStatement(models.Model):
             })
         return statement_report_action.report_action(docids=self)
 
+    # -------------------------------------------------------------------------
+    # LOW-LEVEL METHODS
+    # -------------------------------------------------------------------------
+
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        # EXTENDS base
+        # include field 'create_date' to avoid a module update (required to compute balance start)
+        # TO BE REMOVED IN MASTER
+        res = super().get_view(view_id=view_id, view_type=view_type, options=options)
+        if view_type == 'form':
+            form_view = self.env.ref('account_accountant.view_bank_statement_form_bank_rec_widget')
+            tree = etree.fromstring(res['arch'])
+            if res.get('id') == form_view.id and len(tree.xpath("//field[@name='create_date']")) == 0:
+                arch_tree = etree.fromstring(form_view.arch)
+                arch_tree.insert(0, etree.Element('field', attrib={
+                    'name': 'create_date',
+                    'invisible': '1',
+                }))
+                form_view.sudo().write({'arch': etree.tostring(arch_tree, encoding='unicode')})
+                return super().get_view(view_id=view_id, view_type=view_type, options=options)
+        return res
+
 class AccountBankStatementLine(models.Model):
     _inherit = 'account.bank.statement.line'
 
@@ -53,10 +74,6 @@ class AccountBankStatementLine(models.Model):
         action['context'] = {'default_journal_id': self._context['default_journal_id']}
         return action
 
-    ####################################################
-    # RECONCILIATION PROCESS
-    ####################################################
-
     @api.model
     def _action_open_bank_reconciliation_widget(self, extra_domain=None, default_context=None, name=None, kanban_first=True):
         context = default_context or {}
@@ -64,10 +81,6 @@ class AccountBankStatementLine(models.Model):
             (self.env.ref('account_accountant.view_bank_statement_line_kanban_bank_rec_widget').id, 'kanban'),
             (self.env.ref('account_accountant.view_bank_statement_line_tree_bank_rec_widget').id, 'list'),
         ]
-        helper = Markup("<p class='o_view_nocontent_smiling_face'>{}</p><p>{}</p>").format(
-            _("Nothing to do here!"),
-            _("No transactions matching your filters were found."),
-        )
         return {
             'name': name or _("Bank Reconciliation"),
             'type': 'ir.actions.act_window',
@@ -77,7 +90,14 @@ class AccountBankStatementLine(models.Model):
             'view_mode': 'kanban,list' if kanban_first else 'list,kanban',
             'views': views if kanban_first else views[::-1],
             'domain': [('state', '!=', 'cancel')] + (extra_domain or []),
-            'help': helper,
+            'help': _("""
+                <p class="o_view_nocontent_smiling_face">
+                    Nothing to do here!
+                </p>
+                <p>
+                    No transactions matching your filters were found.
+                </p>
+            """),
         }
 
     def action_open_recon_st_line(self):
@@ -100,7 +120,7 @@ class AccountBankStatementLine(models.Model):
                             there is still some statement lines to process.
                 limit_time: Maximum time allowed to run in seconds. 0 if the Cron is allowed to run without time limit.
         """
-        def _compute_st_lines_to_reconcile(configured_company):
+        def _compute_st_lines_to_reconcile(configured_company_ids):
             # Find the bank statement lines that are not reconciled and try to reconcile them automatically.
             # The ones that are never be processed by the CRON before are processed first.
             remaining_line_id = None
@@ -108,7 +128,7 @@ class AccountBankStatementLine(models.Model):
             domain = [
                 ('is_reconciled', '=', False),
                 ('create_date', '>', start_time.date() - relativedelta(months=3)),
-                ('company_id', 'in', configured_company.ids),
+                ('company_id', 'in', configured_company_ids),
             ]
             query_obj = self._search(domain, limit=limit)
             query_obj.order = '"account_bank_statement_line"."cron_last_check" ASC NULLS FIRST,"account_bank_statement_line"."id"'
@@ -133,15 +153,13 @@ class AccountBankStatementLine(models.Model):
         query_obj.order = 'company_id'
         query_str, query_params = query_obj.select('DISTINCT company_id')
         self._cr.execute(query_str, query_params)
-        configured_company = children_company = self.env['res.company'].browse([r[0] for r in self._cr.fetchall()])
-        if not configured_company:
+        configured_company_ids = [r[0] for r in self._cr.fetchall()]
+        if not configured_company_ids:
             return
-        while children_company := children_company.child_ids:
-            configured_company += children_company
 
         self.env['account.bank.statement.line'].flush_model()
         # we either already have statement lines to reconcile or compute them
-        st_lines, remaining_line_id = (self, None) if self else _compute_st_lines_to_reconcile(configured_company)
+        st_lines, remaining_line_id = (self, None) if self else _compute_st_lines_to_reconcile(configured_company_ids)
 
         nb_auto_reconciled_lines = 0
         for index, st_line in enumerate(st_lines):
@@ -154,7 +172,7 @@ class AccountBankStatementLine(models.Model):
             wizard._action_trigger_matching_rules()
             if wizard.state == 'valid' and wizard.matching_rules_allow_auto_reconcile:
                 try:
-                    wizard._action_validate()
+                    wizard.button_validate(async_action=False)
                     if st_line.is_reconciled:
                         st_line.move_id.message_post(body=_(
                             "This bank transaction has been automatically validated using the reconciliation model '%s'.",
@@ -166,77 +184,32 @@ class AccountBankStatementLine(models.Model):
 
         st_lines.write({'cron_last_check': start_time})
 
+        # The configuration seems effective since some lines has been automatically reconciled right now and there is
+        # some statement lines left.
         # If the next statement line has never been auto reconciled yet, force the trigger.
         if remaining_line_id:
             remaining_st_line = self.env['account.bank.statement.line'].browse(remaining_line_id)
             if nb_auto_reconciled_lines or not remaining_st_line.cron_last_check:
                 self.env.ref('account_accountant.auto_reconcile_bank_statement_line')._trigger()
 
-    def _retrieve_partner(self):
-        self.ensure_one()
+    # -------------------------------------------------------------------------
+    # LOW-LEVEL METHODS
+    # -------------------------------------------------------------------------
 
-        # Retrieve the partner from the statement line.
-        if self.partner_id:
-            return self.partner_id
-
-        # Retrieve the partner from the bank account.
-        if self.account_number:
-            account_number_nums = sanitize_account_number(self.account_number)
-            if account_number_nums:
-                domain = [('sanitized_acc_number', 'ilike', account_number_nums)]
-                for extra_domain in ([('company_id', 'parent_of', self.company_id.id)], [('company_id', '=', False)]):
-                    bank_accounts = self.env['res.partner.bank'].search(extra_domain + domain)
-                    if len(bank_accounts.partner_id) == 1:
-                        return bank_accounts.partner_id
-
-        # Retrieve the partner from the partner name.
-        if self.partner_name:
-            # using 'complete_name' instead of 'name',
-            # as 'complete_name' is the first search criteria in _rec_names_search,
-            # and trigram indexed accordingly.
-            domains = product(
-                [
-                    ('complete_name', '=ilike', self.partner_name),
-                    ('complete_name', 'ilike', self.partner_name),
-                ],
-                [
-                    ('company_id', 'parent_of', self.company_id.id),
-                    ('company_id', '=', False),
-                ],
-            )
-            for domain in domains:
-                partner = self.env['res.partner'].search(list(domain) + [('parent_id', '=', False)], limit=2)
-                if len(partner) == 1:
-                    return partner
-        # Retrieve the partner from the 'reconcile models'.
-        rec_models = self.env['account.reconcile.model'].search([
-            *self.env['account.reconcile.model']._check_company_domain(self.company_id),
-            ('rule_type', '!=', 'writeoff_button'),
-        ])
-        for rec_model in rec_models:
-            partner = rec_model._get_partner_from_mapping(self)
-            if partner and rec_model._is_applicable_for(self, partner):
-                return partner
-
-        return self.env['res.partner']
-
-    def _get_st_line_strings_for_matching(self, allowed_fields=None):
-        """ Collect the strings that could be used on the statement line to perform some matching.
-
-        :param allowed_fields: A explicit list of fields to consider.
-        :return: A list of strings.
-        """
-        self.ensure_one()
-
-        st_line_text_values = []
-        if not allowed_fields or 'payment_ref' in allowed_fields:
-            if self.payment_ref:
-                st_line_text_values.append(self.payment_ref)
-        if not allowed_fields or 'narration' in allowed_fields:
-            value = html2plaintext(self.narration or "")
-            if value:
-                st_line_text_values.append(value)
-        if not allowed_fields or 'ref' in allowed_fields:
-            if self.ref:
-                st_line_text_values.append(self.ref)
-        return st_line_text_values
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        # EXTENDS base
+        # include widget on field 'statement_id' to avoid a module update (required to get line_ids in multi-edit mode)
+        # TO BE REMOVED IN MASTER
+        res = super().get_view(view_id=view_id, view_type=view_type, options=options)
+        if view_type == 'tree':
+            tree_view = self.env.ref('account_accountant.view_bank_statement_line_tree_bank_rec_widget')
+            tree = etree.fromstring(res['arch'])
+            xpath = "//field[@name='statement_id']"
+            field_elems = tree.xpath(xpath)
+            if res.get('id') == tree_view.id and field_elems and not field_elems[0].get('widget'):
+                arch_tree = etree.fromstring(tree_view.arch)
+                arch_tree.xpath(xpath)[0].attrib['widget'] = "bankrec_many2one_multi_id"
+                tree_view.with_context({}).sudo().write({'arch': etree.tostring(arch_tree, encoding='unicode')})
+                return super().get_view(view_id=view_id, view_type=view_type, options=options)
+        return res

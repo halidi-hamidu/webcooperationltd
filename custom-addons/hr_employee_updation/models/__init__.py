@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-#############################################################################
-#    A part of OpenHRMS Project <https://www.openhrms.com>
+################################################################################
+#    A part of Open HRMS Project <https://www.openhrms.com>
 #
 #    Cybrosys Technologies Pvt. Ltd.
+#    Copyright (C) 2021-TODAY Cybrosys Technologies (<https://www.cybrosys.com>)
+#    Author: Hajaj Roshan(<https://www.cybrosys.com>)
 #
-#    Copyright (C) 2024-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Cybrosys Techno Solutions(<https://www.cybrosys.com>)
-#
-#    You can modify it under the terms of the GNU LESSER
-#    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
+#    This program is free software: you can modify
+#    it under the terms of the GNU Affero General Public License (AGPL) as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU LESSER GENERAL PUBLIC LICENSE (LGPL v3) for more details.
+#    GNU Affero General Public License for more details.
 #
-#    You should have received a copy of the GNU LESSER GENERAL PUBLIC LICENSE
-#    (LGPL v3) along with this program.
-#    If not, see <http://www.gnu.org/licenses/>.
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-#############################################################################
-from . import hr_contract
+###############################################################################
+
 from . import hr_employee
-from . import hr_employee_relation
-from . import res_config_settings
+from . import updation_config
+from . import hr_contract_days

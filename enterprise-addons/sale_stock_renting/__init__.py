@@ -5,12 +5,14 @@ from . import models
 from . import wizard
 from . import report
 
+from odoo import api, SUPERUSER_ID
 
-def _ensure_rental_stock_moves_consistency(env):
+def _ensure_rental_stock_moves_consistency(cr, registry):
     """Ensure currently rented products are placed in rental location.
 
     If not, the rental stock moves generated at return would be inconsistent.
     """
+    env = api.Environment(cr, SUPERUSER_ID, {})
     query = """
         SELECT id FROM sale_order_line
         WHERE qty_delivered > qty_returned AND is_rental

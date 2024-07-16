@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="kpi_scorecard.KpiFormula" owl="1">
+        <div class="kpi-formula-flex">
+            <t t-if="!props.readonly">
+                <div class="kpi-formula-navbar">
+                    <div class="kpi-formula-measurements-box">
+                        <div class="kpi-formula-flex kpi-formula-measure-line">
+                            <div class="kpi-formula-header-box">
+                                <h3 class="kpi-formula-left-header">Operators</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-formula-flex kpi-formula-container">
+                            <t t-foreach="state.operands" t-as="operand" t-key="operand">
+                                <div class="kpi-formula-operator">
+                                    <div class="kpi-formula-element kpi-formula-element-operator" t-attf-id="#{operand}">
+                                        <t t-esc="operand"/>
+                                    </div>
+                                </div>
+                            </t>
+                            <div class="kpi-formula-operator">
+                                <div class="kpi-formula-element kpi-formula-element-operator kpi-formula-number" t-attf-id="1">
+                                    <input type="number" value="1" style="min-width: 75px;" step="0.01" t-on-change="(event) => this._onChangeNumber(event)"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-formula-measurements-box">
+                        <div class="kpi-formula-flex kpi-formula-measure-line">
+                            <div class="kpi-formula-header-box">
+                                <h3 class="kpi-formula-left-header">Measurements</h3>
+                            </div>
+                            <div class="kpi-formula-input-box">
+                                <input type="text" placeholder="Search" class="o_input kpi-formula-input-search" t-on-keydown="(event) => _onSearchNavigation(event, 'MEASURE')"/>
+                            </div>
+                        </div>
+                        <t t-if="state.measures">
+                            <div class="kpi-formula-flex kpi-formula-container kpi-formula-container-measurements">
+                                <div class="kpi-formula-variable">
+                                    <div class="kpi-formula-element" t-attf-id="PERIOD_len"  title="Period length in days">
+                                        Period Days
+                                    </div>
+                                </div>
+                                <div class="kpi-formula-variable">
+                                    <div class="kpi-formula-element" t-attf-id="PERIOD_passed"  title="Days of periods that are already in the Past. If the period is not yet started it will be 1. If the whole period is in the Past, it will be the period length in days">
+                                        Days Passed
+                                    </div>
+                                </div>
+                                <t t-foreach="state.measures" t-as="measure" t-key="measure.id">
+                                    <div class="kpi-formula-variable">
+                                        <div class="kpi-formula-element" t-attf-id="MEASURE(#{measure.id})" t-attf-title="#{measure.description}">
+                                            <t t-esc="measure.name"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="kpi-formula-measurements-box">
+                        <div class="kpi-formula-flex kpi-formula-measure-line">
+                            <div class="kpi-formula-header-box">
+                                <h3 class="kpi-formula-left-header">Other KPIs</h3>
+                            </div>
+                            <div class="kpi-formula-input-box">
+                                <input type="text" placeholder="Search" class="o_input kpi-formula-input-search" t-on-keydown="(event) => _onSearchNavigation(event, 'KPI')"/>
+                            </div>
+                        </div>
+                        <t t-if="state.kpiIpds">
+                            <div class="kpi-formula-flex kpi-formula-container kpi-formula-container-other-kpi">
+                                <t t-foreach="state.kpiIpds" t-as="o_kpi" t-key="o_kpi.id">
+                                    <div class="kpi-formula-variable">
+                                        <div class="kpi-formula-element" t-attf-id="KPI(#{o_kpi.id})" t-attf-title="#{o_kpi.description}">
+                                            <t t-esc="o_kpi.name"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="kpi-formula-measurements-box">
+                        <div class="kpi-formula-flex kpi-formula-measure-line">
+                            <div class="kpi-formula-header-box">
+                                <h3 class="kpi-formula-left-header">Constants</h3>
+                            </div>
+                            <div class="kpi-formula-input-box">
+                                <input type="text" placeholder="Search" class="o_input kpi-formula-input-search" t-on-keydown="(event) => _onSearchNavigation(event, 'CONST')"/>
+                            </div>
+                        </div>
+                        <t t-if="state.constants">
+                            <div class="kpi-formula-flex kpi-formula-container kpi-formula-container-constants">
+                                <t t-foreach="state.constants" t-as="const" t-key="const.id">
+                                    <div class="kpi-formula-variable">
+                                        <div class="kpi-formula-element" t-attf-id="CONST(#{const.id})" t-attf-title="#{const.description}">
+                                            <t t-esc="const.name"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+            <div class="kpi-formula-flex kpi-formula-content">
+                <div class="kpi-formula-flex kpi-formula-flex-aligned kpi-formula-parts">
+                    <t t-if="state.formulaParts">
+                        <t t-foreach="state.formulaParts" t-as="formula_part" t-key="formula_part.id + formula_part_index">
+                            <div t-attf-class="kpi-formula-part #{formula_part.extra_class}" t-attf-id="#{formula_part.id}">
+                                <t t-esc="formula_part.name"/>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -63,8 +63,10 @@ class TestAccountBudget(TestAccountBudgetCommon):
 
     def test_practical_amount(self):
         general_accounts = self.env['account.account'].search([('company_id', '=', self.env.company.id)], limit=2)
-        _project_plan, other_plans = self.env['account.analytic.plan']._get_all_plans()
-        analytic = self.env['account.analytic.account'].create({'name': 'R&D', 'plan_id': other_plans[0].id})
+        analytic = self.env['account.analytic.account'].create({
+            'name': 'R&D',
+            'plan_id': self.env['account.analytic.plan']._get_default().id,
+        })
         budget_position = self.env['account.budget.post'].create({
             'name': 'R&D',
             'account_ids': [Command.set(general_accounts[0].ids)],
@@ -125,7 +127,7 @@ class TestAccountBudget(TestAccountBudgetCommon):
         })
         move.action_post()
         self.env['account.analytic.line'].create([{
-            'auto_account_id': analytic.id,
+            'account_id': analytic.id,
             'date': '2019-01-01',
             'name': '1',
             'amount': 50,

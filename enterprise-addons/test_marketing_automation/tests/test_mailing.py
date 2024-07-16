@@ -22,7 +22,7 @@ class TestMassMailing(CronMixinCase, TestMACommon):
             'name': 'test1',
             'email': 'test1@test.com',
         }, {
-            'name': 'test1',  # complete duplicate, both name and email for dupe check
+            'name': 'test1-duplicate',
             'email': 'test1@test.com',
         }, {
             'name': 'test2',
@@ -36,7 +36,6 @@ class TestMassMailing(CronMixinCase, TestMACommon):
         test_records = self.test_records.with_env(self.env)
         campaign = self.env['marketing.campaign'].create({
             'domain': [('id', 'in', test_records.ids)],
-            'model_id': self.env['ir.model']._get_id('res.partner'),
             'name': 'Great Campaign',
         })
         activity = self._create_activity_mail(campaign)

@@ -14,7 +14,7 @@ from freezegun import freeze_time
 class TestEcEdiCommon(AccountEdiTestCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='ec', edi_format_ref='l10n_ec_edi.ecuadorian_edi_format'):
+    def setUpClass(cls, chart_template_ref='l10n_ec.l10n_ec_ifrs', edi_format_ref='l10n_ec_edi.ecuadorian_edi_format'):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
 
         cls.frozen_today = datetime(year=2022, month=1, day=25, hour=0, minute=0, second=0, tzinfo=timezone('utc'))
@@ -38,7 +38,6 @@ class TestEcEdiCommon(AccountEdiTestCommon):
         for journal in (cls.company_data['default_journal_sale'], cls.company_data['default_journal_purchase']):
             # Needs to be set before assigning authorization number
             journal.write({
-                'l10n_latam_use_documents': True, # For tests the value is not set automatically
                 'l10n_ec_entity': '001',
                 'l10n_ec_emission': '001',
                 'l10n_ec_emission_address_id': cls.company_data['company'].partner_id,
@@ -83,7 +82,7 @@ class TestEcEdiCommon(AccountEdiTestCommon):
         :param trailing_xml_id: The trailing tax's xml id.
         :return:                An account.tax record
         """
-        return cls.env.ref(f'account.{cls.env.company.id}_{trailing_xml_id}')
+        return cls.env.ref(f'l10n_ec.{cls.env.company.id}_{trailing_xml_id}')
 
     def get_invoice_line_vals(self, vat_tax_xmlid='tax_vat_510_sup_01'):
         """Default values for invoice line creation"""
@@ -149,7 +148,7 @@ class TestEcEdiCommon(AccountEdiTestCommon):
             })
         purchase_invoice.action_post()
         with freeze_time(self.frozen_today):
-            wizard = self.env['l10n_ec.wizard.account.withhold'].with_context(active_ids=[purchase_invoice.id], active_model='account.move').create({})
+            wizard = self.env['l10n_ec.wizard.account.withhold'].with_context(active_ids=purchase_invoice.id, active_model='account.move').create({})
             wizard.document_number = '001-001-000000001'
         return wizard, purchase_invoice
 
@@ -413,6 +412,8 @@ L10N_EC_EDI_XML_PURCHASE_LIQ = """
     </detalles>
     <infoAdicional>
         <campoAdicional nombre="Referencia">LiqCo 001-001-000000001</campoAdicional>
+        <campoAdicional nombre="Vendedor">Because I am accountman!</campoAdicional>
+        <campoAdicional nombre="E-mail">accountman@test.com</campoAdicional>
     </infoAdicional>
 </liquidacionCompra>""".encode()
 

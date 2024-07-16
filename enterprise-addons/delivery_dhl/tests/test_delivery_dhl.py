@@ -139,10 +139,9 @@ class TestDeliveryDHL(TransactionCase):
         self.assertEqual(len(sale_order.picking_ids), 1, "The Sales Order did not generate a picking.")
 
         picking = sale_order.picking_ids[0]
-        picking.move_ids[0].picked = True
         self.assertEqual(picking.carrier_id.id, sale_order.carrier_id.id, "Carrier is not the same on Picking and on SO.")
 
-        picking.move_ids[0].quantity = 1.0
+        picking.move_ids[0].quantity_done = 1.0
         self.assertGreater(picking.shipping_weight, 0.0, "Picking weight should be positive.")
 
         picking._action_done()
@@ -184,8 +183,7 @@ class TestDeliveryDHL(TransactionCase):
         picking = sale_order.picking_ids[0]
         self.assertEqual(picking.carrier_id.id, sale_order.carrier_id.id, "Carrier is not the same on Picking and on SO.")
 
-        picking.move_ids[0].quantity = 1.0
-        picking.move_ids[0].picked = True
+        picking.move_ids[0].quantity_done = 1.0
         self.assertGreater(picking.shipping_weight, 0.0, "Picking weight should be positive.")
 
         picking._action_done()
@@ -233,13 +231,10 @@ class TestDeliveryDHL(TransactionCase):
         self.assertEqual(picking.carrier_id.id, sale_order.carrier_id.id, "Carrier is not the same on Picking and on SO.")
 
         move0 = picking.move_ids[0]
-        move0.quantity = 1.0
-        move0.picked = True
-
+        move0.quantity_done = 1.0
         self.wiz_put_in_pack(picking)
         move1 = picking.move_ids[1]
-        move1.quantity = 1.0
-        move1.picked = True
+        move1.quantity_done = 1.0
         self.wiz_put_in_pack(picking)
         self.assertEqual(len(picking.move_line_ids.mapped('result_package_id')), 2, "2 Packages should have been created at this point")
         self.assertGreater(picking.shipping_weight, 0.0, "Picking weight should be positive.")
@@ -268,7 +263,6 @@ class TestDeliveryDHL(TransactionCase):
                    'location_id': self.stock_location.id,
                    'location_dest_id': self.customer_location.id,
                    'picking_type_id': self.env.ref('stock.picking_type_out').id,
-                   'state': 'draft',
                    'move_ids_without_package': [(0, None, order1_vals)]}
 
         delivery_order = StockPicking.create(do_vals)
@@ -276,7 +270,7 @@ class TestDeliveryDHL(TransactionCase):
 
         delivery_order.action_confirm()
         self.assertEqual(delivery_order.state, 'assigned', 'Shipment state should be ready(assigned).')
-        delivery_order.move_ids_without_package.quantity = 1.0
+        delivery_order.move_ids_without_package.quantity_done = 1.0
 
         delivery_order.button_validate()
         self.assertEqual(delivery_order.state, 'done', 'Shipment state should be done.')

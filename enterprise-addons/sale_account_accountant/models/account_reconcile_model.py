@@ -48,9 +48,14 @@ class AccountReconcileModel(models.Model):
                 # the bank reco widget.
                 return results
 
-            amls = invoices.line_ids.filtered_domain(aml_domain)
+            invoice_amls = invoices.line_ids.filtered_domain(aml_domain)
+
+            matched_payments = invoices._get_reconciled_payments()
+            payments_amls = matched_payments.line_ids.filtered_domain(aml_domain)
+
+            amls = payments_amls | invoice_amls
             if not amls:
-                # The invoices are all already reconciled. Don't match anything and let the others rules trying
+                # The invoices and their payments are all already reconciled. Don't match anything and let the others rules trying
                 # to match potential payments instead.
                 return
 

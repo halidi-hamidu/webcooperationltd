@@ -17,21 +17,23 @@ class Task(models.Model):
     quotation_count = fields.Integer(compute='_compute_quotation_count')
     material_line_product_count = fields.Integer(compute='_compute_material_line_totals')
     material_line_total_price = fields.Float(compute='_compute_material_line_totals')
-    currency_id = fields.Many2one('res.currency', compute='_compute_currency_id', compute_sudo=True)
+    currency_id = fields.Many2one('res.currency', compute='_compute_currency_id')
     display_create_invoice_primary = fields.Boolean(compute='_compute_display_create_invoice_buttons')
     display_create_invoice_secondary = fields.Boolean(compute='_compute_display_create_invoice_buttons')
     invoice_status = fields.Selection(related='sale_order_id.invoice_status')
     warning_message = fields.Char('Warning Message', compute='_compute_warning_message')
     invoice_count = fields.Integer("Number of invoices", related='sale_order_id.invoice_count')
+    is_task_phone_update = fields.Boolean(compute='_compute_is_task_phone_update')
     pricelist_id = fields.Many2one('product.pricelist', compute="_compute_pricelist_id")
 
     # Project Sharing fields
     portal_quotation_count = fields.Integer(compute='_compute_portal_quotation_count')
     portal_invoice_count = fields.Integer('Invoice Count', compute='_compute_portal_invoice_count')
     sale_line_id = fields.Many2one('sale.order.line', domain="""[
+        ('company_id', '=', company_id),
         '|', '|', ('order_partner_id', 'child_of', partner_id if partner_id else []), ('order_id.partner_shipping_id', 'child_of', partner_id if partner_id else []),
              '|', ('order_partner_id', '=?', partner_id), ('order_id.partner_shipping_id', '=?', partner_id),
-        ('is_service', '=', True), ('is_expense', '=', False), ('state', '=', 'sale')
+        ('is_service', '=', True), ('is_expense', '=', False), ('state', 'in', ['sale', 'done'])
     ]""")
 
     @property
@@ -50,7 +52,7 @@ class Task(models.Model):
         pricelist_active = self.user_has_groups('product.group_product_pricelist')
         for task in self:
             task.pricelist_id = pricelist_active and \
-                                (task.sale_order_id.pricelist_id or task.partner_id.property_product_pricelist)
+                                (task.sale_order_id.sudo().pricelist_id or task.partner_id.property_product_pricelist)
 
     @api.depends('pricelist_id', 'company_id')
     def _compute_currency_id(self):
@@ -70,9 +72,14 @@ class Task(models.Model):
                 'display_satisfied_conditions_count': satisfied
             })
 
+    @api.depends('partner_phone', 'partner_id.phone')
+    def _compute_is_task_phone_update(self):
+        for task in self:
+            task.is_task_phone_update = task.partner_phone != task.partner_id.phone
+
     def _compute_quotation_count(self):
-        quotation_data = self.sudo().env['sale.order']._read_group([('task_id', 'in', self.ids)], ['task_id'], ['__count'])
-        mapped_data = {task.id: count for task, count in quotation_data}
+        quotation_data = self.sudo().env['sale.order'].read_group([('task_id', 'in', self.ids)], ['task_id'], ['task_id'])
+        mapped_data = dict([(q['task_id'][0], q['task_id_count']) for q in quotation_data])
         for task in self:
             task.quotation_count = mapped_data.get(task.id, 0)
 
@@ -80,8 +87,8 @@ class Task(models.Model):
         domain = [('task_id', 'in', self.ids)]
         if self.user_has_groups('base.group_portal'):
             domain = expression.AND([domain, [('state', '!=', 'draft')]])
-        quotation_data = self.env['sale.order']._read_group(domain, ['task_id'], ['__count'])
-        mapped_data = {task.id: count for task, count in quotation_data}
+        quotation_data = self.env['sale.order'].read_group(domain, ['task_id'], ['task_id'])
+        mapped_data = {q['task_id'][0]: q['task_id_count'] for q in quotation_data}
         for task in self:
             task.portal_quotation_count = mapped_data.get(task.id, 0)
 
@@ -97,12 +104,15 @@ class Task(models.Model):
             is_task_related = sale_line_id.task_id == (task or task._origin)
             return all([is_not_timesheet_line, is_not_empty, is_not_service_from_so, is_task_related])
 
-        employee_mapping_read_group = self.env['project.sale.line.employee.map'].sudo()._read_group(
-            [('project_id', 'in', self.filtered('is_fsm').project_id.ids)],
-            ['project_id'],
-            ['timesheet_product_id:array_agg'],
-        )
-        employee_mapping_timesheet_product_ids = {project.id: timesheet_product_ids for project, timesheet_product_ids in employee_mapping_read_group}
+        employee_mapping_timesheet_product_ids = {}  # keys = project_id, value = list of timesheet_product_id
+        fsm_tasks = self.filtered('is_fsm')
+        if fsm_tasks:
+            employee_mapping_read_group = self.env['project.sale.line.employee.map'].sudo().read_group(
+                [('project_id', 'in', fsm_tasks.project_id.ids)],
+                ['project_id', 'timesheet_product_ids:array_agg(timesheet_product_id)'],
+                ['project_id'],
+            )
+            employee_mapping_timesheet_product_ids = {res['project_id']: res['timesheet_product_ids'] for res in employee_mapping_read_group}
         sols = self.env['sale.order.line'].sudo().search([('order_id', 'in', self.sudo().sale_order_id.ids)])
         sols_by_so = defaultdict(lambda: self.env['sale.order.line'])
         for sol in sols:
@@ -125,9 +135,6 @@ class Task(models.Model):
             else:
                 if task.invoice_status in ['upselling', 'to invoice']:
                     secondary = False
-                elif task.invoice_count > 0 and task.invoice_status == 'no':
-                    secondary = False
-                    primary = False
                 else:  # Means invoice status is 'Nothing to Invoice'
                     primary = False
             task.update({
@@ -176,7 +183,7 @@ class Task(models.Model):
             # if the partner on the task is not the same as the partner on the sale order.
             # But for fsm tasks, the partner on the task could be the delivery address,
             # so we redo the integrity check but with the shipping partner in mind
-            if sale_order_id and task.partner_id.commercial_partner_id in (
+            if sale_order_id and task.commercial_partner_id in (
                     sale_order_id.partner_id.commercial_partner_id +
                     sale_order_id.partner_shipping_id.commercial_partner_id):
                 task.sale_order_id = sale_order_id
@@ -210,10 +217,6 @@ class Task(models.Model):
         if self.is_fsm:
             return False
         return super(Task, self)._get_last_sol_of_customer()
-
-    def _show_time_and_material(self):
-        # check time and material section should visible or not in portal
-        return self.allow_material and self.allow_billable and self.sale_order_id and self.is_fsm
 
     def action_view_invoices(self):
         invoices = self.mapped('sale_order_id.invoice_ids')
@@ -265,10 +268,11 @@ class Task(models.Model):
             'name': self.name,
             'context': {
                 'fsm_mode': True,
+                'form_view_initial_mode': 'edit',
                 'default_partner_id': self.partner_id.id,
                 'default_task_id': self.id,
-                'default_company_id': self.company_id.id or self.env.company.id,
-                'default_origin': f'{self.project_id.name} - {self.name}',
+                'default_company_id': self.company_id.id,
+                'default_origin': _('%s - %s') % (self.project_id.name, self.name),
             },
         })
         return action
@@ -307,24 +311,18 @@ class Task(models.Model):
 
         self = self.with_company(self.company_id)
 
-        domain = [
-            ('company_id', 'in', [self.company_id.id, False]),
-            ('sale_ok', '=', True),
+        domain = [('sale_ok', '=', True),
             '|', ('detailed_type', 'in', ['consu', 'product']),
-                '&', '&',
-                    ('detailed_type', '=', 'service'),
-                    ('invoice_policy', '=', 'delivery'),
-                    ('service_type', '=', 'manual'),
-        ]
+            '&', '&', ('detailed_type', '=', 'service'), ('invoice_policy', '=', 'delivery'), ('service_type', '=', 'manual'),
+            '|', ('company_id', '=', self.company_id.id), ('company_id', '=', False)]
         if self.project_id and self.timesheet_product_id:
             domain = expression.AND([domain, [('id', '!=', self.timesheet_product_id.id)]])
-        deposit_product = self.company_id.sale_down_payment_product_id
+        deposit_product = self.env['ir.config_parameter'].sudo().get_param('sale.default_deposit_product_id')
         if deposit_product:
-            domain = expression.AND([domain, [('id', '!=', deposit_product.id)]])
+            domain = expression.AND([domain, [('id', '!=', deposit_product)]])
 
-        kanban_view = self.env.ref('industry_fsm_sale.industry_fsm_sale_product_catalog_kanban_view')
-        search_view = self.env.ref('industry_fsm_sale.industry_fsm_sale_product_catalog_inherit_search_view')
-
+        kanban_view = self.env.ref('industry_fsm_sale.view_product_product_kanban_material')
+        search_view = self.env.ref('industry_fsm_sale.product_search_form_view_inherit_fsm_sale')
         return {
             'type': 'ir.actions.act_window',
             'name': _('Choose Products'),
@@ -337,9 +335,7 @@ class Task(models.Model):
                 'create': self.env['product.template'].check_access_rights('create', raise_exception=False),
                 'fsm_task_id': self.id,  # avoid 'default_' context key as we are going to create SOL with this context
                 'pricelist': self.partner_id.property_product_pricelist.id,
-                'order_id': self.sale_order_id.id,
-                **self.sale_order_id.sudo()._get_action_add_from_catalog_extra_context(),
-                'hide_qty_buttons': self.sale_order_id.sudo().locked,
+                'hide_qty_buttons': self.sale_order_id.sudo().state == 'done',
                 'default_invoice_policy': 'delivery',
             },
             'help': _("""<p class="o_view_nocontent_smiling_face">
@@ -360,8 +356,8 @@ class Task(models.Model):
         res = super().action_fsm_validate(stop_running_timers)
         if res is True:
             billable_tasks = self.filtered(lambda task: task.allow_billable and (task.allow_timesheets or task.allow_material))
-            timesheets_read_group = self.env['account.analytic.line'].sudo()._read_group([('task_id', 'in', billable_tasks.ids), ('project_id', '!=', False)], ['task_id'], ['__count'])
-            timesheet_count_by_task_dict = {task.id: count for task, count in timesheets_read_group}
+            timesheets_read_group = self.env['account.analytic.line'].sudo().read_group([('task_id', 'in', billable_tasks.ids), ('project_id', '!=', False)], ['task_id', 'id'], ['task_id'])
+            timesheet_count_by_task_dict = {timesheet['task_id'][0]: timesheet['task_id_count'] for timesheet in timesheets_read_group}
             for task in billable_tasks:
                 timesheet_count = timesheet_count_by_task_dict.get(task.id)
                 if not task.sale_order_id and not timesheet_count:  # Prevent creating/confirming a SO if there are no products and timesheets
@@ -398,7 +394,7 @@ class Task(models.Model):
             'company_id': self.company_id.id,
             'analytic_account_id': self._get_task_analytic_account_id().id,
             'team_id': team.id if team else False,
-            'origin': f'{self.project_id.name} - {self.name}',
+            'origin': _('%s - %s') % (self.project_id.name, self.name),
         })
         # update after creation since onchange_partner_id sets the current user
         sale_order.user_id = user_id.id
@@ -492,6 +488,13 @@ class Task(models.Model):
 
             for (timesheet_product_id, price_unit, uom_id), timesheets in product_timesheets_dict.items():
                 sol = sols_by_product_and_price_dict.get((timesheet_product_id, price_unit))  # get the existing SOL with the product and the correct price unit
+                mapping_uom = self.env['uom.uom'].browse(uom_id)
+                total_amount = 0
+                for timesheet in timesheets:
+                    if timesheet.product_uom_category_id == mapping_uom.category_id and timesheet.product_uom_id != mapping_uom:
+                        total_amount += timesheet.product_uom_id._compute_quantity(timesheet.unit_amount, mapping_uom, rounding_method='HALF-UP')
+                    else:
+                        total_amount += timesheet.unit_amount
                 if not sol:  # Then we create it
                     sol = self.env['sale.order.line'].sudo().create({
                         'order_id': self.sale_order_id.id,
@@ -500,7 +503,7 @@ class Task(models.Model):
                         # The project and the task are given to prevent the SOL to create a new project or task based on the config of the product.
                         'project_id': self.project_id.id,
                         'task_id': self.id,
-                        'product_uom_qty': sum(timesheets.mapped('unit_amount')),
+                        'product_uom_qty': total_amount,
                         'product_uom': uom_id,
                     })
 
@@ -544,10 +547,10 @@ class Task(models.Model):
             ('order_id', 'in', self.sale_order_id.sudo().filtered(lambda so: so.state == 'sale').ids),
         ])
         for sol in sale_order_lines:
-            # if a SOL with service product that has invoicing policy based on milestones,
-            # the delivered quantity will be computed based on the milestones reached
-            if sol.product_id.service_policy != 'delivered_milestones':
-                sol.qty_delivered = sol.product_uom_qty
+            sol.qty_delivered = sol.product_uom_qty
+
+    def has_to_be_signed(self):
+        return super().has_to_be_signed() or (self.sale_order_id and not self.worksheet_signature)
 
 class ProjectTaskRecurrence(models.Model):
     _inherit = 'project.task.recurrence'

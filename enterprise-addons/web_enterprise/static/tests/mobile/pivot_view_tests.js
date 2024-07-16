@@ -5,7 +5,7 @@ import {
     makeFakeLocalizationService,
     makeFakeUserService,
 } from "@web/../tests/helpers/mock_services";
-import { click, getFixture, patchWithCleanup } from "@web/../tests/helpers/utils";
+import { getFixture, patchWithCleanup } from "@web/../tests/helpers/utils";
 import {
     setupControlPanelFavoriteMenuRegistry,
     setupControlPanelServiceRegistry,
@@ -178,29 +178,6 @@ QUnit.module("Views", (hooks) => {
             target,
             "td.o_pivot_cell_value:contains(32)",
             "should contain a pivot cell with the sum of all records"
-        );
-    });
-
-    QUnit.test("unselecting all measures should not crash pivot rendering", async function (assert) {
-        assert.expect(1);
-
-        await makeView({
-            type: "pivot",
-            resModel: "partner",
-            serverData,
-            arch: `
-            <pivot string="Partners">
-            <field name="foo" type="measure"/>
-            </pivot>`,
-        });
-
-        await click(target.getElementsByClassName("dropdown-toggle btn btn-primary")[1]);
-        await click(target.getElementsByClassName("dropdown-item o_menu_item selected")[0]);
-
-        assert.containsOnce(
-            target,
-            "div.o_nocontent_help",
-            "Instead of error action helper will appear"
         );
     });
 });

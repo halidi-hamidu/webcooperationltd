@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import time
 import datetime
 
-from odoo.tests.common import tagged
+from odoo.tests.common import SavepointCase, tagged
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tools.float_utils import float_compare
 
@@ -12,7 +13,7 @@ from odoo.tools.float_utils import float_compare
 class TestPayslipValidation(AccountTestInvoicingCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.date_from = datetime.date(2020, 9, 1)
         cls.date_to = datetime.date(2020, 9, 30)
@@ -20,6 +21,12 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         cls.company_data['company'].country_id = cls.env.ref('base.be')
 
         cls.env.user.tz = 'Europe/Brussels'
+
+        cls.address_home = cls.env['res.partner'].create([{
+            'name': "Test Employee",
+            'company_id': cls.env.company.id,
+            'type': "private"
+        }])
 
         cls.resource_calendar_38_hours_per_week = cls.env['resource.calendar'].create([{
             'name': "Test Calendar : 38 Hours/Week",
@@ -39,19 +46,14 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("2", 8.0, 12.0, "morning"),
-                ("2", 12.0, 13.0, "lunch"),
                 ("2", 13.0, 16.6, "afternoon"),
                 ("3", 8.0, 12.0, "morning"),
-                ("3", 12.0, 13.0, "lunch"),
                 ("3", 13.0, 16.6, "afternoon"),
                 ("4", 8.0, 12.0, "morning"),
-                ("4", 12.0, 13.0, "lunch"),
                 ("4", 13.0, 16.6, "afternoon"),
 
             ]],
@@ -75,19 +77,14 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 9.0, 12.8, "morning"),
-                ("0", 12.8, 13.8, "lunch"),
                 ("0", 13.8, 17.6, "afternoon"),
                 ("1", 9.0, 12.8, "morning"),
-                ("1", 12.8, 13.8, "lunch"),
                 ("1", 13.8, 17.6, "afternoon"),
                 ("2", 9.0, 12.8, "morning"),
-                ("2", 12.8, 13.8, "lunch"),
                 ("2", 13.8, 17.6, "afternoon"),
                 ("3", 9.0, 12.8, "morning"),
-                ("3", 12.8, 13.8, "lunch"),
                 ("3", 13.8, 17.6, "afternoon"),
                 ("4", 9.0, 12.8, "morning"),
-                ("4", 12.8, 13.8, "lunch"),
                 ("4", 13.8, 17.6, "afternoon"),
 
             ]],
@@ -111,16 +108,12 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("3", 8.0, 12.0, "morning"),
-                ("3", 12.0, 13.0, "lunch"),
                 ("3", 13.0, 16.6, "afternoon"),
                 ("4", 8.0, 12.0, "morning"),
-                ("4", 12.0, 13.0, "lunch"),
                 ("4", 13.0, 16.6, "afternoon"),
 
             ]],
@@ -144,16 +137,12 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("2", 8.0, 12.0, "morning"),
-                ("2", 12.0, 13.0, "lunch"),
                 ("2", 13.0, 16.6, "afternoon"),
                 ("4", 8.0, 12.0, "morning"),
-                ("4", 12.0, 13.0, "lunch"),
                 ("4", 13.0, 16.6, "afternoon"),
 
             ]],
@@ -177,16 +166,12 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("2", 8.0, 12.0, "morning"),
-                ("2", 12.0, 13.0, "lunch"),
                 ("2", 13.0, 16.6, "afternoon"),
                 ("3", 8.0, 12.0, "morning"),
-                ("3", 12.0, 13.0, "lunch"),
                 ("3", 13.0, 16.6, "afternoon"),
             ]],
         }])
@@ -209,10 +194,8 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("2", 8.0, 11.8, "morning"),
             ]],
@@ -235,7 +218,6 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
                 'work_entry_type_id': cls.env.ref('hr_work_entry.work_entry_type_attendance').id
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
             ]],
         }])
@@ -327,32 +309,23 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
                     'work_entry_type_id': cls.env.ref('hr_work_entry.work_entry_type_attendance').id
                 }) for dayofweek, hour_from, hour_to, day_period, week_type, sequence in [
                     ("0", 8.0, 12.0, "morning", "0", "1"),
-                    ("0", 12.0, 13.0, "lunch", "0", "2"),
-                    ("0", 13.0, 16.6, "afternoon", "0", "3"),
-                    ("1", 8.0, 12.0, "morning", "0", "4"),
-                    ("1", 12.0, 13.0, "lunch", "0", "5"),
-                    ("1", 13.0, 16.6, "afternoon", "0", "6"),
-                    ("2", 8.0, 12.0, "morning", "0", "7"),
-                    ("2", 12.0, 13.0, "lunch", "0", "8"),
-                    ("2", 13.0, 16.6, "afternoon", "0", "9"),
-                    ("3", 8.0, 12.0, "morning", "0", "10"),
-                    ("3", 12.0, 13.0, "lunch", "0", "11"),
-                    ("3", 13.0, 16.6, "afternoon", "0", "12"),
-                    ("4", 8.0, 12.0, "morning", "0", "13"),
-                    ("4", 12.0, 13.0, "lunch", "0", "14"),
-                    ("4", 13.0, 16.6, "afternoon", "0", "15"),
+                    ("0", 13.0, 16.6, "afternoon", "0", "2"),
+                    ("1", 8.0, 12.0, "morning", "0", "3"),
+                    ("1", 13.0, 16.6, "afternoon", "0", "4"),
+                    ("2", 8.0, 12.0, "morning", "0", "5"),
+                    ("2", 13.0, 16.6, "afternoon", "0", "6"),
+                    ("3", 8.0, 12.0, "morning", "0", "7"),
+                    ("3", 13.0, 16.6, "afternoon", "0", "8"),
+                    ("4", 8.0, 12.0, "morning", "0", "9"),
+                    ("4", 13.0, 16.6, "afternoon", "0", "10"),
                     ("1", 8.0, 12.0, "morning", "1", "26"),
-                    ("1", 12.0, 13.0, "lunch", "1", "27"),
-                    ("1", 13.0, 16.6, "afternoon", "1", "28"),
-                    ("2", 8.0, 12.0, "morning", "1", "29"),
-                    ("2", 12.0, 13.0, "lunch", "1", "30"),
-                    ("2", 13.0, 16.6, "afternoon", "1", "31"),
-                    ("3", 8.0, 12.0, "morning", "1", "32"),
-                    ("3", 12.0, 13.0, "lunch", "1", "33"),
-                    ("3", 13.0, 16.6, "afternoon", "1", "34"),
-                    ("4", 8.0, 12.0, "morning", "1", "35"),
-                    ("4", 12.0, 13.0, "lunch", "1", "36"),
-                    ("4", 13.0, 16.6, "afternoon", "1", "37")]],
+                    ("1", 13.0, 16.6, "afternoon", "1", "27"),
+                    ("2", 8.0, 12.0, "morning", "1", "28"),
+                    ("2", 13.0, 16.6, "afternoon", "1", "29"),
+                    ("3", 8.0, 12.0, "morning", "1", "30"),
+                    ("3", 13.0, 16.6, "afternoon", "1", "31"),
+                    ("4", 8.0, 12.0, "morning", "1", "32"),
+                    ("4", 13.0, 16.6, "afternoon", "1", "33")]],
         }])
 
         cls.resource_calendar_9_10_strange = cls.env['resource.calendar'].create([{
@@ -394,33 +367,24 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
                     'work_entry_type_id': cls.env.ref('hr_work_entry.work_entry_type_attendance').id
                 }) for dayofweek, hour_from, hour_to, day_period, week_type, sequence in [
                     ("0", 9.0, 12.8, "morning", "0", "1"),
-                    ("0", 12.8, 13.8, "lunch", "0", "2"),
-                    ("0", 13.8, 17.6, "afternoon", "0", "3"),
-                    ("1", 9.0, 12.8, "morning", "0", "4"),
-                    ("1", 12.8, 13.8, "lunch", "0", "5"),
-                    ("1", 13.8, 17.6, "afternoon", "0", "6"),
-                    ("2", 9.0, 12.8, "morning", "0", "7"),
-                    ("2", 12.8, 13.8, "lunch", "0", "8"),
-                    ("2", 13.8, 17.6, "afternoon", "0", "9"),
-                    ("3", 9.0, 12.8, "morning", "0", "10"),
-                    ("3", 12.8, 13.8, "lunch", "0", "11"),
-                    ("3", 13.8, 17.6, "afternoon", "0", "12"),
-                    ("4", 9.0, 12.8, "morning", "0", "13"),
-                    ("4", 12.8, 13.8, "lunch", "0", "14"),
-                    ("4", 13.8, 17.6, "afternoon", "0", "15"),
+                    ("0", 13.8, 17.6, "afternoon", "0", "2"),
+                    ("1", 9.0, 12.8, "morning", "0", "3"),
+                    ("1", 13.8, 17.6, "afternoon", "0", "4"),
+                    ("2", 9.0, 12.8, "morning", "0", "5"),
+                    ("2", 13.8, 17.6, "afternoon", "0", "6"),
+                    ("3", 9.0, 12.8, "morning", "0", "7"),
+                    ("3", 13.8, 17.6, "afternoon", "0", "8"),
+                    ("4", 9.0, 12.8, "morning", "0", "9"),
+                    ("4", 13.8, 17.6, "afternoon", "0", "10"),
                     ("0", 9.0, 12.8, "morning", "1", "26"),
-                    ("0", 12.8, 13.8, "lunch", "1", "27"),
-                    ("0", 13.8, 16.6, "afternoon", "1", "28"),
-                    ("1", 9.0, 12.8, "morning", "1", "29"),
-                    ("1", 12.8, 13.8, "lunch", "1", "30"),
-                    ("1", 13.8, 16.6, "afternoon", "1", "31"),
-                    ("2", 9.0, 12.8, "morning", "1", "32"),
-                    ("3", 9.0, 12.8, "morning", "1", "33"),
-                    ("3", 12.8, 13.8, "lunch", "1", "34"),
-                    ("3", 13.8, 16.6, "afternoon", "1", "35"),
-                    ("4", 9.0, 12.8, "morning", "1", "36"),
-                    ("4", 12.8, 13.8, "lunch", "1", "37"),
-                    ("4", 13.8, 16.6, "afternoon", "1", "38")]],
+                    ("0", 13.8, 16.6, "afternoon", "1", "27"),
+                    ("1", 9.0, 12.8, "morning", "1", "28"),
+                    ("1", 13.8, 16.6, "afternoon", "1", "29"),
+                    ("2", 9.0, 12.8, "morning", "1", "30"),
+                    ("3", 9.0, 12.8, "morning", "1", "32"),
+                    ("3", 13.8, 16.6, "afternoon", "1", "33"),
+                    ("4", 9.0, 12.8, "morning", "1", "34"),
+                    ("4", 13.8, 16.6, "afternoon", "1", "35")]],
         }])
 
         cls.resource_calendar_4_5_monday_off_equal_morning_afternoon = cls.env['resource.calendar'].create([{
@@ -442,13 +406,10 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 9.0, 12.8, "morning"),
                 ("1", 9.0, 12.8, "morning"),
-                ("1", 12.8, 13.8, "lunch"),
                 ("1", 13.8, 17.6, "afternoon"),
                 ("2", 9.0, 12.8, "morning"),
-                ("2", 12.8, 13.8, "lunch"),
                 ("2", 13.8, 17.6, "afternoon"),
                 ("3", 9.0, 12.8, "morning"),
-                ("3", 12.8, 13.8, "lunch"),
                 ("3", 13.8, 17.6, "afternoon"),
                 ("4", 9.0, 12.8, "morning"),
             ]],
@@ -456,6 +417,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         cls.employee = cls.env['hr.employee'].create([{
             'name': "Test Employee",
+            'address_home_id': cls.address_home.id,
             'resource_calendar_id': cls.resource_calendar_38_hours_per_week.id,
             'company_id': cls.env.company.id,
             'km_home_work': 75,
@@ -473,7 +435,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         cls.car = cls.env['fleet.vehicle'].create([{
             'name': "Test Car",
             'license_plate': "TEST",
-            'driver_id': cls.employee.work_contact_id.id,
+            'driver_id': cls.employee.address_home_id.id,
             'company_id': cls.env.company.id,
             'model_id': cls.model.id,
             'first_contract_date': datetime.date(2020, 10, 8),
@@ -587,19 +549,13 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'work_entry_type_id': cls.env.ref('l10n_be_hr_payroll.work_entry_type_small_unemployment').id,
         })
 
-        cls.extra_legal_time_off_type = cls.env['hr.leave.type'].create({
-            'name': 'Extra-Legal Time Off',
-            'requires_allocation': 'no',
-            'work_entry_type_id': cls.env.ref('l10n_be_hr_payroll.work_entry_type_extra_legal').id,
-        })
-
     @classmethod
-    def _generate_payslip(cls, date_from, date_to, struct_id=False, contract_id=False):
+    def _generate_payslip(cls, date_from, date_to, struct_id=False):
         work_entries = cls.contract.generate_work_entries(date_from, date_to)
         payslip = cls.env['hr.payslip'].create([{
             'name': "Test Payslip",
             'employee_id': cls.employee.id,
-            'contract_id': contract_id or cls.contract.id,
+            'contract_id': cls.contract.id,
             'company_id': cls.env.company.id,
             'vehicle_id': cls.car.id,
             'struct_id': struct_id or cls.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_employee_salary').id,
@@ -665,6 +621,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'date_to': datetime.date(2025, 12, 31),
         })
 
+        (cls.allocation_2019 + cls.allocation_2020).action_confirm()
         (cls.allocation_2019 + cls.allocation_2020).action_validate()
 
         cls.unpaid_leave_2019 = cls.env['hr.leave'].create({
@@ -1135,7 +1092,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ATN.MOB': 4.0,
             'SALARY': 1802.85,
             'ONSS': -235.63,
-            'EmpBonus.1': 0,
+            'EmpBonus.1': 0.0,
             'ONSSTOTAL': 235.63,
             'ATN.CAR': 141.14,
             'GROSS': 1708.36,
@@ -1144,10 +1101,10 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ATN.CAR.2': -141.14,
             'ATN.INT.2': -5.0,
             'ATN.MOB.2': -4.0,
-            'M.ONSS': 0,
+            'M.ONSS': 0.0,
             'MEAL_V_EMP': -15.26,
-            'REP.FEES': 101.54,
-            'NET': 1442.76,
+            'REP.FEES': 94.62,
+            'NET': 1435.84,
             'REMUNERATION': 1793.85,
             'ONSSEMPLOYERBASIC': 451.07,
             'ONSSEMPLOYERFFE': 2.34,
@@ -1177,10 +1134,10 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         self.assertEqual(len(payslip.worked_days_line_ids), 3)
         self.assertEqual(len(payslip.input_line_ids), 0)
-        self.assertEqual(len(payslip.line_ids), 32)
+        self.assertEqual(len(payslip.line_ids), 31)
 
         self.assertAlmostEqual(payslip._get_worked_days_line_amount('LEAVE300'), 0.0, places=2)
-        self.assertAlmostEqual(payslip._get_worked_days_line_amount('WORK100'), 1043.69, places=2)
+        self.assertAlmostEqual(payslip._get_worked_days_line_amount('WORK100'), 1141.54, places=2)
         self.assertAlmostEqual(payslip._get_worked_days_line_amount('OUT'), 0, places=2)
 
         self.assertAlmostEqual(payslip._get_worked_days_line_number_of_days('LEAVE300'), 3.0, places=2)
@@ -1192,37 +1149,36 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         self.assertAlmostEqual(payslip._get_worked_days_line_number_of_hours('OUT'), 83.6, places=2)
 
         payslip_results = {
-            'BASIC': 1043.69,
+            'BASIC': 1141.54,
             'ATN.INT': 5.0,
             'ATN.MOB': 4.0,
-            'SALARY': 1052.69,
-            'ONSS': -137.59,
-            'EmpBonus.1': 10.32,
-            'ONSSTOTAL': 127.27,
+            'SALARY': 1150.54,
+            'ONSS': -150.38,
+            'EmpBonus.1': 0.0,
+            'ONSSTOTAL': 150.38,
             'ATN.CAR': 141.14,
-            'GROSSIP': 1066.56,
-            'IP.PART': -260.92,
-            'GROSS': 805.64,
-            'P.P': 0,
-            'P.P.DED': 0,
-            'PPTOTAL': 0,
+            'GROSSIP': 1141.31,
+            'IP.PART': -285.39,
+            'GROSS': 855.92,
+            'P.P': 0.0,
+            'PPTOTAL': 0.0,
             'ATN.CAR.2': -141.14,
             'ATN.INT.2': -5.0,
             'ATN.MOB.2': -4.0,
-            'M.ONSS': 0,
+            'M.ONSS': 0.0,
             'MEAL_V_EMP': -8.72,
             'REP.FEES': 28.85,
-            'IP': 260.92,
-            'IP.DED': -19.57,
-            'NET': 916.98,
-            'REMUNERATION': 782.77,
-            'ONSSEMPLOYERBASIC': 263.38,
-            'ONSSEMPLOYERFFE': 1.37,
-            'ONSSEMPLOYERMFFE': 1.05,
-            'ONSSEMPLOYERCPAE': 2.42,
-            'ONSSEMPLOYERRESTREINT': 17.79,
-            'ONSSEMPLOYERUNEMP': 1.05,
-            'ONSSEMPLOYER': 287.07,
+            'IP': 285.39,
+            'IP.DED': -21.4,
+            'NET': 989.89,
+            'REMUNERATION': 856.16,
+            'ONSSEMPLOYERBASIC': 287.87,
+            'ONSSEMPLOYERFFE': 1.5,
+            'ONSSEMPLOYERMFFE': 1.15,
+            'ONSSEMPLOYERCPAE': 2.65,
+            'ONSSEMPLOYERRESTREINT': 19.44,
+            'ONSSEMPLOYERUNEMP': 1.15,
+            'ONSSEMPLOYER': 313.75,
             'CO2FEE': 20.92,
         }
         self._validate_payslip(payslip, payslip_results)
@@ -1285,7 +1241,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'REP.FEES': 73.85,
             'IP': 326.16,
             'IP.DED': -24.46,
-            'NET': 1209.24,
+            'NET': 1209.25,
             'REMUNERATION': 978.47,
             'ONSSEMPLOYERBASIC': 343.73,
             'ONSSEMPLOYERCPAE': 3.16,
@@ -1297,6 +1253,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'CO2FEE': 20.92,
         }
         self._validate_payslip(payslip, payslip_results)
+
 
     def test_end_of_contract_no_public_leave_right(self):
         # Check that only 1 day is taken into account (not 3) + Check it becomes 0 if another
@@ -1404,7 +1361,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'M.ONSS': 0.0,
             'MEAL_V_EMP': -1.09,
             'REP.FEES': 4.62,
-            'NET': 108.67,
+            'NET': 108.68,
             'REMUNERATION': 122.31,
             'ONSSEMPLOYERBASIC': 32.85,
             'ONSSEMPLOYERFFE': 0.17,
@@ -1487,6 +1444,9 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'work_entry_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_phc').id
         }])
         public_compensation_type = self.env.ref('l10n_be_hr_payroll.work_entry_type_phc')
+        # YTI TODO: master: Get rid of this.
+        if 'representation_fees' in public_compensation_type:
+            public_compensation_type.representation_fees = True
 
         payslip = self._generate_payslip(datetime.date(2020, 9, 1), datetime.date(2020, 9, 30))
 
@@ -1970,6 +1930,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'CO2FEE': 20.92,
         }
         self._validate_payslip(payslip, payslip_results)
+
 
     def test_half_time(self):
         self.contract.write({
@@ -2610,7 +2571,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
     def test_private_car(self):
         self.employee.km_home_work = 41
         self.contract.write({
-            'wage_with_holidays': 3707.12,
+            'wage': 3926.08,
             'holidays': 12.0,
             'transport_mode_car': False,
             'transport_mode_private_car': True,
@@ -4564,6 +4525,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         # Second contract
         second_employee = self.env['hr.employee'].create([{
             'name': "Test Employee",
+            'address_home_id': self.address_home.id,
             'resource_calendar_id': self.resource_calendar_38_hours_per_week.id,
             'company_id': self.env.company.id,
             'marital': "single",
@@ -4664,7 +4626,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         # 620200    Private Car                                                  98.5
         # 620200    Frais de rep                                                  150
 
-        # 743000    Meal vouchers retenue                                                    25.07
+        # 455000    Meal vouchers retenue                                                    25.07
         # 455000    Remunration dues = NET                                                 2193.13
 
         # 454000    ONSS Employer                                                           725.11
@@ -4733,7 +4695,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         # 620200    Private Car                                                  98.5
         # 620200    Frais de rep                                                  150
 
-        # 743000    Meal vouchers retenue                                                    25.07
+        # 455000    Meal vouchers retenue                                                    25.07
         # 455000    Remunration dues = NET                                                 1949.83
 
         # 454000    ONSS Employer                                                           547.85
@@ -4756,7 +4718,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             ('454000', 'credit', 27.81),        # Misc ONSS
             ('620200', 'debit', 197),           # Private Car
             ('620200', 'debit', 300),           # Representation Fees
-            ('743000', 'credit', 50.14),        # Meal vouchers
+            ('455000', 'credit', 50.14),        # Meal vouchers
             ('455000', 'credit', 4290.42),      # NET
             ('454000', 'credit', 1272.96),      # ONSS Employer
             ('621000', 'debit', 1272.96),       # ONSS Employer
@@ -4778,7 +4740,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         # 620200    Private Car                                                   197
         # 620200    Frais de rep                                                  300
 
-        # 743000    Meal vouchers retenue                                                    50.14
+        # 455000    Meal vouchers retenue                                                    50.14
         # 455000    Remunration dues = NET                                                 4131.52
 
         # 454000    ONSS Employer                                                          1272.96
@@ -4861,6 +4823,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         }
         self._validate_payslip(payslip, payslip_results)
 
+
     def test_commissions_with_low_salary_no_employment_bonus(self):
         self.contract.write({
             'wage_on_signature': 2300,
@@ -4916,6 +4879,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         }
         self._validate_payslip(payslip, payslip_results)
 
+
     def test_private_car_capping_part_time(self):
         # Private car reimbursement should be 10 intead of 50 for employees working 1 day per week
         self.employee.km_home_work = 25
@@ -4928,6 +4892,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         })
 
         payslip = self._generate_payslip(datetime.date(2021, 1, 1), datetime.date(2021, 1, 31))
+
 
         self.assertEqual(len(payslip.worked_days_line_ids), 1)
         self.assertEqual(len(payslip.input_line_ids), 0)
@@ -5070,6 +5035,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         self.assertAlmostEqual(payslip._get_worked_days_line_number_of_hours('LEAVE500'), 7.6, places=2)
         self.assertAlmostEqual(payslip._get_worked_days_line_number_of_hours('WORK100'), 152.0, places=2)
+
 
     def test_extra_legal_representation_fees(self):
         self.env['resource.calendar.leaves'].create([{
@@ -5287,51 +5253,52 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         self.holiday_pay_2019 = holiday_pays.filtered(lambda p: p.struct_id == struct_n1_id)
         self.holiday_pay_2020 = holiday_pays.filtered(lambda p: p.struct_id == struct_n_id)
 
+
         self.assertEqual(len(self.termination_fees.worked_days_line_ids), 0)
         self.assertEqual(len(self.termination_fees.input_line_ids), 16)
         self.assertEqual(len(self.termination_fees.line_ids), 41)
         payslip_results = {
             'BASIC2': 41344.0,
             'YEAREND_BONUS': 3200.0,
-            'RESIDENCE': 0,
-            'EXPATRIATE': 0,
+            'RESIDENCE': 0.0,
+            'EXPATRIATE': 0.0,
             'MEAL_VOUCHER': 1399.2,
             'ECO_VOUCHER': 250.0,
             'VARIABLE_SALARY': 6000.0,
             'PAY_VARIABLE_SALARY': 920.4,
-            'BENEFIT_IN_KIND': 0,
+            'BENEFIT_IN_KIND': 0.0,
             'ADVANTAGE_ANY_KIND': 116.28,
             'ATN.CAR': 1693.68,
-            'AMBULATORY_INSURANCE': 0,
-            'HOSPITAL_INSURANCE': 0,
-            'GROUP_INSURANCE': 0,
+            'AMBULATORY_INSURANCE': 0.0,
+            'HOSPITAL_INSURANCE': 0.0,
+            'GROUP_INSURANCE': 0.0,
             'STOCK_OPTION': 1500.0,
-            'SPECIFIC RULES': 0,
-            'OTHER': 0,
+            'SPECIFIC RULES': 0.0,
+            'OTHER': 0.0,
             'ANNUAL_SALARY_REVALUED': 56423.61,
-            'ND_MONTH': 0,
-            'ND_WEEK': 9765.63,
-            'ND_DAY': 0,
-            'TOTALFEES': 9765.62,
-            'ONSSEMPLOYERBASIC': 2443.36,
-            'ONSSEMPLOYERCPAE': 22.46,
-            'ONSSEMPLOYERFFE': 12.7,
-            'ONSSEMPLOYERMFFE': 9.77,
-            'ONSSEMPLOYERRESTREINT': 165.04,
-            'ONSSEMPLOYERUNEMP': 9.77,
-            'OUTPLACEMENT': 0,
-            'ONSSEMPLOYER': 2663.09,
-            'UNREASONABLE_DISMISSAL': 0,
-            'NON_RESPECT_MOTIVATION': 0,
-            'EMPLOYERCOST': 12428.71,
-            'BASIC': 9765.62,
-            'ONSS': -1276.37,
-            'ONSSTOTAL': 1276.37,
-            'GROSS': 8489.26,
-            'P.P': -3694.88,
-            'PPTOTAL': 3694.88,
-            'REMUNERATION': 9765.62,
-            'NET': 4794.38,
+            'ND_MONTH': 0.0,
+            'ND_WEEK': 8680.56,
+            'ND_DAY': 0.0,
+            'TOTALFEES': 8680.56,
+            'ONSSEMPLOYERBASIC': 2171.88,
+            'ONSSEMPLOYERCPAE': 19.97,
+            'ONSSEMPLOYERFFE': 11.28,
+            'ONSSEMPLOYERMFFE': 8.68,
+            'ONSSEMPLOYERRESTREINT': 146.7,
+            'ONSSEMPLOYERUNEMP': 8.68,
+            'OUTPLACEMENT': 0.0,
+            'ONSSEMPLOYER': 2367.19,
+            'UNREASONABLE_DISMISSAL': 0.0,
+            'NON_RESPECT_MOTIVATION': 0.0,
+            'EMPLOYERCOST': 11047.74,
+            'BASIC': 8680.56,
+            'ONSS': -1134.55,
+            'ONSSTOTAL': 1134.55,
+            'GROSS': 7546.01,
+            'P.P': -3197.33,
+            'PPTOTAL': 3197.33,
+            'REMUNERATION': 8680.56,
+            'NET': 4348.68,
         }
         self._validate_payslip(self.termination_fees, payslip_results)
 
@@ -5474,47 +5441,48 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         payslip_results = {
             'BASIC2': 41344.0,
             'YEAREND_BONUS': 3200.0,
-            'RESIDENCE': 0,
-            'EXPATRIATE': 0,
+            'RESIDENCE': 0.0,
+            'EXPATRIATE': 0.0,
             'MEAL_VOUCHER': 1399.2,
             'ECO_VOUCHER': 250.0,
             'VARIABLE_SALARY': 6000.0,
             'PAY_VARIABLE_SALARY': 920.4,
-            'BENEFIT_IN_KIND': 0,
+            'BENEFIT_IN_KIND': 0.0,
             'ADVANTAGE_ANY_KIND': 116.28,
             'ATN.CAR': 1693.68,
-            'AMBULATORY_INSURANCE': 0,
-            'HOSPITAL_INSURANCE': 0,
-            'GROUP_INSURANCE': 0,
+            'AMBULATORY_INSURANCE': 0.0,
+            'HOSPITAL_INSURANCE': 0.0,
+            'GROUP_INSURANCE': 0.0,
             'STOCK_OPTION': 1500.0,
-            'SPECIFIC RULES': 0,
-            'OTHER': 0,
+            'SPECIFIC RULES': 0.0,
+            'OTHER': 0.0,
             'ANNUAL_SALARY_REVALUED': 56423.61,
-            'ND_MONTH': 0,
-            'ND_WEEK': 9765.63,
-            'ND_DAY': 0,
-            'TOTALFEES': 9765.62,
-            'ONSSEMPLOYERBASIC': 2443.36,
-            'ONSSEMPLOYERCPAE': 22.46,
-            'ONSSEMPLOYERFFE': 12.7,
-            'ONSSEMPLOYERMFFE': 9.77,
-            'ONSSEMPLOYERRESTREINT': 165.04,
-            'ONSSEMPLOYERUNEMP': 9.77,
-            'OUTPLACEMENT': 0,
-            'ONSSEMPLOYER': 2663.09,
-            'UNREASONABLE_DISMISSAL': 0,
-            'NON_RESPECT_MOTIVATION': 0,
-            'EMPLOYERCOST': 12428.71,
-            'BASIC': 9765.62,
-            'ONSS': -1276.37,
-            'ONSSTOTAL': 1276.37,
-            'GROSS': 8489.26,
-            'P.P': -3694.88,
-            'PPTOTAL': 3694.88,
-            'REMUNERATION': 9765.62,
-            'NET': 4794.38,
+            'ND_MONTH': 0.0,
+            'ND_WEEK': 8680.56,
+            'ND_DAY': 0.0,
+            'TOTALFEES': 8680.56,
+            'ONSSEMPLOYERBASIC': 2171.88,
+            'ONSSEMPLOYERCPAE': 19.97,
+            'ONSSEMPLOYERFFE': 11.28,
+            'ONSSEMPLOYERMFFE': 8.68,
+            'ONSSEMPLOYERRESTREINT': 146.7,
+            'ONSSEMPLOYERUNEMP': 8.68,
+            'OUTPLACEMENT': 0.0,
+            'ONSSEMPLOYER': 2367.19,
+            'UNREASONABLE_DISMISSAL': 0.0,
+            'NON_RESPECT_MOTIVATION': 0.0,
+            'EMPLOYERCOST': 11047.74,
+            'BASIC': 8680.56,
+            'ONSS': -1134.55,
+            'ONSSTOTAL': 1134.55,
+            'GROSS': 7546.01,
+            'P.P': -3197.33,
+            'PPTOTAL': 3197.33,
+            'REMUNERATION': 8680.56,
+            'NET': 4348.68,
         }
         self._validate_payslip(self.termination_fees, payslip_results)
+
 
         self.assertEqual(len(self.holiday_pay_2020.worked_days_line_ids), 0)
         self.assertEqual(len(self.holiday_pay_2020.input_line_ids), 6)
@@ -5575,6 +5543,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ONSSEMPLOYER': 684.09,
         }
         self._validate_payslip(self.holiday_pay_2019, payslip_results)
+
 
     def test_work_incapacity_due_to_illness(self):
         self.contract.write({
@@ -5721,7 +5690,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'MEAL_V_EMP': -21.8,
             'CAR.PRIV': 76.25,
             'REP.FEES': 279.31,
-            'REP.FEES.VOLATILE': 59.84,
+            'REP.FEES.VOLATILE': 59.85,
             'IP': 174.7,
             'IP.DED': -13.1,
             'NET': 1234.71,
@@ -6144,8 +6113,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         european_time_off = self.env['hr.leave'].create({
             'name': 'European Time Off',
             'holiday_status_id': self.european_time_off_type.id,
-            'request_date_from': datetime.date(2020, 5, 4),
-            'request_date_to': datetime.date(2020, 5, 4),
+            'date_from': datetime.datetime(2020, 5, 4, 1, 0, 0),
+            'date_to': datetime.datetime(2020, 5, 4, 23, 0, 0),
+            'request_date_from': datetime.datetime(2020, 5, 4, 1, 0, 0),
+            'request_date_to': datetime.datetime(2020, 5, 4, 23, 0, 0),
+            'number_of_days': 1,
             'employee_id': self.employee.id,
         })
         european_time_off.action_validate()
@@ -6204,8 +6176,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         european_time_off = self.env['hr.leave'].create({
             'name': 'European Time Off',
             'holiday_status_id': self.european_time_off_type.id,
-            'request_date_from': datetime.date(2019, 2, 1),
-            'request_date_to': datetime.date(2019, 2, 28),
+            'date_from': datetime.datetime(2019, 2, 1, 1, 0, 0),
+            'date_to': datetime.datetime(2019, 2, 28, 23, 0, 0),
+            'request_date_from': datetime.datetime(2019, 2, 1, 1, 0, 0),
+            'request_date_to': datetime.datetime(2019, 2, 28, 23, 0, 0),
+            'number_of_days': 20,
             'employee_id': self.employee.id,
         })
         european_time_off.action_validate()
@@ -6722,8 +6697,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         economic_unemployment = self.env['hr.leave'].create({
             'name': 'Legal Time Off 2020',
             'holiday_status_id': self.economic_unemployment_time_off_type.id,
-            'request_date_from': datetime.date(2021, 5, 1),
-            'request_date_to': datetime.date(2021, 5, 31),
+            'date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'date_to': datetime.datetime(2021, 5, 31, 20, 0, 0),
+            'request_date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'request_date_to': datetime.datetime(2021, 5, 31, 20, 36, 0),
+            'number_of_days': 21,
             'employee_id': self.employee.id,
         })
         economic_unemployment.action_validate()
@@ -6814,8 +6792,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         maternity = self.env['hr.leave'].create({
             'name': 'Legal Time Off 2020',
             'holiday_status_id': self.env.ref('l10n_be_hr_payroll.holiday_type_maternity').id,
-            'request_date_from': datetime.date(2021, 4, 17),
-            'request_date_to': datetime.date(2021, 5, 31),
+            'date_from': datetime.datetime(2021, 4, 17, 6, 0, 0),
+            'date_to': datetime.datetime(2021, 5, 31, 20, 0, 0),
+            'request_date_from': datetime.datetime(2021, 4, 17, 6, 0, 0),
+            'request_date_to': datetime.datetime(2021, 5, 31, 20, 36, 0),
+            'number_of_days': 29,
             'employee_id': self.employee.id,
         })
         maternity.action_validate()
@@ -6906,8 +6887,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         maternity = self.env['hr.leave'].create({
             'name': 'Legal Time Off 2020',
             'holiday_status_id': self.env.ref('l10n_be_hr_payroll.holiday_type_maternity').id,
-            'request_date_from': '2021-5-1',
-            'request_date_to': '2021-5-31',
+            'date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'date_to': datetime.datetime(2021, 5, 31, 20, 0, 0),
+            'request_date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'request_date_to': datetime.datetime(2021, 5, 31, 20, 36, 0),
+            'number_of_days': 19,
             'employee_id': self.employee.id,
         })
         maternity.action_validate()
@@ -6964,8 +6948,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         maternity = self.env['hr.leave'].create({
             'name': 'Legal Time Off 2020',
             'holiday_status_id': self.env.ref('l10n_be_hr_payroll.holiday_type_maternity').id,
-            'request_date_from': datetime.date(2021, 5, 1),
-            'request_date_to': datetime.date(2021, 5, 31),
+            'date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'date_to': datetime.datetime(2021, 5, 31, 20, 0, 0),
+            'request_date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'request_date_to': datetime.datetime(2021, 5, 31, 20, 36, 0),
+            'number_of_days': 19,
             'employee_id': self.employee.id,
         })
         maternity.action_validate()
@@ -7043,8 +7030,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         maternity = self.env['hr.leave'].create({
             'name': 'Legal Time Off 2020',
             'holiday_status_id': self.env.ref('l10n_be_hr_payroll.holiday_type_maternity').id,
-            'request_date_from': datetime.date(2021, 5, 1),
-            'request_date_to': datetime.date(2021, 5, 31),
+            'date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'date_to': datetime.datetime(2021, 5, 31, 20, 0, 0),
+            'request_date_from': datetime.datetime(2021, 5, 1, 6, 0, 0),
+            'request_date_to': datetime.datetime(2021, 5, 31, 20, 36, 0),
+            'number_of_days': 19,
             'employee_id': self.employee.id,
         })
         maternity.action_validate()
@@ -7294,7 +7284,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'IP': 326.16,
             'IP.DED': -24.46,
             'CANTEEN': 0.00,
-            'NET': 1209.37,
+            'NET': 1209.38,
             'REMUNERATION': 978.47,
             'ONSSEMPLOYERBASIC': 326.55,
             'ONSSEMPLOYERFFE': 0.91,
@@ -7512,17 +7502,17 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         payslip_results = {
             'PAY_SIMPLE': 1137.92,
-            'DOUBLE_BASIC': 1008.85,
-            'PAY DOUBLE': 1008.85,
-            'PAY DOUBLE COMPLEMENTARY': 129.07,
-            'BASIC': 2275.84,
+            'DOUBLE_BASIC': 0.0,
+            'PAY DOUBLE': 0.0,
+            'PAY DOUBLE COMPLEMENTARY': 0.0,
+            'BASIC': 1137.92,
             'ONSS1': -148.73,
-            'ONSS2': -131.86,
-            'ONSSTOTAL': 280.58,
-            'GROSS': 1995.26,
-            'PROF_TAX': -725.08,
-            'PPTOTAL': 725.08,
-            'NET': 1270.18,
+            'ONSS2': 0.0,
+            'ONSSTOTAL': 148.73,
+            'GROSS': 989.19,
+            'PROF_TAX': -359.47,
+            'PPTOTAL': 359.47,
+            'NET': 629.72,
             'ONSSEMPLOYERBASIC': 284.71,
             'ONSSEMPLOYERCPAE': 2.62,
             'ONSSEMPLOYERFFE': 1.48,
@@ -7532,46 +7522,6 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ONSSEMPLOYER': 310.31,
         }
         self._validate_payslip(holiday_pay_2020, payslip_results)
-
-        struct_n1_id = self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_employee_departure_n1_holidays')
-
-        holiday_pay_2019 = holiday_pays.filtered(lambda p: p.struct_id == struct_n1_id)
-        holiday_pay_2019.write({
-            'date_from': datetime.date(2020, 4, 1),
-            'date_to': datetime.date(2020, 4, 30),
-        })
-        holiday_pay_2019.compute_sheet()
-
-        payslip_results = {
-            'BASIC_PAY_SIMPLE': 2508.58,
-            'SIMPLE_PAY_DECEMBER': 0,
-            'PAY_SIMPLE': 2508.58,
-            'DOUBLE_BASIC': 0,
-            'EUROPEAN': 0,
-            'DHALREADYPAID': 0,
-            'DOUBLE_PAY_DECEMBER': 0,
-            'PAY DOUBLE': 0,
-            'CDHBASIC': 0,
-            'CDHALREADYPAID': 0,
-            'COMP_DOUBLE_PAY_DECEMBER': 0,
-            'PAY DOUBLE COMPLEMENTARY': 0,
-            'BASIC': 2508.58,
-            'ONSS1': -327.87,
-            'ONSS2': 0,
-            'ONSSTOTAL': 327.87,
-            'GROSS': 2180.7,
-            'PROF_TAX': -792.47,
-            'PPTOTAL': 792.47,
-            'NET': 1388.24,
-            'ONSSEMPLOYERBASIC': 627.65,
-            'ONSSEMPLOYERCPAE': 5.77,
-            'ONSSEMPLOYERFFE': 3.26,
-            'ONSSEMPLOYERMFFE': 2.51,
-            'ONSSEMPLOYERRESTREINT': 42.4,
-            'ONSSEMPLOYERUNEMP': 2.51,
-            'ONSSEMPLOYER': 684.09,
-        }
-        self._validate_payslip(holiday_pay_2019, payslip_results)
 
     def test_double_remuneration_refunds_partial_contracts(self):
         # 1 full time parental time off at the start of the month
@@ -7692,33 +7642,32 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ONSSEMPLOYER': 0.0,
         }
         payslip_2_results = {
-            'BASIC': 2720.09,
-            'SALARY': 2720.09,
-            'ONSS': -355.52,
-            'EmpBonus.1': 0,
-            'ONSSTOTAL': 355.52,
-            'GROSSIP': 2364.57,
-            'IP.PART': -326.41,
-            'GROSS': 2038.16,
-            'P.P': -316.67,
-            'PPTOTAL': 316.67,
-            'M.ONSS': -20.27,
+            'BASIC': 2851.71,
+            'SALARY': 2851.71,
+            'ONSS': -372.72,
+            'ONSSTOTAL': 372.72,
+            'GROSSIP': 2478.99,
+            'IP.PART': -342.21,
+            'GROSS': 2136.79,
+            'P.P': -361.61,
+            'PPTOTAL': 361.61,
+            'M.ONSS': -21.72,
             'MEAL_V_EMP': -17.44,
             'PUB.TRANS': 34.0,
             'CAR.PRIV': 41.27,
             'REP.FEES': 279.31,
             'REP.FEES.VOLATILE': 4.59,
-            'IP': 326.41,
-            'IP.DED': -24.48,
-            'NET': 2344.89,
-            'REMUNERATION': 2393.68,
-            'ONSSEMPLOYERBASIC': 680.84,
-            'ONSSEMPLOYERFFE': 1.9,
-            'ONSSEMPLOYERMFFE': 2.72,
-            'ONSSEMPLOYERCPAE': 6.26,
-            'ONSSEMPLOYERRESTREINT': 45.97,
-            'ONSSEMPLOYERUNEMP': 2.72,
-            'ONSSEMPLOYER': 740.41,
+            'IP': 342.21,
+            'IP.DED': -25.67,
+            'NET': 2411.73,
+            'REMUNERATION': 2509.5,
+            'ONSSEMPLOYERBASIC': 713.78,
+            'ONSSEMPLOYERFFE': 2.0,
+            'ONSSEMPLOYERMFFE': 2.85,
+            'ONSSEMPLOYERCPAE': 6.56,
+            'ONSSEMPLOYERRESTREINT': 48.19,
+            'ONSSEMPLOYERUNEMP': 2.85,
+            'ONSSEMPLOYER': 776.24,
         }
         self._validate_payslip(payslip_1, payslip_1_results)
         self._validate_payslip(payslip_2, payslip_2_results)
@@ -7727,33 +7676,32 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         refund_payslip = self.env['hr.payslip'].browse(action_refund_payslip_2['domain'][0][2])
 
         refund_payslip_results = {
-            'BASIC': -2720.09,
-            'SALARY': -2720.09,
-            'ONSS': 355.52,
-            'EmpBonus.1': 0,
-            'ONSSTOTAL': -355.52,
-            'GROSSIP': -2364.57,
-            'IP.PART': 326.41,
-            'GROSS': -2038.16,
-            'P.P': 316.67,
-            'PPTOTAL': -316.67,
-            'M.ONSS': 20.27,
+            'BASIC': -2851.71,
+            'SALARY': -2851.71,
+            'ONSS': 372.72,
+            'ONSSTOTAL': -372.72,
+            'GROSSIP': -2478.99,
+            'IP.PART': 342.21,
+            'GROSS': -2136.79,
+            'P.P': 361.61,
+            'PPTOTAL': -361.61,
+            'M.ONSS': 21.72,
             'MEAL_V_EMP': 17.44,
             'PUB.TRANS': -34.0,
             'CAR.PRIV': -41.27,
             'REP.FEES': -279.31,
             'REP.FEES.VOLATILE': -4.59,
-            'IP': -326.41,
-            'IP.DED': 24.48,
-            'NET': -2344.89,
-            'REMUNERATION': -2393.68,
-            'ONSSEMPLOYERBASIC': -680.84,
-            'ONSSEMPLOYERFFE': -1.9,
-            'ONSSEMPLOYERMFFE': -2.72,
-            'ONSSEMPLOYERCPAE': -6.26,
-            'ONSSEMPLOYERRESTREINT': -45.97,
-            'ONSSEMPLOYERUNEMP': -2.72,
-            'ONSSEMPLOYER': -740.41,
+            'IP': -342.21,
+            'IP.DED': 25.67,
+            'NET': -2411.73,
+            'REMUNERATION': -2509.5,
+            'ONSSEMPLOYERBASIC': -713.78,
+            'ONSSEMPLOYERFFE': -2.0,
+            'ONSSEMPLOYERMFFE': -2.85,
+            'ONSSEMPLOYERCPAE': -6.56,
+            'ONSSEMPLOYERRESTREINT': -48.19,
+            'ONSSEMPLOYERUNEMP': -2.85,
+            'ONSSEMPLOYER': -776.24,
         }
         self._validate_payslip(refund_payslip, refund_payslip_results)
 
@@ -7769,33 +7717,32 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         new_payslip_2.compute_sheet()
 
         new_payslip_2_results = {
-            'BASIC': 2720.09,
-            'SALARY': 2720.09,
-            'ONSS': -355.52,
-            'EmpBonus.1': 0,
-            'ONSSTOTAL': 355.52,
-            'GROSSIP': 2364.57,
-            'IP.PART': -326.41,
-            'GROSS': 2038.16,
-            'P.P': -316.67,
-            'PPTOTAL': 316.67,
-            'M.ONSS': -20.27,
+            'BASIC': 2851.71,
+            'SALARY': 2851.71,
+            'ONSS': -372.72,
+            'ONSSTOTAL': 372.72,
+            'GROSSIP': 2478.99,
+            'IP.PART': -342.21,
+            'GROSS': 2136.79,
+            'P.P': -361.61,
+            'PPTOTAL': 361.61,
+            'M.ONSS': -21.72,
             'MEAL_V_EMP': -17.44,
             'PUB.TRANS': 34.0,
             'CAR.PRIV': 41.27,
             'REP.FEES': 279.31,
             'REP.FEES.VOLATILE': 4.59,
-            'IP': 326.41,
-            'IP.DED': -24.48,
-            'NET': 2344.89,
-            'REMUNERATION': 2393.68,
-            'ONSSEMPLOYERBASIC': 680.84,
-            'ONSSEMPLOYERFFE': 1.9,
-            'ONSSEMPLOYERMFFE': 2.72,
-            'ONSSEMPLOYERCPAE': 6.26,
-            'ONSSEMPLOYERRESTREINT': 45.97,
-            'ONSSEMPLOYERUNEMP': 2.72,
-            'ONSSEMPLOYER': 740.41,
+            'IP': 342.21,
+            'IP.DED': -25.67,
+            'NET': 2411.73,
+            'REMUNERATION': 2509.5,
+            'ONSSEMPLOYERBASIC': 713.78,
+            'ONSSEMPLOYERFFE': 2.0,
+            'ONSSEMPLOYERMFFE': 2.85,
+            'ONSSEMPLOYERCPAE': 6.56,
+            'ONSSEMPLOYERRESTREINT': 48.19,
+            'ONSSEMPLOYERUNEMP': 2.85,
+            'ONSSEMPLOYER': 776.24,
         }
         self._validate_payslip(new_payslip_2, new_payslip_2_results)
 
@@ -8029,7 +7976,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'REP.FEES.VOLATILE': 107.41,
             'IP': 662.5,
             'IP.DED': -49.69,
-            'NET': 2420.94,
+            'NET': 2420.93,
             'REMUNERATION': 1987.5,
             'ONSSEMPLOYERBASIC': 665.55,
             'ONSSEMPLOYERCPAE': 6.12,
@@ -8105,6 +8052,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         attendance = self.env.ref('hr_work_entry.work_entry_type_attendance')
         sick_work_entry_type = self.env.ref('hr_work_entry_contract.work_entry_type_sick_leave')
         partial_sick_work_entry_type = self.env.ref('l10n_be_hr_payroll.work_entry_type_part_sick')
+
 
         self.env['resource.calendar.leaves'].create([{
             'name': "Easter Monday",
@@ -8233,7 +8181,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             (23, 5): sick_work_entry_type,
             (24, 5): sick_work_entry_type,
             (25, 5): sick_work_entry_type,
-            (26, 5): bank_holiday,
+            (26, 5): sick_work_entry_type,
             (27, 5): partial_sick_work_entry_type,
 
             (30, 5): partial_sick_work_entry_type,
@@ -8317,7 +8265,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         may_payslip = self._generate_payslip(datetime.date(2022, 5, 1), datetime.date(2022, 5, 31))
 
-        self.assertEqual(len(may_payslip.worked_days_line_ids), 3)
+        self.assertEqual(len(may_payslip.worked_days_line_ids), 2)
         self.assertEqual(len(may_payslip.input_line_ids), 0)
         self.assertEqual(len(may_payslip.line_ids), 32)
 
@@ -8359,7 +8307,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         june_payslip = self._generate_payslip(datetime.date(2022, 5, 1), datetime.date(2022, 5, 31))
 
-        self.assertEqual(len(june_payslip.worked_days_line_ids), 3)
+        self.assertEqual(len(june_payslip.worked_days_line_ids), 2)
         self.assertEqual(len(june_payslip.input_line_ids), 0)
         self.assertEqual(len(june_payslip.line_ids), 32)
 
@@ -8543,8 +8491,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         european_time_off = self.env['hr.leave'].create({
             'name': 'European Time Off',
             'holiday_status_id': self.european_time_off_type.id,
-            'request_date_from': '2022-5-9',
-            'request_date_to': '2022-5-12',
+            'date_from': datetime.datetime(2022, 5, 9, 1, 0, 0),
+            'date_to': datetime.datetime(2022, 5, 12, 23, 0, 0),
+            'request_date_from': datetime.datetime(2020, 5, 9, 1, 0, 0),
+            'request_date_to': datetime.datetime(2020, 5, 12, 23, 0, 0),
+            'number_of_days': 4,
             'employee_id': self.employee.id,
         })
         european_time_off.action_validate()
@@ -8666,20 +8617,20 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         payslip_results = {
             'BASIC': 2650.0,
-            'HolPayRecN1': -186.68,
+            'HolPayRecN1': -126.19,
             'ATN.INT': 5.0,
             'ATN.MOB': 4.0,
-            'SALARY': 2472.32,
-            'ONSS': -323.13,
-            'EmpBonus.1': 86.93,
-            'ONSSTOTAL': 236.2,
+            'SALARY': 2532.81,
+            'ONSS': -331.04,
+            'EmpBonus.1': 72.94,
+            'ONSSTOTAL': 258.1,
             'ATN.CAR': 162.42,
-            'GROSSIP': 2398.54,
+            'GROSSIP': 2437.13,
             'IP.PART': -662.5,
-            'GROSS': 1736.04,
-            'P.P': -188.27,
-            'P.P.DED': 28.81,
-            'PPTOTAL': 159.46,
+            'GROSS': 1774.63,
+            'P.P': -207.53,
+            'P.P.DED': 24.17,
+            'PPTOTAL': 183.36,
             'ATN.CAR.2': -162.42,
             'ATN.INT.2': -5.0,
             'ATN.MOB.2': -4.0,
@@ -8688,15 +8639,15 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'REP.FEES': 150.0,
             'IP': 662.5,
             'IP.DED': -49.69,
-            'NET': 2130.78,
+            'NET': 2145.48,
             'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 618.82,
-            'ONSSEMPLOYERFFE': 1.73,
-            'ONSSEMPLOYERMFFE': 2.47,
-            'ONSSEMPLOYERCPAE': 5.69,
-            'ONSSEMPLOYERRESTREINT': 41.78,
-            'ONSSEMPLOYERUNEMP': 2.47,
-            'ONSSEMPLOYER': 672.97,
+            'ONSSEMPLOYERBASIC': 633.96,
+            'ONSSEMPLOYERFFE': 1.77,
+            'ONSSEMPLOYERMFFE': 2.53,
+            'ONSSEMPLOYERCPAE': 5.83,
+            'ONSSEMPLOYERRESTREINT': 42.8,
+            'ONSSEMPLOYERUNEMP': 2.53,
+            'ONSSEMPLOYER': 689.43,
             'CO2FEE': 28.17,
         }
         self._validate_payslip(payslip, payslip_results)
@@ -9029,20 +8980,20 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
 
         payslip_results = {
             'BASIC': 2650.0,
-            'HolPayRecN': -186.68,
+            'HolPayRecN': -126.19,
             'ATN.INT': 5.0,
             'ATN.MOB': 4.0,
-            'SALARY': 2472.32,
-            'ONSS': -323.13,
-            'EmpBonus.1': 86.93,
-            'ONSSTOTAL': 236.2,
+            'SALARY': 2532.81,
+            'ONSS': -331.04,
+            'EmpBonus.1': 72.94,
+            'ONSSTOTAL': 258.1,
             'ATN.CAR': 162.42,
-            'GROSSIP': 2398.54,
+            'GROSSIP': 2437.13,
             'IP.PART': -662.5,
-            'GROSS': 1736.04,
-            'P.P': -188.27,
-            'P.P.DED': 28.81,
-            'PPTOTAL': 159.46,
+            'GROSS': 1774.63,
+            'P.P': -207.53,
+            'P.P.DED': 24.17,
+            'PPTOTAL': 183.36,
             'ATN.CAR.2': -162.42,
             'ATN.INT.2': -5.0,
             'ATN.MOB.2': -4.0,
@@ -9051,15 +9002,15 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'REP.FEES': 150.0,
             'IP': 662.5,
             'IP.DED': -49.69,
-            'NET': 2130.78,
+            'NET': 2145.48,
             'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 618.82,
-            'ONSSEMPLOYERFFE': 1.73,
-            'ONSSEMPLOYERMFFE': 2.47,
-            'ONSSEMPLOYERCPAE': 5.69,
-            'ONSSEMPLOYERRESTREINT': 41.78,
-            'ONSSEMPLOYERUNEMP': 2.47,
-            'ONSSEMPLOYER': 672.97,
+            'ONSSEMPLOYERBASIC': 633.96,
+            'ONSSEMPLOYERFFE': 1.77,
+            'ONSSEMPLOYERMFFE': 2.53,
+            'ONSSEMPLOYERCPAE': 5.83,
+            'ONSSEMPLOYERRESTREINT': 42.8,
+            'ONSSEMPLOYERUNEMP': 2.53,
+            'ONSSEMPLOYER': 689.43,
             'CO2FEE': 28.17,
         }
         self._validate_payslip(payslip, payslip_results)
@@ -9625,10 +9576,11 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         unpaid_time_off = self.env['hr.leave'].create({
             'name': 'Unpaid Leave 4 hours',
             'holiday_status_id': self.unpaid_time_off_type.id,
-            'request_date_from': '2018-11-06',
-            'request_date_to': '2018-11-06',
-            'request_unit_half': True,
-            'request_date_from_period': 'am',
+            'date_from': datetime.datetime(2018, 11, 6, 7),
+            'date_to': datetime.datetime(2018, 11, 6, 12),
+            'request_date_from': datetime.datetime(2018, 11, 6, 7),
+            'request_date_to': datetime.datetime(2018, 11, 6, 12),
+            'number_of_days': 1,
             'employee_id': self.employee.id,
         })
         unpaid_time_off.action_validate()
@@ -9687,14 +9639,6 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'car_value': 29235.15,
             'fuel_type': 'diesel',
             'co2': 89,
-        })
-        vehicle = self.contract.car_id
-        self.env['fleet.vehicle.log.contract'].create({
-            'vehicle_id': vehicle.id,
-            'recurring_cost_amount_depreciated': vehicle.model_id.default_recurring_cost_amount_depreciated,
-            'purchaser_id': vehicle.driver_id.id,
-            'company_id': vehicle.company_id.id,
-            'user_id': vehicle.manager_id.id if vehicle.manager_id else self.env.user.id
         })
         self.contract.car_id.log_contracts.recurring_cost_amount_depreciated = 562.52
         self.contract.write({
@@ -9791,14 +9735,6 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'car_value': 28138.86,
             'fuel_type': 'diesel',
             'co2': 88.00,
-        })
-        vehicle = self.contract.car_id
-        self.env['fleet.vehicle.log.contract'].create({
-            'vehicle_id': vehicle.id,
-            'recurring_cost_amount_depreciated': vehicle.model_id.default_recurring_cost_amount_depreciated,
-            'purchaser_id': vehicle.driver_id.id,
-            'company_id': vehicle.company_id.id,
-            'user_id': vehicle.manager_id.id if vehicle.manager_id else self.env.user.id
         })
         self.contract.car_id.log_contracts.recurring_cost_amount_depreciated = 503.12
         self.contract.write({
@@ -10112,7 +10048,7 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
         }
         self._validate_payslip(payslip, payslip_results)
 
-    def test_thirteen_month(self):
+    def test_aa_thirteen_month(self):
         payslip = self._generate_payslip(datetime.date(2023, 6, 1), datetime.date(2023, 6, 30), struct_id=self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_thirteen_month').id)
         payslip_results = {
             'BASIC': 1325.0,
@@ -10129,583 +10065,5 @@ class TestPayslipValidation(AccountTestInvoicingCommon):
             'ONSSEMPLOYERRESTREINT': 22.39,
             'ONSSEMPLOYERUNEMP': 1.33,
             'ONSSEMPLOYER': 360.67,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-    def test_simple_n_holiday_pay_recovery_2024(self):
-        # Check that the same amount if recovered on 2 diffent months (July / February)
-        self.contract.date_start = datetime.date(2023, 1, 1)
-        # Employee received 1000€ for 5 days of holidays from previous employer
-        self.employee.l10n_be_holiday_pay_to_recover_n = 100000
-        self.employee.l10n_be_holiday_pay_number_of_days_n = 2
-
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Legal Leave Whole Day",
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2024, 2, 11, 6, 0, 0),
-            'date_to': datetime.datetime(2024, 2, 15, 19, 0, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2024, 2, 1), datetime.date(2024, 2, 29))
-        self.assertEqual(payslip._get_worked_days_line_number_of_hours('LEAVE120'), 30.4)
-        self.assertEqual(payslip._get_worked_days_line_amount('LEAVE120'), 489.23)
-        # Should be 122.31 * 2 = 244.62 instead of 252.38
-        payslip_results = {
-            'BASIC': 2650.0,
-            'HolPayRecN': -244.62,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2414.38,
-            'ONSS': -315.56,
-            'EmpBonus.1': 158.81,
-            'ONSSTOTAL': 156.75,
-            'ATN.CAR': 156.78,
-            'GROSSIP': 2414.41,
-            'IP.PART': -662.5,
-            'GROSS': 1751.91,
-            'P.P': -104.61,
-            'P.P.DED': 52.63,
-            'PPTOTAL': 51.98,
-            'ATN.CAR.2': -156.78,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -15.39,
-            'MEAL_V_EMP': -18.53,
-            'REP.FEES': 150.0,
-            'IP': 662.5,
-            'IP.DED': -49.69,
-            'NET': 2263.05,
-            'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 604.08,
-            'ONSSEMPLOYERFFE': 1.69,
-            'ONSSEMPLOYERMFFE': 2.41,
-            'ONSSEMPLOYERCPAE': 5.55,
-            'ONSSEMPLOYERRESTREINT': 40.8,
-            'ONSSEMPLOYERUNEMP': 2.41,
-            'ONSSEMPLOYER': 656.95,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Legal Leave Whole Day",
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2024, 7, 14, 6, 0, 0),
-            'date_to': datetime.datetime(2024, 7, 18, 19, 0, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2024, 7, 1), datetime.date(2024, 7, 31))
-        self.assertEqual(payslip._get_worked_days_line_number_of_hours('LEAVE120'), 30.4)
-        self.assertEqual(payslip._get_worked_days_line_amount('LEAVE120'), 489.23)
-
-        # Should be 122.31 * 2 = 244.62 instead of 230.43
-        payslip_results = {
-            'BASIC': 2650.0,
-            'HolPayRecN': -244.62,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2414.38,
-            'ONSS': -315.56,
-            'EmpBonus.1': 184.87,
-            'ONSSTOTAL': 130.69,
-            'ATN.CAR': 156.78,
-            'GROSSIP': 2440.47,
-            'IP.PART': -662.5,
-            'GROSS': 1777.97,
-            'P.P': -111.58,
-            'P.P.DED': 74.64,
-            'PPTOTAL': 36.94,
-            'ATN.CAR.2': -156.78,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -15.39,
-            'MEAL_V_EMP': -20.71,
-            'REP.FEES': 150.0,
-            'IP': 662.5,
-            'IP.DED': -49.69,
-            'NET': 2301.97,
-            'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 604.08,
-            'ONSSEMPLOYERFFE': 1.69,
-            'ONSSEMPLOYERMFFE': 2.41,
-            'ONSSEMPLOYERCPAE': 5.55,
-            'ONSSEMPLOYERRESTREINT': 40.8,
-            'ONSSEMPLOYERUNEMP': 2.41,
-            'ONSSEMPLOYER': 656.95,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-    # same function for simple_n1 or simple_n so only one test.
-    def test_simple_n_holiday_pay_recovery_lower_salary_2_payslips_2024(self):
-        # Check that the same amount if recovered on 2 diffent months (July / February)
-        self.contract.date_start = datetime.date(2023, 1, 1)
-        # Employee received 1000€ for 5 days of holidays from previous employer
-        # Employee took 2 days on january (so the HolidayPayRecN1 should be equal to the right amount for 2 days)
-        # Employee took 2 days on febrary (so the HolidayPayRecN1 shouldn't exceed the employee cost for the 2 days)
-        # Employee took 4 days on march (so the HolidayPayRecN1 should be equal to 0)
-        self.employee.l10n_be_holiday_pay_to_recover_n = 100000
-        self.employee.l10n_be_holiday_pay_number_of_days_n = 3
-
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Legal Leave",
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2024, 1, 11, 6, 0, 0),
-            'date_to': datetime.datetime(2024, 1, 12, 19, 0, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2024, 1, 1), datetime.date(2024, 1, 31))
-        payslip.action_payslip_done()
-        self.assertEqual(payslip._get_worked_days_line_number_of_hours('LEAVE120'), 15.2)
-        self.assertEqual(payslip._get_worked_days_line_amount('LEAVE120'), 244.62)
-        # Should be 122.31 * 2 = 244.62 instead of 252.38
-        payslip_results = {
-            'BASIC': 2650.0,
-            'HolPayRecN': -244.62,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2414.38,
-            'ONSS': -315.56,
-            'EmpBonus.1': 158.81,
-            'ONSSTOTAL': 156.75,
-            'ATN.CAR': 156.78,
-            'GROSSIP': 2414.41,
-            'IP.PART': -662.5,
-            'GROSS': 1751.91,
-            'P.P': -104.61,
-            'P.P.DED': 52.63,
-            'PPTOTAL': 51.98,
-            'ATN.CAR.2': -156.78,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -15.39,
-            'MEAL_V_EMP': -22.89,
-            'REP.FEES': 150.0,
-            'IP': 662.5,
-            'IP.DED': -49.69,
-            'NET': 2258.69,
-            'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 604.08,
-            'ONSSEMPLOYERFFE': 1.69,
-            'ONSSEMPLOYERMFFE': 2.41,
-            'ONSSEMPLOYERCPAE': 5.55,
-            'ONSSEMPLOYERRESTREINT': 40.8,
-            'ONSSEMPLOYERUNEMP': 2.41,
-            'ONSSEMPLOYER': 656.95,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Legal Leave",
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2024, 2, 6, 6, 0, 0),
-            'date_to': datetime.datetime(2024, 2, 7, 19, 0, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2024, 2, 1), datetime.date(2024, 2, 29))
-        payslip.action_payslip_done()
-        self.assertEqual(payslip._get_worked_days_line_number_of_hours('LEAVE120'), 15.2)
-        self.assertEqual(payslip._get_worked_days_line_amount('LEAVE120'), 244.62)
-        # HolPayRecN should be equal to - 224.62 / 2 = -122.31
-        payslip_results = {
-            'BASIC': 2650.0,
-            'HolPayRecN': -122.31,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2536.69,
-            'ONSS': -331.55,
-            'EmpBonus.1': 127.26,
-            'ONSSTOTAL': 204.28,
-            'ATN.CAR': 156.78,
-            'GROSSIP': 2489.19,
-            'IP.PART': -662.5,
-            'GROSS': 1826.69,
-            'P.P': -129.16,
-            'P.P.DED': 42.18,
-            'PPTOTAL': 86.98,
-            'ATN.CAR.2': -156.78,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -15.39,
-            'MEAL_V_EMP': -20.71,
-            'REP.FEES': 150.0,
-            'IP': 662.5,
-            'IP.DED': -49.69,
-            'NET': 2300.64,
-            'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 634.68,
-            'ONSSEMPLOYERFFE': 1.78,
-            'ONSSEMPLOYERMFFE': 2.54,
-            'ONSSEMPLOYERCPAE': 5.83,
-            'ONSSEMPLOYERRESTREINT': 42.87,
-            'ONSSEMPLOYERUNEMP': 2.54,
-            'ONSSEMPLOYER': 690.23,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Legal Leave",
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2024, 3, 18, 6, 0, 0),
-            'date_to': datetime.datetime(2024, 3, 21, 19, 0, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2024, 3, 1), datetime.date(2024, 3, 31))
-        payslip.action_payslip_done()
-        self.assertEqual(payslip._get_worked_days_line_number_of_hours('LEAVE120'), 30.4)
-        self.assertEqual(payslip._get_worked_days_line_amount('LEAVE120'), 489.23)
-        # HolPayRecN should be equal to 0
-        payslip_results = {
-            'BASIC': 2650.0,
-            'HolPayRecN': 0,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2659.0,
-            'ONSS': -347.53,
-            'EmpBonus.1': 112.89,
-            'ONSSTOTAL': 234.64,
-            'ATN.CAR': 156.78,
-            'GROSSIP': 2581.13,
-            'IP.PART': -662.5,
-            'GROSS': 1918.63,
-            'P.P': -168.52,
-            'P.P.DED': 37.41,
-            'PPTOTAL': 131.11,
-            'ATN.CAR.2': -156.78,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -15.39,
-            'MEAL_V_EMP': -18.53,
-            'REP.FEES': 150.0,
-            'IP': 662.5,
-            'IP.DED': -49.69,
-            'NET': 2350.64,
-            'REMUNERATION': 1987.5,
-            'ONSSEMPLOYERBASIC': 665.28,
-            'ONSSEMPLOYERFFE': 1.86,
-            'ONSSEMPLOYERMFFE': 2.66,
-            'ONSSEMPLOYERCPAE': 6.12,
-            'ONSSEMPLOYERRESTREINT': 44.94,
-            'ONSSEMPLOYERUNEMP': 2.66,
-            'ONSSEMPLOYER': 723.51,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-    def test_thirteen_month_sick_leave(self):
-        # 30 days of unpaid sick leaves are taken into account as attendances on
-        # the gross computation
-        sick_leave = self.env['hr.leave'].new({
-            'name': 'Sick Time Off 2 Months',
-            'employee_id': self.employee.id,
-            'holiday_status_id': self.sick_time_off_type.id,
-            'request_date_from': datetime.date(2023, 1, 1),
-            'request_date_to': datetime.date(2023, 3, 31),
-            'request_hour_from': '7',
-            'request_hour_to': '18',
-            'number_of_days': 65,
-        })
-        sick_leave._compute_date_from_to()
-        sick_leave = self.env['hr.leave'].create(sick_leave._convert_to_write(sick_leave._cache))
-        sick_leave.action_validate()
-
-        self.employee.contract_ids.generate_work_entries(datetime.date(2023, 1, 1), datetime.date(2023, 6, 30))
-
-        payslip = self._generate_payslip(datetime.date(2023, 6, 1), datetime.date(2023, 6, 30), struct_id=self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_thirteen_month').id)
-        payslip_results = {
-            'BASIC': 1182.31,
-            'SALARY': 1182.31,
-            'ONSS': -154.53,
-            'GROSS': 1027.78,
-            'P.P': -477.3,
-            'PPTOTAL': 477.3,
-            'NET': 550.48,
-            'ONSSEMPLOYERBASIC': 295.93,
-            'ONSSEMPLOYERFFE': 0.83,
-            'ONSSEMPLOYERMFFE': 1.18,
-            'ONSSEMPLOYERCPAE': 2.72,
-            'ONSSEMPLOYERRESTREINT': 19.98,
-            'ONSSEMPLOYERUNEMP': 1.18,
-            'ONSSEMPLOYER': 321.82,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-    def test_multiple_public_holidays_variable_salary(self):
-        self.contract.commission_on_target = 1000
-        self.env['resource.calendar.leaves'].create([{
-            'name': 'Public Time Off 1',
-            'date_from': datetime.datetime(2023, 8, 7, 2),
-            'date_to': datetime.datetime(2023, 8, 7, 22),
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'work_entry_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_bank_holiday').id,
-            'time_type': 'leave',
-        }, {
-            'name': 'Public Time Off 2',
-            'date_from': datetime.datetime(2023, 8, 8, 2),
-            'date_to': datetime.datetime(2023, 8, 8, 22),
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'work_entry_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_bank_holiday').id,
-            'time_type': 'leave',
-        }, {
-            'name': 'Public Time Off 3',
-            'date_from': datetime.datetime(2023, 8, 9, 2),
-            'date_to': datetime.datetime(2023, 8, 9, 22),
-            'calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'work_entry_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_bank_holiday').id,
-            'time_type': 'leave',
-        }])
-
-        commission_payslip = self._generate_payslip(datetime.date(2023, 7, 1), datetime.date(2023, 7, 31))
-        self.env['hr.payslip.input'].create([{
-            'name': "Commission Input",
-            'payslip_id': commission_payslip.id,
-            'sequence': 10,
-            'input_type_id': self.env.ref('l10n_be_hr_payroll.input_fixed_commission').id,
-            'amount': 10000,
-        }])
-        commission_payslip.compute_sheet()
-        commission_payslip.action_payslip_done()
-
-        payslip = self._generate_payslip(datetime.date(2023, 8, 1), datetime.date(2023, 8, 31))
-        payslip_results = {
-            'BASIC': 2770.0,  # 2650 + 40 * 3
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 2779.0,
-            'ONSS': -363.22,
-            'EmpBonus.1': 85.13,
-            'ONSSTOTAL': 278.08,
-            'ATN.CAR': 169.15,
-            'GROSSIP': 2670.07,
-            'IP.PART': -692.5,
-            'GROSS': 1977.57,
-            'P.P': -232.53,
-            'P.P.DED': 28.21,
-            'PPTOTAL': 204.32,
-            'ATN.CAR.2': -169.15,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': -16.71,
-            'MEAL_V_EMP': -21.8,
-            'REP.FEES': 150.0,
-            'IP': 692.5,
-            'IP.DED': -51.94,
-            'NET': 2347.15,
-            'REMUNERATION': 2077.5,
-            'ONSSEMPLOYERBASIC': 695.58,
-            'ONSSEMPLOYERFFE': 1.95,
-            'ONSSEMPLOYERMFFE': 2.78,
-            'ONSSEMPLOYERCPAE': 6.39,
-            'ONSSEMPLOYERRESTREINT': 46.97,
-            'ONSSEMPLOYERUNEMP': 2.78,
-            'ONSSEMPLOYER': 756.44,
-            'CO2FEE': 31.34,
-        }
-        self.assertAlmostEqual(payslip._get_worked_days_line_amount('LEAVE1731'), 120, places=2)
-        self._validate_payslip(payslip, payslip_results)
-
-    def test_parental_time_off_out_of_contract(self):
-        self.contract.write({
-            'name': "4/5 Parental Time Off",
-            'time_credit': True,
-            'standard_calendar_id': self.resource_calendar_38_hours_per_week.id,
-            'work_time_rate': 80,
-            'time_credit_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_parental_time_off').id,
-            'resource_calendar_id': self.resource_calendar_4_5_friday_off.id,
-            'date_start': datetime.date(2023, 4, 1),
-            'date_end': datetime.date(2023, 8, 13),
-            'wage': 2562.78,
-            'wage_on_signature': 2562.78,
-        })
-
-        extra_legal_time_off = self.env['hr.leave'].create({
-            'name': 'Extra Legal Time Off',
-            'holiday_status_id': self.extra_legal_time_off_type.id,
-            'date_from': datetime.datetime(2023, 8, 1, 6, 0, 0),
-            'date_to': datetime.datetime(2023, 8, 10, 20, 0, 0),
-            'request_date_from': datetime.datetime(2023, 8, 1, 6, 0, 0),
-            'request_date_to': datetime.datetime(2023, 8, 10, 20, 0, 0),
-            'number_of_days': 7,
-            'employee_id': self.employee.id,
-        })
-        extra_legal_time_off.action_validate()
-
-        payslip = self._generate_payslip(datetime.date(2023, 8, 1), datetime.date(2023, 8, 31))
-
-        worked_days_values = {
-            'OUT': {
-                'number_of_days': 14,
-                'number_of_hours': 106.40,
-                'amount': 0,
-            },
-            'LEAVE213': {
-                'number_of_days': 7,
-                'number_of_hours': 53.2,
-                'amount': 906.83,
-            },
-            'LEAVE301': {
-                'number_of_days': 2,
-                'number_of_hours': 15.2,
-                'amount': 0,
-            }
-        }
-        for work_day in payslip.worked_days_line_ids:
-            self.assertAlmostEqual(work_day.number_of_days, worked_days_values[work_day.code]['number_of_days'], places=2)
-            self.assertAlmostEqual(work_day.number_of_hours, worked_days_values[work_day.code]['number_of_hours'], places=2)
-            self.assertAlmostEqual(work_day.amount, worked_days_values[work_day.code]['amount'], places=2)
-
-        payslip_results = {
-            'BASIC': 906.83,
-            'ATN.INT': 5.0,
-            'ATN.MOB': 4.0,
-            'SALARY': 915.83,
-            'ONSS': -119.7,
-            'EmpBonus.1': 30.81,
-            'ONSSTOTAL': 88.89,
-            'ATN.CAR': 169.15,
-            'GROSSIP': 996.09,
-            'IP.PART': -226.71,
-            'GROSS': 769.38,
-            'P.P': 0,
-            'P.P.DED': 0,
-            'PPTOTAL': 0,
-            'ATN.CAR.2': -169.15,
-            'ATN.INT.2': -5.0,
-            'ATN.MOB.2': -4.0,
-            'M.ONSS': 0,
-            'MEAL_V_EMP': 0,
-            'REP.FEES': 11.54,
-            'IP': 226.71,
-            'IP.DED': -17.0,
-            'NET': 812.47,
-            'REMUNERATION': 680.12,
-            'ONSSEMPLOYERBASIC': 229.23,
-            'ONSSEMPLOYERFFE': 0.64,
-            'ONSSEMPLOYERMFFE': 0.92,
-            'ONSSEMPLOYERCPAE': 2.11,
-            'ONSSEMPLOYERRESTREINT': 15.48,
-            'ONSSEMPLOYERUNEMP': 0.92,
-            'ONSSEMPLOYER': 249.29,
-            'CO2FEE': 31.34,
-        }
-        self._validate_payslip(payslip, payslip_results)
-
-        contract_2 = self.contract.copy({
-            'date_start': datetime.date(2023, 8, 14),
-            'date_end': datetime.date(2023, 12, 21),
-            'resource_calendar_id': self.resource_calendar_4_5_wednesday_off.id,
-        })
-
-        # Public Holiday
-        self.env['resource.calendar.leaves'].create([{
-            'name': "15 Aout",
-            'calendar_id': False,
-            'company_id': self.env.company.id,
-            'date_from': datetime.datetime(2023, 8, 15, 5, 0, 0),
-            'date_to': datetime.datetime(2023, 8, 15, 20, 0, 0),
-            'resource_id': False,
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('l10n_be_hr_payroll.work_entry_type_bank_holiday').id
-        }])
-
-        # Paid Time Off
-        self.env['resource.calendar.leaves'].create([{
-            'name': "Paid Time Off",
-            'calendar_id': self.resource_calendar_4_5_wednesday_off.id,
-            'company_id': self.env.company.id,
-            'resource_id': self.employee.resource_id.id,
-            'date_from': datetime.datetime(2023, 8, 14, 6, 0, 0),
-            'date_to': datetime.datetime(2023, 8, 14, 14, 36, 0),
-            'time_type': "leave",
-            'work_entry_type_id': self.env.ref('hr_work_entry_contract.work_entry_type_legal_leave').id
-        }])
-
-        payslip = self._generate_payslip(datetime.date(2023, 8, 1), datetime.date(2023, 8, 31), contract_id=contract_2.id)
-        worked_days_values = {
-            'LEAVE120': {
-                'number_of_days': 1.0,
-                'number_of_hours': 7.6,
-                'amount': 147.85
-            },
-            'LEAVE500': {
-                'number_of_days': 1.0,
-                'number_of_hours': 7.6,
-                'amount': 147.85
-            },
-            'WORK100': {
-                'number_of_days': 9.0,
-                'number_of_hours': 68.4,
-                'amount': 1202.54
-            },
-            'OUT': {
-                'number_of_days': 9.0,
-                'number_of_hours': 68.4,
-                'amount': 0.0
-            },
-            'LEAVE301': {
-                'number_of_days': 3.0,
-                'number_of_hours': 22.80,
-                'amount': 0.0
-            }
-        }
-        for work_day in payslip.worked_days_line_ids:
-            self.assertAlmostEqual(work_day.number_of_days, worked_days_values[work_day.code]['number_of_days'], places=2)
-            self.assertAlmostEqual(work_day.number_of_hours, worked_days_values[work_day.code]['number_of_hours'], places=2)
-            self.assertAlmostEqual(work_day.amount, worked_days_values[work_day.code]['amount'], places=2)
-        payslip_results = {
-            'BASIC': 1498.24,
-            'ATN.INT': 0,
-            'ATN.MOB': 0,
-            'SALARY': 1498.24,
-            'ONSS': -195.82,
-            'EmpBonus.1': 53.81,
-            'ONSSTOTAL': 142.01,
-            'ATN.CAR': 0,
-            'GROSSIP': 1356.23,
-            'IP.PART': -374.56,
-            'GROSS': 981.67,
-            'P.P': 0,
-            'P.P.DED': 0,
-            'PPTOTAL': 0,
-            'ATN.CAR.2': 0,
-            'ATN.INT.2': 0,
-            'ATN.MOB.2': 0,
-            'M.ONSS': 0,
-            'MEAL_V_EMP': -9.81,
-            'REP.FEES': 46.15,
-            'IP': 374.56,
-            'IP.DED': -28.09,
-            'NET': 1364.48,
-            'REMUNERATION': 1123.68,
-            'ONSSEMPLOYERBASIC': 375.01,
-            'ONSSEMPLOYERFFE': 1.05,
-            'ONSSEMPLOYERMFFE': 1.5,
-            'ONSSEMPLOYERCPAE': 3.45,
-            'ONSSEMPLOYERRESTREINT': 25.32,
-            'ONSSEMPLOYERUNEMP': 1.5,
-            'ONSSEMPLOYER': 407.82,
-            'CO2FEE': 0,
         }
         self._validate_payslip(payslip, payslip_results)

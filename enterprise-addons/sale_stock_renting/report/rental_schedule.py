@@ -43,18 +43,18 @@ class RentalSchedule(models.Model):
     def _late(self):
         return """
             CASE when lot_info.lot_id is NULL then
-                CASE WHEN s.rental_start_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_delivered < sol.product_uom_qty THEN TRUE
-                    WHEN s.rental_return_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_returned < sol.qty_delivered THEN TRUE
+                CASE WHEN sol.start_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_delivered < sol.product_uom_qty THEN TRUE
+                    WHEN sol.return_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_returned < sol.qty_delivered THEN TRUE
                     ELSE FALSE
                 END
             ELSE
                 CASE WHEN lot_info.report_line_status = 'returned' THEN FALSE
                     WHEN lot_info.report_line_status = 'pickedup' THEN
-                        CASE WHEN s.rental_return_date < NOW() AT TIME ZONE 'UTC' THEN TRUE
+                        CASE WHEN sol.return_date < NOW() AT TIME ZONE 'UTC' THEN TRUE
                         ELSE FALSE
                         END
                     ELSE
-                        CASE WHEN s.rental_start_date < NOW() AT TIME ZONE 'UTC' THEN TRUE
+                        CASE WHEN sol.start_date < NOW() AT TIME ZONE 'UTC' THEN TRUE
                         ELSE FALSe
                         END
                 END
@@ -76,8 +76,8 @@ class RentalSchedule(models.Model):
         """2 = orange, 4 = blue, 6 = red, 7 = green"""
         return """
             CASE when lot_info.lot_id is NULL then
-                CASE WHEN s.rental_start_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_delivered < sol.product_uom_qty THEN 4
-                    WHEN s.rental_return_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_returned < sol.qty_delivered THEN 6
+                CASE WHEN sol.start_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_delivered < sol.product_uom_qty THEN 4
+                    WHEN sol.return_date < NOW() AT TIME ZONE 'UTC' AND sol.qty_returned < sol.qty_delivered THEN 6
                     when sol.qty_returned = sol.qty_delivered AND sol.qty_delivered = sol.product_uom_qty THEN 7
                     WHEN sol.qty_delivered = sol.product_uom_qty THEN 2
                     ELSE 4
@@ -85,7 +85,7 @@ class RentalSchedule(models.Model):
             ELSE
                 CASE WHEN lot_info.report_line_status = 'returned' THEN 7
                     WHEN lot_info.report_line_status = 'pickedup' THEN
-                        CASE WHEN s.rental_return_date < NOW() AT TIME ZONE 'UTC' THEN 6
+                        CASE WHEN sol.return_date < NOW() AT TIME ZONE 'UTC' THEN 6
                         ELSE 2
                         END
                     ELSE 4
@@ -116,22 +116,6 @@ class RentalSchedule(models.Model):
                     JOIN stock_lot lot
                         ON res.stock_lot_id=lot.id
                         OR pickedup.stock_lot_id=lot.id
-                UNION ALL
-                SELECT DISTINCT ON (lot_id)
-                lot_id,
-                stock_lot.name,
-                sol.id sol_id,
-                CASE
-                    WHEN so.rental_status='returned' THEN 'returned'
-                    WHEN so.rental_status='return' THEN 'pickedup'
-                    WHEN so.rental_status='pickup' THEN 'reserved'
-                END AS report_line_status
-                FROM sale_order so, sale_order_line sol, stock_move_line sml, stock_picking sp,stock_lot
-                WHERE so.id=sol.order_id and sol.order_id=sp.sale_id and sml.lot_id=stock_lot.id and sol.product_id=stock_lot.product_id and sol.product_id in (
-                    SELECT product_id
-                        FROM sale_order_line,sale_order
-                        WHERE sale_order_line.order_id=sale_order.id and sale_order.is_rental_order=true
-                    )
                 )
         """
 

@@ -32,17 +32,14 @@ class TestWinbooksImport(common.TransactionCase):
             'currency_id': self.env['res.currency'].search([('name', '=', 'EUR')]).id,
             'country_id': self.env.ref('base.be').id,
         })
-        self.env['account.chart.template'].try_loading('be_comp', test_company)
+        self.env['account.chart.template'].search([
+            ('currency_id.name', '=', 'EUR'),
+        ], limit=1).try_loading(test_company)
         wizard = self.env['account.winbooks.import.wizard'].with_company(test_company).create({
             'zip_file': attachment.datas,
         })
-        last = self.env['account.move'].search([('company_id', '=', test_company.id)], order='id desc', limit=1)
+        before = self.env['account.move'].search_count([('company_id', '=', test_company.id)])
         wizard.with_company(test_company).with_context(winbooks_import_hard_fail=False).import_winbooks_file()
-        new_moves = self.env['account.move'].search([
-            ('company_id', '=', test_company.id),
-            ('id', '>', last.id),
-        ])
-        self.assertTrue(new_moves)
-        new_moves.action_post()
-        self.assertTrue(new_moves.line_ids.full_reconcile_id, "There should be at least one full reconciliation after the import")
         self.env.flush_all()  # be sure to trigger SQL constraints
+        after = self.env['account.move'].search_count([('company_id', '=', test_company.id)])
+        self.assertGreater(after, before)

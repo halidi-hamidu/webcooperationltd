@@ -176,7 +176,7 @@ class IrModel(models.Model):
     def name_create(self, name):
         if self._context.get('studio'):
             (main_model, _) = self.studio_model_create(name)
-            return main_model.id, main_model.display_name
+            return main_model.name_get()[0]
         return super().name_create(name)
 
     def _create_option_lines(self, model_vals):
@@ -206,7 +206,7 @@ class IrModel(models.Model):
         """
         # create the Line model
         model_table = model_name.replace('.', '_')
-        if not self._is_manual_name(model_table):
+        if not model_table.startswith('x_'):
             model_table = 'x_' + model_table
         model_line_name = model_table[2:] + '_line'
         model_line_model = model_table + '_line_' + uuid.uuid4().hex[:5]
@@ -384,8 +384,7 @@ class IrModel(models.Model):
         model_vals['field_id'].append(
             Command.create({
                 'name': 'x_studio_value',
-                'ttype': 'monetary',
-                'currency_field': 'x_studio_currency_id',
+                'ttype': 'float',
                 'field_description': _('Value'),
                 'copied': True,
                 'tracking': model_vals.get('is_mail_thread'),
@@ -603,13 +602,10 @@ class IrModelField(models.Model):
             return ['name', 'field_description', 'model', 'model_id.name']
         return ['field_description']
 
-    @api.depends('field_description', 'model_id')
-    @api.depends_context('studio')
-    def _compute_display_name(self):
-        if not self.env.context.get('studio'):
-            return super()._compute_display_name()
-        for field in self:
-            field.display_name = f"{field.field_description} ({field.model_id.name})"
+    def name_get(self):
+        if self.env.context.get('studio'):
+            return [(field.id, "%s (%s)" % (field.field_description, field.model_id.name)) for field in self]
+        return super(IrModelField, self).name_get()
 
     @api.constrains('name')
     def _check_name(self):

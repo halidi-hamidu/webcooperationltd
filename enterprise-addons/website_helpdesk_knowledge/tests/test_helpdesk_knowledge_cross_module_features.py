@@ -20,17 +20,16 @@ class TestHelpdeskKnowledgeCrossModuleFeatures(HttpCase):
             'name': 'EditorCommandsArticle',
             'body': Markup("""
                 <p><br></p>
-                <div class="o_knowledge_behavior_anchor o_knowledge_behavior_type_template" data-oe-protected="true">
+                <div class="o_knowledge_behavior_anchor o_knowledge_behavior_type_template">
                     <div class="d-flex">
-                        <div class="o_knowledge_template_label align-middle">Clipboard</div>
+                        <div class="o_knowledge_template_label align-middle">Template</div>
                     </div>
-                    <div class="o_knowledge_content" data-prop-name="content" data-oe-protected="false">
+                    <div class="o_knowledge_content" data-prop-name="content">
                         <p>Hello world</p>
                     </div>
                 </div>
                 <p><br></p>
-            """),
-            'is_article_visible_by_everyone': True,
+            """)
         })
         cls.env['ir.attachment'].create({
             'datas': base64.b64encode(b'Content'),

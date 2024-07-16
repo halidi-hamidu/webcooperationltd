@@ -5,42 +5,47 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="account.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <div id="india_integration_section" position="attributes">
-                <attribute name="invisible">0</attribute>
-            </div>
-            <xpath expr="//block[@id='india_localization']" position="inside">
-                <setting id="l10n_in_gst_iap" string="Indian GST" help="Setup GST Service for this company" company_dependent="1">
-                    <div id="gsp_setting">
-                        <div class="text-warning" invisible="l10n_in_gstr_gst_username in (False, '')">
-                            Click on Send OTP to create token and verify username.
-                            <br/>
-                            <small>
-                                *If you send OTP continuously more than 3 times your username will be blocked for 6 hours
-                            </small>
-                        </div>
-                        <div class="content-group">
-                            <div class="mt16 row">
-                                <label for="l10n_in_gstr_gst_username" string="GST Username" class="col-3 col-lg-4 o_light_label"/>
-                                <field name="l10n_in_gstr_gst_username" nolabel="1"/>
+            <div data-key="account" position="inside">
+                <h2 attrs="{'invisible': [('country_code', '!=', 'IN')]}">Indian GST Service</h2>
+                <div class='row mt16 o_settings_container' name="l10n_in_gst_iap" attrs="{'invisible': [('country_code', '!=', 'IN')]}">
+                    <div class="col-12 col-lg-7 o_setting_box" id="gsp_setting">
+                        <div class="o_setting_right_pane">
+                            <t class="o_form_label">Indian GST </t>
+                            <span class="fa fa-lg fa-building-o" title="Values set here are company-specific." aria-label="Values set here are company-specific." groups="base.group_multi_company" role="img"/>
+                            <div class="text-muted">
+                                Setup GST Service for this company
                             </div>
-                            <div class="row" title="if OTP is verified then the token will expire in 6 hours if you activate this it will refresh the token before expiring until the duration you set in GST Portal.">
-                                <label for="l10n_in_gstr_gst_auto_refresh_token" string="Refresh Token" class="col-3 col-lg-4 o_light_label"/>
-                                <field name="l10n_in_gstr_gst_auto_refresh_token" nolabel="1"/>
+                            <div class="text-warning" attrs="{'invisible': [('l10n_in_gstr_gst_username','in', (False,''))]}">
+                                Click on Send OTP to create token and verify username.
+                                <br/>
+                                <small>
+                                    *If you send OTP continuously more than 3 times your username will be blocked for 6 hours
+                                </small>
                             </div>
-                            <div class="row">
-                                <label for="l10n_in_gstr_gst_production_env" string="Production Environment" class="col-3 col-lg-4 o_light_label"/>
-                                <field name="l10n_in_gstr_gst_production_env" nolabel="1"/>
+                            <div class="content-group">
+                                <div class="mt16 row">
+                                    <label for="l10n_in_gstr_gst_username" string="GST Username" class="col-3 col-lg-4 o_light_label"/>
+                                    <field name="l10n_in_gstr_gst_username" nolabel="1"/>
+                                </div>
+                                <div class="row" title="if OTP is verified then the token will expire in 6 hours if you activate this it will refresh the token before expiring until the duration you set in GST Portal.">
+                                    <label for="l10n_in_gstr_gst_auto_refresh_token" string="Refresh Token" class="col-3 col-lg-4 o_light_label"/>
+                                    <field name="l10n_in_gstr_gst_auto_refresh_token" nolabel="1"/>
+                                </div>
+                                <div class="row">
+                                    <label for="l10n_in_gstr_gst_production_env" string="Production Environment" class="col-3 col-lg-4 o_light_label"/>
+                                    <field name="l10n_in_gstr_gst_production_env" nolabel="1"/>
+                                </div>
                             </div>
-                        </div>
-                        <div class='mt8'>
-                            <button name="l10n_in_gstr_gst_send_otp" icon="oi-arrow-right" type="object" string=" Send OTP" class="btn-link"/>
-                        </div>
-                        <div class='mt8'>
-                            <button name="l10n_in_reports_gstr_buy_iap" title="Costs 1 credit per transaction. Free 200 credits will be available for the first time." icon="fa-arrow-right" type="object" string="Buy credits" class="btn-link"/>
+                            <div class='mt8'>
+                                <button name="l10n_in_gstr_gst_send_otp" icon="fa-arrow-right" type="object" string=" Send OTP" class="btn-link"/>
+                            </div>
+                            <div class='mt8'>
+                                <button name="l10n_in_reports_gstr_buy_iap" title="Costs 1 credit per transaction. Free 200 credits will be available for the first time." icon="fa-arrow-right" type="object" string="Buy credits" class="btn-link"/>
+                            </div>
                         </div>
                     </div>
-                </setting>
-            </xpath>
+                </div>
+            </div>
         </field>
     </record>
 
@@ -62,7 +67,7 @@
                                 name="l10n_in_gstr_validate_otp"
                                 data-hotkey="q"
                                 type="object"/>
-                        <button special="cancel" data-hotkey="x" string="Cancel"/>
+                        <button special="cancel" data-hotkey="z" string="Cancel"/>
                     </footer>
                 </sheet>
             </form>

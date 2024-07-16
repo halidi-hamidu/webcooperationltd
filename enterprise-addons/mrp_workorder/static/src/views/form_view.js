@@ -6,7 +6,9 @@ import { useBus } from "@web/core/utils/hooks";
 
 import { formView } from "@web/views/form/form_view";
 import { FormController } from "@web/views/form/form_controller";
-import { useRef } from "@odoo/owl";
+import { makeContext } from "@web/core/context";
+
+const { useRef } = owl;
 
 export class WorkorderFormController extends FormController {
     setup() {
@@ -14,24 +16,24 @@ export class WorkorderFormController extends FormController {
         this.workorderBus = this.props.workorderBus;
         useBus(this.workorderBus, "force_save_workorder", async (ev) => {
             if (this.model.root.resModel === "mrp.workorder") {
-                await this.model.root.save();
+                await this.model.root.save({ stayInEdition: true });
                 ev.detail.resolve();
             }
         });
         useBus(this.workorderBus, "force_save_check", async (ev) => {
             if (this.model.root.resModel === "quality.check") {
-                await this.model.root.save();
+                await this.model.root.save({ stayInEdition: true });
                 ev.detail.resolve();
             }
         });
         const rootRef = useRef("root");
         // before executing button action
         const beforeExecuteAction = async (params) => {
-            params.context = {
-                ...params.context,
-                ...this.props.context,
-            };
-            await this.model.root.save();
+            params.context = makeContext([
+                params.context,
+                this.props.context
+            ]);
+            await this.model.root.save({ stayInEdition: true });
             if (params.type && params.type === "workorder_event") {
                 this.workorderBus.trigger("workorder_event", params.name);
                 return false;

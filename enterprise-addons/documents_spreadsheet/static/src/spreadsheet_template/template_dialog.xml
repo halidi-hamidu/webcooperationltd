@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="documents_spreadsheet.TemplateDialog">
+    <t t-name="documents_spreadsheet.TemplateDialog" owl="1">
         <div>
             <Dialog
                 t-if="state.isOpen"
@@ -8,18 +8,8 @@
                 contentClass="'o-spreadsheet-templates-dialog'"
                 footer="true"
             >
-                <div class="d-flex pb-2">
-                    <div t-if="!props.folderId" class="flex-grow-1">
-                        <span class="text-black me-3">Workspace</span>
-                        <select class="w-50 d-inline-flex o_input" t-model="this.documentsSpreadsheetFolderId">
-                            <option t-foreach="props.folders" t-as="folder"
-                                t-key="folder.id" t-att-value="folder.id"
-                                t-esc="folder.display_name"/>
-                        </select>
-                    </div>
-                    <div class="ms-auto w-50">
-                        <SearchBar/>
-                    </div>
+                <div>
+                    <SearchBar/>
                 </div>
                 <div class="o-pager">
                     <Pager
@@ -54,9 +44,9 @@
                             t-on-dblclick="_createSpreadsheet">
                             <img
                                 t-attf-src="/web/image?model=spreadsheet.template&amp;id={{template.id}}&amp;field=thumbnail"
-                                t-att-title="template.name" />
+                                t-att-title="template.name"/>
                         </div>
-                        <div class="o-template-item-name" t-esc="template.name" />
+                        <div class="o-template-item-name" t-esc="template.name"/>
                     </div>
                     <!-- ghost items are used to properly space last elements. -->
                     <div t-foreach="Array(limit)" t-as="i" t-key="i_index" class="o-template o-template-ghost-item mh-0" />
@@ -69,7 +59,7 @@
                         <t>Create</t>
                     </button>
                     <button class="btn btn-secondary" t-on-click="data.close">
-                        <t>Discard</t>
+                        <t>Cancel</t>
                     </button>
                 </t>
             </Dialog>

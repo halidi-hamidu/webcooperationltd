@@ -3,19 +3,19 @@
 # 	* account_sepa
 # 
 # Translators:
-# Ivana Bartonkova, 2023
-# Jakub Smolka, 2023
-# Wil Odoo, 2023
-# Aleš Fiala <f.ales1@seznam.cz>, 2023
-# Tomáš Píšek, 2023
+# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
+# Michal Veselý <michal@veselyberanek.net>, 2022
+# karolína schusterová <karolina.schusterova@vdp.sk>, 2022
+# Jiří Podhorecký, 2022
+# Aleš Fiala <f.ales1@seznam.cz>, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Tomáš Píšek, 2023\n"
+"POT-Creation-Date: 2024-02-06 13:24+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Aleš Fiala <f.ales1@seznam.cz>, 2024\n"
 "Language-Team: Czech (https://app.transifex.com/odoo/teams/41243/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -61,7 +61,7 @@ msgstr "Dávková rezervace"
 #. module: account_sepa
 #: model:ir.model,name:account_sepa.model_account_batch_payment
 msgid "Batch Payment"
-msgstr "Hromadná platba"
+msgstr "dávková platba"
 
 #. module: account_sepa
 #: model:ir.model,name:account_sepa.model_res_company
@@ -71,12 +71,7 @@ msgstr "Společnosti"
 #. module: account_sepa
 #: model:ir.model,name:account_sepa.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfigurační nastavení"
-
-#. module: account_sepa
-#: model:ir.model,name:account_sepa.model_res_partner
-msgid "Contact"
-msgstr "Kontakt"
+msgstr "Nastavení konfigurace"
 
 #. module: account_sepa
 #: model:ir.model.fields,help:account_sepa.field_res_company__sepa_orgid_issr
@@ -93,7 +88,7 @@ msgid "Generic"
 msgstr "Obecný"
 
 #. module: account_sepa
-#: model:ir.model.fields.selection,name:account_sepa.selection__account_journal__sepa_pain_version__pain_001_001_03_de
+#: model:ir.model.fields.selection,name:account_sepa.selection__account_journal__sepa_pain_version__pain_001_003_03
 msgid "German"
 msgstr "Německý"
 
@@ -123,21 +118,7 @@ msgstr "Emitent"
 #. module: account_sepa
 #: model:ir.model,name:account_sepa.model_account_journal
 msgid "Journal"
-msgstr "Účetní deník"
-
-#. module: account_sepa
-#: model:ir.model.fields,field_description:account_sepa.field_res_company__account_sepa_lei
-#: model:ir.model.fields,field_description:account_sepa.field_res_partner__account_sepa_lei
-#: model:ir.model.fields,field_description:account_sepa.field_res_users__account_sepa_lei
-msgid "LEI"
-msgstr "LEI (identifikátor právního subjektu)"
-
-#. module: account_sepa
-#: model:ir.model.fields,help:account_sepa.field_res_company__account_sepa_lei
-#: model:ir.model.fields,help:account_sepa.field_res_partner__account_sepa_lei
-#: model:ir.model.fields,help:account_sepa.field_res_users__account_sepa_lei
-msgid "Legal Entity Identifier"
-msgstr "Identifikátor právního subjektu"
+msgstr "Deník"
 
 #. module: account_sepa
 #. odoo-python
@@ -147,22 +128,12 @@ msgid "Maximum amount is %s for payments in Euros, %s for other currencies."
 msgstr "Maximální částka je %spro platby v eurech, %s v jiných měnách."
 
 #. module: account_sepa
-#: model_terms:ir.ui.view,arch_db:account_sepa.res_partner_sepa_inherit_form
-msgid "Miscellaneous"
-msgstr "Ostatní"
-
-#. module: account_sepa
 #: model:ir.model.fields,help:account_sepa.field_res_config_settings__sepa_initiating_party_name
 msgid ""
 "Name of the Creditor Reference Party. Usage Rule: Limited to 70 characters "
 "in length."
 msgstr ""
 "Název referenční strany věřitele. Pravidlo použití: Omezeno na 70 znaků."
-
-#. module: account_sepa
-#: model:ir.model.fields.selection,name:account_sepa.selection__account_journal__sepa_pain_version__pain_001_001_09
-msgid "New generic version (09)"
-msgstr "Nová generická verze (09)"
 
 #. module: account_sepa
 #. odoo-python
@@ -181,7 +152,7 @@ msgstr "Partner %s nemá definovaný bankovní účet."
 #. module: account_sepa
 #: model:ir.model,name:account_sepa.model_account_payment_method
 msgid "Payment Methods"
-msgstr "Platební metody"
+msgstr "Platební podmínky"
 
 #. module: account_sepa
 #: model_terms:ir.ui.view,arch_db:account_sepa.account_journal_dashboard_kanban_view_inherited
@@ -208,9 +179,20 @@ msgstr ""
 "Nejprve prosím nastavte identifikační číslo SEPA v nastavení účtování."
 
 #. module: account_sepa
+#. odoo-python
+#: code:addons/account_sepa/models/account_journal.py:0
+#, python-format
+msgid ""
+"Please install SEPA pain.001.001.09 module to generate XML files in the new "
+"format."
+msgstr ""
+"Nainstalujte si prosím modul SEPA pain.001.001.09 pro generování souborů XML"
+" v novém formátu."
+
+#. module: account_sepa
 #: model:ir.model,name:account_sepa.model_account_payment_register
 msgid "Register Payment"
-msgstr "Vytvořit platbu"
+msgstr "Zaznamenat platbu"
 
 #. module: account_sepa
 #: model:ir.model.fields,help:account_sepa.field_account_batch_payment__sct_batch_booking
@@ -237,14 +219,12 @@ msgstr "Převody SEPA na odeslání"
 
 #. module: account_sepa
 #: model:ir.model.fields,field_description:account_sepa.field_account_journal__sepa_pain_version
-#: model:ir.model.fields,field_description:account_sepa.field_account_payment__sepa_pain_version
 #: model_terms:ir.ui.view,arch_db:account_sepa.view_account_journal_form
 msgid "SEPA Pain Version"
 msgstr "SEPA Pain Version"
 
 #. module: account_sepa
 #: model:ir.model.fields,help:account_sepa.field_account_journal__sepa_pain_version
-#: model:ir.model.fields,help:account_sepa.field_account_payment__sepa_pain_version
 msgid ""
 "SEPA may be a generic format, some countries differ from the SEPA "
 "recommendations made by the EPC (European Payment Council) and thus the XML "
@@ -339,19 +319,6 @@ msgstr ""
 
 #. module: account_sepa
 #. odoo-python
-#: code:addons/account_sepa/models/res_partner.py:0
-#, python-format
-msgid ""
-"The LEI number must contain 20 characters and match the following structure:\n"
-"- 18 alphanumeric characters with capital letters\n"
-"- 2 digits in the end\n"
-msgstr ""
-"Číslo LEI (identigikátor právního subjektu) musí obsahovat 20 znaků a vyhovovat následující struktuře:\n"
-"- 18 alfanumerických znaků velkými písmeny\n"
-"- 2 číslice na konci\n"
-
-#. module: account_sepa
-#. odoo-python
 #: code:addons/account_sepa/models/account_journal.py:0
 #, python-format
 msgid ""
@@ -407,20 +374,29 @@ msgstr ""
 
 #. module: account_sepa
 #. odoo-python
+#: code:addons/account_sepa/models/account_batch_payment.py:0
+#, python-format
+msgid ""
+"The text used in SEPA files can only contain the following characters :\n"
+"\n"
+"a b c d e f g h i j k l m n o p q r s t u v w x y z\n"
+"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z\n"
+"0 1 2 3 4 5 6 7 8 9\n"
+"/ - ? : ( ) . , ' + & < > (space)"
+msgstr ""
+"Text použitý v souborech SEPA může obsahovat pouze následující znaky :\n"
+"\n"
+"a b c d e f g h i j k l m n o p q r s t u v w x y z\n"
+"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z\n"
+"0 1 2 3 4 5 6 7 8 9\n"
+"/ - ? : ( ) . , ' + & < > (space)"
+
+#. module: account_sepa
+#. odoo-python
 #: code:addons/account_sepa/models/account_journal.py:0
 #, python-format
 msgid "Too many transactions for a single file."
 msgstr "Příliš mnoho transakcí pro jeden soubor."
-
-#. module: account_sepa
-#: model:ir.model.fields,field_description:account_sepa.field_account_payment__sepa_uetr
-msgid "UETR"
-msgstr "UETR"
-
-#. module: account_sepa
-#: model:ir.model.fields,help:account_sepa.field_account_payment__sepa_uetr
-msgid "Unique end-to-end transaction reference"
-msgstr "Jedinečná end-to-end reference transakce"
 
 #. module: account_sepa
 #: model:ir.model.fields,help:account_sepa.field_res_company__sepa_initiating_party_name

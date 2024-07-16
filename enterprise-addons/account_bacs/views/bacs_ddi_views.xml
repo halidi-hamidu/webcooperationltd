@@ -8,11 +8,11 @@
                 <form string="BACS Direct Debit Instructions">
                     <header>
                         <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
-                        <button string="Print" type="object" name="action_print_ddi" class="oe_highlight" invisible="state != 'draft'"/>
-                        <button string="Validate" type="object" name="action_validate_ddi" class="oe_highlight" invisible="state != 'draft'"/>
-                        <button string="Revoke" type="object" name="action_revoke_ddi" class="oe_highlight" invisible="state != 'active'"/>
-                        <button string="Close" type="object" name="action_close_ddi" class="oe_highlight" invisible="state != 'active'"/>
-                        <button string="Cancel" type="object" name="action_cancel_draft_ddi" invisible="state == 'draft'"/>
+                        <button string="Print" type="object" name="action_print_ddi" class="oe_highlight" attrs="{'invisible':[('state','!=','draft')]}"/>
+                        <button string="Validate" type="object" name="action_validate_ddi" class="oe_highlight" attrs="{'invisible':[('state','!=','draft')]}"/>
+                        <button string="Revoke" type="object" name="action_revoke_ddi" class="oe_highlight" attrs="{'invisible':[('state','!=','active')]}"/>
+                        <button string="Close" type="object" name="action_close_ddi" class="oe_highlight" attrs="{'invisible':[('state','!=','active')]}"/>
+                        <button string="Cancel" type="object" name="action_cancel_draft_ddi" attrs="{'invisible':[('state','!=','draft')]}"/>
                     </header>
 
                     <sheet>
@@ -28,15 +28,15 @@
                         </div>
                         <group>
                             <group>
-                                <field name="partner_id" readonly="state != 'draft'"/>
+                                <field name="partner_id"/>
                                 <field name="suitable_journal_ids" invisible="1"/>
-                                <field name="partner_bank_id" domain="[('partner_id', '=', partner_id)]" context="{'default_partner_id':partner_id, 'bacs_ddi': True}" readonly="state != 'draft'"/>
-                                <field name="payment_journal_id" domain="[('id', 'in', suitable_journal_ids)]" readonly="state != 'draft'"/>
+                                <field name="partner_bank_id" domain="[('partner_id', '=', partner_id)]" context="{'default_partner_id':partner_id, 'bacs_ddi': True}"/>
+                                <field name="payment_journal_id"/>
                             </group>
                             <group>
-                                <field name="name" readonly="state != 'draft'"/>
-                                <field name="start_date" readonly="state != 'draft'"/>
-                                <field name="company_id" groups="base.group_multi_company" required="1" readonly="state != 'draft'"/>
+                                <field name="name"/>
+                                <field name="start_date"/>
+                                <field name="company_id" groups="base.group_multi_company" required="1"/>
                             </group>
                         </group>
                     </sheet>

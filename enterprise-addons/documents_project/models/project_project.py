@@ -30,44 +30,46 @@ class ProjectProject(models.Model):
         Task = self.env['project.task']
         task_read_group = Task._read_group(
             [('project_id', 'in', self.ids)],
+            ['project_id', 'ids:array_agg(id)'],
             ['project_id'],
-            ['id:array_agg'],
         )
         task_ids = []
         task_ids_per_project_id = {}
-        for project, ids in task_read_group:
-            task_ids += ids
-            task_ids_per_project_id[project.id] = ids
+        for res in task_read_group:
+            task_ids += res['ids']
+            task_ids_per_project_id[res['project_id'][0]] = res['ids']
         Document = self.env['documents.document']
         project_document_read_group = Document._read_group(
             [('res_model', '=', 'project.project'), ('res_id', 'in', self.ids)],
             ['res_id'],
-            ['__count'],
+            ['res_id'],
         )
-        document_count_per_project_id = dict(project_document_read_group)
+        document_count_per_project_id = {res['res_id']: res['res_id_count'] for res in project_document_read_group}
         document_count_per_task_id = Task.browse(task_ids)._get_task_document_data()
         for project in self:
             task_ids = task_ids_per_project_id.get(project.id, [])
             project.document_count = document_count_per_project_id.get(project.id, 0) \
-                + sum(
-                    document_count_per_task_id.get(task_id, 0)
-                    for task_id in task_ids
-                )
+                + sum([
+                    document_count
+                    for task_id, document_count in document_count_per_task_id.items()
+                    if task_id in task_ids
+                ])
 
     def _compute_shared_document_ids(self):
         tasks_read_group = self.env['project.task']._read_group(
             [('project_id', 'in', self.ids)],
+            ['ids:array_agg(id)'],
             ['project_id'],
-            ['id:array_agg'],
         )
 
         project_id_per_task_id = {}
         task_ids = []
 
-        for project, ids in tasks_read_group:
-            task_ids += ids
-            for task_id in ids:
-                project_id_per_task_id[task_id] = project.id
+        for res in tasks_read_group:
+            project_id = res['project_id'][0]
+            task_ids += res['ids']
+            for task_id in res['ids']:
+                project_id_per_task_id[task_id] = project_id
 
         documents_read_group = self.env['documents.document']._read_group(
             [
@@ -81,17 +83,18 @@ class ProjectProject(models.Model):
                             ('res_model', '=', 'project.task'),
                             ('res_id', 'in', task_ids),
             ],
+            ['ids:array_agg(id)'],
             ['res_model', 'res_id'],
-            ['id:array_agg'],
+            lazy=False,
         )
 
         document_ids_per_project_id = defaultdict(list)
-        for res_model, res_id, ids in documents_read_group:
-            if res_model == 'project.project':
-                document_ids_per_project_id[res_id] += ids
+        for res in documents_read_group:
+            if res['res_model'] == 'project.project':
+                document_ids_per_project_id[res['res_id']] += res['ids']
             else:
-                project_id = project_id_per_task_id[res_id]
-                document_ids_per_project_id[project_id] += ids
+                project_id = project_id_per_task_id[res['res_id']]
+                document_ids_per_project_id[project_id] += res['ids']
 
         for project in self:
             shared_document_ids = self.env['documents.document'] \
@@ -146,15 +149,13 @@ class ProjectProject(models.Model):
                             'Please update the company of all projects so that they remain in the same company as their workspace, or leave the company of the "%s" workspace blank.',
                             other_projects.company_id.name, '\n'.join(lines), project.documents_folder_id.name))
 
-        if 'name' in vals and len(self.documents_folder_id.project_ids) == 1 and self.name == self.documents_folder_id.name:
-            self.documents_folder_id.name = vals['name']
         res = super().write(vals)
         if 'company_id' in vals:
             for project in self:
                 if project.documents_folder_id and project.documents_folder_id.company_id:
                     project.documents_folder_id.company_id = project.company_id
-        if not self.env.context.get('no_create_folder'):
-            self.filtered('use_documents')._create_missing_folders()
+        if vals.get('use_documents'):
+            self._create_missing_folders()
         return res
 
     @api.returns('self', lambda value: value.id)
@@ -185,7 +186,7 @@ class ProjectProject(models.Model):
                     'active_id': self.id,
                 }),
                 'show': self.use_documents,
-                'sequence': 20,
+                'sequence': 14,
             })
         return buttons
 
@@ -200,10 +201,10 @@ class ProjectProject(models.Model):
                 '&',
                 ('res_model', '=', 'project.project'), ('res_id', '=', self.id),
                 '&',
-                ('res_model', '=', 'project.task'), ('res_id', 'in', self.task_ids.ids)
+                ('res_model', '=', 'project.task'), ('res_id', 'in', self.tasks.ids),
             ],
             'view_mode': 'kanban,tree,form',
-            'context': {'default_res_model': 'project.project', 'default_res_id': self.id, 'limit_folders_to_project': True, 'default_tag_ids': self.documents_tag_ids.ids},
+            'context': {'default_res_model': 'project.project', 'default_res_id': self.id, 'limit_folders_to_project': True},
         }
 
     def _get_document_tags(self):

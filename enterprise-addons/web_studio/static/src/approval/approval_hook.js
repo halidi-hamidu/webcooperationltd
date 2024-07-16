@@ -1,10 +1,37 @@
 /** @odoo-module */
 import { useService } from "@web/core/utils/hooks";
-import { _t } from "@web/core/l10n/translation";
+import { _lt } from "@web/core/l10n/translation";
 import { renderToMarkup } from "@web/core/utils/render";
+import { Record, RelationalModel } from "@web/views/basic_relational_model";
+import { patch } from "@web/core/utils/patch";
 
-import { xml, reactive, useComponent, useEnv, toRaw, onMounted, onWillDestroy } from "@odoo/owl";
-import { useRecordObserver } from "@web/model/relational_model/utils";
+import {
+    xml,
+    reactive,
+    useComponent,
+    useEnv,
+    toRaw,
+    onMounted,
+    onWillDestroy,
+    onWillUpdateProps,
+} from "@odoo/owl";
+
+patch(RelationalModel.prototype, "studio.approval", {
+    setup() {
+        this._super.apply(this, arguments);
+        this.studioHooks = {
+            onRecordSaved: () => {},
+        };
+    },
+});
+
+patch(Record.prototype, "studio.approval", {
+    async save() {
+        const res = await this._super.apply(this, arguments);
+        this.model.studioHooks.onRecordSaved();
+        return res;
+    },
+});
 
 const missingApprovalsTemplate = xml`
     <ul>
@@ -13,7 +40,7 @@ const missingApprovalsTemplate = xml`
         </li>
     </ul>
 `;
-const notificationTitle = _t("The following approvals are missing:");
+const notificationTitle = _lt("The following approvals are missing:");
 
 function getMissingApprovals(entries, rules) {
     const missingApprovals = [];
@@ -155,7 +182,7 @@ export function useApproval({ getRecord, method, action }) {
     const unprotectedOrm = useEnv().services.orm;
     const studio = useService("studio");
     const notification = useService("notification");
-    const record = getRecord(useComponent().props);
+    let record = getRecord(useComponent().props);
     const model = toRaw(record.model);
     let approvalModelCache = approvalMap.get(model);
     if (!approvalModelCache) {
@@ -164,8 +191,8 @@ export function useApproval({ getRecord, method, action }) {
             onRecordSaved: new Map(),
         };
         approvalMap.set(model, approvalModelCache);
-        const onRecordSaved = model.hooks.onRecordSaved;
-        model.hooks.onRecordSaved = (...args) => {
+        const onRecordSaved = model.studioHooks.onRecordSaved;
+        model.studioHooks.onRecordSaved = (...args) => {
             approvalModelCache.onRecordSaved.forEach((fn) => fn(args[0]));
             return onRecordSaved(...args);
         };
@@ -193,10 +220,11 @@ export function useApproval({ getRecord, method, action }) {
         }
     });
     onWillDestroy(() => approvalModelCache.onRecordSaved.delete(toRaw(approval)));
-
-    useRecordObserver((record) => {
-        approval.resId = record.resId;
-        approval.resModel = record.resModel;
+    onWillUpdateProps((nextProps) => {
+        const nextRecord = getRecord(nextProps);
+        approval.resId = nextRecord.resId;
+        approval.resModel = nextRecord.resModel;
+        record = nextRecord;
     });
 
     onMounted(() => {

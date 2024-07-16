@@ -3,16 +3,17 @@
 # 	* hr_payroll_account_sepa
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
 # Marianna Ciofani, 2023
+# Sergio Zanchetta <primes2h@gmail.com>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Marianna Ciofani, 2023\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
+"Last-Translator: Sergio Zanchetta <primes2h@gmail.com>, 2023\n"
 "Language-Team: Italian (https://app.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -73,13 +74,6 @@ msgstr "Dipendente"
 #, python-format
 msgid "Employees With Invalid Bank Accounts"
 msgstr "Dipendenti con conto bancario non valido"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
-#, python-format
-msgid "Employees with untrusted Bank Account numbers"
-msgstr "Dipendenti con numeri di conto bancario non fidato"
 
 #. module: hr_payroll_account_sepa
 #: model:ir.model.fields,help:hr_payroll_account_sepa.field_hr_payslip__sepa_export
@@ -147,6 +141,12 @@ msgstr ""
 "%s"
 
 #. module: hr_payroll_account_sepa
+#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_run_sepa_wizard____last_update
+#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_sepa_wizard____last_update
+msgid "Last Modified on"
+msgstr "Ultima modifica il"
+
+#. module: hr_payroll_account_sepa
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_run_sepa_wizard__write_uid
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_sepa_wizard__write_uid
 msgid "Last Updated by"
@@ -161,17 +161,17 @@ msgstr "Ultimo aggiornamento il"
 #. module: hr_payroll_account_sepa
 #: model:ir.model.fields,help:hr_payroll_account_sepa.field_hr_payslip__sepa_export_filename
 msgid "Name of the export file generated for this payslip"
-msgstr "Nome del file di esportazione generato per questa busta paga"
+msgstr "Nome del file di esportazione generato per la busta paga"
 
 #. module: hr_payroll_account_sepa
 #: model:ir.model,name:hr_payroll_account_sepa.model_hr_payslip
 msgid "Pay Slip"
-msgstr "Busta paga"
+msgstr "Cedolino paga"
 
 #. module: hr_payroll_account_sepa
 #: model:ir.model,name:hr_payroll_account_sepa.model_hr_payslip_run
 msgid "Payslip Batches"
-msgstr "Batch busta paga"
+msgstr "Raggruppamenti busta paga"
 
 #. module: hr_payroll_account_sepa
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip__sepa_export
@@ -183,7 +183,7 @@ msgstr "File SEPA"
 #: model_terms:ir.ui.view,arch_db:hr_payroll_account_sepa.hr_payslip_run_sepa_view_form
 #: model_terms:ir.ui.view,arch_db:hr_payroll_account_sepa.hr_payslip_sepa_view_form
 msgid "Select a bank journal."
-msgstr "Seleziona un giornale bancario."
+msgstr "Selezionare un registro banca."
 
 #. module: hr_payroll_account_sepa
 #. odoo-python
@@ -196,27 +196,16 @@ msgstr "Alcuni dipendenti (%s) non hanno un conto bancario."
 #. odoo-python
 #: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
 #, python-format
-msgid "Some employees (%s) don't have a valid name on the work contact."
-msgstr ""
-"Alcuni dipendenti (%s) non hanno un nome valido nel contratto di lavoro."
+msgid "Some employees (%s) don't have a private address."
+msgstr "Alcuni dipendenti (%s) non hanno un indirizzo privato."
 
 #. module: hr_payroll_account_sepa
 #. odoo-python
 #: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
 #, python-format
-msgid "Some employees (%s) don't have a work contact."
-msgstr "Alcuni dipendenti (%s) non hanno un contratto di lavoro."
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_employee.py:0
-#, python-format
-msgid ""
-"The following employees have invalid bank accounts and could not be trusted:\n"
-"%s"
+msgid "Some employees (%s) don't have a valid name on the private address."
 msgstr ""
-"I seguenti dipendenti hanno conti bancari non validi e non possono essere considerati affidabili:\n"
-"%s"
+"Alcuni dipendenti (%s) non hanno un nome valido nell'indirizzo privato."
 
 #. module: hr_payroll_account_sepa
 #. odoo-python
@@ -226,39 +215,5 @@ msgid ""
 "The journal '%s' requires a proper IBAN account to pay via SEPA. Please "
 "configure it first."
 msgstr ""
-"Per pagare via SEPA, il registro \"%s\" richiede un conto IBAN appropriato, "
+"Per pagare via SEPA, il registro \"%s\" richiede un conto IBAN valido, "
 "configurarlo."
-
-#. module: hr_payroll_account_sepa
-#: model:ir.actions.server,name:hr_payroll_account_sepa.trust_employee_bank
-msgid "Trust Bank Account"
-msgstr "Conto bancario fidato"
-
-#. module: hr_payroll_account_sepa
-#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip__sepa_uetr
-msgid "UETR"
-msgstr "UETR"
-
-#. module: hr_payroll_account_sepa
-#: model:ir.model.fields,help:hr_payroll_account_sepa.field_hr_payslip__sepa_uetr
-msgid "Unique end-to-end transaction reference"
-msgstr "Riferimento unico operazione end-to-end"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/wizard/hr_payroll_account_sepa_wizard.py:0
-#: code:addons/hr_payroll_account_sepa/wizard/hr_payroll_account_sepa_wizard.py:0
-#, python-format
-msgid ""
-"Untrusted bank account for the following employees:\n"
-"%s"
-msgstr ""
-"Conto bancario considerato non fidato per i seguenti dipendenti:\n"
-"%s"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_employee.py:0
-#, python-format
-msgid "You do not have the right to trust or un-trust a bank account."
-msgstr "Non hai i diritti per fidarti o meno di un conto bancario."

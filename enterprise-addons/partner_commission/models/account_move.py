@@ -88,8 +88,8 @@ class AccountMove(models.Model):
                         product = rule.plan_id.product_id
                     if not order:
                         order = line.subscription_id
-                        desc_lines += _("\n%s: from %s to %s", line.product_id.name, format_date(self.env, line.deferred_start_date),
-                                        format_date(self.env, line.deferred_end_date))
+                        desc_lines += _("\n%s: from %s to %s", line.product_id.name, format_date(self.env, line.subscription_start_date),
+                                        format_date(self.env, line.subscription_end_date))
                     commission = move.currency_id.round(line.price_subtotal * rule.rate / 100.0)
                     comm_by_rule[rule] += commission
 
@@ -104,17 +104,12 @@ class AccountMove(models.Model):
                 continue
 
             # build description lines
-            desc = _(
-                'Commission on %(invoice)s, %(partner)s, %(amount)s',
-                invoice=move.name,
-                partner=move.partner_id.name,
-                amount=formatLang(self.env, move.amount_untaxed, currency_obj=move.currency_id),
-            )
+            desc = f"{_('Commission on %s') % (move.name)}, {move.partner_id.name}, {formatLang(self.env, move.amount_untaxed, currency_obj=move.currency_id)}"
             if order:
                 desc += f"\n{order.name}, {desc_lines}"
                 # extend the description to show the number of months to defer the expense over
-                end_date_list = move.invoice_line_ids.mapped('deferred_end_date')
-                start_date_list = move.invoice_line_ids.mapped('deferred_start_date')
+                end_date_list = move.invoice_line_ids.mapped('subscription_end_date')
+                start_date_list = move.invoice_line_ids.mapped('subscription_start_date')
                 date_to = max([ed for ed in end_date_list if ed])
                 date_from = min([sd for sd in start_date_list if sd])
                 # we calculate the delta according to the whole range to avoid 11 month and 29 days= 11 months
@@ -139,11 +134,12 @@ class AccountMove(models.Model):
             if move.move_type in ['out_invoice', 'in_invoice']:
                 # link the purchase order line to the invoice
                 move.commission_po_line_id = line
-                msg_body = _('New commission. Invoice: %s. Amount: %s.',
+                msg_body = 'New commission. Invoice: %s. Amount: %s.' % (
                     move._get_html_link(),
-                    formatLang(self.env, total, currency_obj=move.currency_id))
+                    formatLang(self.env, total, currency_obj=move.currency_id),
+                )
             else:
-                msg_body = _('Commission refunded. Invoice: %s. Amount: %s.',
+                msg_body = 'Commission refunded. Invoice: %s. Amount: %s.' % (
                     move._get_html_link(),
                     formatLang(self.env, total, currency_obj=move.currency_id))
             purchase.message_post(body=msg_body)

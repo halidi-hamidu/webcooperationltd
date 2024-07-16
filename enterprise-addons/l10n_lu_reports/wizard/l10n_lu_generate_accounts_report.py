@@ -31,7 +31,7 @@ class L10nLuGenerateAccountsReport(models.TransientModel):
                 self.pl = 'full'
 
     def _get_report_options(self, report):
-        return report.get_options()
+        return report._get_options()
 
     def _lu_get_declarations(self, declaration_template_values):
         # Basic (required) declaration group
@@ -65,10 +65,13 @@ class L10nLuGenerateAccountsReport(models.TransientModel):
         options = {
             'journals': report_options['journals'],
             'all_entries': report_options['all_entries'],
+            'unposted_in_period': report_options['unposted_in_period'],
             'date': report_options['date'],
         }
+        if report_options.get('multi_company'):
+            options['multi_company'] = report_options['multi_company']
         coa_report = self.env.ref('account_reports.trial_balance_report')
-        options = coa_report.get_options(options)
+        options = coa_report._get_options(options)
         options['date'].update(report_options.get('date', {}))
         coa_declaration = coa_report.l10n_lu_get_xml_2_0_report_coa_values(
             options, self.avg_nb_employees, self.size, self.pl, self.bs, self.coa_only, self.optional_remarks)

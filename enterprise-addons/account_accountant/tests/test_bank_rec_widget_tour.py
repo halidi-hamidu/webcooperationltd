@@ -17,7 +17,7 @@ class TestBankRecWidget(TestBankRecWidgetCommon, HttpCase):
         # INV/2019/00001:
         cls._create_invoice_line(
             'out_invoice',
-            partner_id=cls.partner_a.id,
+            partner_id=cls.partner_a,
             invoice_date='2019-01-01',
             invoice_line_ids=[{'price_unit': 1000.0}],
         )
@@ -25,7 +25,7 @@ class TestBankRecWidget(TestBankRecWidgetCommon, HttpCase):
         # INV/2019/00002:
         cls._create_invoice_line(
             'out_invoice',
-            partner_id=cls.partner_a.id,
+            partner_id=cls.partner_a,
             invoice_date='2019-01-01',
             invoice_line_ids=[{'price_unit': 1000.0}],
         )
@@ -61,14 +61,8 @@ class TestBankRecWidget(TestBankRecWidgetCommon, HttpCase):
         # INV/2019/00003:
         self._create_invoice_line(
             'out_invoice',
-            partner_id=self.partner_a.id,
+            partner_id=self.partner_a,
             invoice_date='2019-01-01',
             invoice_line_ids=[{'price_unit': 2000.0}],
         )
-        self.start_tour('/web?debug=assets', 'account_accountant_bank_rec_widget_ui', timeout=100, login=self.env.user.login)
-
-    def test_tour_bank_rec_widget_rainbowman_reset(self):
-        self.start_tour('/web?debug=assets', 'account_accountant_bank_rec_widget_rainbowman_reset', login=self.env.user.login)
-
-    def test_tour_bank_rec_widget_statements(self):
-        self.start_tour('/web?debug=assets', 'account_accountant_bank_rec_widget_statements', login=self.env.user.login)
+        self.start_tour('/web', 'account_accountant_bank_rec_widget_ui', login=self.env.user.login, timeout=100)

@@ -29,10 +29,10 @@ class ProposeChange(models.TransientModel):
             ('bom_id', '=', self.workorder_id.production_id.bom_id.id),
             ('state', 'in', ('confirmed', 'progress')),
         ], limit=1)
-        type_id = self.env.ref('mrp_plm.ecotype_bom_update')
+        type_id = self.env.ref('mrp_workorder_plm.ecotype_workorder')
         if not eco:
-            wo_name = f'{self.workorder_id.name}/{self.workorder_id.production_id.name}'
-            name = _("Instruction Suggestions (%(wo_name)s)", wo_name=wo_name)
+            name = self.workorder_id.name + "/"
+            name += self.workorder_id.production_id.name
             eco = self.env['mrp.eco'].sudo().create({
                 'name': name,
                 'product_tmpl_id': self.workorder_id.product_id.product_tmpl_id.id,

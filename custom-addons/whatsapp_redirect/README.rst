@@ -1,5 +1,5 @@
-.. image:: https://img.shields.io/badge/license-AGPL--3-blue.svg
-    :target: https://www.gnu.org/licenses/agpl-3.0-standalone.html
+.. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+    :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 
 Send Whatsapp Message
@@ -18,11 +18,10 @@ Company
 Credits
 -------
 * Developers:	Nishad@cybrosys
-                (V13) - Nimisha Murali
-                (V14) - Jibin James
-                (V15) - Midilaj VK
-                (V16) - Viswanth
-                (V17) - Jumana Jabin MP ,  Contact: odoo@cybrosys.com
+                version 13: Nimisha Murali@cybrosys
+                version 14: Jibin James@cybrosys
+                version 15: Midilaj VK@cybrosys
+                version 16: Viswanth
 
 
 Contacts
@@ -46,3 +45,5 @@ For support and more information, please visit `Our Website <https://cybrosys.co
 Further information
 ===================
 HTML Description: `<static/description/index.html>`__
+
+

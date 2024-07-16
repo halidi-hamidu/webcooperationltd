@@ -9,13 +9,8 @@ class AccountFinancialReportXMLReportExport(models.TransientModel):
 
     def action_resume_post(self):
         """This action resumes the Post of an account move which was interrupted by this wizard"""
-        options = {
-            'closing_entry': True,
-            'ask_restitution': self.ask_restitution,
-            'ask_payment': self.ask_payment,
-            'client_nihil': self.client_nihil,
-            'comment': self.comment,
-        }
+        options = self._l10n_be_reports_vat_export_generate_options()
+        options['closing_entry'] = True
 
         move_ids = self.env['account.move'].browse(self.env.context['l10n_be_action_resume_post_move_ids'])
         return move_ids.with_context(l10n_be_reports_generation_options=options).action_post()

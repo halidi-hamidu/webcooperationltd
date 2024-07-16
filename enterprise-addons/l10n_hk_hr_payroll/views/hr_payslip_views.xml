@@ -11,7 +11,9 @@
             <xpath expr="//page[@name='worked_days_input']//tree/field[@name='name']" position="after">
                 <field
                     name="l10n_hk_leave_id"
-                    column_invisible="parent.l10n_hk_worked_days_leaves_count == 0 or parent.country_code != 'HK'"/>
+                    attrs="{'column_invisible':
+                        ['|', ('parent.l10n_hk_worked_days_leaves_count', '=', 0),
+                        ('parent.country_code', '!=', 'HK')]}"/>
             </xpath>
             <!-- # TODO: move this to hr_payroll in master -->
             <xpath expr="//field[@name='line_ids']/tree" position="attributes">

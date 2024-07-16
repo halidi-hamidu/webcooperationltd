@@ -1,14 +1,17 @@
 /** @odoo-module */
 
-import { registry } from "@web/core/registry";
-import { TourError } from "@web_tour/tour_service/tour_utils";
+import "web.dom_ready";
+import tour from "web_tour.tour";
 
 let startingNumberOfSheetsInGroup = 0;
 
 function assertNSheetsInGroup(number) {
     const actualNumber = document.querySelectorAll(".o_list_table tr.o_data_row").length;
     if (actualNumber !== number) {
-        throw new TourError(`Expected ${number} sheets in the dashbord group, got ${actualNumber}`);
+        tour._consume_tour(
+            tour.running_tour,
+            `Expected ${number} sheets in the dashbord group, got ${actualNumber}`
+        );
     }
 }
 
@@ -17,12 +20,13 @@ function focusFirstSheetInModal() {
     sheetImg.dispatchEvent(new MouseEvent("focus"));
 }
 
-registry.category("web_tour.tours").add(
+tour.register(
     "spreadsheet_dashboard_document_add_document_to_dashboard_group",
     {
         test: true,
         url: "/web",
-        steps: () => [
+    },
+    [
         {
             trigger:
                 '.o_app[data-menu-xmlid="spreadsheet_dashboard.spreadsheet_dashboard_menu_root"]',
@@ -95,4 +99,4 @@ registry.category("web_tour.tours").add(
             run: () => assertNSheetsInGroup(startingNumberOfSheetsInGroup + 2),
         },
     ]
-});
+);

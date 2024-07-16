@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
+from datetime import timedelta
 
-from odoo import _, models
+from odoo import _, fields, models
 
 
 class SaleOrderLine(models.Model):
@@ -24,7 +25,6 @@ class SaleOrderLine(models.Model):
             desired_qty=desired_qty, new_qty=new_qty,
             rental_period=self._get_rental_order_line_description()
         )
-        return self.shop_warning
 
     def _get_rented_quantities(self, mandatory_dates):
         """ Get rented quantities dict and ordered dict keys for the given period
@@ -49,6 +49,17 @@ class SaleOrderLine(models.Model):
 
     def _get_max_available_qty(self):
         if self.is_rental:
-            cart_qty, free_qty = self.order_id._get_cart_and_free_qty(self.product_id, line=self)
+            cart_qty, free_qty = self.order_id._get_cart_and_free_qty(line=self)
             return free_qty - cart_qty
         return super()._get_max_available_qty()
+
+    def _is_invalid_renting_dates(self, company, start_date=None, end_date=None):
+        """ Check the pickup and return dates are invalid
+        """
+        res = super()._is_invalid_renting_dates(company, start_date=start_date, end_date=end_date)
+        if res:
+            return res
+        preparation_delta = timedelta(hours=self.product_id.preparation_time)
+        reservation_begin = (self.start_date or start_date) - preparation_delta
+        # 15 minutes of allowed time between adding the product to cart and paying it.
+        return reservation_begin < fields.Datetime.now() - timedelta(minutes=15)

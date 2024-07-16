@@ -23,12 +23,20 @@ class TestKnowledgeArticleFields(KnowledgeCommonWData):
         first_playground_article = playground_articles[0]
         self.assertFalse(first_playground_article.is_user_favorite)
 
+        # write False a second time does not inverse again
+        first_playground_article.write({'is_user_favorite': False})
+        self.assertFalse(first_playground_article.is_user_favorite)
+
         first_playground_article.write({'favorite_ids': [(0, 0, {'user_id': self.env.uid})]})
         self.assertEqual(playground_articles.mapped('is_user_favorite'), [True, False, False])
         self.assertEqual(playground_articles.mapped('user_favorite_sequence'), [1, -1, -1])
         favorites = self.env['knowledge.article.favorite'].sudo().search([('user_id', '=', self.env.uid)])
         self.assertEqual(favorites.article_id, first_playground_article)
         self.assertEqual(favorites.sequence, 1)
+
+        # write True a second time does not inverse again
+        first_playground_article.write({'is_user_favorite': True})
+        self.assertTrue(first_playground_article.is_user_favorite)
 
         playground_articles[1].action_toggle_favorite()
         self.assertEqual(playground_articles.mapped('is_user_favorite'), [True, True, False])
@@ -78,7 +86,6 @@ class TestKnowledgeArticleFields(KnowledgeCommonWData):
                 })
             self.assertEqual(article.last_edition_uid, self.env.user)
             self.assertEqual(article.last_edition_date, _reference_dt)
-            self.assertFalse(article.html_field_history)
 
             self.patch(self.env.cr, 'now', lambda: _reference_dt + timedelta(days=1))
 
@@ -89,32 +96,25 @@ class TestKnowledgeArticleFields(KnowledgeCommonWData):
                 })
             self.assertEqual(article.last_edition_uid, self.env.user)
             self.assertEqual(article.last_edition_date, _reference_dt)
-            self.assertFalse(article.html_field_history,
-                             'Body did not change: no history should have been created')
 
             # fields that change content
-            body_changes_count = 0
             with freeze_time(_reference_dt + timedelta(days=1)):
-                body_value = body_values[(index + 1) if index < (len(body_values)-1) else 0]
-                article.with_user(self.user_employee2).write({'body': body_value})
-                body_changes_count += 1 if body_value != body and (bool(body_value) or bool(body)) else 0
+                article.with_user(self.user_employee2).write({
+                    'body': body_values[(index + 1) if index < (len(body_values)-1) else 0]
+                })
                 # the with_user() below is necessary for the test to succeed,
                 # and that's kind of a bad smell...
                 article.with_user(self.user_employee2).flush_model()
             self.assertEqual(article.last_edition_uid, self.user_employee2)
             self.assertEqual(article.last_edition_date, _reference_dt + timedelta(days=1))
-            if body_changes_count:
-                self.assertEqual(len(article.html_field_history["body"]), body_changes_count)
-            else:
-                self.assertFalse(article.html_field_history)
 
 
 @tagged('knowledge_internals')
 class TestKnowledgeArticleInternals(KnowledgeCommonWData):
     """ Testing model/ORM overrides """
 
-    def test_display_name(self):
-        """ Test our custom display_name / name_search / name_create. """
+    def test_name_get(self):
+        """ Test our custom name_get / name_search / name_create. """
 
         KnowledgeArticle = self.env['knowledge.article']
         icon_placeholder = KnowledgeArticle._get_no_icon_placeholder()
@@ -150,7 +150,7 @@ class TestKnowledgeArticleInternals(KnowledgeCommonWData):
         ):
             self.assertEqual(
                 KnowledgeArticle.name_search(name=search_input, operator='ilike'),
-                [(rec.id, rec.display_name) for rec in expected_articles],
+                expected_articles.name_get(),
                 "Not matching for input '%s'" % search_input,
             )
 
@@ -171,7 +171,7 @@ class TestKnowledgeArticleInternals(KnowledgeCommonWData):
         ):
             self.assertEqual(
                 KnowledgeArticle.name_search(name=search_input, operator='='),
-                [(rec.id, rec.display_name) for rec in expected_articles],
+                expected_articles.name_get(),
                 "Not matching for input '%s'" % search_input,
             )
 
@@ -186,7 +186,7 @@ class TestKnowledgeArticleInternals(KnowledgeCommonWData):
              ('Article With Icon', icon_placeholder),
              ('Article With Icon', '🚀')]
         ):
-            # result of name_create is a display_name
+            # result of name_create is a name_get
             new_article = KnowledgeArticle.browse(KnowledgeArticle.name_create(create_input)[0])
             self.assertEqual(new_article.name, expected_name)
             self.assertEqual(new_article.icon, expected_icon)

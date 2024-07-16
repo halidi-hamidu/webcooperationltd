@@ -10,7 +10,7 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'Disallowed Expenses Custom Handler'
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         results = self._get_query_results(options, primary_fields=['category_id'])
         lines = []
 
@@ -24,8 +24,7 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
             lines.append((0, self._get_category_line(options, result, current, len(current))))
             self._update_total_values(totals, options, result)
 
-        if (lines):
-            lines.append((0, self._get_total_line(report, options, totals)))
+        lines.append((0, self._get_total_line(options, totals)))
 
         return lines
 
@@ -33,18 +32,8 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
         # Check if there are multiple rates
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         period_domain = [('date_from', '>=', options['date']['date_from']), ('date_from', '<=', options['date']['date_to'])]
-        rg = self.env['account.disallowed.expenses.rate']._read_group(
-            period_domain,
-            ['category_id'],
-            having=[('__count', '>', 1)],
-            limit=1,
-        )
-        options['multi_rate_in_period'] = bool(rg)
-
-    def _custom_line_postprocessor(self, report, options, lines, warnings=None):
-        if warnings is not None and options['multi_rate_in_period']:
-            warnings['account_disallowed_expenses.warning_multi_rate'] = {}
-        return lines
+        rg = self.env['account.disallowed.expenses.rate']._read_group(period_domain, ['rate'], 'category_id')
+        options['multi_rate_in_period'] = any(cat['category_id_count'] > 1 for cat in rg)
 
     def _caret_options_initializer(self):
         return {
@@ -98,7 +87,7 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
             :param line_dict_id:    The generic id of the line being expanded (optional).
             :return:                The query, split into several elements that can be overridden in child reports.
         """
-        company_ids = tuple(self.env['account.report'].get_report_company_ids(options))
+        company_ids = tuple(self.env.companies.ids) if options.get('multi_company', False) else tuple(self.env.company.ids)
         current = self._parse_line_id(options, line_dict_id)
         params = {
             'date_to': options['date']['date_to'],
@@ -149,7 +138,7 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
         where += current.get('account_rate') and " AND rate.rate = %(account_rate)s" or ""
         where += not options.get('all_entries') and " AND move.state = 'posted'" or ""
 
-        group_by = f" GROUP BY category.id, COALESCE(category.name->>'{lang}', category.name->>'en_US')"
+        group_by = " GROUP BY category.id"
         group_by += current.get('category_id') and ", account_id" or ""
         group_by += current.get('account_id') and options['multi_rate_in_period'] and ", rate.rate" or ""
 
@@ -175,8 +164,8 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
         return current
 
     def _build_line_id(self, options, current, level, parent=False, markup=None):
-        report = self.env['account.report'].browse(options['report_id'])
-        parent_line_id = None
+        report = self.env['account.report']
+        parent_line_id = ''
         line_id = report._get_generic_line_id('account.disallowed.expenses.category', current['category_id'])
         if current.get('account_id'):
             parent_line_id = line_id
@@ -249,23 +238,30 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
 
         return {'lines': lines}
 
-    def _get_column_values(self, options, values, is_total_line=False):
+    def _get_column_values(self, options, values, update_vals=True):
         column_values = []
 
-        report = self.env['account.report'].browse(options['report_id'])
         for column in options['columns']:
             vals = values.get(column['column_group_key'], {})
-            if vals and not is_total_line:
+            if vals and update_vals:
                 vals['rate'] = self._get_current_rate(vals)
                 vals['disallowed_amount'] = self._get_current_disallowed_amount(vals)
             col_val = vals.get(column['expression_label'])
+            blank_totals = column.get('blank_if_zero', False) and update_vals
 
-            column_values.append(report._build_column_dict(
-                col_val,
-                column,
-                options=options,
-                digits=2 if column['figure_type'] == 'percentage' else None,
-            ))
+            if not col_val and blank_totals:
+                column_values.append({})
+            else:
+                column_values.append({
+                    'name': self.env['account.report'].format_value(
+                        col_val,
+                        blank_if_zero=blank_totals,
+                        figure_type=column['figure_type'],
+                        digits=2 if column['figure_type'] == 'percentage' else None
+                    ),
+                    'no_format': col_val,
+                    'class': 'number',
+                })
 
         return column_values
 
@@ -274,12 +270,13 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
             for key in total[column_group_key]:
                 total[column_group_key][key] += values.get(column_group_key, {}).get(key) or 0.0
 
-    def _get_total_line(self, report, options, totals):
+    def _get_total_line(self, options, totals):
         return {
-            'id': report._get_generic_line_id(None, None, markup='total'),
+            'id': self.env['account.report']._get_generic_line_id(None, None, markup='total'),
             'name': _('Total'),
+            'class': 'total',
             'level': 1,
-            'columns': self._get_column_values(options, totals, is_total_line=True),
+            'columns': self._get_column_values(options, totals, update_vals=False),
         }
 
     def _get_category_line(self, options, values, current, level):
@@ -331,7 +328,7 @@ class DisallowedExpensesCustomHandler(models.AbstractModel):
         return all(values[key][0] == x for x in values[key]) and values[key][0]
 
     def _get_current_rate(self, values):
-        return self._get_single_value(values, 'account_rate') or None
+        return self._get_single_value(values, 'account_rate') or ''
 
     def _get_current_disallowed_amount(self, values):
         return values['account_disallowed_amount']

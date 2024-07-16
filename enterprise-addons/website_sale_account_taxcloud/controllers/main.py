@@ -24,11 +24,6 @@ class WebsiteSale(main.WebsiteSale):
         res['on_payment_step'] = True
         return res
 
-    def _update_website_sale_delivery_return(self, order, **post):
-        if order and order.fiscal_position_id.is_taxcloud:
-            order.validate_taxes_on_sales_order()
-        return super()._update_website_sale_delivery_return(order, **post)
-
 
 class PaymentPortal(main.PaymentPortal):
 

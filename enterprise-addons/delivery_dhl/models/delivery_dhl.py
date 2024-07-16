@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from .dhl_request import DHLProvider
-from markupsafe import Markup
 from odoo.tools.zeep.helpers import serialize_object
 
 from odoo import api, models, fields, _
@@ -246,12 +245,15 @@ class Providerdhl(models.Model):
             shipment_request['Label'] = srm._set_label(self.dhl_label_template)
             shipment_request['schemaVersion'] = 10.0
             shipment_request['LanguageCode'] = 'en'
+            if picking.carrier_id.shipping_insurance:
+                shipment_request['SpecialService'] = []
+                shipment_request['SpecialService'].append(srm._set_insurance(shipment_request['ShipmentDetails']))
             self._dhl_add_custom_data_to_request(shipment_request, 'ship')
             dhl_response = srm._process_shipment(shipment_request)
             traking_number = dhl_response.AirwayBillNumber
-            logmessage = Markup(_("Shipment created into DHL <br/> <b>Tracking Number: </b>%s")) % (traking_number)
-            dhl_labels = [('%s-%s.%s' % (self._get_delivery_label_prefix(), traking_number, self.dhl_label_image_format), dhl_response.LabelImage[0].OutputImage)]
-            dhl_cmi = [('%s-%s.%s' % (self._get_delivery_doc_prefix(), mlabel.DocName, mlabel.DocFormat), mlabel.DocImageVal) for mlabel in dhl_response.LabelImage[0].MultiLabels.MultiLabel] if dhl_response.LabelImage[0].MultiLabels else None
+            logmessage = (_("Shipment created into DHL <br/> <b>Tracking Number : </b>%s") % (traking_number))
+            dhl_labels = [('LabelDHL-%s.%s' % (traking_number, self.dhl_label_image_format), dhl_response.LabelImage[0].OutputImage)]
+            dhl_cmi = [('DocumentDHL-%s.%s' % (mlabel.DocName, mlabel.DocFormat), mlabel.DocImageVal) for mlabel in dhl_response.LabelImage[0].MultiLabels.MultiLabel] if dhl_response.LabelImage[0].MultiLabels else None
             lognote_pickings = picking.sale_id.picking_ids if picking.sale_id else picking
             for pick in lognote_pickings:
                 pick.message_post(body=logmessage, attachments=dhl_labels)
@@ -299,9 +301,9 @@ class Providerdhl(models.Model):
         self._dhl_add_custom_data_to_request(shipment_request, 'return')
         dhl_response = srm._process_shipment(shipment_request)
         traking_number = dhl_response.AirwayBillNumber
-        logmessage = Markup(_("Shipment created into DHL <br/> <b>Tracking Number: </b>%s")) % (traking_number)
+        logmessage = (_("Shipment created into DHL <br/> <b>Tracking Number : </b>%s") % (traking_number))
         dhl_labels = [('%s-%s-%s.%s' % (self.get_return_label_prefix(), traking_number, 1, self.dhl_label_image_format), dhl_response.LabelImage[0].OutputImage)]
-        dhl_cmi = [('%s-Return-%s.%s' % (self._get_delivery_doc_prefix(), mlabel.DocName, mlabel.DocFormat), mlabel.DocImageVal) for mlabel in dhl_response.LabelImage[0].MultiLabels.MultiLabel] if dhl_response.LabelImage[0].MultiLabels else None
+        dhl_cmi = [('ReturnDocumentDHL-%s.%s' % (mlabel.DocName, mlabel.DocFormat), mlabel.DocImageVal) for mlabel in dhl_response.LabelImage[0].MultiLabels.MultiLabel] if dhl_response.LabelImage[0].MultiLabels else None
         lognote_pickings = picking.sale_id.picking_ids if picking.sale_id else picking
         for pick in lognote_pickings:
             pick.message_post(body=logmessage, attachments=dhl_labels)

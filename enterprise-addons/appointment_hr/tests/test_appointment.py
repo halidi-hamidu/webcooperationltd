@@ -9,65 +9,6 @@ from odoo.exceptions import ValidationError
 from odoo.tests import tagged, users
 
 
-class AppointmentHRLeavesTest(AppointmentHrCommon):
-    @users('apt_manager', 'staff_user_bxls')
-    def test_partner_on_leave_with_calendar_leave(self):
-        """Check that resource leaves are correctly reflected in the partners_on_leave field.
-
-        Overlapping times between the leave time of an employee and the meeting should add the partner
-        to the list of unavailable partners.
-        """
-        self.env['calendar.event'].search([('user_id', '=', self.staff_user_bxls.id)]).unlink()
-        self.env['resource.calendar.leaves'].sudo().search([('calendar_id', '=', self.staff_user_bxls.resource_calendar_id.id)]).unlink()
-        [meeting] = self._create_meetings(
-            self.staff_user_bxls,
-            [(self.reference_monday + timedelta(days=1),
-              self.reference_monday + timedelta(days=1, hours=3),
-              False,
-              )],
-            self.apt_type_bxls_2days.id
-        )
-        self.assertFalse(meeting.partners_on_leave)
-        self.env['resource.calendar.leaves'].sudo().create({
-            'calendar_id': self.staff_user_bxls.resource_calendar_id.id,
-            'date_from': self.reference_monday + timedelta(days=1),
-            'date_to': self.reference_monday + timedelta(days=1, minutes=5),
-            'name': 'Tuesday Morning Leave'
-        })
-        # a sane depedency cannot be expressed so it will only be updated when removed from cache
-        meeting.invalidate_recordset()
-        self.assertEqual(meeting.partners_on_leave, self.staff_user_bxls.partner_id)
-
-    @users('apt_manager', 'staff_user_bxls')
-    def test_partner_on_leave_with_conflicting_event(self):
-        """Check that conflicting meetings are correctly reflected in the partners_on_leave field.
-
-        Overlapping times between any other meeting of the employee and the meeting should add the partner
-        to the list of unavailable partners.
-        """
-        self.env['calendar.event'].search([('user_id', '=', self.staff_user_bxls.id)]).unlink()
-        self.env['resource.calendar.leaves'].sudo().search([('calendar_id', '=', self.staff_user_bxls.resource_calendar_id.id)]).unlink()
-        [meeting] = self._create_meetings(
-            self.staff_user_bxls,
-            [(self.reference_monday,
-              self.reference_monday + timedelta(hours=3),
-              False,
-              )],
-            self.apt_type_bxls_2days.id
-        )
-        self.assertFalse(meeting.partners_on_leave)
-        [conflicting_meeting] = self._create_meetings(
-            self.staff_user_bxls,
-            [(self.reference_monday,
-              self.reference_monday + timedelta(minutes=5),
-              False,
-              )],
-        )
-        meeting.invalidate_recordset()
-        self.assertEqual(meeting.partners_on_leave, self.staff_user_bxls.partner_id)
-        self.assertFalse(conflicting_meeting.partners_on_leave)
-
-
 @tagged('appointment_slots')
 class AppointmentHrTest(AppointmentHrCommon):
 
@@ -86,6 +27,8 @@ class AppointmentHrTest(AppointmentHrCommon):
         with freeze_time(self.reference_now):
             slots = apt_type._get_appointment_slots('Europe/Brussels')
 
+        global_slots_startdate = self.reference_now_monthweekstart
+        global_slots_enddate = date(2022, 3, 5)  # last day of last week of February
         self.assertSlots(
             slots,
             [{'name_formated': 'February 2022',
@@ -93,8 +36,8 @@ class AppointmentHrTest(AppointmentHrCommon):
               'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
              }
             ],
-            {'enddate': self.global_slots_enddate,
-             'startdate': self.reference_now_monthweekstart,
+            {'enddate': global_slots_enddate,
+             'startdate': global_slots_startdate,
              'slots_start_hours': [8, 9, 10, 11, 13],  # based on appointment type start hours of slots but 12 is pause midi
              'slots_startdate': self.reference_monday.date(),  # first Monday after reference_now
              'slots_weekdays_nowork': range(2, 7)  # working hours only on Monday/Tuesday (0, 1)
@@ -124,7 +67,7 @@ class AppointmentHrTest(AppointmentHrCommon):
         apt_type = self.env['appointment.type'].create({
             'appointment_duration': 1,
             'appointment_tz': 'UTC',
-            'category': 'recurring',
+            'category': 'website',
             'name': 'Midnight Test',
             'max_schedule_days': 4,
             'min_cancellation_hours': 1,
@@ -161,6 +104,9 @@ class AppointmentHrTest(AppointmentHrCommon):
         with freeze_time(self.reference_monday.replace(hour=1, minute=36)):
             slots = apt_type._get_appointment_slots('UTC')
 
+        global_slots_startdate = self.reference_now_monthweekstart
+        global_slots_enddate = date(2022, 3, 5)
+
         self.assertSlots(
             slots,
             [{'name_formated': 'February 2022',
@@ -168,8 +114,8 @@ class AppointmentHrTest(AppointmentHrCommon):
               'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
              }
             ],
-            {'enddate': self.global_slots_enddate,
-             'startdate': self.reference_now_monthweekstart,
+            {'enddate': global_slots_enddate,
+             'startdate': global_slots_startdate,
              'slots_day_specific': {self.reference_monday.date(): [
                     {'start': 2, 'end': 3},  # 02:00 is the first valid slot when the current time is 01:36
                     {'start': 21, 'end': 22},
@@ -206,6 +152,8 @@ class AppointmentHrTest(AppointmentHrCommon):
         with freeze_time(self.reference_now):
             slots = apt_type._get_appointment_slots('UTC')
 
+        global_slots_startdate = self.reference_now_monthweekstart
+        global_slots_enddate = date(2022, 3, 5)  # last day of last week of February
         self.assertSlots(
             slots,
             [{'name_formated': 'February 2022',
@@ -213,8 +161,8 @@ class AppointmentHrTest(AppointmentHrCommon):
               'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
              }
             ],
-            {'enddate': self.global_slots_enddate,
-             'startdate': self.reference_now_monthweekstart,
+            {'enddate': global_slots_enddate,
+             'startdate': global_slots_startdate,
              'slots_start_hours': [7, 8, 9, 10, 12],  # based on appointment type start hours of slots but 12 is pause midi
              'slots_startdate': self.reference_monday.date(),  # first Monday after reference_now
              'slots_weekdays_nowork': range(2, 7)  # working hours only on Monday/Tuesday (0, 1)
@@ -248,6 +196,8 @@ class AppointmentHrTest(AppointmentHrCommon):
         with freeze_time(self.reference_now):
             slots = apt_type._get_appointment_slots('Europe/Brussels')
 
+        global_slots_startdate = self.reference_now_monthweekstart
+        global_slots_enddate = date(2022, 3, 5)  # last day of last week of February
         self.assertSlots(
             slots,
             [{'name_formated': 'February 2022',
@@ -255,8 +205,8 @@ class AppointmentHrTest(AppointmentHrCommon):
               'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
              }
             ],
-            {'enddate': self.global_slots_enddate,
-             'startdate': self.reference_now_monthweekstart,
+            {'enddate': global_slots_enddate,
+             'startdate': global_slots_startdate,
              'slots_day_specific': {
                 (self.reference_monday + timedelta(days=1)).date(): [
                     {'end': 11, 'start': 10},
@@ -314,6 +264,8 @@ class AppointmentHrTest(AppointmentHrCommon):
         with freeze_time(self.reference_now):
             slots = apt_type._get_appointment_slots('Europe/Brussels')
 
+        global_slots_startdate = self.reference_now_monthweekstart
+        global_slots_enddate = date(2022, 3, 5)  # last day of last week of February
         self.assertSlots(
             slots,
             [{'name_formated': 'February 2022',
@@ -321,8 +273,8 @@ class AppointmentHrTest(AppointmentHrCommon):
               'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
              }
             ],
-            {'enddate': self.global_slots_enddate,
-             'startdate': self.reference_now_monthweekstart,
+            {'enddate': global_slots_enddate,
+             'startdate': global_slots_startdate,
              'slots_day_specific': {
                 (self.reference_monday + timedelta(days=1)).date(): [
                     {'end': 12, 'start': 11},

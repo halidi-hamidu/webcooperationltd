@@ -2,12 +2,11 @@
 
 import { startServer } from "@bus/../tests/helpers/mock_python_environment";
 
-import { getOrigin } from "@web/core/utils/urls";
-import { click, contains } from "@web/../tests/utils";
-
 import { start } from "@mail/../tests/helpers/test_utils";
 import { patchUiSize, SIZES } from "@mail/../tests/helpers/patch_ui_size";
 import { ROUTES_TO_IGNORE as MAIL_ROUTES_TO_IGNORE } from "@mail/../tests/helpers/webclient_setup";
+
+import { click, contains } from "@web/../tests/utils";
 
 const ROUTES_TO_IGNORE = [
     "/bus/im_status",
@@ -30,17 +29,40 @@ QUnit.module("Views", {}, function () {
                 { name: "line5" },
             ]);
             const accountMove = pyEnv["account.move"].create([
-                { name: "move0", invoice_line_ids: [accountMoveLineIds[0], accountMoveLineIds[1]] },
-                { name: "move1", invoice_line_ids: [accountMoveLineIds[2], accountMoveLineIds[3]] },
-                { name: "move2", invoice_line_ids: [accountMoveLineIds[4], accountMoveLineIds[5]] },
+                {
+                    name: "move0",
+                    invoice_line_ids: [accountMoveLineIds[0], accountMoveLineIds[1]],
+                },
+                {
+                    name: "move1",
+                    invoice_line_ids: [accountMoveLineIds[2], accountMoveLineIds[3]],
+                },
+                {
+                    name: "move2",
+                    invoice_line_ids: [accountMoveLineIds[4], accountMoveLineIds[5]],
+                },
             ]);
             const attachmentIds = pyEnv["ir.attachment"].create([
-                { res_id: accountMove[1], res_model: "account.move", mimetype: "application/pdf" },
-                { res_id: accountMove[2], res_model: "account.move", mimetype: "application/pdf" },
+                {
+                    res_id: accountMove[1],
+                    res_model: "account.move",
+                    mimetype: "application/pdf",
+                },
+                {
+                    res_id: accountMove[2],
+                    res_model: "account.move",
+                    mimetype: "application/pdf",
+                },
             ]);
-            pyEnv["account.move"].write([accountMove[1]], { attachment_ids: [attachmentIds[0]] });
-            pyEnv["account.move.line"].write([accountMoveLineIds[0]], { move_id: accountMove[0] });
-            pyEnv["account.move.line"].write([accountMoveLineIds[1]], { move_id: accountMove[0] });
+            pyEnv["account.move"].write([accountMove[1]], {
+                attachment_ids: [attachmentIds[0]],
+            });
+            pyEnv["account.move.line"].write([accountMoveLineIds[0]], {
+                move_id: accountMove[0],
+            });
+            pyEnv["account.move.line"].write([accountMoveLineIds[1]], {
+                move_id: accountMove[0],
+            });
             pyEnv["account.move.line"].write([accountMoveLineIds[2]], {
                 move_id: accountMove[1],
                 move_attachment_ids: [attachmentIds[0]],
@@ -62,11 +84,18 @@ QUnit.module("Views", {}, function () {
 
     const OpenPreparedView = async (assert, size) => {
         const views = {
+            // move_attachment_ids needs to be visible in order for the datas to be fetched
+            // This is due to inconsistencies between mock_server and the real server
             "account.move.line,false,list": `<tree editable='bottom' js_class='account_move_line_list'>
-                         <field name='id'/>
-                         <field name='name'/>
-                         <field name='move_id'/>
-                     </tree>`,
+                        <field name='id'/>
+                        <field name='name'/>
+                        <field name='move_id'/>
+                        <field name='move_attachment_ids'>
+                            <tree>
+                                <field name="mimetype"/>
+                            </tree>
+                        </field>
+                    </tree>`,
         };
         patchUiSize({ size: size });
         const { openView } = await start({
@@ -106,7 +135,7 @@ QUnit.module("Views", {}, function () {
         await contains(".o_attachment_preview", { count: 0 }); // The preview component shouldn't be mounted for small screens even when clicking on a line without attachment
         await click(":nth-child(2 of .o_group_header)");
         await contains(".o_data_row", { count: 4 });
-        assert.verifySteps(["web_search_read/account.move.line"]);
+        assert.verifySteps(["web_search_read/account.move.line", "read/ir.attachment"]);
         await click(":nth-child(4 of .o_data_row) :nth-child(2 of .o_data_cell)");
         await contains(":nth-child(4 of .o_data_row) :nth-child(2 of .o_data_cell) input");
         // weak test, no guarantee to wait long enough for the potential attachment preview to show
@@ -132,30 +161,24 @@ QUnit.module("Views", {}, function () {
         await click(":nth-child(2 of .o_group_header)");
         await contains(".o_data_row", { count: 4 });
         await contains(".o_attachment_preview p", { text: "No attachments linked." });
-        assert.verifySteps(["web_search_read/account.move.line"]);
+        assert.verifySteps(["web_search_read/account.move.line", "read/ir.attachment"]);
         await click(":nth-child(4 of .o_data_row) :nth-child(2 of .o_data_cell)");
         await contains(".o_attachment_preview p", { count: 0 });
         await contains(
-            `.o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=${encodeURIComponent(
-                getOrigin() + "/web/content/1"
-            )}#pagemode=none']`
+            ".o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=/web/content/1?filename%3Dundefined']"
         );
         assert.verifySteps([], "no extra rpc should be done");
         await click(":nth-child(3 of .o_group_header)");
         await contains(".o_data_row", { count: 6 });
         // weak test, no guarantee to wait long enough for the potential attachment to change
         await contains(
-            `.o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=${encodeURIComponent(
-                getOrigin() + "/web/content/1"
-            )}#pagemode=none']`
+            ".o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=/web/content/1?filename%3Dundefined']"
         ); // The previewer content shouldn't change without clicking on another line from another account.move
-        assert.verifySteps(["web_search_read/account.move.line"]);
+        assert.verifySteps(["web_search_read/account.move.line", "read/ir.attachment"]);
         await click(":nth-child(5 of .o_data_row) :nth-child(2 of .o_data_cell)");
         await contains(":nth-child(5 of .o_data_row) :nth-child(2 of .o_data_cell) input");
         await contains(
-            `.o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=${encodeURIComponent(
-                getOrigin() + "/web/content/2"
-            )}#pagemode=none']`
+            ".o_attachment_preview iframe[data-src='/web/static/lib/pdfjs/web/viewer.html?file=/web/content/2?filename%3Dundefined']"
         );
         assert.verifySteps([], "no extra rpc should be done");
         await click(":nth-child(1 of .o_data_row) :nth-child(2 of .o_data_cell)");

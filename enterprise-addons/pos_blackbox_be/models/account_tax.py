@@ -5,19 +5,14 @@ from odoo import models, fields, api
 
 
 class AccountTax(models.Model):
-    _inherit = "account.tax"
+    _inherit = 'account.tax'
 
-    identification_letter = fields.Selection(
-        [("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")],
-        compute="_compute_identification_letter",
-    )
+    identification_letter = fields.Selection([('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')], compute='_compute_identification_letter')
 
-    @api.depends("amount_type", "amount")
+    @api.depends('amount_type', 'amount')
     def _compute_identification_letter(self):
         for rec in self:
-            if rec.type_tax_use == "sale" and (
-                rec.amount_type == "percent" or rec.amount_type == "group"
-            ):
+            if rec.type_tax_use == "sale" and (rec.amount_type == "percent" or rec.amount_type == "group"):
                 if rec.amount == 21:
                     rec.identification_letter = "A"
                 elif rec.amount == 12:

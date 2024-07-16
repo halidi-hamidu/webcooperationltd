@@ -1,9 +1,9 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { formatInteger } from '@web/views/fields/formatters';
 import { useService } from '@web/core/utils/hooks';
-import { Component, onMounted, onWillUnmount, useRef } from "@odoo/owl";
+
+const { Component, onMounted, onWillUnmount, useRef } = owl;
 
 export class StreamPostDashboard extends Component {
 
@@ -31,7 +31,7 @@ export class StreamPostDashboard extends Component {
             });
         } else {
             this.notification.add(
-                _t('Sorry, you\'re not allowed to re-link this account, please contact your administrator.'),
+                this.env._t('Sorry, you\'re not allowed to re-link this account, please contact your administrator.'),
                 {type: 'danger'}
             );
         }

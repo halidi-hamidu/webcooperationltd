@@ -14,6 +14,9 @@ from ebaysdk.trading import Connection
 from ebaysdk import UserAgent
 from requests import Request
 
+from odoo import _
+from odoo.exceptions import UserError
+
 def smart_encode_request_data(value):
     try:
         if sys.version_info[0] < 3:
@@ -72,6 +75,12 @@ class EbayConnection:
             return EbayConnectionResponse(response)
         except EbaySDKError as e:
             raise EbayConnectionError(e)
+        except AttributeError:
+            # Catch non deterministic error from the eBay SDK
+            raise UserError(_(
+                "An unexpected error occured from eBay.\n"
+                "Please check your credentials and try again later."
+            ))
 
 
 class EbayConnectionResponse:

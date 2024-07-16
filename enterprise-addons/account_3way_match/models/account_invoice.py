@@ -32,6 +32,7 @@ class AccountMove(models.Model):
     release_to_pay_manual = fields.Selection(
         _release_to_pay_status_list,
         string='Should Be Paid',
+        compute='_compute_release_to_pay_manual', store='True', readonly=False,
         help="  * Yes: you should pay the bill, you have received the products\n"
              "  * No, you should not pay the bill, you have not received the products\n"
              "  * Exception, there is a difference between received and billed quantities\n"
@@ -73,7 +74,13 @@ class AccountMove(models.Model):
                     #Otherwise, its status will be the one all its lines share.
 
                 #'result' can be None if the bill was entirely empty.
-                invoice.release_to_pay = invoice.release_to_pay_manual = result or 'no'
+                invoice.release_to_pay = result or 'no'
+
+    @api.depends('release_to_pay', 'force_release_to_pay')
+    def _compute_release_to_pay_manual(self):
+        for invoice in self:
+            if not (invoice.payment_state == 'paid' or not invoice.is_invoice(include_receipts=True) or invoice.force_release_to_pay):
+                invoice.release_to_pay_manual = invoice.release_to_pay
 
     @api.onchange('release_to_pay_manual')
     def _onchange_release_to_pay_manual(self):

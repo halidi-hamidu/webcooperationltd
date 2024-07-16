@@ -5,8 +5,12 @@ from odoo import models, _
 
 class BritishGenericTaxReportCustomHandler(models.AbstractModel):
     _name = 'l10n_uk.tax.report.handler'
-    _inherit = 'account.tax.report.handler'
+    _inherit = 'account.generic.tax.report.handler'
     _description = 'British Tax Report Custom Handler'
+
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        # Overridden to prevent having unnecessary lines from the generic tax report.
+        return []
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options)
@@ -19,20 +23,9 @@ class BritishGenericTaxReportCustomHandler(models.AbstractModel):
         options['buttons'].append({'name': button_name, 'action': 'send_hmrc', 'sequence': 50})
 
     def send_hmrc(self, options):
-        if not options.get('_running_export_test'):
-            # do the login if there is no token for the current user yet.
-            if not self.env.user.l10n_uk_hmrc_vat_token:
-                return self.env['hmrc.service']._login()
-
-            # Check obligations: should be logged in by now
-            self.env['l10n_uk.vat.obligation'].import_vat_obligations()
-
-            # import_vat_obligations() removes the token if the user is not authorised when importing the obligations.
-            # This can happen if the user switched companies then tried to send the report. Before the user had to
-            # manually delete his tokens from the user tab but now they're automatically sent to the login page to
-            # request a new token.
-            if not self.env.user.l10n_uk_user_token:
-                return self.env['hmrc.service']._login()
+        # do the login if there is no token for the current user yet.
+        if not self.env.user.l10n_uk_hmrc_vat_token and not options.get('_running_export_test'):
+            return self.env['hmrc.service']._login()
 
         # Show wizard when sending to HMRC
         context = self.env.context.copy()

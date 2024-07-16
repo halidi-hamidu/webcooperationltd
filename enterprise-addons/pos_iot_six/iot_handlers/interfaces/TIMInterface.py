@@ -10,7 +10,7 @@ from platform import system
 
 from odoo.addons.hw_drivers.interface import Interface
 from odoo.addons.hw_drivers.tools import helpers
-from odoo.tools.misc import file_path
+from odoo.modules.module import get_resource_path
 from odoo.addons.hw_drivers.iot_handlers.lib.ctypes_terminal_driver import import_ctypes_library
 
 
@@ -20,7 +20,7 @@ if system() == 'Windows':
     LIB_PATH = Path('odoo/addons/hw_drivers/iot_handlers/lib')
     DOWNLOAD_URL = 'https://nightly.odoo.com/master/posbox/iotbox/six-timapiv23_09_w.zip'
 else:
-    LIB_PATH = file_path('hw_drivers/iot_handlers/lib')
+    LIB_PATH = get_resource_path('hw_drivers', 'iot_handlers', 'lib')
     DOWNLOAD_URL = 'https://nightly.odoo.com/master/posbox/iotbox/six-timapiv23_09_l.zip'
 
 # Download and unzip timapi library, overwriting the existing one
@@ -30,12 +30,12 @@ helpers.unzip_file(TIMAPI_ZIP_PATH, f'{LIB_PATH}/tim')
 
 # Make TIM SDK dependency libraries visible for the linker
 if system() == 'Windows':
-    LIB_PATH = file_path('hw_drivers/iot_handlers/lib')
-    os.environ['PATH'] = file_path('hw_drivers/iot_handlers/lib/tim') + os.pathsep + os.environ['PATH']
+    LIB_PATH = get_resource_path('hw_drivers', 'iot_handlers', 'lib')
+    os.environ['PATH'] = get_resource_path('hw_drivers', 'iot_handlers', 'lib', 'tim') + os.pathsep + os.environ['PATH']
 else:
     TIMAPI_DEPENDANCY_LIB = 'libtimapi.so.3'
     TIMAPI_DEPENDANCY_LIB_V = f'{TIMAPI_DEPENDANCY_LIB}.31.1-2272'
-    DEP_LIB_PATH = file_path('hw_drivers/iot_handlers/lib/tim')
+    DEP_LIB_PATH = get_resource_path('hw_drivers', 'iot_handlers', 'lib', 'tim')
     USR_LIB_PATH = '/usr/lib'
     try:
         with helpers.writable():
@@ -65,7 +65,10 @@ class TIMInterface(Interface):
     def __init__(self):
         super(TIMInterface, self).__init__()
 
-        self.manager = TIMAPI.six_initialize_manager()
+        try:
+            self.manager = TIMAPI.six_initialize_manager()
+        except OSError:
+            _logger.exception("Failed to initalize TIM manager")
         if not self.manager:
             _logger.error('Failed to allocate memory for TIM Manager')
         self.tid = None
@@ -81,11 +84,18 @@ class TIMInterface(Interface):
         if new_tid != self.tid:
             self.tid = new_tid
             encoded_tid = new_tid.encode() if new_tid else None
-            if not TIMAPI.six_setup_terminal_settings(self.manager, encoded_tid):
+            try:
+                if not TIMAPI.six_setup_terminal_settings(self.manager, encoded_tid):
+                    return {}
+            except OSError:
+                _logger.exception("Failed to setup Six terminal settings")
                 return {}
 
         # Check if the terminal is online and responsive
-        if self.tid and TIMAPI.six_terminal_connected(self.manager):
-            devices[self.tid] = self.manager
+        try:
+            if self.tid and TIMAPI.six_terminal_connected(self.manager):
+                devices[self.tid] = self.manager
+        except OSError:
+            _logger.exception("Failed to check if the Six terminal is connected")
 
         return devices

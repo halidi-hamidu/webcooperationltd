@@ -3,8 +3,9 @@
 import { registry } from '@web/core/registry';
 import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
 
-import { useOpenChat } from "@mail/core/web/open_chat_hook";
-import { Component } from "@odoo/owl";
+import { useOpenChat } from "@mail/views/open_chat_hook";
+
+const { Component } = owl;
 
 export class AppraisalManagerChat extends Component {
     setup() {
@@ -17,7 +18,4 @@ AppraisalManagerChat.props = {
 };
 AppraisalManagerChat.template = 'hr_appraisal.ManagerChat';
 
-export const appraisalManagerChat = {
-    component: AppraisalManagerChat,
-};
-registry.category("view_widgets").add("appraisal_manager_chat", appraisalManagerChat);
+registry.category("view_widgets").add("appraisal_manager_chat", AppraisalManagerChat);

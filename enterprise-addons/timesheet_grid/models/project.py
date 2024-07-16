@@ -15,7 +15,7 @@ class Project(models.Model):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'message': _('You cannot start the timer for a project in a company encoding its timesheets in days.'),
+                    'title': _('You cannot start the timer for a project in a company encoding its timesheets in days.'),
                     'type': 'danger',
                     'sticky': False,
                 }
@@ -31,7 +31,7 @@ class Project(models.Model):
             ]).unlink()
         return result
 
-    def get_allocated_hours_field(self):
+    def get_planned_hours_field(self):
         return 'allocated_hours'
 
     def get_worked_hours_fields(self):

@@ -4,7 +4,7 @@
 from datetime import datetime
 from functools import partial
 from lxml import etree
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 from odoo import _, models
 from odoo.addons.l10n_ec_edi.models.account_move import L10N_EC_VAT_SUBTAXES
@@ -186,13 +186,11 @@ class AccountEdiFormat(models.Model):
                 # In test environment, act as if invoice had already been cancelled for the govt
                 auth_num, auth_date, errors, warnings = False, False, [], []
                 move.with_context(no_new_invoice=True).message_post(
-                    body=escape(
-                        _(
-                            "{}This is a DEMO environment, for which SRI has no portal.{}"
-                            "For the purpose of testing all flows, we act as if the document had been cancelled for the government.{}"
-                            "In a production environment, you will first have to use the SRI portal to cancel the invoice.",
-                        )
-                    ).format(Markup('<strong>'), Markup('</strong><br/>'), Markup('<br/>')),
+                    body=_(
+                        "<strong>This is a DEMO environment, for which SRI has no portal.</strong><br/>"
+                        "For the purpose of testing all flows, we act as if the document had been cancelled for the government.<br/>"
+                        "In a production environment, you will first have to use the SRI portal to cancel the invoice.",
+                    ),
                 )
             else:
                 _auth_state, auth_num, auth_date, errors, warnings = self._l10n_ec_get_authorization_status(move)
@@ -299,12 +297,10 @@ class AccountEdiFormat(models.Model):
             'description': f"Ecuadorian electronic document generated for document {move.display_name}."
         })
         move.with_context(no_new_invoice=True).message_post(
-            body=escape(
-                _(
-                    "{}This is a DEMO response, which means this document was not sent to the SRI.{}If you want your document to be processed by the SRI, please set an {}Electronic Certificate File{} in the settings.{}Demo electronic document.{}Authorization num:{}%s{}Authorization date:{}%s",
-                    move.l10n_ec_authorization_number, move.l10n_ec_authorization_date
-                )
-            ).format(Markup('<strong>'), Markup('</strong><br/>'), Markup('<strong>'), Markup('</strong>'), Markup('<br/><br/>'), Markup('<br/><strong>'), Markup('</strong><br/>'), Markup('<br/><strong>'), Markup('</strong><br/>')),
+            body=_(
+                "<strong>This is a DEMO response, which means this document was not sent to the SRI.</strong><br/>If you want your document to be processed by the SRI, please set an <strong>Electronic Certificate File</strong> in the settings.<br/><br/>Demo electronic document.<br/><strong>Authorization num:</strong><br/>%s<br/><strong>Authorization date:</strong><br/>%s",
+                move.l10n_ec_authorization_number, move.l10n_ec_authorization_date
+            ),
             attachment_ids=attachment.ids,
         )
         return [], "", attachment
@@ -362,12 +358,10 @@ class AccountEdiFormat(models.Model):
                 'description': f"Ecuadorian electronic document generated for document {move.display_name}."
             })
             move.with_context(no_new_invoice=True).message_post(
-                body=escape(
-                    _(
-                        "Electronic document authorized.{}Authorization num:{}%s{}Authorization date:{}%s",
-                        move.l10n_ec_authorization_number, move.l10n_ec_authorization_date
-                    )
-                ).format(Markup('<br/><strong>'), Markup('</strong><br/>'), Markup('<br/><strong>'), Markup('</strong><br/>')),
+                body=_(
+                    "Electronic document authorized.<br/><strong>Authorization num:</strong><br/>%s<br/><strong>Authorization date:</strong><br/>%s",
+                    move.l10n_ec_authorization_number, move.l10n_ec_authorization_date
+                ),
                 attachment_ids=attachment.ids,
             )
         elif move.edi_state == 'to_cancel' and not move.company_id.l10n_ec_production_env:

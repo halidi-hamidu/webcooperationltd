@@ -20,36 +20,37 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
 
     @freeze_time('2019-10-24T20:00:00', tz_offset=3)
     def test_l10n_cl_edi_delivery_with_taxes_from_inventory(self):
-        picking = self.env['stock.picking'].create({
+        picking = self.PickingObj.create({
             'name': 'Test Delivery Guide',
             'partner_id': self.chilean_partner_a.id,
+            'picking_type_id': self.picking_type_out,
             'location_id': self.stock_location,
             'location_dest_id': self.customer_location,
             'picking_type_id': self.warehouse.out_type_id.id,
         })
-        self.env['stock.move'].create({
+        self.MoveObj.create({
             'name': self.product_with_taxes_a.name,
             'product_id': self.product_with_taxes_a.id,
             'product_uom': self.product_with_taxes_a.uom_id.id,
             'product_uom_qty': 10.00,
-            'quantity': 10.00,
+            'quantity_done': 10.00,
             'procure_method': 'make_to_stock',
             'picking_id': picking.id,
             'location_id': self.stock_location,
             'location_dest_id': self.customer_location,
-            'company_id': self.env.company.id
+            'company_id': self.company.id
         })
-        self.env['stock.move'].create({
+        self.MoveObj.create({
             'name': self.product_with_taxes_b.name,
             'product_id': self.product_with_taxes_b.id,
             'product_uom': self.product_with_taxes_b.uom_id.id,
             'product_uom_qty': 1,
-            'quantity': 1,
+            'quantity_done': 1,
             'procure_method': 'make_to_stock',
             'picking_id': picking.id,
             'location_id': self.stock_location,
             'location_dest_id': self.customer_location,
-            'company_id': self.env.company.id
+            'company_id': self.company.id
         })
         picking.button_validate()
         picking.create_delivery_guide()
@@ -90,15 +91,15 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
                 'price_unit': self.product_with_taxes_b.list_price
                 })
             ],
-            'company_id': self.env.company.id,
+            'company_id': self.company.id,
         }
         sale_order = self.env['sale.order'].create(so_vals)
         sale_order.action_confirm()
 
         picking = sale_order.picking_ids[0]
         picking.action_assign()
-        picking.move_ids[0].write({'quantity': 10})
-        picking.move_ids[1].write({'quantity': 1})
+        picking.move_ids[0].write({'quantity_done': 10})
+        picking.move_ids[1].write({'quantity_done': 1})
         picking.button_validate()
 
         picking.create_delivery_guide()
@@ -121,7 +122,7 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
 
     @freeze_time('2019-10-24T20:00:00', tz_offset=3)
     def test_l10n_cl_edi_delivery_without_taxes_from_sale_order(self):
-        sale_order = self.env['sale.order'].create({
+        so_vals = {
             'partner_id': self.chilean_partner_a.id,
             'order_line': [
                 (0, 0, {
@@ -131,24 +132,24 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
                     'product_uom': self.product_without_taxes_a.uom_id.id,
                     'price_unit': self.product_without_taxes_a.list_price,
                     'discount': 10.00,
-                    'tax_id': [],
                 }),
                 (0, 0, {
                     'name': self.product_without_taxes_b.name,
                     'product_id': self.product_without_taxes_b.id,
                     'product_uom_qty': 10.0,
                     'product_uom': self.product_without_taxes_b.uom_id.id,
-                    'price_unit': self.product_without_taxes_b.list_price,
-                    'tax_id': [],
+                    'price_unit': self.product_without_taxes_b.list_price
                 })
             ],
-        })
+            'company_id': self.company.id,
+        }
+        sale_order = self.env['sale.order'].create(so_vals)
         sale_order.action_confirm()
 
         picking = sale_order.picking_ids[0]
         picking.action_assign()
-        picking.move_ids[0].write({'quantity': 5})
-        picking.move_ids[1].write({'quantity': 10})
+        picking.move_ids[0].write({'quantity_done': 5})
+        picking.move_ids[1].write({'quantity_done': 10})
         picking.button_validate()
 
         picking.create_delivery_guide()
@@ -185,14 +186,14 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
                     'discount': 10.00,
                 })
             ],
-            'company_id': self.env.company.id,
+            'company_id': self.company.id,
         }
         sale_order = self.env['sale.order'].create(so_vals)
         sale_order.action_confirm()
 
         picking = sale_order.picking_ids[0]
         picking.action_assign()
-        picking.move_ids[0].write({'quantity': 3})
+        picking.move_ids[0].write({'quantity_done': 3})
         picking.button_validate()
 
         picking.create_delivery_guide()
@@ -248,7 +249,7 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
                 'product_uom_qty': 2.0,
                 'price_unit': 150.0,
             })],
-            'company_id': self.env.company.id,
+            'company_id': self.company.id,
         })
         so.action_confirm()
 
@@ -265,9 +266,9 @@ class TestL10nClEdiStock(TestL10nClEdiStockCommon):
         move_a = picking.move_ids[0]
         move_b = picking.move_ids[1]
         move_c = picking.move_ids[2]
-        move_a.quantity = 1.0
-        move_b.quantity = 2.0
-        move_c.quantity = 3.0
+        move_a.quantity_done = 1.0
+        move_b.quantity_done = 2.0
+        move_c.quantity_done = 3.0
         # generate the values used by "Delivery Guide SII DTE 52 (CL)"
         pdf_values = picking._prepare_pdf_values()
         line_amounts = pdf_values['total_line_amounts']

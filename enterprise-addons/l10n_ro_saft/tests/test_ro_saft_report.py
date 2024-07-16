@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from unittest.mock import patch
 
 from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 from odoo.tests import tagged
@@ -17,7 +18,7 @@ class TestRoSaftReport(TestAccountReportsCommon):
     """
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='ro'):
+    def setUpClass(cls, chart_template_ref='l10n_ro.ro_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.company_data['company'].write({
@@ -28,7 +29,6 @@ class TestRoSaftReport(TestAccountReportsCommon):
             'company_registry': '1234567897',
             'phone': '+40 723545439',
             'country_id': cls.env.ref('base.ro').id,
-            'account_storno': True,
             'l10n_ro_saft_tax_accounting_basis': 'A',
         })
 
@@ -178,7 +178,8 @@ class TestRoSaftReport(TestAccountReportsCommon):
     def test_saft_report_monthly(self):
         report = self.env.ref('account_reports.general_ledger_report')
         options = self._generate_options(report, fields.Date.from_string('2023-01-01'), fields.Date.from_string('2023-01-31'))
-        stringified_xml = self.env[report.custom_handler_model_name].l10n_ro_export_saft_to_xml(options)['file_content']
+        with patch.object(type(self.env['res.partner']), '_check_vies', side_effect=lambda *x: {'valid': True}, autospec=True):
+            stringified_xml = self.env[report.custom_handler_model_name].l10n_ro_export_saft_to_xml(options)['file_content']
         with tools.file_open('l10n_ro_saft/tests/expected_xmls/saft_report_monthly.xml', 'rb') as expected_xml_file:
             self.assertXmlTreeEqual(
                 self.get_xml_tree_from_string(stringified_xml),

@@ -38,11 +38,10 @@ class SocialPostTemplate(models.Model):
             if not post.display_instagram_preview:
                 post.instagram_preview = False
                 continue
-            image = post.instagram_image_id
             post.instagram_preview = self.env['ir.qweb']._render('social_instagram.instagram_preview', {
                 **post._prepare_preview_values("instagram"),
                 'error_code': post._get_instagram_image_error(),
-                'image_url': f'/web/image/{image._origin.id or image.id}' if image else False,
+                'image': post.instagram_image_id.with_context(bin_size=False).datas if post.instagram_image_id else False,
                 'image_multiple': len(post.image_ids) > 1,
                 'message': post._prepare_post_content(
                     post.message,

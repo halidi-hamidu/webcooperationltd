@@ -45,6 +45,3 @@ export class PromoteStudioDialog extends Component {
 }
 PromoteStudioDialog.template = "web_enterprise.PromoteStudioDialog";
 PromoteStudioDialog.components = { Dialog };
-
-export class PromoteStudioAutomationDialog extends PromoteStudioDialog {}
-PromoteStudioAutomationDialog.template = "web_enterprise.PromoteStudioAutomationDialog";

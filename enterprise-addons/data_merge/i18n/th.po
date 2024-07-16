@@ -3,15 +3,17 @@
 # 	* data_merge
 # 
 # Translators:
-# Wil Odoo, 2023
+# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
+# Martin Trigaux, 2022
+# Wichanon Jamwutthipreecha, 2022
 # Rasareeyar Lappiam, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2024-02-06 13:24+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
 "Last-Translator: Rasareeyar Lappiam, 2024\n"
 "Language-Team: Thai (https://app.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
@@ -26,13 +28,6 @@ msgstr ""
 #, python-format
 msgid "%s (copy)"
 msgstr "%s (สำเนา)"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_group.py:0
-#, python-format
-msgid "%s - Similarity: %s%%"
-msgstr "%s - ความเหมือน: %s%%"
 
 #. module: data_merge
 #. odoo-javascript
@@ -52,6 +47,15 @@ msgstr ""
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
+msgid ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Model "
+"specific</span>"
+msgstr ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', "
+"False)]}\">เฉพาะโมเดล</span>"
+
+#. module: data_merge
+#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"me-1\">Every</span>"
 msgstr "<span class=\"me-1\">ทุก</span>"
 
@@ -59,11 +63,6 @@ msgstr "<span class=\"me-1\">ทุก</span>"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"oe_inline\">%</span>"
 msgstr "<span class=\"oe_inline\">%</span>"
-
-#. module: data_merge
-#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
-msgid "<span invisible=\"not custom_merge_method\">Model specific</span>"
-msgstr "<span invisible=\"not custom_merge_method\">เฉพาะรุ่น</span>"
 
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_rule_uniq_model_id_field_id
@@ -125,7 +124,7 @@ msgstr "การจับคู่ตัวพิมพ์เล็ก/ตั�
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__company_id
 msgid "Company"
-msgstr "บริษัท"
+msgstr "บริษัทเดียว"
 
 #. module: data_merge
 #: model_terms:ir.actions.act_window,help:data_merge.action_data_merge_record
@@ -184,11 +183,13 @@ msgstr "วิธีการรวมแบบกำหนดเอง"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_cleanup_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_cleanup
 msgid "Data Merge: Cleanup Records"
 msgstr "การผสานข้อมูล: ล้างข้อมูลบันทึก"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_find_duplicates_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_find_duplicates
 msgid "Data Merge: Find Duplicate Records"
 msgstr "การผสานข้อมูล: ค้นหาบันทึกที่ซ้ำกัน"
 
@@ -307,14 +308,7 @@ msgstr "การลบที่ซ้ำกัน"
 #: model:ir.actions.act_window,name:data_merge.action_data_merge_record_notification
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "Duplicates"
-msgstr "คัดลอก"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_model.py:0
-#, python-format
-msgid "Duplicates to Merge"
-msgstr "คัดลอกเพื่อผสาน"
+msgstr "ทำซ้ำ"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__create_threshold
@@ -399,6 +393,14 @@ msgstr "ถูกละทิ้ง"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__is_master
 msgid "Is Master"
 msgstr "เป็นหลัก"
+
+#. module: data_merge
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_group____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_model____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_record____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_rule____last_update
+msgid "Last Modified on"
+msgstr "แก้ไขครั้งล่าสุดเมื่อ"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__last_notification
@@ -605,7 +607,7 @@ msgstr "บันทึกที่มีสิทธิ์สำหรับก
 #: code:addons/data_merge/models/data_merge_record.py:0
 #, python-format
 msgid "Records must be of the same model"
-msgstr "บันทึกต้องเป็นโมเดลเดียวกัน"
+msgstr "บันทึกต้องเป็นรุ่นเดียวกัน"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__merge_threshold
@@ -615,6 +617,7 @@ msgid ""
 msgstr "บันทึกที่มีเปอร์เซ็นต์ความเหมือนกันเหนือเกณฑ์นี้จะถูกรวมโดยอัตโนมัติ"
 
 #. module: data_merge
+#: model:ir.model,name:data_merge.model_ir_rule
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_search
 msgid "Rule"
 msgstr "กฎ"

@@ -5,7 +5,7 @@
     'category': 'Inventory/Delivery',
     'version': '0.1',
     'application': True,
-    'depends': ['stock_delivery', 'mail'],
+    'depends': ['delivery', 'mail'],
     'data': [
         'data/ups_package_data.xml',
         'views/delivery_ups.xml',

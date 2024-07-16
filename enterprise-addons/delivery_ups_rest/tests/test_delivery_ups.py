@@ -113,7 +113,7 @@ class TestDeliveryUPS(TransactionCase):
             picking = sale_order.picking_ids[0]
             self.assertEqual(picking.carrier_id.id, sale_order.carrier_id.id, "Carrier is not the same on Picking and on SO.")
             picking.action_assign()
-            picking.move_line_ids[0].quantity = 1.0
+            picking.move_line_ids[0].qty_done = 1.0
             self.assertGreater(picking.weight, 0.0, "Picking weight should be positive.")
             picking._action_done()
             self.assertEqual(picking.carrier_tracking_ref, '123', 'Tracking ref should be set from mock response')

@@ -3,11 +3,11 @@
 import { registry } from "@web/core/registry";
 import { session } from "@web/session";
 import { browser } from "@web/core/browser/browser";
+import { sprintf } from "@web/core/utils/strings";
 import { deserializeDateTime, serializeDate, formatDate } from "@web/core/l10n/dates";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 import { ExpirationPanel } from "./expiration_panel";
-import { cookie } from "@web/core/browser/cookie";
 
 const { DateTime } = luxon;
 import { Component, xml, useState } from "@odoo/owl";
@@ -18,10 +18,11 @@ function daysUntil(datetime) {
 }
 
 export class SubscriptionManager {
-    constructor(env, { rpc, orm, notification }) {
+    constructor(env, { rpc, orm, cookie, notification }) {
         this.env = env;
         this.rpc = rpc;
         this.orm = orm;
+        this.cookie = cookie;
         this.notification = notification;
         if (session.expiration_date) {
             this.expirationDate = deserializeDateTime(session.expiration_date);
@@ -38,7 +39,7 @@ export class SubscriptionManager {
         // "user" or "admin"
         this.warningType = session.warning;
         this.lastRequestStatus = null;
-        this.isWarningHidden = cookie.get("oe_instance_hide_panel");
+        this.isWarningHidden = this.cookie.current.oe_instance_hide_panel;
     }
 
     get formattedExpirationDate() {
@@ -55,7 +56,7 @@ export class SubscriptionManager {
 
     hideWarning() {
         // Hide warning for 24 hours.
-        cookie.set("oe_instance_hide_panel", true, 24 * 60 * 60);
+        this.cookie.setCookie("oe_instance_hide_panel", true, 24 * 60 * 60);
         this.isWarningHidden = true;
     }
 
@@ -103,13 +104,12 @@ export class SubscriptionManager {
             this.lastRequestStatus = "success";
             this.expirationDate = deserializeDateTime(expirationDate);
             if (this.daysLeft > 30) {
-                this.notification.add(
-                    _t(
-                        "Thank you, your registration was successful! Your database is valid until %s.",
-                        this.formattedExpirationDate
-                    ),
-                    { type: "success" }
+                const message = _t(
+                    "Thank you, your registration was successful! Your database is valid until %s."
                 );
+                this.notification.add(sprintf(message, this.formattedExpirationDate), {
+                    type: "success",
+                });
             }
         } else {
             this.lastRequestStatus = "error";
@@ -172,7 +172,6 @@ class ExpiredSubscriptionBlockUI extends Component {
         this.subscription = useState(useService("enterprise_subscription"));
     }
 }
-ExpiredSubscriptionBlockUI.props = {};
 ExpiredSubscriptionBlockUI.template = xml`
 <t t-if="subscription.daysLeft &lt;= 0">
     <div class="o_blockUI"/>
@@ -184,12 +183,12 @@ ExpiredSubscriptionBlockUI.components = { ExpirationPanel };
 
 export const enterpriseSubscriptionService = {
     name: "enterprise_subscription",
-    dependencies: ["orm", "rpc", "notification"],
-    start(env, { rpc, orm, notification }) {
+    dependencies: ["orm", "rpc", "cookie", "notification"],
+    start(env, { rpc, orm, cookie, notification }) {
         registry
             .category("main_components")
             .add("expired_subscription_block_ui", { Component: ExpiredSubscriptionBlockUI });
-        return new SubscriptionManager(env, { rpc, orm, notification });
+        return new SubscriptionManager(env, { rpc, orm, cookie, notification });
     },
 };
 

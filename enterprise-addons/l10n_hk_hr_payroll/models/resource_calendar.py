@@ -9,7 +9,7 @@ class ResourceCalendar(models.Model):
 
     def _work_intervals_batch(self, start_dt, end_dt, resources=None, domain=None, tz=None, compute_leaves=True):
         work_intervals = super()._work_intervals_batch(start_dt, end_dt, resources=resources, domain=domain, tz=tz, compute_leaves=compute_leaves)
-        if self.sudo().company_id.country_id.code != 'HK' or not compute_leaves:
+        if self.company_id.country_id.code != 'HK' or not compute_leaves:
             return work_intervals
 
         if not resources:

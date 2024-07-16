@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import datetime
-
 from odoo import models, fields, _
-from odoo.tools.misc import format_date
 
 from dateutil.relativedelta import relativedelta
 from itertools import chain
@@ -15,32 +12,27 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'Aged Partner Balance Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'css_custom_class': 'aged_partner_balance',
-            'components': {
-                'AccountReportLineName': 'account_reports.AgedPartnerBalanceLineName',
-            },
-        }
-
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
-        if report.user_has_groups('base.group_multi_currency'):
-            options['multi_currency'] = True
-        else:
+        if not report.user_has_groups('base.group_multi_currency'):
             options['columns'] = [
                 column for column in options['columns']
                 if column['expression_label'] not in {'amount_currency', 'currency'}
             ]
 
-        default_order_column = {
-            'expression_label': 'invoice_date',
-            'direction': 'ASC',
-        }
-
+        default_order_column = 0
+        for index, column in enumerate(options.get('columns')):
+            if column.get('expression_label') == 'due_date':
+                default_order_column = index + 1
+                break
         options['order_column'] = (previous_options or {}).get('order_column') or default_order_column
 
-    def _custom_line_postprocessor(self, report, options, lines, warnings=None):
+        prefix_group_parameter_name = 'account_reports.aged_partner_balance.groupby_prefix_groups_threshold'
+        prefix_groups_threshold = int(self.env['ir.config_parameter'].sudo().get_param(prefix_group_parameter_name, 0))
+        if prefix_groups_threshold:
+            options['groupby_prefix_groups_threshold'] = prefix_groups_threshold
+
+    def _custom_line_postprocessor(self, report, options, lines):
         partner_lines_map = {}
 
         # Sort line dicts by partner
@@ -59,7 +51,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                 AND company_id IN %s
             """, [
                 tuple(f"res.partner,{partner_id}" for partner_id in partner_lines_map),
-                tuple(report.get_report_company_ids(options)),
+                tuple(comp['id'] for comp in options.get('multi_company', [])) or (self.env.company.id,),
             ])
 
             trust_map = {}
@@ -73,10 +65,10 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
 
         return lines
 
-    def _report_custom_engine_aged_receivable(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_aged_receivable(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None):
         return self._aged_partner_report_custom_engine_common(options, 'asset_receivable', current_groupby, next_groupby, offset=offset, limit=limit)
 
-    def _report_custom_engine_aged_payable(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_aged_payable(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None):
         return self._aged_partner_report_custom_engine_common(options, 'liability_payable', current_groupby, next_groupby, offset=offset, limit=limit)
 
     def _aged_partner_report_custom_engine_common(self, options, internal_type, current_groupby, next_groupby, offset=0, limit=None):
@@ -107,15 +99,13 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             if current_groupby == 'id':
                 query_res = query_res_lines[0] # We're grouping by id, so there is only 1 element in query_res_lines anyway
                 currency = self.env['res.currency'].browse(query_res['currency_id'][0]) if len(query_res['currency_id']) == 1 else None
-                expected_date = len(query_res['expected_date']) == 1 and query_res['expected_date'][0] or len(query_res['due_date']) == 1 and query_res['due_date'][0]
                 rslt.update({
-                    'invoice_date': query_res['invoice_date'][0] if len(query_res['invoice_date']) == 1 else None,
                     'due_date': query_res['due_date'][0] if len(query_res['due_date']) == 1 else None,
                     'amount_currency': query_res['amount_currency'],
                     'currency_id': query_res['currency_id'][0] if len(query_res['currency_id']) == 1 else None,
                     'currency': currency.display_name if currency else None,
                     'account_name': query_res['account_name'][0] if len(query_res['account_name']) == 1 else None,
-                    'expected_date': expected_date or None,
+                    'expected_date': query_res['expected_date'][0] if len(query_res['expected_date']) == 1 else None,
                     'total': None,
                     'has_sublines': query_res['aml_count'] > 0,
 
@@ -124,7 +114,6 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                 })
             else:
                 rslt.update({
-                    'invoice_date': None,
                     'due_date': None,
                     'amount_currency': None,
                     'currency_id': None,
@@ -148,7 +137,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
         # Build query
         tables, where_clause, where_params = report._query_get(options, 'strict_range', domain=[('account_id.account_type', '=', internal_type)])
 
-        currency_table = report._get_query_currency_table(options)
+        currency_table = self.env['res.currency']._get_query_currency_table(options)
         always_present_groupby = "period_table.period_index, currency_table.rate, currency_table.precision"
         if current_groupby:
             select_from_groupby = f"account_move_line.{current_groupby} AS grouping_key,"
@@ -182,7 +171,6 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                 ) AS amount_currency,
                 ARRAY_AGG(DISTINCT account_move_line.partner_id) AS partner_id,
                 ARRAY_AGG(account_move_line.payment_id) AS payment_id,
-                ARRAY_AGG(DISTINCT move.invoice_date) AS invoice_date,
                 ARRAY_AGG(DISTINCT COALESCE(account_move_line.date_maturity, account_move_line.date)) AS report_date,
                 ARRAY_AGG(DISTINCT account_move_line.expected_pay_date) AS expected_date,
                 ARRAY_AGG(DISTINCT account.code) AS account_name,
@@ -196,7 +184,6 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
 
             JOIN account_journal journal ON journal.id = account_move_line.journal_id
             JOIN account_account account ON account.id = account_move_line.account_id
-            JOIN account_move move ON move.id = account_move_line.move_id
             JOIN {currency_table} ON currency_table.company_id = account_move_line.company_id
 
             LEFT JOIN LATERAL (
@@ -277,8 +264,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
     def open_journal_items(self, options, params):
         params['view_ref'] = 'account.view_move_line_tree_grouped_partner'
         options_for_audit = {**options, 'date': {**options['date'], 'date_from': None}}
-        report = self.env['account.report'].browse(options['report_id'])
-        action = report.open_journal_items(options=options_for_audit, params=params)
+        action = self.env['account.report'].open_journal_items(options=options_for_audit, params=params)
         action.get('context', {}).update({'search_default_group_by_account': 0, 'search_default_group_by_partner': 1})
         return action
 
@@ -332,8 +318,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
         return rslt
 
     def _prepare_partner_values(self):
-        return {
-            'invoice_date': None,
+        partner_values = {
             'due_date': None,
             'amount_currency': None,
             'currency_id': None,
@@ -343,58 +328,19 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             'total': 0,
         }
 
-    def change_expected_date(self, options, params=None):
-        aml_id = self.env['account.report']._get_res_id_from_line_id(params['line_id'], 'account.move.line')
-        aml = self.env['account.move.line'].browse(aml_id)
-
-        old_date = format_date(self.env, aml.expected_pay_date) if aml.expected_pay_date else _('any')
-        aml.write({'expected_pay_date': params['expected_pay_date']})
-
-        if aml.move_id.move_type == 'out_invoice':
-            new_date = format_date(self.env, aml.expected_pay_date) if aml.expected_pay_date else _('any')
-            move_msg = _('Expected payment date for journal item %r has been changed from %s to %s on journal entry %r', aml.name, old_date, new_date, aml.move_id.name)
-            aml.partner_id._message_log(body=move_msg)
-            aml.move_id._message_log(body=move_msg)
-
-    def aged_partner_balance_audit(self, options, params, journal_type):
-        """ Open a list of invoices/bills and/or deferral entries for the clicked cell
-        :param dict options: the report's `options`
-        :param dict params:  a dict containing:
-                                 `calling_line_dict_id`: line id containing the optional account of the cell
-                                 `expression_label`: the expression label of the cell
-        """
-        report = self.env['account.report'].browse(options['report_id'])
-        action = self.env['ir.actions.actions']._for_xml_id('account.action_open_payment_items')
-        journal_type_to_exclude = {'purchase': 'sale', 'sale': 'purchase'}
-        if options:
-            domain = [
-                ('account_id.reconcile', '=', True),
-                ('journal_id.type', '!=', journal_type_to_exclude.get(journal_type)),
-                *self._build_domain_from_period(options, params['expression_label']),
-                *report._get_options_domain(options, 'normal'),
-                *report._get_audit_line_groupby_domain(params['calling_line_dict_id']),
-            ]
-            action['domain'] = domain
-        return action
-
-    def _build_domain_from_period(self, options, period):
-        if period != "total" and period[-1].isdigit():
-            period_number = int(period[-1])
-            if period_number == 0:
-                domain = [('date_maturity', '>=', options['date']['date_to'])]
-            else:
-                options_date_to = datetime.datetime.strptime(options['date']['date_to'], '%Y-%m-%d')
-                period_end = options_date_to - datetime.timedelta(30*(period_number-1)+1)
-                period_start = options_date_to - datetime.timedelta(30*(period_number))
-                domain = [('date_maturity', '>=', period_start), ('date_maturity', '<=', period_end)]
-        else:
-            domain = []
-        return domain
+        return partner_values
 
 class AgedPayableCustomHandler(models.AbstractModel):
     _name = 'account.aged.payable.report.handler'
     _inherit = 'account.aged.partner.balance.report.handler'
     _description = 'Aged Payable Custom Handler'
+
+    def _custom_options_initializer(self, report, options, previous_options=None):
+        super()._custom_options_initializer(report, options, previous_options=previous_options)
+
+        if options.get('account_type'):
+            options['account_type'] = [account_type for account_type in options['account_type'] if account_type['id'] not in ('trade_receivable', 'non_trade_receivable')]
+
 
     def open_journal_items(self, options, params):
         payable_account_type = {'id': 'trade_payable', 'name': _("Payable"), 'selected': True}
@@ -412,13 +358,17 @@ class AgedPayableCustomHandler(models.AbstractModel):
             return self._common_custom_unfold_all_batch_data_generator('liability_payable', report, options, lines_to_expand_by_function)
         return {}
 
-    def action_audit_cell(self, options, params):
-        return super().aged_partner_balance_audit(options, params, 'purchase')
 
 class AgedReceivableCustomHandler(models.AbstractModel):
     _name = 'account.aged.receivable.report.handler'
     _inherit = 'account.aged.partner.balance.report.handler'
     _description = 'Aged Receivable Custom Handler'
+
+    def _custom_options_initializer(self, report, options, previous_options=None):
+        super()._custom_options_initializer(report, options, previous_options=previous_options)
+
+        if options.get('account_type'):
+            options['account_type'] = [account_type for account_type in options['account_type'] if account_type['id'] not in ('trade_payable', 'non_trade_payable')]
 
     def open_journal_items(self, options, params):
         receivable_account_type = {'id': 'trade_receivable', 'name': _("Receivable"), 'selected': True}
@@ -435,6 +385,3 @@ class AgedReceivableCustomHandler(models.AbstractModel):
         if self.env.ref('account_reports.aged_receivable_line').groupby.replace(' ', '') == 'partner_id,id':
             return self._common_custom_unfold_all_batch_data_generator('asset_receivable', report, options, lines_to_expand_by_function)
         return {}
-
-    def action_audit_cell(self, options, params):
-        return super().aged_partner_balance_audit(options, params, 'sale')

@@ -89,12 +89,12 @@ class AccountMove(models.Model):
         size=49,
         copy=False, index=True,
         tracking=True,
-        help="Ecuador: EDI authorization number (same as access key), set upon posting",
+        help="EDI authorization number (same as access key), set upon posting",
     )
     l10n_ec_authorization_date = fields.Datetime(
         string="Authorization date",
         copy=False, readonly=True, tracking=True,
-        help="Ecuador: Date on which government authorizes the document, unset if document is cancelled.",
+        help="Set once the government authorizes the document, unset if document is cancelled.",
     )
     l10n_latam_internal_type = fields.Selection(related='l10n_latam_document_type_id.internal_type')
 
@@ -102,7 +102,7 @@ class AccountMove(models.Model):
     l10n_ec_withhold_type = fields.Selection(related='journal_id.l10n_ec_withhold_type')
     l10n_ec_withhold_date = fields.Date(
         string="Withhold Date",
-        readonly=True,
+        readonly=True, states={'draft': [('readonly', False)]},
         copy=False,
     )
     # Technical field to show/hide "ADD WITHHOLD" button
@@ -326,7 +326,10 @@ class AccountMove(models.Model):
         ctx = {
             **self.env.context,
             'default_model': 'account.move',
-            'default_res_ids': self.ids,
+            'active_model': 'account.move',
+            'active_id': self.ids[0],
+            'default_res_id': self.ids[0],
+            'default_use_template': True,
             'default_template_id': template.id,
             'default_composition_mode': 'comment',
             'default_email_layout_xmlid': 'mail.mail_notification_layout_with_responsible_signature',
@@ -432,7 +435,7 @@ class AccountMove(models.Model):
                 'payment_code': self.l10n_ec_sri_payment_id.code,
                 'payment_total': abs(line.balance),
             }
-            if self.invoice_payment_term_id and line.date_maturity and self.invoice_date:
+            if self.invoice_payment_term_id and line.date_maturity:
                 payment_vals.update({
                     'payment_term': max(((line.date_maturity - self.invoice_date).days), 0),
                     'time_unit': "dias",
@@ -838,8 +841,8 @@ class AccountMoveLine(models.Model):
             if self.journal_id.l10n_ec_is_purchase_liquidation:
                 # law mandates to withhold 100% VAT on purchase liquidations
                 vat_withhold_tax = self.env['account.tax'].search([
-                    *self.env['account.tax']._check_company_domain(self.company_id),
                     ('tax_group_id.l10n_ec_type', '=', 'withhold_vat_purchase'),
+                    ('company_id', '=', self.company_id.id),
                     ('l10n_ec_code_applied', '=', '731'),  # code for vat withhold 100%
                 ])
             elif product_type == 'services':

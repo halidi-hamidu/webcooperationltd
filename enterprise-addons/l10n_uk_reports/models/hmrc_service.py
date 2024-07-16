@@ -63,12 +63,6 @@ class HmrcService(models.AbstractModel):
                             'There was a problem refreshing the tokens.  Please log in again. %(error)s',
                             error=response.get('message'),
                         ))
-                    else:
-                        # Let the user know they established the connection and can submit the report.
-                        self.env['bus.bus']._sendone(self.env.user.partner_id, 'simple_notification', {
-                            'type': 'success',
-                            'message': _("You are successfully connected to HMRC. You can now send the VAT report."),
-                        })
         else:
             # if no user_token, ask for one
             url = self._get_proxy_server() + '/onlinesync/l10n_uk/get_user'

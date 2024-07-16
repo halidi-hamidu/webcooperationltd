@@ -9,7 +9,7 @@ class FuenteReportCustomHandler(models.AbstractModel):
     _inherit = 'l10n_co.report.handler'
     _description = 'Fuente Report Custom Handler'
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         domain = self._get_domain(report, options)
         query_results = self._get_query_results(report, options, domain)
         return super()._get_partner_values(report, options, query_results, '_report_expand_unfoldable_line_fuente')
@@ -18,9 +18,11 @@ class FuenteReportCustomHandler(models.AbstractModel):
         queries = []
         params = []
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
-            lang = self.env.user.lang or get_lang(self.env).code
-            account_name = f"COALESCE(aa.name->>'{lang}', aa.name->>'en_US')"
-
+            if self.pool['account.account'].name.translate:
+                lang = self.env.user.lang or get_lang(self.env).code
+                account_name = f"COALESCE(aa.name->>'{lang}', aa.name->>'en_US')"
+            else:
+                account_name = 'aa.name'
             tables, where_clause, where_params = report._query_get(column_group_options, 'strict_range', domain=domain)
             queries.append(f"""
                 SELECT

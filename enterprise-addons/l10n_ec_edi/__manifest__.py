@@ -3,7 +3,6 @@
 {
     "name": "Ecuadorian Accounting EDI",
     "version": "1.1",
-    'countries': ['ec'],
     "description": """
 EDI Ecuadorian Localization
 ===========================
@@ -25,6 +24,7 @@ Includes automations to easily predict the withholding tax to be applied to each
         "data/templates/edi_authorization.xml",
         "data/templates/edi_signature.xml",
         "data/l10n_ec.taxpayer.type.csv",
+        "data/account.tax.template.csv",
         "data/account.edi.format.csv",
         "data/res.country.csv",
 
@@ -56,6 +56,7 @@ Includes automations to easily predict the withholding tax to be applied to each
         ],
     },
     "installable": True,
-    "auto_install": ["l10n_ec"],
+    "auto_install": True,
+    "application": False,
     'post_init_hook': '_post_install_hook_configure_ecuadorian_data',
 }

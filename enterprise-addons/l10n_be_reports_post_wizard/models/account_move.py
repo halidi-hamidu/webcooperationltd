@@ -14,12 +14,17 @@ class AccountMove(models.Model):
            Validating the wizard will resume the `action_post` and take these options in
            consideration when generating the XML report.
         """
-        if (self.filtered(lambda am: am.tax_closing_end_date)
+        closing_moves = self.filtered(lambda move: move.tax_closing_end_date)
+        if (
+                closing_moves
                 and 'BE' in self.mapped('tax_country_code')
                 and 'l10n_be_reports_generation_options' not in self.env.context):
             ctx = self.env.context.copy()
-            ctx['l10n_be_reports_generation_options'] = {}
-            ctx['l10n_be_action_resume_post_move_ids'] = self.ids
+            ctx.update({
+                'l10n_be_reports_generation_options': {},
+                'l10n_be_action_resume_post_move_ids': self.ids,
+                'l10n_be_reports_closing_date': max(closing_moves.mapped('tax_closing_end_date')),
+            })
             new_wizard = self.env['l10n_be_reports.periodic.vat.xml.export'].create({})
             view_id = self.env.ref('l10n_be_reports_post_wizard.view_account_financial_report_export').id
             return {

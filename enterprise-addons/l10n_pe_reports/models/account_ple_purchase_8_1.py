@@ -84,7 +84,7 @@ class PeruvianTaxPle81ReportCustomHandler(models.AbstractModel):
         ]
 
     def _report_custom_engine_ple_81(
-        self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None
+        self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None
     ):
         report = self.env["account.report"].browse(options["report_id"])
         report._check_groupby_fields(

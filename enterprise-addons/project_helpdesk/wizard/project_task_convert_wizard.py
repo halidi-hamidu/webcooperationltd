@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+
 from odoo import api, fields, models, _
 
 class ProjectTaskConvertWizard(models.TransientModel):
@@ -37,10 +38,10 @@ class ProjectTaskConvertWizard(models.TransientModel):
 
             task_sudo, ticket_sudo = task.sudo(), ticket.sudo()
             task_sudo.message_post(body=_("Task converted into ticket %s", ticket_sudo._get_html_link()))
-            ticket_sudo.message_post_with_source(
+            ticket_sudo.message_post_with_view(
                 'mail.message_origin_link',
-                render_values={'self': ticket_sudo, 'origin': task_sudo},
-                subtype_xmlid='mail.mt_note',
+                values={'self': ticket_sudo, 'origin': task_sudo},
+                subtype_id=self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'),
             )
 
         if len(created_tickets) == 1:

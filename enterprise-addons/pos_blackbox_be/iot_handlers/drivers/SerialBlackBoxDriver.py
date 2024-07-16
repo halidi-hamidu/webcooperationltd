@@ -3,6 +3,7 @@
 
 import logging
 import serial
+import os
 
 from odoo.addons.hw_drivers.tools import helpers
 from odoo.addons.hw_drivers.event_manager import event_manager
@@ -143,7 +144,10 @@ class BlackBoxDriver(SerialDriver):
 
         connection.write(packet)
         ack = connection.read(1)
-        return ack == ACK
+        if ack == ACK:
+            return True
+        else:
+            return False
 
     def _box_id(self):
         return 'BODO001' + helpers.get_mac_address().upper().replace(':', '')[-7:]
@@ -152,23 +156,26 @@ class BlackBoxDriver(SerialDriver):
         self.data['value'] = self._box_id()
 
     def _parse_blackbox_response(self, response):
-        error_code = response[4:10]
-        error_message = errors.get(error_code)
+        parsed_response = {}
 
-        return {
-            'identifier': response[0:1],
-            'sequence_number': response[1:3],
-            'retry_counter': response[3:4],
-            'error': {'errorCode': error_code, 'errorMessage': error_message},
-            'fdm_number': response[10:21],
-            'vsc': response[21:35],
-            'date': response[35:43],
-            'time': response[43:49],
-            'type': response[49:51],
-            'ticket_counter': response[51:60],
-            'total_ticket_counter': response[60:69],
-            'signature': response[69:109]
-        }
+        parsed_response.update({'identifier' : response[0:1]})
+        parsed_response.update({'sequence_number' : response[1:3]})
+        parsed_response.update({'retry_counter' : response[3:4]})
+        parsed_response.update({'error': {
+                'errorCode' : response[4:10],
+                'errorMessage' : errors.get(response[4:10]),
+            },
+        })
+        parsed_response.update({'fdm_number' : response[10:21]})
+        parsed_response.update({'vsc' : response[21:35]})
+        parsed_response.update({'date' : response[35:43]})
+        parsed_response.update({'time' : response[43:49]})
+        parsed_response.update({'type' : response[49:51]})
+        parsed_response.update({'ticket_counter' : response[51:60]})
+        parsed_response.update({'total_ticket_counter' : response[60:69]})
+        parsed_response.update({'signature' : response[69:109]})
+
+        return parsed_response
 
     def _request_registerReceipt(self, data):
         if data['high_level_message'].get('clock'):
@@ -223,23 +230,30 @@ class BlackBoxDriver(SerialDriver):
 
     def _wrap_high_level_message_around(self, request_type, data):
         self.sequence_number += 1
-        wrap = request_type + str(self.sequence_number % 100).zfill(2) + '0'
+        wrap = ''
 
+        wrap += request_type
+        wrap += str(self.sequence_number % 100).zfill(2)
+        wrap += '0'
         if request_type == 'I':
             return wrap
 
-        wrap += "{:>8}".format(data['date'])
-        wrap += "{:>6}".format(data['ticket_time'])
-        wrap += "{:>11}".format(data['insz_or_bis_number'])
+        wrap += "{:>8}".format(data.get('date'))
+        wrap += "{:>6}".format(data.get('ticket_time'))
+        wrap += "{:>11}".format(data.get('insz_or_bis_number'))
         wrap += self._box_id()
-        wrap += "{:>6}".format(data['ticket_number'])[-6:]
-        wrap += "{:>2}".format(data['type'])
-        wrap += "{:>11}".format(data['receipt_total'].zfill(3))[-11:]
-        wrap += "2100" + "{:>11}".format(data['vat1'].zfill(3))[-11:]
-        wrap += "1200" + "{:>11}".format(data['vat2'].zfill(3))[-11:]
-        wrap += " 600" + "{:>11}".format(data['vat3'].zfill(3))[-11:]
-        wrap += " 000" + "{:>11}".format(data['vat4'].zfill(3))[-11:]
-        wrap += "{:>40}".format(data['plu'])
+        wrap += "{:>6}".format(data.get('ticket_number'))[-6:]
+        wrap += "{:>2}".format(data.get('type'))
+        wrap += "{:>11}".format(data.get('receipt_total').zfill(3))[-11:]
+        wrap += "2100"
+        wrap += "{:>11}".format(data.get('vat1').zfill(3))[-11:]
+        wrap += "1200"
+        wrap += "{:>11}".format(data.get('vat2').zfill(3))[-11:]
+        wrap += " 600"
+        wrap += "{:>11}".format(data.get('vat3').zfill(3))[-11:]
+        wrap += " 000"
+        wrap += "{:>11}".format(data.get('vat4').zfill(3))[-11:]
+        wrap += "{:>40}".format(data.get('plu'))
 
         return wrap
 
@@ -247,7 +261,7 @@ class BlackBoxDriver(SerialDriver):
         """Tries to build the device's name based on its type and protocol name but falls back on a default name if that doesn't work."""
 
         try:
-            name = '%s serial %s - %s' % (self._protocol.name, self.device_type, self._box_id())
+            name = ('%s serial %s - %s' % (self._protocol.name, self.device_type, self._box_id()))
         except Exception:
             name = 'Unknown Serial Device'
         self.device_name = name

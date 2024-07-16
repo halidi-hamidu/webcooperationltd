@@ -37,7 +37,7 @@ class SocialInstagramController(SocialController):
         try:
             self._instagram_create_accounts(access_token, extended_access_token)
         except SocialValidationException as e:
-            return request.render('social.social_http_error_view', {'error_message': e.get_message(), 'documentation_data': e.get_documentation_data()})
+            return request.render('social.social_http_error_view', {'error_message': str(e)})
 
         url = '/web?#%s' % url_encode({
             'action': request.env.ref('social.action_social_stream_post').id,
@@ -159,11 +159,7 @@ class SocialInstagramController(SocialController):
         if accounts_to_create:
             request.env['social.account'].create(accounts_to_create)
         elif not has_existing_accounts:
-            message = _('You need to link your Instagram page to your Facebook account to post with Odoo Social.\n Please create one and make sure it is linked to your account.')
-            documentation_link = 'https://help.instagram.com/176235449218188'
-            documentation_link_label = _('Read More about Instagram Accounts')
-            documentation_link_icon_class = 'fa fa-instagram'
-            raise SocialValidationException(message, documentation_link, documentation_link_label, documentation_link_icon_class)
+            raise SocialValidationException(_('No Instagram accounts linked with your Facebook page'))
 
     def _instagram_get_extended_access_token(self, access_token, media):
         """ Same mechanism as social_facebook/controllers/main.py#_get_extended_access_token """

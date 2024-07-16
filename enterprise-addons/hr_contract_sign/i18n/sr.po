@@ -3,19 +3,18 @@
 # 	* hr_contract_sign
 # 
 # Translators:
-# Uros Kalajdzic <ukalajdzic@gmail.com>, 2023
-# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2023
-# Martin Trigaux, 2023
+# Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
+# Martin Trigaux, 2022
+# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
 # Milan Bojovic <mbojovic@outlook.com>, 2023
-# Vladislav Ristić, 2024
 # コフスタジオ, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
 "Last-Translator: コフスタジオ, 2024\n"
 "Language-Team: Serbian (https://app.transifex.com/odoo/teams/41243/sr/)\n"
 "MIME-Version: 1.0\n"
@@ -28,13 +27,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
 #, python-format
-msgid "%(user_name)s requested a new signature on the following documents:"
-msgstr ""
-
-#. module: hr_contract_sign
-#. odoo-python
-#: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
-#, python-format
 msgid "%s and %s are the signatories."
 msgstr "%s i %s su  potpisnici."
 
@@ -42,14 +34,15 @@ msgstr "%s i %s su  potpisnici."
 #. odoo-python
 #: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
 #, python-format
-msgid "%s does not have a private email set."
+msgid "%s does not have a work or private email set."
 msgstr ""
 
 #. module: hr_contract_sign
 #. odoo-python
 #: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
 #, python-format
-msgid "%s does not have a work email set."
+msgid ""
+"%s requested a new signature on the following documents:<br/><ul>%s</ul>%s"
 msgstr ""
 
 #. module: hr_contract_sign
@@ -58,16 +51,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.res_users_request_sign_view_form
 msgid "<span class=\"o_stat_text\">Signature Requests</span>"
 msgstr "<span class=\"o_stat_text\">Zahtevi za potpis</span>"
-
-#. module: hr_contract_sign
-#: model:ir.model,name:hr_contract_sign.model_mail_activity_plan_template
-msgid "Activity plan template"
-msgstr ""
-
-#. module: hr_contract_sign
-#: model:ir.model,name:hr_contract_sign.model_mail_activity_schedule
-msgid "Activity schedule plan Wizard"
-msgstr "Plan aktivnosti u Wizard-u"
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
@@ -120,7 +103,7 @@ msgid "Document Signature"
 msgstr "Dokument Potpis"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__sign_template_id
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__sign_template_id
 msgid "Document to sign"
 msgstr "Dokument za potpisivanje"
 
@@ -141,20 +124,6 @@ msgstr ""
 "        "
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_to
-msgid "Email"
-msgstr "E-mail"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields,help:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_to
-msgid ""
-"Email used to send the signature request.\n"
-"                - Work takes the email defined in \"work email\"\n"
-"                - Private takes the email defined in Private Information\n"
-"                - If the selected email is not defined, the available one will be used."
-msgstr ""
-
-#. module: hr_contract_sign
 #: model:ir.model,name:hr_contract_sign.model_hr_employee
 msgid "Employee"
 msgstr "Zaposleni"
@@ -166,13 +135,13 @@ msgstr "Ugovor Zapošljenog"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__employee_role_id
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__employee_role_id
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__employee_role_id
 msgid "Employee Role"
 msgstr "Employee Role"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,help:hr_contract_sign.field_hr_contract_sign_document_wizard__employee_role_id
-#: model:ir.model.fields,help:hr_contract_sign.field_mail_activity_plan_template__employee_role_id
+#: model:ir.model.fields,help:hr_contract_sign.field_hr_plan_activity_type__employee_role_id
 msgid ""
 "Employee's role on the templates to sign. The same role must be present in "
 "all the templates"
@@ -201,24 +170,24 @@ msgid "ID"
 msgstr "ID"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__is_signature_request
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__is_signature_request
 msgid "Is Signature Request"
 msgstr "Is Signature Request"
 
 #. module: hr_contract_sign
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard____last_update
+msgid "Last Modified on"
+msgstr "Poslednja izmena dana"
+
+#. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__write_uid
 msgid "Last Updated by"
-msgstr "Poslednji put ažurirao"
+msgstr "Poslednje izmenio/la"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__write_date
 msgid "Last Updated on"
-msgstr "Poslednji put ažurirano"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__mail_displayed
-msgid "Mail Displayed"
-msgstr ""
+msgstr "Poslednje ažuriranje dana"
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
@@ -264,17 +233,23 @@ msgid "Optional Message..."
 msgstr "Opciona poruka..."
 
 #. module: hr_contract_sign
+#: model:ir.model,name:hr_contract_sign.model_hr_plan_wizard
+msgid "Plan Wizard"
+msgstr ""
+
+#. module: hr_contract_sign
+#: model:ir.model,name:hr_contract_sign.model_hr_plan_activity_type
+msgid "Plan activity type"
+msgstr ""
+
+#. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__possible_template_ids
 msgid "Possible Template"
 msgstr "Mogući šablon"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields.selection,name:hr_contract_sign.selection__hr_contract_sign_document_wizard__mail_to__private
-msgid "Private"
-msgstr "Privatno"
-
-#. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract__sign_request_ids
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_history__sign_request_ids
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_employee__sign_request_ids
 msgid "Requested Signatures"
 msgstr "Requested Signatures"
@@ -285,7 +260,7 @@ msgid "Responsible"
 msgstr "Odgovorno lice"
 
 #. module: hr_contract_sign
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__responsible_count
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__responsible_count
 msgid "Responsible Count"
 msgstr "Responsible Count"
 
@@ -308,7 +283,7 @@ msgstr "Opcije za potpisivanje zahteva"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__sign_template_responsible_ids
-#: model:ir.model.fields,field_description:hr_contract_sign.field_mail_activity_plan_template__sign_template_responsible_ids
+#: model:ir.model.fields,field_description:hr_contract_sign.field_hr_plan_activity_type__sign_template_responsible_ids
 msgid "Sign Template Responsible"
 msgstr "Odgovorno za šablon potpisa"
 
@@ -319,8 +294,9 @@ msgstr "Potpišite dokument u ugovoru"
 
 #. module: hr_contract_sign
 #. odoo-python
-#: code:addons/hr_contract_sign/wizard/mail_activity_schedule.py:0
+#: code:addons/hr_contract_sign/wizard/hr_plan_wizard.py:0
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_contract_history_view_form
+#: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_contract_sign_view_form
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.hr_employee_sign_view_form
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign
 #, python-format
@@ -328,9 +304,11 @@ msgid "Signature Request"
 msgstr "Zahtev za potpis"
 
 #. module: hr_contract_sign
-#: model:ir.actions.server,name:hr_contract_sign.action_signature_request_wizard
-msgid "Signature request"
-msgstr ""
+#. odoo-python
+#: code:addons/hr_contract_sign/wizard/hr_contract_sign_document_wizard.py:0
+#, python-format
+msgid "Signature Request - %s"
+msgstr "Zahtev za potpis - %s"
 
 #. module: hr_contract_sign
 #: model:ir.model.fields,field_description:hr_contract_sign.field_hr_contract_sign_document_wizard__subject
@@ -343,23 +321,9 @@ msgid "Template Warning"
 msgstr "Upozorenje o šablonu"
 
 #. module: hr_contract_sign
-#. odoo-python
-#: code:addons/hr_contract_sign/models/hr_contract.py:0
-#, python-format
-msgid ""
-"This sign request has been canceled due to the cancellation of the related "
-"contract."
-msgstr ""
-
-#. module: hr_contract_sign
 #: model:ir.model,name:hr_contract_sign.model_res_users
 msgid "User"
 msgstr "Korisnik"
-
-#. module: hr_contract_sign
-#: model:ir.model.fields.selection,name:hr_contract_sign.selection__hr_contract_sign_document_wizard__mail_to__work
-msgid "Work"
-msgstr ""
 
 #. module: hr_contract_sign
 #: model_terms:ir.ui.view,arch_db:hr_contract_sign.view_hr_contract_sign

@@ -8,6 +8,7 @@ class AccountBatchPaymentRejection(models.TransientModel):
 
     # Fields that need to be populated when opening the wizard.
     in_reconcile_payment_ids = fields.Many2many(comodel_name='account.payment')
+    next_action_todo = fields.Binary(store=False)
 
     rejected_payment_ids = fields.Many2many(
         comodel_name='account.payment',
@@ -15,6 +16,7 @@ class AccountBatchPaymentRejection(models.TransientModel):
     )
     nb_rejected_payment_ids = fields.Integer(compute='_compute_rejected_payment_ids')
     nb_batch_payment_ids = fields.Integer(compute='_compute_rejected_payment_ids')
+    cancel_action_todo = fields.Boolean()
 
     @api.model
     def _fetch_rejected_payment_ids(self, in_reconcile_payments):
@@ -54,10 +56,10 @@ class AccountBatchPaymentRejection(models.TransientModel):
             to_unlink.button_cancel()
         if to_reject:
             to_reject._reverse_moves(cancel=True)
-        return {'type': 'ir.actions.act_window_close', 'infos': 'validate'}
+        return True
 
     def button_continue(self):
-        return {'type': 'ir.actions.act_window_close', 'infos': 'validate'}
+        return True
 
     def button_cancel(self):
         """ Cancel the current operation and invalidate the current "Validate" action. """

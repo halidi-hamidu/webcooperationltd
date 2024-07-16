@@ -62,30 +62,26 @@ class HrPayrollAllocPaidLeave(models.TransientModel):
 
         employee_check = ""
         if self.department_id:
-            employee_check = "AND e.department_id = %(department)s) "
+            employee_check = "AND e.department_id = %(department)s"
 
         if self.employee_ids:
             employee_check += "AND e.id in %(employee_ids)s "
 
         query = """
-            SELECT contract_id, employee_id, date_start, date_end, resource_calendar_id
-            FROM (
-                SELECT contract.id as contract_id, contract.employee_id as employee_id, resource_calendar_id, contract.date_start, contract.date_end
-                FROM
-                    (SELECT c.id, c.employee_id, c.resource_calendar_id, c.date_start, c.date_end FROM hr_contract c
-                        JOIN hr_employee e
-                          ON e.id = c.employee_id
-                        WHERE 1=1
-                            {where_structure}
-                            AND c.state IN ('open', 'pending', 'close')
-                            AND c.date_start <= %(stop)s
-                            AND (c.date_end IS NULL OR c.date_end >= %(start)s)
-                            AND e.active IS TRUE
-                            AND c.company_id IN %(company)s
-                            {where_employee_in_department}
-                    ) contract
-                LEFT JOIN resource_calendar calendar ON (contract.resource_calendar_id = calendar.id)
-            ) payslip
+            SELECT c.id AS contract_id,
+                   c.employee_id AS employee_id,
+                   c.date_start AS date_start,
+                   c.date_end AS date_end,
+                   c.resource_calendar_id AS resource_calendar_id
+              FROM hr_contract c
+              JOIN hr_employee e ON c.employee_id = e.id
+             WHERE c.state IN ('open', 'pending', 'close')
+               AND c.date_start <= %(stop)s
+               AND (c.date_end IS NULL OR c.date_end >= %(start)s)
+               AND e.active IS TRUE
+               AND c.company_id IN %(company)s
+                   {where_structure}
+                   {where_employee_in_department}
         """.format(where_structure=structure, where_employee_in_department=employee_check)
 
         self.env.cr.execute(query, {

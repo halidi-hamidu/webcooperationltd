@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="l10n_syscohada.account_reports_syscohada_statements_menu" name="Syscohada" parent="account.menu_finance_reports" sequence="0" groups="account.group_account_readonly"/>
-
-<data  auto_sequence="1">
     <record id="account_financial_report_syscohada_bilan" model="account.report">
         <field name="name">Balance Sheet (SYSCOHADA)</field>
         <field name="root_report_id" ref="account_reports.balance_sheet"/>
@@ -14,14 +12,13 @@
             <record id="account_financial_report_syscohada_bilan_column" model="account.report.column">
                 <field name="name">Balance</field>
                 <field name="expression_label">balance</field>
-            </record>
+                </record>
         </field>
         <field name="line_ids">
             <record id="account_financial_report_line_syscohada_bilan_actif_passif_total" model="account.report.line">
                 <field name="name">ACTIVE - PASSIVE</field>
                 <field name="code">SYSCOHADA_ACTIF_PASSIF_TOTAL</field>
                 <field name="hide_if_zero" eval="True"/>
-                <field name="hierarchy_level">0</field>
                 <field name="expression_ids">
                     <record id="account_financial_report_line_syscohada_bilan_actif_passif_total_balance" model="account.report.expression">
                         <field name="label">balance</field>
@@ -33,7 +30,6 @@
             <record id="account_financial_report_syscohada_bilan_actif_total" model="account.report.line">
                 <field name="name">ACTIVE</field>
                 <field name="code">SYSCOHADA_ACTIF_TOT</field>
-                <field name="hierarchy_level">0</field>
                 <field name="children_ids">
                     <record id="account_financial_report_line_02_3_syscohada_bilan_actif" model="account.report.line">
                         <field name="name">AD | INTANGIBLE ASSETS</field>
@@ -413,7 +409,6 @@
             <record id="account_financial_report_syscohada_bilan_passif_total" model="account.report.line">
                 <field name="name">PASSIVE</field>
                 <field name="code">SYSCOHADA_PASSIF_TOT</field>
-                <field name="hierarchy_level">0</field>
                 <field name="children_ids">
                     <record id="account_financial_report_line_03_0_1_syscohada_bilan_passif" model="account.report.line">
                         <field name="name">CA | Capital</field>
@@ -788,5 +783,4 @@
             </record>
         </field>
     </record>
-</data>
 </odoo>

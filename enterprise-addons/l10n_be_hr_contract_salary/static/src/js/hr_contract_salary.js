@@ -1,18 +1,18 @@
-/** @odoo-module **/
+odoo.define('l10n_be_hr_contract_salary', function (require) {
+"use strict";
 
-import hrContractSalary from "@hr_contract_salary/js/hr_contract_salary";
+const hrContractSalary = require('hr_contract_salary');
 
 hrContractSalary.include({
-    events: Object.assign({}, hrContractSalary.prototype.events, {
+    events: _.extend({}, hrContractSalary.prototype.events, {
         "change input[name='has_hospital_insurance_radio']": "onchangeHospital",
         "change input[name='fold_company_car_total_depreciated_cost']": "onchangeCompanyCar",
         "change input[name='fold_private_car_reimbursed_amount']": "onchangePrivateCar",
-        "change input[name='fold_l10n_be_bicyle_cost']": "onchangePrivateBike",
         "change input[name='l10n_be_has_ambulatory_insurance_radio']": "onchangeAmbulatory",
         "change input[name='children']": "onchangeChildren",
     }),
 
-    getBenefits() {
+    getAdvantages() {
         var res = this._super.apply(this, arguments);
         res.contract.l10n_be_canteen_cost = parseFloat($("input[name='l10n_be_canteen_cost']").val() || "0.0");
         return res
@@ -37,19 +37,15 @@ hrContractSalary.include({
         }
     },
 
-    onchangePrivateBike: function(event) {
-        if (event.target.checked) {
-            // Set the fuel card slider value to 0 and disable it
-            $("input[name='fuel_card_slider']").val(0).prop('disabled', true);
-            $("input[name='fuel_card']").val(0);
-        } else {
-            // Enable the fuel card slider when "Private Bike" is unchecked
-            $("input[name='fuel_card_slider']").prop('disabled', false);
-        }
+    onchange_mobility: function() {
+        this._super.apply(this, arguments);
+        var fuel_card_div = $("div[name='fuel_card']");
+        // Don't hide the fuel card if no car is chosen
+        fuel_card_div.removeClass("hidden");
     },
 
-    onchangeFoldedResetInteger(benefitField) {
-        if (benefitField === 'private_car_reimbursed_amount_manual' || benefitField === 'l10n_be_bicyle_cost_manual') {
+    onchangeFoldedResetInteger(advantageField) {
+        if (advantageField === 'private_car_reimbursed_amount_manual' || advantageField === 'l10n_be_bicyle_cost_manual') {
             return false;
         } else {
             return this._super.apply(this, arguments);
@@ -60,6 +56,7 @@ hrContractSalary.include({
         const res = await this._super(...arguments);
         this.onchangeChildren();
         this.onchangeHospital();
+        // YTI TODO: There is probably a way to remove this crap
         $("input[name='insured_relative_children']").parent().addClass('d-none');
         $("input[name='insured_relative_adults']").parent().addClass('d-none');
         $("input[name='insured_relative_spouse']").parent().addClass('d-none');
@@ -77,6 +74,7 @@ hrContractSalary.include({
             text: 'Additional Information'
         }));
         this.onchangeAmbulatory();
+        // YTI TODO: There is probably a way to remove this crap
         $("input[name='l10n_be_ambulatory_insured_children']").parent().addClass('d-none');
         $("input[name='l10n_be_ambulatory_insured_adults']").parent().addClass('d-none');
         $("input[name='l10n_be_ambulatory_insured_spouse']").parent().addClass('d-none');
@@ -138,10 +136,11 @@ hrContractSalary.include({
         }
     },
 
-    onchangeChildren(event) {
+    onchangeChildren() {
         const disabledChildren = $("input[name='disabled_children_bool']");
         const disabledChildrenNumber = $("input[name='disabled_children_number']");
-        const childCount = parseInt(event && event.currentTarget && event.currentTarget.value);
+        const childrenInput = $("input[name='children']", this.el)
+        const childCount = parseInt(childrenInput.length > 0 && childrenInput.val());
 
         if (isNaN(childCount) || childCount === 0) {
             disabledChildrenNumber.val(0);
@@ -154,4 +153,6 @@ hrContractSalary.include({
             disabledChildren.parent().removeClass('d-none');
         }
     },
+});
+
 });

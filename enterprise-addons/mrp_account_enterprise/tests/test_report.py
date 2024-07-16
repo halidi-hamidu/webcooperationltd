@@ -68,12 +68,11 @@ class TestReportsCommon(TestMrpAccount):
 
         # avoid qty done not being updated when enterprise mrp_workorder is installed
         for move in production_table.move_raw_ids:
-            move.quantity = move.product_uom_qty
-            move.picked = True
+            move.quantity_done = move.product_uom_qty
         production_table._post_inventory()
         production_table.button_mark_done()
 
-        total_component_cost = sum(move.product_id.standard_price * move.quantity for move in production_table.move_raw_ids)
+        total_component_cost = sum(move.product_id.standard_price * move.quantity_done for move in production_table.move_raw_ids)
         total_operation_cost = sum(wo.costs_hour * sum(wo.time_ids.mapped('duration')) / 60.0 for wo in production_table.workorder_ids)
 
         report = self.env['report.mrp_account_enterprise.mrp_cost_structure']
@@ -199,15 +198,16 @@ class TestReportsCommon(TestMrpAccount):
         # must flush else SQL request in report is not accurate
         self.env.flush_all()
 
-        report = self.env['mrp.report']._read_group(
+        report = self.env['mrp.report'].read_group(
             [('product_id', '=', self.bom_2.product_id.id)],
-            aggregates=['unit_cost:avg', 'unit_component_cost:avg', 'unit_operation_cost:avg', 'unit_duration:avg'],
+            ['unit_cost:avg', 'unit_component_cost:avg', 'unit_operation_cost:avg', 'unit_duration:avg'],
+            ['product_id'],
         )[0]
-        unit_cost, unit_component_cost, unit_operation_cost, unit_duration = report
-        self.assertEqual(unit_cost, 190)
-        self.assertEqual(unit_component_cost, 150)
-        self.assertEqual(unit_operation_cost, 40)
-        self.assertEqual(unit_duration, 30)
+
+        self.assertEqual(report['unit_cost'], 190)
+        self.assertEqual(report['unit_component_cost'], 150)
+        self.assertEqual(report['unit_operation_cost'], 40)
+        self.assertEqual(report['unit_duration'], 30)
 
     def test_multiple_users_operation(self):
         """ Check what happens on the report when two users log on the same operation simultaneously.

@@ -12,13 +12,8 @@ class TestWebsiteSaleTaxCloud(HttpCase):
 
     def setUp(self):
         super().setUp()
-        self.env.company.country_id = self.env.ref('base.us')
-        self.env['account.tax.group'].create(
-            {'name': 'Test Tax Group', 'company_id': self.env.company.id}
-        )
 
         self.acquirer = self.env.ref('payment.payment_provider_transfer')
-        self.payment_method_id = self.env.ref('payment.payment_method_unknown').id
 
         self.fiscal_position = self.env['account.fiscal.position'].create({
             'name': 'BurgerLand',
@@ -82,11 +77,11 @@ class TestWebsiteSaleTaxCloud(HttpCase):
                     'params': {
                         'access_token': sale_order.access_token,
                         'amount': 110,
-                        'provider_id': self.acquirer.id,
-                        'payment_method_id': self.payment_method_id,
-                        'token_id': False,
+                        'payment_option_id': self.acquirer.id,
                         'tokenization_requested': True,
                         'flow': 'direct',
+                        'currency_id': sale_order.currency_id.id,
+                        'partner_id': sale_order.partner_id.id,
                         'landing_route': 'Test'
                     }
                 })

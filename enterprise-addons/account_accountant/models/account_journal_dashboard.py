@@ -17,7 +17,16 @@ class account_journal(models.Model):
             )
         else:
             # Open reconciliation view for customers/suppliers
-            return self.env['ir.actions.act_window']._for_xml_id('account_accountant.action_move_line_posted_unreconciled')
+            action_context = {'show_mode_selector': False, 'company_ids': self.mapped('company_id').ids}
+            if self.type == 'sale':
+                action_context.update({'mode': 'customers'})
+            elif self.type == 'purchase':
+                action_context.update({'mode': 'suppliers'})
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'manual_reconciliation_view',
+                'context': action_context,
+            }
 
     def action_open_to_check(self):
         self.ensure_one()
@@ -39,19 +48,6 @@ class account_journal(models.Model):
             kanban_first=False,
         )
 
-    def action_open_reconcile_statement(self):
-        return self.env['account.bank.statement.line']._action_open_bank_reconciliation_widget(
-            default_context={
-                'search_default_statement_id': self.env.context.get('statement_id'),
-            },
-        )
-
-    def action_new_transaction(self):
-        self.ensure_one()
-        action = self.env['ir.actions.act_window']._for_xml_id('account_accountant.action_bank_statement_line_form_bank_rec_widget')
-        action['context'] = {'default_journal_id': self.id}
-        return action
-
     def open_action(self):
         # EXTENDS account
         # set default action for liquidity journals in dashboard
@@ -67,3 +63,6 @@ class account_journal(models.Model):
             )
         return super().open_action()
 
+    def create_cash_statement(self):
+        # EXTENDS account
+        return self.action_open_bank_transactions()

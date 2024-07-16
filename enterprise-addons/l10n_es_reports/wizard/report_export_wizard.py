@@ -21,7 +21,7 @@ class ReportExportWizard(models.TransientModel):
 
             if boe_format:
                 report = self.report_id
-                boe_action = self.env[report.custom_handler_model_name].export_boe(self.env.context.get('account_report_generation_options'), boe_format.fun_param)
+                boe_action = self.env[report.custom_handler_model_name].open_boe_wizard(self.env.context.get('account_report_generation_options'), boe_format.fun_param)
 
                 # BOE generation may require the use of a wizard (hence returning act_window)
                 # to prompt for some manual data. If so, we display this wizard, and

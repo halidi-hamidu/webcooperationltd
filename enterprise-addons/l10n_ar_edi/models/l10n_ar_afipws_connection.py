@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from lxml import builder
 from lxml import etree
 from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError
 from urllib3.util.ssl_ import create_urllib3_context, DEFAULT_CIPHERS
 import time
 import datetime
@@ -126,9 +127,10 @@ class L10nArAfipwsConnection(models.Model):
         else:
             error_name = repr(error)
 
-        error_msg = _('There was a problem with the connection to the %s webservice: %s', afip_ws, error_name)
+        error_msg = _('There was a problem with the connection to the %s webservice: %s') % (afip_ws, error_name)
 
         # Find HINT for error message
+        hint_msg = False
         certificate_expired = _('It seems like the certificate has expired. Please renew your AFIP certificate')
         token_in_use = 'El CEE ya posee un TA valido para el acceso al WSN solicitado'
         data = {
@@ -144,7 +146,10 @@ class L10nArAfipwsConnection(models.Model):
                 '\n\n If not, then could be a overload of AFIP service, please wait some time and try again'),
             'No se puede decodificar el BASE64': _('The certificate and private key do not match'),
         }
-        hint_msg = next((value for item, value in data.items() if item in error_name), None)
+        for item, value in data.items():
+            if item in error_name:
+                hint_msg = value
+                break
 
         if token_in_use in error_name and env_type == 'testing':
             hint_msg = _(
@@ -154,9 +159,12 @@ class L10nArAfipwsConnection(models.Model):
                 ' (On Settings click the ⇒ "Set another demo certificate" button).\n'
                 ' 2) Configure your own testing certificates')
         if hint_msg:
-            error_msg += '\n\nPISTA: ' + hint_msg
+            error_msg += '\n\nHINT: ' + hint_msg
         else:
-            error_msg += '\n\n' + _('Please report this error to your Odoo provider')
+            if isinstance(error, HTTPError) and error.response.status_code == 503:
+                error_msg += '\n\n' + _('The AFIP electronic billing webservice is not available. Wait a few minutes for it to reset and try to validate the action again.')
+            else:
+                error_msg += '\n\n' + _('Please report this error to your Odoo provider')
         raise UserError(error_msg)
 
     def _l10n_ar_get_token_data(self, company, afip_ws):

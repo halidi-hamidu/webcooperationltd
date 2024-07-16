@@ -8,12 +8,12 @@ import { SpreadsheetSelectorDialog } from "../components/spreadsheet_selector_di
 import { HandleField } from "@web/views/fields/handle/handle_field";
 import { _t } from "@web/core/l10n/translation";
 
-patch(ListRenderer.prototype, {
+patch(ListRenderer.prototype, "documents_spreadsheet_list_renderer_patch", {
     /**
      * @override
      */
     setup() {
-        super.setup(...arguments);
+        this._super(...arguments);
         this.dialogService = useService("dialog");
         this.userService = useService("user");
         useBus(this.env.bus, "insert-list-spreadsheet", this.insertListSpreadsheet.bind(this));
@@ -21,17 +21,11 @@ patch(ListRenderer.prototype, {
 
     insertListSpreadsheet() {
         const model = this.env.model.root;
-        const count = model.groups
-            ? model.groups.reduce((acc, group) => group.count + acc, 0)
-            : model.count;
-        const threshold = Math.min(count, model.limit);
+        const threshold = Math.min(model.count, model.limit);
         let name = this.env.config.getDisplayName();
         const sortBy = model.orderBy[0];
         if (sortBy) {
-            name = _t("%(field name)s by %(order)s", {
-                "field name": name,
-                order: model.fields[sortBy.name].string,
-            });
+            name += ` ${_t("by")} ` + model.fields[sortBy.name].string;
         }
         const { list, fields } = this.getListForSpreadsheet(name);
         const actionOptions = {
@@ -53,8 +47,7 @@ patch(ListRenderer.prototype, {
             .filter(
                 (col) =>
                     col.type === "field" &&
-                    col.field.component !== HandleField &&
-                    !col.relatedPropertyField &&
+                    col.FieldComponent !== HandleField &&
                     !["binary", "json"].includes(fields[col.name].type)
             )
             .map((col) => ({ name: col.name, type: fields[col.name].type }));
@@ -65,7 +58,7 @@ patch(ListRenderer.prototype, {
         return {
             list: {
                 model: model.resModel,
-                domain: this.env.searchModel.domainString,
+                domain: model.domain,
                 orderBy: model.orderBy,
                 context: omit(model.context, ...Object.keys(this.userService.context)),
                 columns: this.getColumnsForSpreadsheet(),

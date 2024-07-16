@@ -7,7 +7,7 @@ from odoo.tools.translate import _
 
 
 class Module(models.Model):
-    _inherit = "ir.module.module"
+    _inherit = 'ir.module.module'
 
     def module_uninstall(self):
         for module_to_remove in self:

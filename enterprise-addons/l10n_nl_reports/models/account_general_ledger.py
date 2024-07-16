@@ -73,7 +73,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                       partner.customer_rank AS partner_customer_rank,
                       partner.supplier_rank AS partner_supplier_rank,
                       partner.write_uid AS partner_write_uid,
-                      TO_CHAR(partner.write_date, 'YYYY-MM-DD HH24:MI:SS') AS partner_write_date,
+                      TO_CHAR(partner.write_date, 'YYYY-MM-DD"T"HH24:MI:SS') AS partner_write_date,
                       country.code AS partner_country_code,
                       state.name AS partner_state_name,
                       res_partner_bank.id AS partner_bank_id,
@@ -144,14 +144,14 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                    ROUND(account_move_line.debit, 2) AS line_debit,
                    ROUND(account_move_line.balance, 2) AS line_balance,
                    ROUND(account_move_line.amount_currency, 2) AS line_amount_currency,
-                   reconcile.id AS line_reconcile_name,
+                   reconcile.name AS line_reconcile_name,
                    currency.id AS line_currency_id,
                    currency2.id AS line_company_currency_id,
                    currency.name AS line_currency_name,
                    currency2.name AS line_company_currency_name
               FROM {tables}
-              JOIN account_journal journal ON account_move_line.journal_id = journal.id
               JOIN account_account account ON account_move_line.account_id = account.id
+              JOIN account_journal journal ON account_move_line.journal_id = journal.id
          LEFT JOIN account_move account_move_line__move_id ON account_move_line__move_id.id = account_move_line.move_id
          LEFT JOIN account_full_reconcile reconcile ON account_move_line.full_reconcile_id = reconcile.id
          LEFT JOIN res_currency currency ON account_move_line.currency_id = currency.id
@@ -283,7 +283,8 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         self.env.cr.execute(partner_query, partner_params)
         partner_values = self.env.cr.dictfetchall()
         iso_country_codes = self.env['ir.attachment'].l10n_nl_reports_load_iso_country_codes()
-        check_forbidden_countries(report, partner_values, iso_country_codes)
+        if iso_country_codes:
+            check_forbidden_countries(report, partner_values, iso_country_codes)
         for row in partner_values:
             street_detail = street_split(row['partner_street'])
             header_values['partner_data'].append({
@@ -349,12 +350,8 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         header_values = self._l10n_nl_get_header_values(new_options)
         header_content = self.env['ir.qweb']._render('l10n_nl_reports.xaf_audit_file', header_values)
         header, footer = header_content.split('</transactions>')
-        return chain(
-            [header],
-            self._get_xaf_lines_stream(new_options),
-            [Markup("""
-                </transactions>""") + footer],
-        )
+        return chain([header], self._get_xaf_lines_stream(new_options), [Markup("""
+                </transactions>""") + footer])
 
     def _get_xaf_lines_stream(self, options):
         def journal_type(journal_type):
@@ -380,7 +377,10 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             self.env.cr.execute(transaction_query, transaction_params)
 
             journal_id, move_id = None, None
-            while transaction_values := self.env.cr.dictfetchmany(batch_size):
+            while True:
+                transaction_values = self.env.cr.dictfetchmany(batch_size)
+                if not transaction_values:
+                    break
                 for row in transaction_values:
                     if row['journal_id'] != journal_id:
                         if journal_id is not None:
@@ -454,7 +454,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
     def l10n_nl_get_xaf(self, options):
         report = self.env['account.report'].browse(options['report_id'])
         return {
-            'file_name': report.get_default_report_filename(options, 'xaf'),
+            'file_name': report.get_default_report_filename('xaf'),
             'file_content': (x.encode() for x in self._get_xaf_stream(options)),
             'file_type': 'xaf',
         }

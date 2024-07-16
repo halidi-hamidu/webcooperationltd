@@ -12,7 +12,6 @@ import re
 
 from collections import defaultdict
 from datetime import timedelta
-from markupsafe import Markup
 
 
 class AccountEdiFormat(models.Model):
@@ -269,8 +268,8 @@ class AccountEdiFormat(models.Model):
         for line, tax_detail in tax_details['tax_details_per_record'].items():
             for tax, detail in tax_detail.get('tax_details').items():
                 if not detail.get('tax_amount'):
+                    tax = tax.get('tax')
                     for grouped_tax in detail.get('group_tax_details'):
-                        tax = tax.get('tax')
                         zero_tax_details[tax.l10n_co_edi_type.code] += abs(grouped_tax.get('base_amount'))
         retention_taxes_new = self._l10n_co_edi_prepare_tim_sections(retention_lines_listdict, invoice.currency_id, True, None, tax_details_tim)
         regular_taxes_new = self._l10n_co_edi_prepare_tim_sections(regular_lines_listdict, invoice.currency_id, False, zero_tax_details, tax_details_tim)
@@ -397,7 +396,7 @@ class AccountEdiFormat(models.Model):
 
             # == Chatter ==
             invoice.with_context(no_new_invoice=True).message_post(
-                body=_('Electronic invoice submission succeeded. Message from Carvajal:') + Markup('<br/>)' + response['message']),
+                body=_('Electronic invoice submission succeeded. Message from Carvajal:<br/>%s', response['message']),
                 attachment_ids=attachment.ids,
             )
             # Do not return the attachment because it is not signed yet.

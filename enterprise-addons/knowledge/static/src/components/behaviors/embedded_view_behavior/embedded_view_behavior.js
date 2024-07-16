@@ -10,12 +10,13 @@ import {
 } from "@knowledge/js/knowledge_utils";
 import { useService } from "@web/core/utils/hooks";
 import { uuid } from "@web/views/utils";
-import {
+
+const {
     onError,
     onMounted,
-    onWillDestroy,
+    onWillUnmount,
     useState,
-    useSubEnv } from "@odoo/owl";
+    useSubEnv } = owl;
 
 /**
  * This component will have the responsibility to load the embedded view lazily
@@ -23,22 +24,6 @@ import {
  * to handle errors that may occur when loading an embedded view.
  */
 export class EmbeddedViewBehavior extends AbstractBehavior {
-    static components = {
-        EmbeddedViewManager,
-    };
-    static props = {
-        ...AbstractBehavior.props,
-        action_help: { type: Object, optional: true},
-        action_xml_id: { type: String, optional: true },
-        act_window: { type: Object, optional: true },
-        additionalViewProps: { type: Object, optional: true},
-        context: { type: Object, optional: true },
-        display_name: { type: String, optional: true },
-        embedded_view_id: { type: String, optional: true },
-        view_type: { type: String },
-    };
-    static template = "knowledge.EmbeddedViewBehavior";
-
     setup () {
         super.setup();
         this.actionService = useService('action');
@@ -63,28 +48,11 @@ export class EmbeddedViewBehavior extends AbstractBehavior {
         });
 
         onMounted(() => {
-            const { anchor, root } = this.props;
-            if (root.contains(anchor)) {
-                this.setupIntersectionObserver();
-            } else {
-                // If the anchor is not already in the editable, it means that
-                // it was mounted in a d-none element and is waiting
-                // to be inserted. The intersectionObserver must wait for the
-                // anchor to be in the editable before being set up, because
-                // it will not detect that it is visible if the insertion
-                // moves the anchor from the d-none element to a visible
-                // sector of the editable.
-                this.insertionObserver = new MutationObserver(mutationList => {
-                    const isAdded = mutationList.find(mutation => {
-                        return Array.from(mutation.addedNodes).find(node => node === anchor);
-                    });
-                    if (isAdded) {
-                        this.insertionObserver.disconnect();
-                        this.setupIntersectionObserver();
-                    }
-                });
-                this.insertionObserver.observe(root, {childList: true});
-            }
+            const { anchor } = this.props;
+            this.observer = setIntersectionObserver(anchor, async () => {
+                await this.loadData();
+                this.state.waiting = false;
+            });
             /**
              * Capturing the events occuring in the embedded view to prevent the
              * default behavior of the editor.
@@ -107,12 +75,9 @@ export class EmbeddedViewBehavior extends AbstractBehavior {
             anchor.addEventListener('drop', bypassEditorEventListeners);
         });
 
-        onWillDestroy(() => {
+        onWillUnmount(() => {
             if (this.observer) {
-                this.observer.disconnect();
-            }
-            if (this.insertionObserver) {
-                this.insertionObserver.disconnect();
+                this.observer.unobserve(this.props.anchor);
             }
         });
 
@@ -122,58 +87,13 @@ export class EmbeddedViewBehavior extends AbstractBehavior {
         });
     }
 
-    //--------------------------------------------------------------------------
-    // TECHNICAL
-    //--------------------------------------------------------------------------
-
-    setupIntersectionObserver() {
-        this.observer = setIntersectionObserver(this.props.anchor, async () => {
-            await this.loadData();
-            this.state.waiting = false;
-        });
-    }
-
-    //--------------------------------------------------------------------------
-    // GETTERS/SETTERS
-    //--------------------------------------------------------------------------
-
-    /**
-     * Get the title of the embedded view.
-     * @returns {String}
-     */
-    getTitle () {
-        return this.embeddedViewManagerProps.action.display_name ||
-            this.embeddedViewManagerProps.action.name ||
-            '';
-    }
-
-    /**
-     * Set the title of the embedded view.
-     * @param {String} name
-     */
-    setTitle (name) {
-        const behaviorProps = decodeDataBehaviorProps(this.props.anchor.getAttribute('data-behavior-props'));
-        behaviorProps.display_name = name;
-        this.props.anchor.dataset.behaviorProps = encodeDataBehaviorProps(behaviorProps);
-        this.embeddedViewManagerProps.action.name = name;
-        this.embeddedViewManagerProps.action.display_name = name;
-        const title = this.props.anchor.querySelector('.o_control_panel .o_last_breadcrumb_item.active span');
-        if (title) {
-            title.textContent = name;
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    // BUSINESS
-    //--------------------------------------------------------------------------
-
     async loadData () {
-        const context = makeContext([this.props.context || {}, {
+        const context = makeContext([this.props.context, {
             knowledgeEmbeddedViewId: this.knowledgeEmbeddedViewId
         }]);
         try {
             const action = await this.actionService.loadAction(
-                this.props.act_window || this.props.action_xml_id,
+                this.props.act_window,
                 context
             );
             if (action.type !== "ir.actions.act_window") {
@@ -182,24 +102,60 @@ export class EmbeddedViewBehavior extends AbstractBehavior {
             }
             if (this.props.display_name) {
                 action.name = this.props.display_name;
-                action.display_name = this.props.display_name;
             }
             if (this.props.action_help) {
                 action.help = this.props.action_help;
             }
             this.embeddedViewManagerProps = {
-                anchor: this.props.anchor,
+                el: this.props.anchor,
                 action,
-                additionalViewProps: this.props.additionalViewProps,
                 context,
                 viewType: this.props.view_type,
                 setTitle: this.setTitle.bind(this),
                 getTitle: this.getTitle.bind(this),
                 readonly: this.props.readonly,
-                record: this.props.record,
             };
         } catch {
             this.state.error = true;
         }
     }
+
+    /**
+     * Set the title of the embedded view.
+     * @param {String} name
+     */
+    setTitle (name) {
+        const behaviorProps = decodeDataBehaviorProps(this.props.anchor.getAttribute('data-behavior-props'));
+        if (behaviorProps.act_window) {
+            behaviorProps.act_window.name = name;
+            behaviorProps.act_window.display_name = name;
+        }
+        this.props.anchor.dataset.behaviorProps = encodeDataBehaviorProps(behaviorProps);
+        this.embeddedViewManagerProps.action.name = name;
+        const title = this.props.anchor.querySelector('.o_control_panel .breadcrumb-item.active');
+        if (title) {
+            title.textContent = name;
+        }
+    }
+
+    /**
+     * Get the title of the embedded view.
+     * @returns {String}
+     */
+    getTitle () {
+        return this.embeddedViewManagerProps.action.name || '';
+    }
 }
+
+EmbeddedViewBehavior.template = "knowledge.EmbeddedViewBehavior";
+EmbeddedViewBehavior.components = {
+    EmbeddedViewManager,
+};
+EmbeddedViewBehavior.props = {
+    ...AbstractBehavior.props,
+    embedded_view_id: { type: String, optional: true },
+    act_window: { type: Object },
+    context: { type: Object },
+    view_type: { type: String },
+    action_help: { type: Object, optional: true},
+};

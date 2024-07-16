@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class Picking(models.Model):
     _inherit = 'stock.picking'
 
+    # DEPRECATED -> This field has been replaced by a Many2many in 'l10n_mx_edi_stock_extended_31'
     l10n_mx_edi_customs_regime_id = fields.Many2one(
         string="Customs Regime",
         help="Regime associated to the good's transfer (import or export).",
@@ -34,36 +36,26 @@ class Picking(models.Model):
         ondelete="restrict",
     )
 
-    def _l10n_mx_edi_cfdi_check_picking_config(self):
+    def _l10n_mx_edi_check_required_data(self):
         # EXTENDS 'l10n_mx_edi_stock'
-        errors = super()._l10n_mx_edi_cfdi_check_picking_config()
+        super()._l10n_mx_edi_check_required_data()
 
-        if self.l10n_mx_edi_external_trade:
-
-            pedimento_code = self.env.ref('l10n_mx_edi_stock_extended_30.l10n_mx_edi_customs_document_type_01').code
-
+        if self.l10n_mx_edi_is_export:
             if not self.l10n_mx_edi_customs_document_type_code:
-                errors.append(_("Please define a customs regime."))
-            if self.l10n_mx_edi_customs_document_type_code != pedimento_code and not self.l10n_mx_edi_customs_doc_identification:
-                errors.append(_("Please define a customs document identification."))
+                raise UserError(_("Please define a customs regime."))
+            # Code '01' corresponds to 'Pedimento'.
+            if self.l10n_mx_edi_customs_document_type_code != '01' and not self.l10n_mx_edi_customs_doc_identification:
+                raise UserError(_("Please define a customs document identification."))
             if self.l10n_mx_edi_importer_id and not self.l10n_mx_edi_importer_id.vat:
-                errors.append(_("Please define a VAT number for the importer '%s'.", self.l10n_mx_edi_importer_id.name))
+                raise UserError(_("Please define a VAT number for the importer."))
             if any(not move.product_id.l10n_mx_edi_material_type for move in self.move_ids):
-                errors.append(_("At least one product is missing a material type."))
+                raise UserError(_("At least one product is missing a material type."))
 
-        return errors
-
-    @api.model
-    def _l10n_mx_edi_add_domicilio_cfdi_values(self, cfdi_values, partner):
+    def _l10n_mx_edi_get_picking_cfdi_values(self):
         # EXTENDS 'l10n_mx_edi_stock'
-        super()._l10n_mx_edi_add_domicilio_cfdi_values(cfdi_values, partner)
-        cfdi_values['domicilio']['municipio'] = partner.city_id.l10n_mx_edi_code or partner.city
+        cfdi_values = super()._l10n_mx_edi_get_picking_cfdi_values()
 
-    def _l10n_mx_edi_add_picking_cfdi_values(self, cfdi_values):
-        # EXTENDS 'l10n_mx_edi_stock'
-        super()._l10n_mx_edi_add_picking_cfdi_values(cfdi_values)
-
-        if self.l10n_mx_edi_external_trade:
+        if self.l10n_mx_edi_is_export:
             cfdi_values['tipo_documento'] = self.l10n_mx_edi_customs_document_type_code
 
             # Code '01' corresponds to 'Pedimento'.
@@ -75,5 +67,10 @@ class Picking(models.Model):
                 cfdi_values['ident_doc_aduanero'] = self.l10n_mx_edi_customs_doc_identification
 
             if self.picking_type_code in ('outgoing', 'incoming'):
-                cfdi_values['entrada_salida_merc'] = 'Salida' if self.picking_type_code == 'outgoing' else 'Entrada'
                 cfdi_values['regimen_aduanero'] = self.l10n_mx_edi_customs_regime_id.code
+
+        return cfdi_values
+
+    def _l10n_mx_edi_get_municipio(self, partner):
+        """ EXTENDS as we now have the city_id (city is only for comex)"""
+        return partner.city_id.l10n_mx_edi_code or partner.city

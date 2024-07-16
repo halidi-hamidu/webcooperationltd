@@ -10,13 +10,14 @@ class AccountMove(models.Model):
 
     intrastat_transport_mode_id = fields.Many2one(
         'account.intrastat.code', string='Intrastat Transport Mode',
-        domain="[('type', '=', 'transport')]")
+        readonly=True, states={'draft': [('readonly', False)]}, domain="[('type', '=', 'transport')]")
 
     intrastat_country_id = fields.Many2one('res.country',
         string='Intrastat Country',
         help='Intrastat country, arrival for sales, dispatch for purchases',
         compute='_compute_intrastat_country_id',
         readonly=False,
+        states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
         store=True,
         domain=[('intrastat', '=', True)])
 

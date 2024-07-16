@@ -5,10 +5,10 @@ from base64 import b64decode, b64encode
 from uuid import uuid4
 
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509.oid import NameOID
 from lxml import etree
 from odoo import api, fields, models, tools
+from odoo.addons.account.tools.certificate import load_key_and_certificates
 from odoo.addons.l10n_ec_edi.models.xml_utils import (
     NS_MAP, bytes_as_block, calculate_references_digests,
     cleanup_xml_signature, fill_signature, int_as_bytes)
@@ -38,7 +38,7 @@ class L10nEcCertificate(models.Model):
         self.ensure_one()
         content = self.with_context(bin_size=False).content or self.content
         try:
-            _private_key, certificate, _dummy = pkcs12.load_key_and_certificates(
+            _private_key, certificate = load_key_and_certificates(
                 b64decode(content),
                 self.password.encode(),
             )
@@ -77,7 +77,7 @@ class L10nEcCertificate(models.Model):
         }
 
         # Load private key and certificates
-        private_key, public_cert, dummy = pkcs12.load_key_and_certificates(
+        private_key, public_cert = load_key_and_certificates(
             b64decode(self.with_context(bin_size=False).content),  # without bin_size=False, size is returned instead of content
             self.password.encode(),
         )

@@ -2,13 +2,14 @@
 
 import { loadJS } from "@web/core/assets";
 import { useService } from "@web/core/utils/hooks";
-import { getColor } from "@web/core/colors/colors";
-import { cookie } from "@web/core/browser/cookie";
-import { Component, onWillUnmount, useEffect, useRef, useState, onWillStart } from "@odoo/owl";
+import { getColor } from "@web/views/graph/colors";
+
+const { Component, onWillUnmount, useEffect, useRef, useState, onWillStart } = owl;
 
 export class PayrollDashboardStats extends Component {
     setup() {
         this.actionService = useService("action");
+        this.cookies = useService("cookie");
         this.canvasRef = useRef('canvas');
         this.state = useState({ monthly: true });
         onWillStart(() => loadJS("/web/static/lib/Chart/Chart.js"));
@@ -90,28 +91,28 @@ export class PayrollDashboardStats extends Component {
                 }],
             },
             options: {
-                plugins : {
-                    legend: {display: false},
-                    tooltip: {
-                        intersect: false,
-                        position: 'nearest',
-                        caretSize: 0,
-                    },
-                },
+                legend: {display: false},
                 scales: {
-                    y: {
-                        display: false,
-                        beginAtZero: true,
-                    },
-                    x: {
-                        display: false
-                    },
+                    yAxes: [
+                        {
+                            display: false,
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                        }
+                    ],
+                    xAxes: [{display: false}],
                 },
                 maintainAspectRatio: false,
                 elements: {
                     line: {
                         tension: 0.000001,
                     },
+                },
+                tooltips: {
+                    intersect: false,
+                    position: 'nearest',
+                    caretSize: 0,
                 },
             },
         };
@@ -124,7 +125,7 @@ export class PayrollDashboardStats extends Component {
         const data = [];
         const labels = [];
         const backgroundColors = [];
-        const color19 = getColor(19, cookie.get("color_scheme"));
+        const color19 = getColor(19, this.cookies.current.color_scheme);
         this.graphData.forEach((pt) => {
             data.push(pt.value);
             labels.push(pt.label);
@@ -153,22 +154,23 @@ export class PayrollDashboardStats extends Component {
                 }],
             },
             options: {
-                plugins : {
-                    legend: {display: false},
-                    tooltip: {
-                        intersect: false,
-                        position: 'nearest',
-                        caretSize: 0,
-                    },
-                },
+                legend: {display: false},
                 scales: {
-                    yAxes: 
+                    yAxes: [
                         {
                             display: false,
-                            beginAtZero: true,
+                            ticks: {
+                                beginAtZero: true,
+                            },
                         }
+                    ],
                 },
                 maintainAspectRatio: false,
+                tooltips: {
+                    intersect: false,
+                    position: 'nearest',
+                    caretSize: 0,
+                },
                 elements: {
                     line: {
                         tension: 0.000001
@@ -189,11 +191,11 @@ export class PayrollDashboardStats extends Component {
         if (this.props.is_sample) {
             colors = ['#e7e7e7', '#dddddd', '#f0f0f0', '#fafafa'];
         } else {
-            colors = [getColor(13, cookie.get("color_scheme")), '#a5d8d7', '#ebebeb', '#ebebeb'];
+            colors = [getColor(13, this.cookies.current.color_scheme), '#a5d8d7', '#ebebeb', '#ebebeb'];
         }
 
 
-        Object.entries(this.graphData).forEach(([code, graphData]) => {
+        _.each(this.graphData, function(graphData, code) {
             datasets_labels.push(code);
             const dataset_data = [];
             const formatted_data = []
@@ -220,32 +222,36 @@ export class PayrollDashboardStats extends Component {
                 datasets: datasets,
             },
             options: {
+                legend: {display: false},
                 responsive: true,
-                plugins : {
-                    legend: {display: false},
-                    tooltip: {
-                        intersect: false,
-                        position: 'nearest',
-                        caretSize: 0,
-                        callbacks: {
-                            label: (tooltipItem) => {
-                                const { datasetIndex, index } = tooltipItem;
-                                return datasets[datasetIndex].formatted_data[index];
-                            },
-                        },
-                    },
-                },
                 scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        display: false,
-                        stacked: true,
-                        beginAtZero: true,
-                    }
+                    xAxes: [
+                        {
+                            stacked: true,
+                        }
+                    ],
+                    yAxes: [
+                        {
+                            display: false,
+                            stacked: true,
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                        }
+                    ],
                 },
                 maintainAspectRatio: false,
+                tooltips: {
+                    intersect: false,
+                    position: 'nearest',
+                    caretSize: 0,
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            const {datasetIndex, index} = tooltipItem;
+                            return data.datasets[datasetIndex].formatted_data[index];
+                        }
+                    }
+                },
                 elements: {
                     line: {
                         tension: 0.000001

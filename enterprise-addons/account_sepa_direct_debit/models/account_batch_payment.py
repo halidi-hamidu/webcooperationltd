@@ -13,7 +13,7 @@ from odoo.exceptions import ValidationError, UserError
 class AccountBatchPayment(models.Model):
     _inherit = 'account.batch.payment'
 
-    sdd_required_collection_date = fields.Date(string='Required collection date', default=fields.Date.today, help="Date when the company expects to receive the payments of this batch.")
+    sdd_required_collection_date = fields.Date(string='Required collection date', default=fields.Date.today, readonly=True, states={'draft': [('readonly', False)]}, help="Date when the company expects to receive the payments of this batch.")
     sdd_batch_booking = fields.Boolean(string="SDD Batch Booking", default=True, help="Request batch booking from the bank for the related bank statements.")
     sdd_scheme = fields.Selection(string="SDD Scheme", selection=[('CORE', 'CORE'), ('B2B', 'B2B')],
     help='The B2B scheme is an optional scheme,\noffered exclusively to business payers.\nSome banks/businesses might not accept B2B SDD.',

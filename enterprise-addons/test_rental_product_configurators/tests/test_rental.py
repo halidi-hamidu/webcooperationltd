@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import logging
-
-from odoo.tests.common import tagged, loaded_demo_data
+from odoo.tests.common import tagged
 
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.addons.product_matrix.tests.common import TestMatrixCommon
 from odoo.addons.sale_product_configurator.tests.common import TestProductConfiguratorCommon
-
-_logger = logging.getLogger(__name__)
 
 
 @tagged('post_install', '-at_install')
@@ -77,9 +73,6 @@ class TestRentalProductConfigUi(TestMatrixCommon, TestProductConfiguratorCommon)
         })
 
     def test_rental_product_configurator(self):
-        if not loaded_demo_data(self.env):
-            _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
-            return
         self.start_tour("/web", 'rental_product_configurator_tour', login='salesman')
 
         rental_order = self.env['sale.order'].search([('create_uid', "=", self.salesman.id)])
@@ -94,9 +87,6 @@ class TestRentalProductConfigUi(TestMatrixCommon, TestProductConfiguratorCommon)
         self.assertEqual(rental_order.amount_total, 474.38)
 
     def test_rental_order_with_rental_product_and_sale_product_matrix(self):
-        if not loaded_demo_data(self.env):
-            _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
-            return
         # Set the template as configurable by matrix.
         self.matrix_template.product_add_mode = "matrix"
 

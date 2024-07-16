@@ -8,12 +8,11 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from contextlib import contextmanager
 
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Date, Datetime
-from odoo.tests import Form, tagged
-from odoo.tools import file_open
+from odoo.modules.module import get_module_resource
+from odoo.tests import common, Form, tagged
 import time
 
 @contextmanager
@@ -32,69 +31,65 @@ def additional_groups(user, groups):
         user.write({'groups_id': [(3, group.id, False) for group in group_ids]})
 
 
-@tagged('post_install', '-at_install')
-class TestHR(AccountTestInvoicingCommon):
+@tagged('payroll_main_flow')
+class TestHR(common.TransactionCase):
 
-    @classmethod
-    def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass(chart_template_ref=chart_template_ref)
-        cls.user = cls.create_user_employee(login='fgh', groups='sign.group_sign_user')
-        cls.user_leave_team_leader = cls.create_user_employee(login='sef', groups='base.group_user')
-        cls.user.employee_id.leave_manager_id = cls.user_leave_team_leader
-        cls.hr_user = cls.create_user_employee(login='srt', groups='hr.group_hr_user')
-        cls.hr_holidays_user = cls.create_user_employee(login='kut', groups='hr_holidays.group_hr_holidays_user')
-        cls.hr_holidays_manager = cls.create_user_employee(login='bfd', groups='hr_holidays.group_hr_holidays_manager')
+    def setUp(self):
+        super(TestHR, self).setUp()
+        self.user = self.create_user_employee(login='fgh', groups='sign.group_sign_user')
+        self.user_leave_team_leader = self.create_user_employee(login='sef', groups='base.group_user')
+        self.user.employee_id.leave_manager_id = self.user_leave_team_leader
+        self.hr_user = self.create_user_employee(login='srt', groups='hr.group_hr_user')
+        self.hr_holidays_user = self.create_user_employee(login='kut', groups='hr_holidays.group_hr_holidays_user')
+        self.hr_holidays_manager = self.create_user_employee(login='bfd', groups='hr_holidays.group_hr_holidays_manager')
 
-        cls.hr_fleet_manager = cls.create_user_employee(login='leh', groups='fleet.fleet_group_manager')
+        self.hr_fleet_manager = self.create_user_employee(login='leh', groups='fleet.fleet_group_manager')
 
-        cls.hr_contract_manager = cls.create_user_employee(login='nfz', groups='hr_contract.group_hr_contract_manager')
-        cls.hr_payroll_user = cls.create_user_employee(login='ldj', groups='hr_payroll.group_hr_payroll_user,hr_holidays.group_hr_holidays_user')
-        cls.hr_payroll_manager = cls.create_user_employee(login='lxt', groups='hr_payroll.group_hr_payroll_manager')
+        self.hr_contract_manager = self.create_user_employee(login='nfz', groups='hr_contract.group_hr_contract_manager')
+        self.hr_payroll_user = self.create_user_employee(login='ldj', groups='hr_payroll.group_hr_payroll_user,hr_holidays.group_hr_holidays_user')
+        self.hr_payroll_manager = self.create_user_employee(login='lxt', groups='hr_payroll.group_hr_payroll_manager')
 
-        with file_open('hr_contract_salary/static/src/demo/employee_contract.pdf', "rb") as f:
-            pdf_content = base64.b64encode(f.read())
+        pdf_path = get_module_resource('hr_contract_salary', 'static', 'src', 'demo', 'employee_contract.pdf')
+        pdf_content = base64.b64encode(open(pdf_path, "rb").read())
 
-        attachment = cls.env['ir.attachment'].create({
+        attachment = self.env['ir.attachment'].create({
             'type': 'binary',
             'datas': pdf_content,
             'name': 'test_employee_contract.pdf',
         })
-        cls.template = cls.env['sign.template'].create({
+        self.template = self.env['sign.template'].create({
             'attachment_id': attachment.id,
             'sign_item_ids': [(6, 0, [])],
         })
 
-    @classmethod
-    def create_user_employee(cls, login, groups):
-        user = mail_new_test_user(cls.env, login=login, groups=groups)
-        user.company_id.country_id = cls.env.ref('base.be')
-        employee = cls.env['hr.employee'].create({
+    def create_user_employee(self, login, groups):
+        user = mail_new_test_user(self.env, login=login, groups=groups)
+        user.company_id.country_id = self.env.ref('base.be')
+        employee = self.env['hr.employee'].create({
             'name': 'Employee %s' % login,
             'user_id': user.id,
         })
         user.tz = employee.tz
         return user
 
-    @classmethod
-    def create_leave_type(cls, user, name='Leave Type', requires_allocation='no', employee_requests='yes', request_unit='day', validation='no_validation', allocation_validation='officer'):
-        leave_type_form = Form(cls.env['hr.leave.type'].with_user(user))
+    def create_leave_type(self, user, name='Leave Type', requires_allocation='no', employee_requests='yes', request_unit='day', validation='no_validation', allocation_validation='officer'):
+        leave_type_form = Form(self.env['hr.leave.type'].with_user(user))
         leave_type_form.name = name
         leave_type_form.requires_allocation = requires_allocation
-        # invisible="requires_allocation == 'no'"
+        # attrs="{'invisible': [('requires_allocation', '=', 'no')]}"
         if requires_allocation == 'yes':
             leave_type_form.employee_requests = employee_requests
-            # invisible="requires_allocation == 'no' or employee_requests == 'no'"
+            # attrs="{'invisible': ['|', ('requires_allocation', '=', 'no'), ('employee_requests', '=', 'no')]}"
             if employee_requests == 'yes':
                 leave_type_form.allocation_validation_type = allocation_validation
         leave_type_form.leave_validation_type = validation
         leave_type_form.request_unit = request_unit
-        leave_type_form.responsible_ids.add(user)
+        leave_type_form.responsible_id = user
         return leave_type_form.save()
 
-    @classmethod
-    def create_allocation(cls, user, employee, leave_type, number_of_days=10):
-        user.groups_id += cls.env.ref('hr_holidays.group_hr_holidays_manager')
-        allocation_form = Form(cls.env['hr.leave.allocation'].with_user(user))
+    def create_allocation(self, user, employee, leave_type, number_of_days=10):
+        user.groups_id += self.env.ref('hr_holidays.group_hr_holidays_manager')
+        allocation_form = Form(self.env['hr.leave.allocation'].with_user(user))
         # <field name="number_of_days" invisible="1"/>
         # @api.depends(...'number_of_days_display'...)
         # def _compute_from_holiday_status_id(self):
@@ -111,16 +106,15 @@ class TestHR(AccountTestInvoicingCommon):
         #         if len(allocation.employee_ids) == 1:
         #             allocation.employee_id = allocation.employee_ids[0]._origin
         allocation_form.employee_ids.add(employee)
+        allocation_form.name = 'New Request'
         allocation_form.date_from = time.strftime('2015-1-1')
         allocation_form.date_to = time.strftime('%Y-12-31')
         allocation_form.holiday_status_id = leave_type
-        allocation_form.name = 'New Request'
         return allocation_form.save()
 
-    @classmethod
-    def create_leave(cls, user, leave_type, start, end, employee=None):
+    def create_leave(self, user, leave_type, start, end, employee=None):
         employee = employee or user.employee_id
-        leave_form = Form(cls.env['hr.leave'].with_context(default_employee_id=employee.id).with_user(user))
+        leave_form = Form(self.env['hr.leave'].with_context(default_employee_id=employee.id).with_user(user))
         leave_form.holiday_status_id = leave_type
         leave_form.request_date_from = start
         leave_form.request_date_to = end
@@ -164,15 +158,21 @@ class TestHR(AccountTestInvoicingCommon):
             leave_type=self.leave_type_2,
         )
 
+        allocation_no_validation.action_confirm()
+
         # Holiday user refuse allocation
         allocation_no_validation.action_refuse()
         self.assertEqual(allocation_no_validation.state, 'refuse')
 
+        # Holiday manager reset to draft
+        allocation_no_validation.with_user(self.hr_holidays_manager).action_draft()
+        self.assertEqual(allocation_no_validation.state, 'draft')
+
         # Holiday user approve allocation
+        allocation_no_validation.action_confirm()
         allocation_no_validation.action_validate()
         self.assertEqual(allocation_no_validation.state, 'validate')
         self.assertEqual(allocation_no_validation.approver_id, self.hr_holidays_user.employee_id)
-
 
         # --------------------------------------------------
         # User: Allocation request
@@ -184,7 +184,8 @@ class TestHR(AccountTestInvoicingCommon):
             employee=self.user.employee_id,
             leave_type=self.leave_type_3,
         )
-        self.assertEqual(allocation.state, 'confirm')
+        self.assertEqual(allocation.state, 'draft')
+        allocation.action_confirm()
 
         # Holiday Manager validates
         allocation.with_user(self.hr_holidays_manager).action_validate()
@@ -256,16 +257,15 @@ class TestHR(AccountTestInvoicingCommon):
         contract_form.date_start = start
         contract_form.date_end = end
         if car:  # only for fleet manager
-            # invisible="not transport_mode_car"
+            # attrs="{'invisible': [('transport_mode_car', '=', False)]}"
             contract_form.transport_mode_car = True
             contract_form.car_id = car
         contract_form.wage = wage
+        contract_form.state = state
         sign_template = self.template
         contract_form.hr_responsible_id = self.user
         contract_form.sign_template_id = sign_template
         contract_form.contract_update_template_id = sign_template
-        contract_form.save()
-        contract_form.state = state
         return contract_form.save()
 
     def create_work_entry_type(self, user, name, code, is_leave=False, leave_type=None):
@@ -326,7 +326,7 @@ class TestHR(AccountTestInvoicingCommon):
                 employee=self.user.employee_id,
                 start=Date.today().replace(day=16),
                 car=self.env['fleet.vehicle'].search([
-                    ('driver_id', '=', self.user.employee_id.work_contact_id.id),
+                    ('driver_id', '=', self.user.employee_id.address_home_id.id),
                     ('company_id', '=', self.user.employee_id.company_id.id),
                 ], limit=1),
                 wage=2500,
@@ -399,9 +399,11 @@ class TestHR(AccountTestInvoicingCommon):
             model=car_model,
         )
 
+        # Add access rigths to be able to access the employee's private address
         # (in real use, the HR managing employees cars would be granted hr and fleet rights)
-        with Form(car.with_user(self.hr_fleet_manager)) as car_form:
-            car_form.driver_id = self.env['res.partner'].search([('id', '=', self.user.employee_id.work_contact_id.id)], limit=1)
+        with additional_groups(self.hr_fleet_manager, 'base.group_private_addresses'):
+            with Form(car.with_user(self.hr_fleet_manager)) as car_form:
+                car_form.driver_id = self.env['res.partner'].search([('id', '=', self.user.employee_id.address_home_id.id)], limit=1)
 
     def _test_payroll(self):
         struct = self.create_structure(

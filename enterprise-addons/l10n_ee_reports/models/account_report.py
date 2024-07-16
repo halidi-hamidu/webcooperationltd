@@ -7,8 +7,11 @@ from odoo.exceptions import RedirectWarning, UserError
 
 class EstonianTaxReportCustomHandler(models.AbstractModel):
     _name = 'l10n_ee.tax.report.handler'
-    _inherit = 'account.tax.report.handler'
+    _inherit = 'account.generic.tax.report.handler'
     _description = 'Estonian Tax Report Custom Handler'
+
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        return []
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -72,7 +75,7 @@ class EstonianTaxReportCustomHandler(models.AbstractModel):
                 xml_data[xml_variable] = '{:.2f}'.format(balance)
 
         kmd_inf_report = self.env.ref('l10n_ee_reports.kmd_inf_report')
-        kmd_inf_report_options = kmd_inf_report.get_options(options)
+        kmd_inf_report_options = kmd_inf_report._get_options(options)
         kmd_inf_report_options['unfold_all'] = True
 
         kmd_inf_lines = kmd_inf_report._get_lines(kmd_inf_report_options)
@@ -83,15 +86,15 @@ class EstonianTaxReportCustomHandler(models.AbstractModel):
             # The level 1 lines indicate the section where the next lines should go.
             # The first one is the KMD INF Part A (Invoices Issued).
             # The second one is the KMD INF Part B (Invoices Received).
-            if line.get('level') == 1:
+            if line['level'] == 1:
                 current_kmd_part += 1
 
             # The grouping lines do not need to be included in the KMD INF, since they do not represent invoice values.
-            if not line.get('groupby'):
+            if not line['groupby']:
                 annex_line = {}
-                for column in line.get('columns'):
-                    label = column.get('expression_label')
-                    value = column.get('no_format')
+                for column in line['columns']:
+                    label = column['expression_label']
+                    value = column['no_format']
                     if value and label in monetary_lines:
                         value = '{:.2f}'.format(value)
                     annex_line[label] = value
@@ -105,7 +108,7 @@ class EstonianTaxReportCustomHandler(models.AbstractModel):
         tree = objectify.fromstring(rendered_content)
 
         return {
-            'file_name': report.get_default_report_filename(options, 'xml'),
+            'file_name': report.get_default_report_filename('xml'),
             'file_content': etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding='utf-8'),
             'file_type': 'xml',
         }
@@ -113,7 +116,7 @@ class EstonianTaxReportCustomHandler(models.AbstractModel):
 
 class EstonianKmdInfReportCustomHandler(models.AbstractModel):
     _name = 'l10n_ee.kmd.inf.report.handler'
-    _inherit = 'account.tax.report.handler'
+    _inherit = 'account.report.custom.handler'
     _description = 'Estonian KMD INF Report Custom Handler'
 
     def _report_custom_engine_kmd_inf_common(self, options, current_groupby, next_groupby, kmd_inf_part):
@@ -334,9 +337,11 @@ class EstonianKmdInfReportCustomHandler(models.AbstractModel):
         return build_result(query_res_lines)
 
 
-    def _report_custom_engine_kmd_inf_a(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_kmd_inf_a(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0,
+                                        limit=None):
         return self._report_custom_engine_kmd_inf_common(options, current_groupby, next_groupby, 'a')
 
 
-    def _report_custom_engine_kmd_inf_b(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_kmd_inf_b(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0,
+                                        limit=None):
         return self._report_custom_engine_kmd_inf_common(options, current_groupby, next_groupby, 'b')

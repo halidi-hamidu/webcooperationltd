@@ -1,13 +1,14 @@
 /** @odoo-module */
 
+import { _t } from "@web/core/l10n/translation";
 import { Dialog } from "@web/core/dialog/dialog";
 import { PivotDialogTable } from "./spreadsheet_pivot_dialog_table";
 
-import * as spreadsheet from "@odoo/o-spreadsheet";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
 
 import { makePivotFormula } from "@spreadsheet/pivot/pivot_helpers";
 
-import { Component, useState } from "@odoo/owl";
+const { Component, useState } = owl;
 const formatValue = spreadsheet.helpers.formatValue;
 
 /**
@@ -252,6 +253,16 @@ export class PivotDialog extends Component {
         return Array.from(rowIndexes).sort((a, b) => a - b);
     }
 
+    _getDisplayedPivotHeaderValue(domain) {
+        const len = domain.length;
+        if (len === 0) {
+            return _t("Total");
+        }
+        const field = domain[len - 2];
+        const value = domain[len - 1];
+        return this.dataSource.getGroupByDisplayLabel(field, value);
+    }
+
     // ---------------------------------------------------------------------
     // Data table creation
     // ---------------------------------------------------------------------
@@ -277,7 +288,7 @@ export class PivotDialog extends Component {
                 }
                 current.push({
                     formula: makePivotFormula("ODOO.PIVOT.HEADER", [id, ...domain]),
-                    value: this.props.getters.getPivotHeaderFormattedValue(id, domain),
+                    value: this._getDisplayedPivotHeaderValue(domain),
                     span: cell.width,
                     isMissing: !this.dataSource.isUsedHeader(domain),
                 });
@@ -313,7 +324,7 @@ export class PivotDialog extends Component {
             const cell = {
                 args: domain,
                 formula: makePivotFormula("ODOO.PIVOT.HEADER", [id, ...domain]),
-                value: this.props.getters.getPivotHeaderFormattedValue(id, domain),
+                value: this._getDisplayedPivotHeaderValue(domain),
                 isMissing: !this.dataSource.isUsedHeader(domain),
             };
             if (row.indent > 1) {
@@ -348,11 +359,10 @@ export class PivotDialog extends Component {
                     domain.push(col.values[i]);
                 }
                 const value = this.dataSource.getPivotCellValue(measure, domain);
-                const locale = this.props.getters.getLocale();
                 current.push({
                     args: {
                         formula: makePivotFormula("ODOO.PIVOT", [id, measure, ...domain]),
-                        value: !value ? "" : formatValue(value, { locale }),
+                        value: !value ? "" : formatValue(value),
                     },
                     isMissing: !this.dataSource.isUsedValue(domain, measure),
                 });
@@ -365,10 +375,3 @@ export class PivotDialog extends Component {
 
 PivotDialog.template = "spreadsheet_edition.PivotDialog";
 PivotDialog.components = { Dialog, PivotDialogTable };
-PivotDialog.props = {
-    title: String,
-    pivotId: String,
-    insertPivotValueCallback: Function,
-    getters: Object,
-    close: Function, // prop added by Dialog service
-};

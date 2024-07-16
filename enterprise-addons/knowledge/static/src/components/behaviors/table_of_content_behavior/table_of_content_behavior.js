@@ -2,14 +2,13 @@
 
 import { AbstractBehavior } from "@knowledge/components/behaviors/abstract_behavior/abstract_behavior";
 import { HEADINGS, fetchValidHeadings } from "@knowledge/js/tools/knowledge_tools";
-import {
+
+const {
     onWillStart,
     useEffect,
-    useState } from "@odoo/owl";
+    useState } = owl;
 
 export class TableOfContentBehavior extends AbstractBehavior {
-    static template = "knowledge.TableOfContentBehavior";
-
     setup () {
         super.setup();
         this.state = useState({
@@ -42,9 +41,12 @@ export class TableOfContentBehavior extends AbstractBehavior {
         });
     }
 
-    //--------------------------------------------------------------------------
-    // TECHNICAL
-    //--------------------------------------------------------------------------
+    /**
+     * @returns {OdooEditor}
+     */
+    get editor () {
+        return this.props.wysiwyg.odooEditor;
+    }
 
     /**
      * Observes the changes made to the titles of the editor.
@@ -87,7 +89,7 @@ export class TableOfContentBehavior extends AbstractBehavior {
     }
 
     //--------------------------------------------------------------------------
-    // BUSINESS
+    // Table of content - BUSINESS LOGIC
     //--------------------------------------------------------------------------
 
     /**
@@ -197,7 +199,7 @@ export class TableOfContentBehavior extends AbstractBehavior {
     }
 
     //--------------------------------------------------------------------------
-    // HANDLERS
+    // Table of content - HANDLERS
     //--------------------------------------------------------------------------
 
     /**
@@ -223,3 +225,6 @@ export class TableOfContentBehavior extends AbstractBehavior {
         }
     }
 }
+
+TableOfContentBehavior.template = "knowledge.TableOfContentBehavior";
+TableOfContentBehavior.components = {};

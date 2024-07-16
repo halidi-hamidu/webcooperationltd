@@ -8,10 +8,11 @@
             <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="arch" type="xml">
                 <field name="l10n_mx_edi_hazard_package_type" position="after">
+                    <field name="country_code"/>
                     <field name="l10n_mx_edi_material_type"
-                           invisible="'MX' not in fiscal_country_codes"/>
+                           attrs="{'invisible': [('country_code', 'not in', ['MX', False])]}"/>
                     <field name="l10n_mx_edi_material_description"
-                           invisible="'MX' not in fiscal_country_codes or l10n_mx_edi_material_type != '05'"/>
+                           attrs="{'invisible': ['|', ('country_code', 'not in', ['MX', False]), ('l10n_mx_edi_material_type', '!=', '05')]}"/>
                 </field>
             </field>
         </record>

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import base64
+import io
+import re
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, tools, _
 
 
 class GeneralLedgerCustomHandler(models.AbstractModel):
@@ -20,7 +23,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
 
     @api.model
     def _l10n_lt_saft_prepare_report_values(self, report, options):
-        template_vals = self._saft_prepare_report_values(report, options)
+        template_vals = report._saft_prepare_report_values(options)
 
         # The lithuanian version of the SAF-T requires account code to be provided along with the opening/closing
         # credit/debit of customers and suppliers
@@ -104,16 +107,24 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
     def l10n_lt_export_saft_to_xml(self, options):
         report = self.env['account.report'].browse(options['report_id'])
         template_vals = self._l10n_lt_saft_prepare_report_values(report, options)
-        file_data = self._saft_generate_file_data_with_error_check(
-            report, options, template_vals, 'l10n_lt_saft.saft_template_inherit_l10n_lt_saft'
-        )
-        self.env['ir.attachment'].l10n_lt_saft_validate_xml_from_attachment(file_data['file_content'])
-        return file_data
+        content = self.env['ir.qweb']._render('l10n_lt_saft.saft_template_inherit_l10n_lt_saft', template_vals)
 
-    def _saft_get_account_type(self, account_type):
+        self.env['ir.attachment'].l10n_lt_saft_validate_xml_from_attachment(content)
+
+        return {
+            'file_name': report.get_default_report_filename('xml'),
+            'file_content': "\n".join(re.split(r'\n\s*\n', content)).encode(),
+            'file_type': 'xml',
+        }
+
+
+class AccountGeneralLedger(models.AbstractModel):
+    _inherit = "account.report"
+
+    def _saft_get_account_type(self, account):
         # OVERRIDE account_saft/models/account_general_ledger
         if self.env.company.account_fiscal_country_id.code != 'LT':
-            return super()._saft_get_account_type(account_type)
+            return super()._saft_get_account_type(account)
 
         # LT saf-t account types have to be identified as follows:
         # "IT" (Non-current assets), "TT" (Current assets), "NK" (Equity), "I" (Liabilities), "P" (Income), "S" (Costs), "KT" (Other)
@@ -137,4 +148,4 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             'expense_direct_cost': 'S',
             'off_balance': 'KT',
         }
-        return account_type_dict[account_type]
+        return account_type_dict[account.account_type] or 'KT'

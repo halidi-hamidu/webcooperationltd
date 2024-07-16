@@ -19,7 +19,6 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
         # remove existing articles to ease tour management
         cls.env['knowledge.article'].search([]).unlink()
         cls.article = cls.env['knowledge.article'].create({
-            'is_article_visible_by_everyone': True,
             'name': 'EditorCommandsArticle',
             'body': Markup('<p><br></p>'),
             'sequence': 1,
@@ -27,7 +26,7 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
 
     def test_knowledge_article_command_tour(self):
         """Test the /article command in the editor"""
-        self.start_tour('/web', 'knowledge_article_command_tour', login='admin')
+        self.start_tour('/web', 'knowledge_article_command_tour', login='admin', step_delay=100)
 
     def test_knowledge_article_command_dialog_tour(self):
         """Test the /article command in a dialog"""
@@ -38,10 +37,6 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
         })
         self.start_tour('/web', 'knowledge_article_command_dialog_tour', login='admin')
 
-    def test_knowledge_calendar_command_tour(self):
-        """Test the /calendar command in the editor"""
-        self.start_tour('/web', 'knowledge_calendar_command_tour', login='admin')
-
     def test_knowledge_file_command_tour(self):
         """Test the /file command in the editor"""
         self.env['ir.attachment'].create({
@@ -51,21 +46,15 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
             'res_id': self.article.id,
             'res_model': 'knowledge.article',
         })
-        self.start_tour('/web', 'knowledge_file_command_tour', login='admin')
+        self.start_tour('/web', 'knowledge_file_command_tour', login='admin', step_delay=100)
 
     def test_knowledge_index_command_tour(self):
         """Test the /index command in the editor"""
         self.start_tour('/web', 'knowledge_index_command_tour', login='admin', step_delay=100)
 
-    def test_knowledge_item_kanban_custom_act_window(self):
-        """Test the items kanban as a custom act_window object (no xmlid) and
-        the management of the help field in the dom
-        """
-        self.start_tour('/web', 'knowledge_item_kanban_custom_act_window', login='admin')
-
     def test_knowledge_kanban_command_tour(self):
         """Test the /kanban command in the editor"""
-        self.start_tour('/web', 'knowledge_kanban_command_tour', login='admin')
+        self.start_tour('/web', 'knowledge_kanban_command_tour', login='admin', step_delay=100)
         # Test the behaviour of the kanban when the parent article is readonly
         self.article.write({
             'article_member_ids': [(0, 0, {
@@ -75,14 +64,6 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
             'internal_permission': 'read',
         })
         self.start_tour('/web', 'knowledge_readonly_item_kanban_tour', login='demo')
-
-        # Check that the icon selected from the kanban card has been saved
-        quik_create_article = self.env['knowledge.article'].search([("name", "=", "New Quick Create Item")])
-        self.assertEqual(quik_create_article.icon, "🤩")
-
-    def test_knowledge_kanban_cards_command_tour(self):
-        """Test the /card command in the editor"""
-        self.start_tour('/web', 'knowledge_kanban_cards_command_tour', login='admin')
 
     def test_knowledge_list_command_tour(self):
         """Test the /list command in the editor"""
@@ -106,7 +87,7 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
         self.start_tour('/web', 'knowledge_table_of_content_command_tour', login='admin', step_delay=100)
 
     def test_knowledge_template_command_tour(self):
-        """Test the /clipboard command in the editor"""
+        """Test the /template command in the editor"""
         partner_ids = self.env['res.partner'].create({'name': 'HelloWorldPartner', 'email': 'helloworld@part.ner'}).ids
         article = self.env['knowledge.article'].search([('name', '=', 'EditorCommandsArticle')])[0]
         article.message_subscribe(partner_ids)
@@ -126,7 +107,3 @@ class TestKnowledgeEditorCommands(HttpCaseWithUserDemo):
                 'is_article_item': True,
             }])
         self.start_tour('/web', 'knowledge_embedded_view_filters_tour', login='admin')
-
-    def test_knowledge_video_command_tour(self):
-        """Test the /video command in the editor."""
-        self.start_tour('/web', 'knowledge_video_command_tour', login='admin')

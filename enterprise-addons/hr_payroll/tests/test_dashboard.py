@@ -26,8 +26,6 @@ class TestDashboardUi(HttpCase):
             self.env, name="Laurie Poiret", login="dashboarder",
             groups="base.group_user,hr_payroll.group_hr_payroll_manager",
             company_id=company.id)
-        if self.env.ref('sign.group_sign_manager', raise_if_not_found=False):
-            user.groups_id += self.env.ref('sign.group_sign_manager', raise_if_not_found=False)
         department = self.env['hr.department'].create({
             'name': 'Payroll',
             'company_id': company.id,
@@ -126,6 +124,13 @@ class TestDashboard(TransactionCase):
             self.assertTrue('batches' in dashboard)
             self.assertEqual(len(dashboard['batches']), len(batches_to_return))
             self.assertEqual(set(read['id'] for read in dashboard['batches']), set(batches_to_return.ids))
+
+    def test_dashboard_notes(self):
+        #Test that we get the payroll note tag
+        dashboard_note_tag = self.env.ref('hr_payroll.payroll_note_tag')
+        dashboard = self.env['hr.payslip'].with_user(self.user).get_payroll_dashboard_data(sections=['notes'])
+        self.assertTrue('notes' in dashboard)
+        self.assertEqual(dashboard['notes']['tag_id'], dashboard_note_tag.id)
 
     def test_dashboard_empty_stats(self):
         # Tests that when stats are empty they are tagged as sample

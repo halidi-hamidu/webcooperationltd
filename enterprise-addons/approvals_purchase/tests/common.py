@@ -82,7 +82,7 @@ class TestApprovalsCommon(TransactionCase):
         """
         if not category:
             category = self.purchase_category
-        create_request_form = Form(self.env['approval.request'].with_user(approver).with_context(
+        create_request_form = Form(self.env['approval.request'].with_context(
             default_name=self.purchase_category.name,
             default_category_id=category.id,
         ))

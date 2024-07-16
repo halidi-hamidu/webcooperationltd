@@ -28,7 +28,7 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         inventory_moves = self.env['stock.move'].search([('product_id', 'in', [self.product1.id, self.product2.id]),
                                                          ('is_inventory', '=', True)])
         self.assertEqual(len(inventory_moves), 2)
-        self.assertEqual(inventory_moves.mapped('quantity'), [2.0, 2.0])
+        self.assertEqual(inventory_moves.mapped('quantity_done'), [2.0, 2.0])
         self.assertEqual(inventory_moves.mapped('state'), ['done', 'done'])
 
         quants = self.env['stock.quant'].search([('product_id', 'in', [self.product1.id, self.product2.id]),
@@ -92,10 +92,10 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
             ('product_id', 'in', (self.product1 | self.product2 | product_no_company).ids),
         ])
         self.assertRecordValues(inventory_moves.sorted(lambda mv: (mv.product_id.id, mv.id)), [
-            {'product_id': self.product1.id, 'quantity': 1, 'company_id': company_a.id},
-            {'product_id': self.product2.id, 'quantity': 1, 'company_id': company_b.id},
-            {'product_id': product_no_company.id, 'quantity': 1, 'company_id': company_a.id},
-            {'product_id': product_no_company.id, 'quantity': 1, 'company_id': company_b.id},
+            {'product_id': self.product1.id, 'quantity_done': 1, 'company_id': company_a.id},
+            {'product_id': self.product2.id, 'quantity_done': 1, 'company_id': company_b.id},
+            {'product_id': product_no_company.id, 'quantity_done': 1, 'company_id': company_a.id},
+            {'product_id': product_no_company.id, 'quantity_done': 1, 'company_id': company_b.id},
         ])
 
     def test_inventory_adjustment_multi_location(self):
@@ -121,19 +121,19 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         self.assertEqual(len(inventory_moves), 4)
         self.assertEqual(inventory_moves.mapped('state'), ['done', 'done', 'done', 'done'])
         inventory_move_in_WH_stock = inventory_moves.filtered(lambda l: l.location_dest_id == self.stock_location)
-        self.assertEqual(set(inventory_move_in_WH_stock.mapped('product_id')), {self.product1, self.product2})
-        self.assertEqual(inventory_move_in_WH_stock.filtered(lambda l: l.product_id == self.product1).quantity, 2.0)
-        self.assertEqual(inventory_move_in_WH_stock.filtered(lambda l: l.product_id == self.product2).quantity, 1.0)
+        self.assertEqual(set(inventory_move_in_WH_stock.mapped('product_id')), set([self.product1, self.product2]))
+        self.assertEqual(inventory_move_in_WH_stock.filtered(lambda l: l.product_id == self.product1).quantity_done, 2.0)
+        self.assertEqual(inventory_move_in_WH_stock.filtered(lambda l: l.product_id == self.product2).quantity_done, 1.0)
 
         inventory_move_in_shelf1 = inventory_moves.filtered(lambda l: l.location_dest_id == self.shelf1)
         self.assertEqual(len(inventory_move_in_shelf1), 1)
         self.assertEqual(inventory_move_in_shelf1.product_id, self.product2)
-        self.assertEqual(inventory_move_in_shelf1.quantity, 1.0)
+        self.assertEqual(inventory_move_in_shelf1.quantity_done, 1.0)
 
         inventory_move_in_shelf2 = inventory_moves.filtered(lambda l: l.location_dest_id == self.shelf2)
         self.assertEqual(len(inventory_move_in_shelf2), 1)
         self.assertEqual(inventory_move_in_shelf2.product_id, self.product1)
-        self.assertEqual(inventory_move_in_shelf2.quantity, 1.0)
+        self.assertEqual(inventory_move_in_shelf2.quantity_done, 1.0)
 
     def test_inventory_adjustment_tracked_product(self):
         """ Simulate the following actions:
@@ -142,7 +142,6 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         productserial1 with serial1 (qty 1)
         productserial1 with serial2 (qty 1)
         productserial1 with serial3 (qty 1)
-        productserial1 without serial (qty 1)
         productlot1 with a lot named lot2 (qty 1)
         productlot1 with a lot named lot3 (qty 1)
         - Validate
@@ -158,32 +157,34 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
 
         inventory_moves = self.env['stock.move'].search([('product_id', 'in', [self.productlot1.id, self.productserial1.id]),
                                                          ('is_inventory', '=', True)])
-        self.assertEqual(len(inventory_moves), 7)
-        self.assertTrue(all(s == 'done' for s in inventory_moves.mapped('state')))
+        self.assertEqual(len(inventory_moves), 6)
+        self.assertEqual(inventory_moves.mapped('state'), ['done', 'done', 'done', 'done', 'done', 'done'])
 
         moves_with_lot = inventory_moves.filtered(lambda l: l.product_id == self.productlot1)
+        mls_with_lot = self.env['stock.move.line']
+        mls_with_sn = self.env['stock.move.line']
+        for move in moves_with_lot:
+            mls_with_lot |= move._get_move_lines()
         moves_with_sn = inventory_moves.filtered(lambda l: l.product_id == self.productserial1)
-        mls_with_lot = moves_with_lot.move_line_ids
-        mls_with_sn = moves_with_sn.move_line_ids
+        for move in moves_with_sn:
+            mls_with_sn |= move._get_move_lines()
         self.assertEqual(len(mls_with_lot), 3)
-        self.assertEqual(len(mls_with_sn), 4)
+        self.assertEqual(len(mls_with_sn), 3)
         self.assertEqual(mls_with_lot.mapped('lot_id.name'), ['lot1', 'lot2', 'lot3'])
         self.assertEqual(mls_with_lot.filtered(lambda ml: ml.lot_id.name == 'lot1').qty_done, 3)
         self.assertEqual(mls_with_lot.filtered(lambda ml: ml.lot_id.name == 'lot2').qty_done, 1)
         self.assertEqual(mls_with_lot.filtered(lambda ml: ml.lot_id.name == 'lot3').qty_done, 1)
-        self.assertEqual(set(mls_with_sn.mapped('lot_id.name')), {'serial1', 'serial2', 'serial3'})
+        self.assertEqual(set(mls_with_sn.mapped('lot_id.name')), set(['serial1', 'serial2', 'serial3']))
 
     def test_inventory_adjustment_tracked_product_multilocation(self):
-        """ This test ensures two things:
-        - When the user has to count the same lot from multiple locations, the right line will be
-        incremented when they scan the lot's barcode, depending of the previous scanned location.
-        - When scanning a tracked product, if this product alread has quants, it will retrieve and
-        create a barcode line for each quant.
+        """ This test ensures when the user has to count the same lot from multiple locations,
+        the right move line will be incremented when they scan the product's barcode,
+        depending of the previous scanned location.
         """
         self.clean_access_rights()
         grp_multi_loc = self.env.ref('stock.group_stock_multi_locations')
         self.env.user.write({'groups_id': [(4, grp_multi_loc.id, 0)]})
-        # Adds some quants for the product tracked by lots in two locations.
+        # Adds quants for the same product in two locations.
         lot_default_values = {'product_id': self.productlot1.id, 'company_id': self.env.company.id}
         lot_1 = self.env['stock.lot'].create(dict(lot_default_values, name="lot1"))
         self.env['stock.quant']._update_available_quantity(self.productlot1, self.shelf1, 3, lot_id=lot_1)
@@ -195,12 +196,6 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         quants.inventory_date = fields.Date.today()
         quants[0].inventory_quantity = 3
         quants[1].inventory_quantity = 0
-        # Adds some quants for the product tracked by serial numbers in two locations.
-        serial_default_values = {'product_id': self.productserial1.id, 'company_id': self.env.company.id}
-        for location, numbers in [(self.shelf1, [1, 2, 3]), (self.shelf3, [4, 5])]:
-            for n in numbers:
-                serial_number = self.env['stock.lot'].create(dict(serial_default_values, name=f'sn{n}'))
-                self.env['stock.quant']._update_available_quantity(self.productserial1, location, 1, lot_id=serial_number)
         # Opens the inventory adjustement and process it.
         action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
         url = f"/web#action={action_id.id}"
@@ -218,15 +213,24 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
             _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
             return
         self.clean_access_rights()
-        grp_lot = self.env.ref('stock.group_production_lot')
-        self.env.user.write({'groups_id': [(4, grp_lot.id, 0)]})
 
-        self.env["stock.lot"].create({
+        lot1 = self.env["stock.lot"].create({
             'name': 'lot1',
             'product_id': self.productlot1.id,
             'company_id': self.env.company.id
         })
-        self.env['stock.quant']._update_available_quantity(self.productlot1, self.stock_location, 5)
+        self.env["stock.quant"].create({
+            'product_id': self.productlot1.id,
+            'inventory_quantity': 5,
+            'lot_id': None,
+            'location_id': self.stock_location.id,
+        })
+        self.env["stock.quant"].create({
+            'product_id': self.productlot1.id,
+            'inventory_quantity': 1,
+            'lot_id': lot1.id,
+            'location_id': self.stock_location.id,
+        })
 
         action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
         url = "/web#action=" + str(action_id.id)
@@ -248,7 +252,6 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
     def test_inventory_create_quant(self):
         """ Creates a quant and checks it will not be deleted until the inventory was validated.
         """
-        self.clean_access_rights()
         Quant = self.env['stock.quant']
         action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
         url = "/web#action=" + str(action_id.id)
@@ -349,13 +352,12 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         inventory_moves = self.env['stock.move'].search([('product_id', '=', self.product1.id), ('is_inventory', '=', True)])
         self.assertEqual(len(inventory_moves), 1)
         self.assertEqual(inventory_moves.state, 'done')
-        self.assertEqual(inventory_moves.move_line_ids.owner_id.id, self.owner.id)
+        self.assertEqual(inventory_moves._get_move_lines().owner_id.id, self.owner.id)
 
     def test_inventory_using_buttons(self):
         """ Creates an inventory from scratch, then scans products and verifies
         the buttons behavior is right.
         """
-        self.clean_access_rights()
         # Adds some quantities for product2.
         self.env['stock.quant']._update_available_quantity(self.product2, self.stock_location, 10)
 
@@ -476,7 +478,7 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
             return
         self.clean_access_rights()
         self.env.company.nomenclature_id = self.env.ref('barcodes_gs1_nomenclature.default_gs1_nomenclature')
-        self.env.company.nomenclature_id.gs1_separator_fnc1 = r'(Alt029|#|\x1D|~)'
+        self.env.company.nomenclature_id.gs1_separator_fnc1 = r'(#|\x1D|~)'
 
         product_lot = self.env['product.product'].create({
             'name': 'PRO_GTIN_12_lot',

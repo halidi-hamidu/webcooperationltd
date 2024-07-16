@@ -12,9 +12,11 @@ export const deliveryIoTNotificationService = {
                 iotDevice.action({ document, 'iot_idempotent_id': iot_idempotent_ids && iot_idempotent_ids[i] });
             }
         }
-        bus_service.subscribe("iot_print_documents", ({ documents, iot_device_identifier, iot_idempotent_ids, iot_ip }) => {
-            if (multi_tab.isOnMainTab()) {
-                _printDocuments(iot_device_identifier, iot_ip, documents, iot_idempotent_ids);
+        bus_service.addEventListener('notification', ({ detail: notifications }) => {
+            for (const { payload, type } of notifications) {
+                if (type === 'iot_print_documents' && multi_tab.isOnMainTab()) {
+                    _printDocuments(payload.iot_device_identifier, payload.iot_ip, payload.documents, payload.iot_idempotent_ids);
+                }
             }
         });
     },

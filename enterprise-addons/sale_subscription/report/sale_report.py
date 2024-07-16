@@ -14,8 +14,8 @@ class SaleReport(models.Model):
         # it does not take account of discounts, for example.
         res += """
             AND (
-                s.subscription_state IS NULL OR
-                s.subscription_state != '7_upsell'
+                s.subscription_management IS NULL OR
+                s.subscription_management != 'upsell'
             )
         """
         return res

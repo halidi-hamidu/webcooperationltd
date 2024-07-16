@@ -9,8 +9,8 @@ from odoo.tools.zeep.wsdl.utils import etree_to_string
 from odoo import _
 from odoo import release
 from odoo.exceptions import UserError
+from odoo.modules.module import get_resource_path
 from odoo.tools import float_repr, float_round
-from odoo.tools.misc import file_path
 
 class DHLProvider():
 
@@ -31,7 +31,7 @@ class DHLProvider():
 
 
     def _set_client(self, wsdl_filename, api):
-        wsdl_path = file_path(f'delivery_dhl/api/{wsdl_filename}')
+        wsdl_path = get_resource_path('delivery_dhl', 'api', wsdl_filename)
         client = Client(wsdl_path)
         return client
 
@@ -208,6 +208,13 @@ class DHLProvider():
         return_service.SpecialServiceType = "PV"
         return return_service
 
+    def _set_insurance(self, shipment_details):
+        insurance_service = self.factory.SpecialService()
+        insurance_service.SpecialServiceType = "II"
+        insurance_service.ChargeValue = shipment_details.InsuredAmount
+        insurance_service.CurrencyCode = shipment_details.CurrencyCode
+        return insurance_service
+
     def _process_shipment(self, shipment_request):
         ShipmentRequest  = self.client._Client__obj.get_element('ns0:ShipmentRequest')
         document = etree.Element('root')
@@ -277,7 +284,7 @@ class DHLProvider():
             recipient_required_field.append('street')
         res = [field for field in recipient_required_field if not recipient[field]]
         if res:
-            return _("The address of the customer is missing or wrong (Missing field(s) :\n %s)", ", ".join(res).replace("_id", ""))
+            return _("The address of the customer is missing or wrong (Missing field(s) :\n %s)") % ", ".join(res).replace("_id", "")
 
         shipper_required_field = ['city', 'zip', 'phone', 'country_id']
         if not shipper.street and not shipper.street2:
@@ -285,14 +292,14 @@ class DHLProvider():
 
         res = [field for field in shipper_required_field if not shipper[field]]
         if res:
-            return _("The address of your company warehouse is missing or wrong (Missing field(s) :\n %s)", ", ".join(res).replace("_id", ""))
+            return _("The address of your company warehouse is missing or wrong (Missing field(s) :\n %s)") % ", ".join(res).replace("_id", "")
 
         if order:
             if not order.order_line:
                 return _("Please provide at least one item to ship.")
             error_lines = order.order_line.filtered(lambda line: not line.product_id.weight and not line.is_delivery and line.product_id.type != 'service' and not line.display_type)
             if error_lines:
-                return _("The estimated shipping price cannot be computed because the weight is missing for the following product(s): \n %s", ", ".join(error_lines.product_id.mapped('name')))
+                return _("The estimated shipping price cannot be computed because the weight is missing for the following product(s): \n %s") % ", ".join(error_lines.product_id.mapped('name'))
         return False
 
     def _set_export_declaration(self, carrier, picking, is_return=False):
@@ -301,9 +308,9 @@ class DHLProvider():
         currency_id = picking.sale_id and picking.sale_id.currency_id or picking.company_id.currency_id
         for sequence, line in enumerate(move_lines, start=1):
             if line.move_id.sale_line_id:
-                unit_quantity = line.product_uom_id._compute_quantity(line.quantity, line.move_id.sale_line_id.product_uom)
+                unit_quantity = line.product_uom_id._compute_quantity(line.qty_done, line.move_id.sale_line_id.product_uom)
             else:
-                unit_quantity = line.product_uom_id._compute_quantity(line.quantity, line.product_id.uom_id)
+                unit_quantity = line.product_uom_id._compute_quantity(line.qty_done, line.product_id.uom_id)
             rounded_qty = max(1, float_round(unit_quantity, precision_digits=0, rounding_method='HALF-UP'))
             item = self.factory.ExportLineItem()
             item.LineNumber = sequence

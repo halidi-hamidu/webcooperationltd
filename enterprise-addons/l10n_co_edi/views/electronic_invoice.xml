@@ -37,6 +37,7 @@
                 <t t-set="tax" t-value="tax_details['tax_details_per_record'][line]['tax_details'][group]" />
                 <TII t-foreach="tax['group_tax_details']" t-as="group_tax_details">
                     <t t-set="IIM_2" t-value="abs(group_tax_details[tax_amount_field])"/>
+
                     <!--
                         HACK: This is a workaround for calculating the base amount for VAT Withholding taxes.
                         Due to the limitations of the current system, we have no way of properly finding the amount on which the withholding was applied.
@@ -45,6 +46,7 @@
                         * 5% VAT with a 15% withholding (i.e. 0.75% withholding on the base amount). 
                     -->
                     <t t-set="IIM_4" t-if="tax['l10n_co_edi_type'].code == '05'" t-value="abs(group_tax_details[base_amount_field] * 0.19) if tax['tax'].amount == -2.85 else abs(group_tax_details[base_amount_field] * 0.05)"/>
+
                     <t t-set="IIM_4" t-elif="tax['l10n_co_edi_type'].code == '34'" t-value="sum(line.product_id.volume * line.quantity for line in tax['records'])"/>
                     <t t-set="IIM_4" t-else="" t-value="abs(group_tax_details[base_amount_field])"/>
                     <t t-set="IIM_6" t-value="'15' if tax['l10n_co_edi_type'].code == '05' else tax['tax'].amount"/>
@@ -154,7 +156,7 @@
 
                 <CDE>
                     <CDE_1 t-out="'2' if sales_partner.type == 'delivery' else '1'"/>
-                    <CDE_2 t-out="sales_partner.function or 'Representante de Ventas'"/>
+                    <CDE_2 t-out="sales_partner.function[:30] if sales_partner.function else 'Representante de Ventas'"/>
                     <CDE_3 t-out="format_domestic_phone_number(company_partner.phone)"/>
                     <CDE_4 t-out="company_partner.email"/>
                 </CDE>
@@ -440,7 +442,7 @@
                 </ECA>
 
                 <VMT>
-                    <VMT_1 t-out="format_monetary(invoice.amount_untaxed, invoice.currency_id)"/>
+                    <VMT_1 t-out="currency_rate"/>
                     <VMT_2 t-out="invoice.currency_id.name"/>
                     <VMT_3 t-out="format_monetary(invoice.amount_untaxed, invoice.currency_id)"/>
                     <VMT_4 t-out="0.00"/>

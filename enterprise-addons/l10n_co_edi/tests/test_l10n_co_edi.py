@@ -4,6 +4,7 @@ from .common import TestCoEdiCommon
 from odoo.tests import tagged
 from odoo.tools import mute_logger, misc
 
+
 @tagged('post_install_l10n', 'post_install', '-at_install')
 class TestColombianInvoice(TestCoEdiCommon):
 
@@ -90,25 +91,6 @@ class TestColombianInvoice(TestCoEdiCommon):
             })
             self.l10n_co_assert_generated_file_equal(self.invoice, self.expected_invoice_xml)
 
-    def test_setup_tax_type(self):
-        for xml_id, expected_type in [
-            ("account.l10n_co_tax_4", "l10n_co_edi.tax_type_0"),
-            ("account.l10n_co_tax_8", "l10n_co_edi.tax_type_0"),
-            ("account.l10n_co_tax_9", "l10n_co_edi.tax_type_0"),
-            ("account.l10n_co_tax_10", "l10n_co_edi.tax_type_0"),
-            ("account.l10n_co_tax_11", "l10n_co_edi.tax_type_0"),
-            ("account.l10n_co_tax_53", "l10n_co_edi.tax_type_5"),
-            ("account.l10n_co_tax_54", "l10n_co_edi.tax_type_5"),
-            ("account.l10n_co_tax_55", "l10n_co_edi.tax_type_4"),
-            ("account.l10n_co_tax_56", "l10n_co_edi.tax_type_4"),
-            ("account.l10n_co_tax_57", "l10n_co_edi.tax_type_6"),
-            ("account.l10n_co_tax_58", "l10n_co_edi.tax_type_6"),
-            ("account.l10n_co_tax_covered_goods", "l10n_co_edi.tax_type_0")
-        ]:
-            tax = self.env.ref(xml_id, raise_if_not_found=False)
-            if tax:
-                self.assertEqual(tax.l10n_co_edi_type, expected_type)
-
     def test_debit_note_creation_wizard(self):
         """ Test debit note is create succesfully """
 
@@ -123,13 +105,13 @@ class TestColombianInvoice(TestCoEdiCommon):
         debit_note = self.env['account.move'].search([
             ('debit_origin_id', '=', self.invoice.id),
         ])
-        self.assertRecordValues(debit_note, [{'amount_total': 48750.0}])
+        self.assertRecordValues(debit_note, [{'amount_total': 43875.0}])
 
     def test_invoice_withholded_taxes(self):
         company = self.company_data['company']
 
-        withholded_15_on_19 = self.env.ref(f'account.{company.id}_l10n_co_tax_56')
-        withholded_15_on_5 = self.env.ref(f'account.{company.id}_l10n_co_tax_55')
+        withholded_15_on_19 = self.env.ref(f'l10n_co.{company.id}_l10n_co_tax_56')
+        withholded_15_on_5 = self.env.ref(f'l10n_co.{company.id}_l10n_co_tax_55')
 
         invoice = self.env['account.move'].create({
             'partner_id': company.partner_id.id,
@@ -160,3 +142,53 @@ class TestColombianInvoice(TestCoEdiCommon):
     def test_vendor_bill(self):
         with self.mock_carvajal():
             self.l10n_co_assert_generated_file_equal(self.in_invoice, self.expected_in_invoice_xml)
+
+    def test_debit_note_out_invoice(self):
+        '''Tests generation of a debit note from a credit note.'''
+        with self.mock_carvajal():
+            credit_note = self.invoice._reverse_moves(default_values_list=[{'l10n_co_edi_description_code_credit': '1'}])
+            credit_note.action_post()
+            move_debit_note_wiz = self.env['account.debit.note'].with_context(
+                active_model="account.move",
+                active_ids=credit_note.ids
+            ).create({
+                'date': self.frozen_today,
+                'reason': 'no reason',
+                'l10n_co_edi_description_code_debit': '4',
+            })
+            res = move_debit_note_wiz.create_debit()
+            debit_note = self.env['account.move'].browse(res.get('res_id'))
+
+            # Check the generated debit note has lines
+            self.assertTrue(debit_note.line_ids)
+
+            expected_debit_note_xml = misc.file_open('l10n_co_edi/tests/accepted_debit_note.xml', 'rb').read()
+            self.l10n_co_assert_generated_file_equal(debit_note, expected_debit_note_xml)
+
+    def test_debit_note_in_refund(self):
+        '''Tests generation of a debit note from a vendor refund.'''
+        with self.mock_carvajal():
+            bill = self.init_invoice('in_invoice', products=self.product_a)
+            bill.partner_id = self.company_data['company'].partner_id
+            bill.action_post()
+            credit_note = bill._reverse_moves(default_values_list=[{
+                'l10n_co_edi_description_code_credit': '1',
+                'invoice_date': self.frozen_today,
+            }])
+            credit_note.action_post()
+            move_debit_note_wiz = self.env['account.debit.note'].with_context(
+                active_model="account.move",
+                active_ids=credit_note.ids
+            ).create({
+                'date': self.frozen_today,
+                'reason': 'no reason',
+                'l10n_co_edi_description_code_debit': '4',
+            })
+            res = move_debit_note_wiz.create_debit()
+            debit_note = self.env['account.move'].browse(res.get('res_id'))
+
+            # Check the generated debit note has lines
+            self.assertTrue(debit_note.line_ids)
+
+            expected_debit_note_xml = misc.file_open('l10n_co_edi/tests/accepted_debit_note_2.xml', 'rb').read()
+            self.l10n_co_assert_generated_file_equal(debit_note, expected_debit_note_xml)

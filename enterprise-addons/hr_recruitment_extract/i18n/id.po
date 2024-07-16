@@ -3,15 +3,15 @@
 # 	* hr_recruitment_extract
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
 # Abe Manyo, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2022-12-15 13:29+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
 "Last-Translator: Abe Manyo, 2023\n"
 "Language-Team: Indonesian (https://app.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
@@ -30,34 +30,29 @@ msgstr "Lamaran %s"
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Buy credits"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Beli kredit"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Refresh"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
 "                        Refresh"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
 msgid ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Retry"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
+"                        Resend For Digitization"
 msgstr ""
-"<i class=\"oi oi-fw o_button_icon oi-arrow-right\"/>\n"
-"                        Retry"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_needaction
-msgid "Action Needed"
-msgstr "Tindakan Diperluka"
+"<i class=\"fa fa-fw o_button_icon fa-arrow-right\"/>\n"
+"                        Kirim Ulang untuk Digitalisasi"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
@@ -67,6 +62,14 @@ msgid ""
 msgstr ""
 "Semua field akan diotomatiskan oleh Artificial Intelligence, mungkin "
 "membutuhkan waktu 5 detik."
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__error_status
+#, python-format
+msgid "An error occurred"
+msgstr "Terjadi eror"
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_hr_applicant
@@ -79,19 +82,21 @@ msgid "Attachment"
 msgstr "Lampiran"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_attachment_count
-msgid "Attachment Count"
-msgstr "Hitungan Lampiran"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_send_button
-msgid "Can show the ocr send button"
-msgstr "Dapat menunjukkan tombol kirim ocr"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "CV is being Digitized"
+msgstr ""
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_res_company
 msgid "Companies"
 msgstr "Perusahaan"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__done
+msgid "Completed flow"
+msgstr "Alur yang selesai"
 
 #. module: hr_recruitment_extract
 #: model:ir.model,name:hr_recruitment_extract.model_res_config_settings
@@ -102,12 +107,6 @@ msgstr "Pengaturan Konfigurasi"
 #: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__res_company__recruitment_extract_show_ocr_option_selection__auto_send
 msgid "Digitize automatically"
 msgstr "Digitalisasi secara otomatis"
-
-#. module: hr_recruitment_extract
-#: model:ir.actions.server,name:hr_recruitment_extract.ir_actions_server_digitize_cv
-#: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
-msgid "Digitize document"
-msgstr "Digitalisasikan dokumen"
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__res_company__recruitment_extract_show_ocr_option_selection__manual_send
@@ -125,108 +124,64 @@ msgid "Error message"
 msgstr "Pesan Error"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_state_processed
-msgid "Extract State Processed"
-msgstr "Ekstrak Status yang Diproses"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_resend_button
+msgid "Extract Can Show Resend Button"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_can_show_send_button
+msgid "Extract Can Show Send Button"
+msgstr ""
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_state
-msgid "Extract state"
-msgstr "Status ekstrak"
+msgid "Extract State"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_status
-msgid "Extract status"
-msgstr "Ekstrak status"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Generated Applicant"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_follower_ids
-msgid "Followers"
-msgstr "Follower"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Generated Applicants"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_partner_ids
-msgid "Followers (Partners)"
-msgstr "Follower (Mitra)"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__is_first_stage
+msgid "Is First Stage"
+msgstr ""
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__has_message
-msgid "Has Message"
-msgstr "Memiliki Pesan"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__no_extract_requested
+msgid "No extract requested"
+msgstr "Tidak ada ekstrak yang diminta"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_document_uuid
-msgid "ID of the request to IAP-OCR"
-msgstr "ID dari permintaan untuk IAP-OCR"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__not_enough_credit
+msgid "Not enough credit"
+msgstr "Kredit tidak cukup"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_needaction
-msgid "If checked, new messages require your attention."
-msgstr "Jika dicentang, pesan baru memerlukan penanganan dan perhatian Anda."
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_error
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_sms_error
-msgid "If checked, some messages have a delivery error."
-msgstr "Jika dicentang, beberapa pesan mempunyai kesalahan dalam pengiriman."
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_is_follower
-msgid "Is Follower"
-msgstr "Adalah Follower"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__is_in_extractable_state
-msgid "Is In Extractable State"
-msgstr "Dalam Status bisa Diekstrak"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_main_attachment_id
-msgid "Main Attachment"
-msgstr "Lampiran Utama"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_error
-msgid "Message Delivery error"
-msgstr "Kesalahan Pengiriman Pesan"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_ids
-msgid "Messages"
-msgstr "Pesan"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_needaction_counter
-msgid "Number of Actions"
-msgstr "Jumlah Action"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_error_counter
-msgid "Number of errors"
-msgstr "Jumlah kesalahan"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_needaction_counter
-msgid "Number of messages requiring action"
-msgstr "Jumlah pesan yang membutuhkan tindakan"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__message_has_error_counter
-msgid "Number of messages with delivery error"
-msgstr "Jumlah pesan dengan kesalahan pengiriman"
-
-#. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__rating_ids
-msgid "Ratings"
-msgstr "Rating"
+#: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_ocr_parse_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_ocr_parse
+msgid "Recruitment OCR: Parse CV"
+msgstr ""
 
 #. module: hr_recruitment_extract
 #: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_update_ocr_status_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_update_ocr_status
 msgid "Recruitment OCR: Update All Status"
 msgstr "OCR Rekrutmen: Update Semua Status"
 
 #. module: hr_recruitment_extract
 #: model:ir.actions.server,name:hr_recruitment_extract.ir_cron_ocr_validate_ir_actions_server
+#: model:ir.cron,cron_name:hr_recruitment_extract.ir_cron_ocr_validate
 msgid "Recruitment OCR: Validate CV"
 msgstr "OCR Rekrutmen: Validasi CV"
 
@@ -236,14 +191,44 @@ msgid "Recruitment processing option"
 msgstr "Opsi pemrosesan rekrutmen"
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__message_has_sms_error
-msgid "SMS Delivery error"
-msgstr "Kesalahan Pengiriman SMS`"
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_remote_id
+msgid "Request ID to IAP-OCR"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.actions.server,name:hr_recruitment_extract.ir_actions_server_digitize_cv
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
+msgid "Send For Digitization"
+msgstr "Kirim Untuk Digitalisasi"
 
 #. module: hr_recruitment_extract
 #: model:ir.model.fields,field_description:hr_recruitment_extract.field_res_company__recruitment_extract_show_ocr_option_selection
 msgid "Send mode on applicant attachments"
 msgstr "Mode kirim pada lampiran pelamar"
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Server is currently under maintenance. Please retry later"
+msgstr "Server saat ini mengalami maintenance. Mohon coba nanti"
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Server not available. Please retry later"
+msgstr "Server tidak tersedia. Mohon coba lagi nanti"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__state_processed
+msgid "State Processed"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__extract_status_code
+msgid "Status code"
+msgstr "Status kode"
 
 #. module: hr_recruitment_extract
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_extract.hr_recruitment_extract_view_form
@@ -255,14 +240,43 @@ msgstr ""
 "10 detik."
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,field_description:hr_recruitment_extract.field_hr_applicant__website_message_ids
-msgid "Website Messages"
-msgstr "Pesan situs"
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "The document could not be found"
+msgstr "Dokumen tidak dapat ditemukan."
 
 #. module: hr_recruitment_extract
-#: model:ir.model.fields,help:hr_recruitment_extract.field_hr_applicant__website_message_ids
-msgid "Website communication history"
-msgstr "Sejarah komunikasi situs"
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__to_validate
+msgid "To validate"
+msgstr "Untuk divalidasi"
+
+#. module: hr_recruitment_extract
+#. odoo-python
+#: code:addons/hr_recruitment_extract/models/hr_applicant.py:0
+#, python-format
+msgid "Unsupported image format"
+msgstr "Format image tidak didukung"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_extraction
+msgid "Waiting extraction"
+msgstr "Menunggu ekstraksi"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__extract_not_ready
+msgid "Waiting extraction, but not ready"
+msgstr ""
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_upload
+msgid "Waiting upload"
+msgstr "Menunggu unggahan"
+
+#. module: hr_recruitment_extract
+#: model:ir.model.fields.selection,name:hr_recruitment_extract.selection__hr_applicant__extract_state__waiting_validation
+msgid "Waiting validation"
+msgstr "Menunggu validasi"
 
 #. module: hr_recruitment_extract
 #. odoo-python

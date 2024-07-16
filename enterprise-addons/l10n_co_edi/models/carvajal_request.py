@@ -214,7 +214,11 @@ class CarvajalRequest():
                 (processStatus == 'OK' and legalStatus != 'REJECTED') or (processStatus == 'FAIL' and legalStatus == 'RETRY'):
             return {'error': _('The invoice is still processing by Carvajal.'), 'blocking_level': 'info'}
         else:  # legalStatus == 'REJECTED' or (processStatus == 'FAIL' and legalStatus != 'RETRY')
-            msg = (_('The invoice was rejected by Carvajal: %s', html_escape(response['errorMessage']).replace('\n', '<br/>'))
-                   if hasattr(response, 'errorMessage') and response['errorMessage']
-                   else _('The invoice was rejected by Carvajal but no error message was received.'))
+            if hasattr(response, 'errorMessage') and response['errorMessage']:
+                errorMsg = ('Validation error from DIAN. Please refer to the Carvajal Platform for more details.'
+                            if response['errorMessage'] == 'DIAN_RESULT'
+                            else html_escape(response['errorMessage']).replace('\n', '<br/>'))
+                msg = _('The invoice was rejected by Carvajal: %s', errorMsg)
+            else:
+                msg = _('The invoice was rejected by Carvajal but no error message was received.')
             return {'error': msg, 'blocking_level': 'error'}

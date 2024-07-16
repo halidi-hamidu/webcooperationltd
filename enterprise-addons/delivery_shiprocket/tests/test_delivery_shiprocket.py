@@ -133,7 +133,7 @@ class TestDeliveryShiprocket(TransactionCase):
         sale_order.action_confirm()
         self.assertGreater(len(sale_order.picking_ids), 0, "The Sales Order did not generate a picking.")
         picking = sale_order.picking_ids[0]
-        picking.move_line_ids[0].quantity = 1.0
+        picking.move_line_ids[0].qty_done = 1.0
         self.assertGreater(picking.shipping_weight, 0.0, "Picking weight should be positive.")
         picking.carrier_id = self.shiprocket.id
         sr = ShipRocket(self, picking.carrier_id.log_xml)
@@ -201,11 +201,9 @@ class TestDeliveryShiprocket(TransactionCase):
         sale_order.action_confirm()
         self.assertGreater(len(sale_order.picking_ids), 0, "The Sales Order did not generate a picking.")
         picking = sale_order.picking_ids[0]
-        picking.move_line_ids[0].quantity = 3.0
-        picking.move_ids[0].picked = True
+        picking.move_line_ids[0].qty_done = 3.0
         picking.action_put_in_pack()
-        picking.move_line_ids[1].quantity = 2.0
-        picking.move_ids[1].picked = True
+        picking.move_line_ids[1].qty_done = 2.0
         picking.action_put_in_pack()
         picking.carrier_id = self.shiprocket.id
         sr = ShipRocket(self, picking.carrier_id.log_xml)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from freezegun import freeze_time
+
 from .common import TestAccountReportsCommon
 
 from odoo import fields, Command
@@ -178,7 +178,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -200.0,                 -200.0,                   -50.0,          150.0),
                 ('Total Gol',                                  -200.0,                 -200.0,                   -50.0,          150.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -224,7 +223,7 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
 
         wizard = self.env['bank.rec.widget'].with_context(default_st_line_id=bank_statement.id).new({})
         wizard._action_add_new_amls(first_bill.line_ids.filtered(lambda account: account.account_type == 'liability_payable'))
-        wizard._action_validate()
+        wizard.button_validate(async_action=False)
 
         # Test the report in 2023.
         options = self._generate_options(self.report, '2023-01-01', '2023-12-31')
@@ -243,7 +242,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -200.0,                -200.0,                    -50.0,          150.0),
                 ('Total Gol',                                  -200.0,                -200.0,                    -50.0,          150.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -293,7 +291,7 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
 
         wizard = self.env['bank.rec.widget'].with_context(default_st_line_id=bank_statement.id).new({})
         wizard._action_add_new_amls(first_bill.line_ids.filtered(lambda account: account.account_type == 'liability_payable'))
-        wizard._action_validate()
+        wizard.button_validate(async_action=False)
 
         # Test the report in 2023.
         options = self._generate_options(self.report, '2023-01-01', '2023-12-31')
@@ -314,17 +312,18 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -200.0,                 -100.0,                   -50.0,           50.0),
                 ('Total Gol',                                  -100.0,                  -50.0,                   -25.0,           25.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-        oldest_line_id = self.report._get_generic_line_id('account.report.line', self.env.ref('account_reports.multicurrency_revaluation_to_adjust').id)
-        old_line_id = self.report._get_generic_line_id('res.currency', self.currency_data['currency'].id, markup='groupby:currency_id', parent_line_id=oldest_line_id)
-        line_id = self.report._get_generic_line_id('account.account', first_bill.line_ids.account_id.filtered(lambda account: account.account_type == 'liability_payable').id, markup='groupby:account_id', parent_line_id=old_line_id)
-
-        self.env['account.multicurrency.revaluation.report.handler'].action_multi_currency_revaluation_toggle_provision(options, {'line_id': line_id})
+        self.env[self.report.custom_handler_model_name].action_multi_currency_revaluation_toggle_provision(
+            options,
+            {
+                'account_id': first_bill.line_ids.account_id.filtered(lambda account: account.account_type == 'liability_payable').id,
+                'currency_id': self.currency_data['currency'].id
+            }
+        )
         options['unfold_all'] = True
 
         self.assertLinesValues(
@@ -347,7 +346,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -200.0,                 -100.0,                   -50.0,           50.0),
                 ('Total Gol',                                  -200.0,                 -100.0,                   -50.0,           50.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -380,13 +378,12 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
             [   0,                                                  1,                      2,                       3,              4],
             [
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
-                ('Gol (1 USD = 1.0 Gol)',                     -1000.0,                -1000.0,                 -1000.0,            0.0),
-                ('211000 Account Payable',                    -1000.0,                -1000.0,                 -1000.0,            0.0),
-                ('BILL/2023/01/0001',                         -1000.0,                -1000.0,                 -1000.0,            0.0),
-                ('Total 211000 Account Payable',              -1000.0,                -1000.0,                 -1000.0,            0.0),
-                ('Total Gol',                                 -1000.0,                -1000.0,                 -1000.0,            0.0),
+                ('Gol (1 USD = 1.0 Gol)',                     -1000.0,                -1000.0,                 -1000.0,             ''),
+                ('211000 Account Payable',                    -1000.0,                -1000.0,                 -1000.0,             ''),
+                ('BILL/2023/01/0001',                         -1000.0,                -1000.0,                 -1000.0,             ''),
+                ('Total 211000 Account Payable',              -1000.0,                -1000.0,                 -1000.0,             ''),
+                ('Total Gol',                                 -1000.0,                -1000.0,                 -1000.0,             ''),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -431,7 +428,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -1000.0,               -1000.0,                  -500.0,          500.0),
                 ('Total Gol',                                  -1000.0,               -1000.0,                  -500.0,          500.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -470,13 +466,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -500.0,                 -500.0,                  -125.0,          375.0),
                 ('Total Gol',                                  -500.0,                 -500.0,                  -125.0,          375.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-    @freeze_time('2023-01-26')
     def test_payment_in_company_currency_invoice_in_foreign_currency_fully_reconcile(self):
         """ In this test, we will create a move with a foreign currency and do a payment in the company currency,
             but thanks to the changing of rates, the move is fully reconcile
@@ -506,7 +500,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, '2023-01-01', '2023-02-20')
         self.assertEqual(len(self.report._get_lines(options)), 0)
 
-    @freeze_time('2023-01-26')
     def test_payment_in_company_currency_invoice_in_foreign_currency_not_fully_reconcile(self):
         """ In this test, we will create a move with a foreign currency and do a payment in the company currency """
         bill = self.create_move_one_line(
@@ -545,7 +538,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -400.0,                 -400.0,                  -200.0,          200.0),
                 ('Total Gol',                                  -400.0,                 -400.0,                  -200.0,          200.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -567,13 +559,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -400.0,                 -400.0,                  -100.0,          300.0),
                 ('Total Gol',                                  -400.0,                 -400.0,                  -100.0,          300.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-    @freeze_time('2023-01-28')
     def test_pay_all_move_check_before_full_payment(self):
         """ In this test we pay all the move, and then we check when coming back before the payment if the report display
             the lines.
@@ -620,13 +610,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',              -1000.0,                -1000.0,                  -500.0,          500.0),
                 ('Total Gol',                                 -1000.0,                -1000.0,                  -500.0,          500.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-    @freeze_time('2023-01-26')
     def test_move_credit_note(self):
         """ Create a credit note, change the currency rate and then the payment. Check if the report gives the correct
             values before and after the payment
@@ -680,13 +668,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',                                       1000.0,                  500.0,                   250.0,         -250.0),
                 ('Total Gol',                                                          1000.0,                  500.0,                   250.0,         -250.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-    @freeze_time('2023-01-26')
     def test_with_payment_term(self):
         """ In this test, we will create a new payment term where you need to pay 30% of the amount directly, and then
             you have 60 days for the rest. We will check the report before and after the payment to make sure it's working
@@ -699,12 +685,12 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 Command.create({
                     'value_amount': 30,
                     'value': 'percent',
-                    'nb_days': 0,
+                    'days': 0,
                 }),
                 Command.create({
-                    'value_amount': 70,
-                    'value': 'percent',
-                    'nb_days': 60,
+                    'value': 'balance',
+                    'value_amount': 0.0,
+                    'days': 60
                 }),
             ]
         })
@@ -733,12 +719,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
                 ('Gol (1 USD = 4.0 Gol)',                     -1000.0,                -1000.0,                  -250.0,          750.0),
                 ('211000 Account Payable',                    -1000.0,                -1000.0,                  -250.0,          750.0),
-                ('BILL/2023/01/0001 installment #1',           -300.0,                 -300.0,                   -75.0,          225.0),
-                ('BILL/2023/01/0001 installment #2',           -700.0,                 -700.0,                  -175.0,          525.0),
+                ('BILL/2023/01/0001',                          -300.0,                 -300.0,                   -75.0,          225.0),
+                ('BILL/2023/01/0001',                          -700.0,                 -700.0,                  -175.0,          525.0),
                 ('Total 211000 Account Payable',              -1000.0,                -1000.0,                  -250.0,          750.0),
                 ('Total Gol',                                 -1000.0,                -1000.0,                  -250.0,          750.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -762,11 +747,10 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
                 ('Gol (1 USD = 4.0 Gol)',                      -700.0,                 -700.0,                  -175.0,          525.0),
                 ('211000 Account Payable',                     -700.0,                 -700.0,                  -175.0,          525.0),
-                ('BILL/2023/01/0001 installment #2',           -700.0,                 -700.0,                  -175.0,          525.0),
+                ('BILL/2023/01/0001',                          -700.0,                 -700.0,                  -175.0,          525.0),
                 ('Total 211000 Account Payable',               -700.0,                 -700.0,                  -175.0,          525.0),
                 ('Total Gol',                                  -700.0,                 -700.0,                  -175.0,          525.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -784,12 +768,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
                 ('Gol (1 USD = 2.0 Gol)',                     -1000.0,                -1000.0,                  -500.0,          500.0),
                 ('211000 Account Payable',                    -1000.0,                -1000.0,                  -500.0,          500.0),
-                ('BILL/2023/01/0001 installment #1',           -300.0,                 -300.0,                  -150.0,          150.0),
-                ('BILL/2023/01/0001 installment #2',           -700.0,                 -700.0,                  -350.0,          350.0),
+                ('BILL/2023/01/0001',                          -300.0,                 -300.0,                  -150.0,          150.0),
+                ('BILL/2023/01/0001',                          -700.0,                 -700.0,                  -350.0,          350.0),
                 ('Total 211000 Account Payable',              -1000.0,                -1000.0,                  -500.0,          500.0),
                 ('Total Gol',                                 -1000.0,                -1000.0,                  -500.0,          500.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -851,13 +834,11 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',              -1000.0,                -1000.0,                  -250.0,          750.0),
                 ('Total Gol',                                 -1000.0,                -1000.0,                  -250.0,          750.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
         )
 
-    @freeze_time('2023-01-26')
     def test_refund_invoice_keep_exchange_diff_line(self):
         """ Create an invoice, cancel it with a credit note.
             Check the report, unreconcile the credit note and
@@ -880,12 +861,14 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
         move_reversal = self.env['account.move.reversal'].with_context(active_model='account.move', active_ids=invoice.ids).create({
             'journal_id': invoice.journal_id.id,
             'date': '2023-01-26',
+            'refund_method': 'refund',
         })
         reversal = move_reversal.reverse_moves()
         credit_note = self.env['account.move'].browse(reversal['res_id'])
         credit_note.invoice_line_ids[0].price_unit = 300  # Only reverse for 300
         credit_note.action_post()
         line_to_reconciles = (invoice + credit_note).line_ids.filtered(lambda l: l.account_type == self.company_data['default_account_receivable'].account_type)
+        line_to_reconciles.reconcile()
 
         #  Checking the report after reconciliation between the invoice and the credit note (Rate 1 USD = 4 Gol)
         options = self._generate_options(self.report, '2023-01-01', '2023-01-30')
@@ -903,7 +886,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 121000 Account Receivable',             700.0,                  700.0,                   175.0,         -525.0),
                 ('Total Gol',                                   700.0,                  700.0,                   175.0,         -525.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -915,6 +897,27 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
             ('credit_move_id', '=', line_to_reconciles[1].id),
         ])
         partial.unlink()
+
+        # Checking the report after un-reconciling the invoice and the credit note (Rate 1 USD = 4 GOL)
+        self.assertLinesValues(
+            # pylint: disable=C0326
+            self.report._get_lines(options),
+            #   Name                                           Balance in foreign currency     Balance at op. rate     Balance at curr rate     Adjustment
+            [   0,                                                                      1,                      2,                       3,              4],
+            [
+                ('Accounts To Adjust',                                                 '',                     '',                      '',             ''),
+                ('Gol (1 USD = 4.0 Gol)',                                           700.0,                  700.0,                   175.0,         -525.0),
+                ('121000 Account Receivable',                                       700.0,                  700.0,                   175.0,         -525.0),
+                ('RINV/2023/00001 (Reversal of: INV/2023/00001)',                  -300.0,                 -150.0,                   -75.0,           75.0),
+                ('EXCH/2023/01/0001 Currency exchange rate difference',                '',                 -150.0,                      '',          150.0),
+                ('INV/2023/00001 INV/2023/00001',                                  1000.0,                 1000.0,                   250.0,         -750.0),
+                ('Total 121000 Account Receivable',                                 700.0,                  700.0,                   175.0,         -525.0),
+                ('Total Gol',                                                       700.0,                  700.0,                   175.0,         -525.0),
+            ],
+            currency_map={
+                1: {'currency': self.currency_data['currency']},
+            },
+        )
 
         # Check the report in february, the exchange diff should disappear as it was computed in january (Rate 1 USD = 4 Gol)
         options = self._generate_options(self.report, '2023-01-01', '2023-02-15')
@@ -933,7 +936,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 121000 Account Receivable',                                 700.0,                  850.0,                   175.0,         -675.0),
                 ('Total Gol',                                                       700.0,                  850.0,                   175.0,         -675.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -989,7 +991,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',               -900.0,                 -300.0,                  -225.0,           75.0),
                 ('Total Gol',                                  -900.0,                 -300.0,                  -225.0,           75.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -1081,17 +1082,16 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
             [
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
                 ('Gol (1 USD = 4.0 Gol)',                        90.0,                   40.0,                    22.5,          -17.5),
-                ('101401 Bank',                                  20.0,                    0.0,                     5.0,            5.0),
+                ('101404 Bank',                                  20.0,                     '',                     5.0,            5.0),
                 ('BNK1/2023/00002 revenue line',                 30.0,                   10.0,                     7.5,           -2.5),
                 ('BNK1/2023/00001 payment_move_line',           -10.0,                  -10.0,                    -2.5,            7.5),
-                ('Total 101401 Bank',                            20.0,                    0.0,                     5.0,            5.0),
+                ('Total 101404 Bank',                            20.0,                     '',                     5.0,            5.0),
                 ('201 201 GOL',                                  70.0,                   40.0,                    17.5,          -22.5),
                 ('BNK1/2023/00002 liability line',              -30.0,                  -10.0,                    -7.5,            2.5),
                 ('MISC/2023/01/0001 liability line',            100.0,                   50.0,                    25.0,          -25.0),
                 ('Total 201 201 GOL',                            70.0,                   40.0,                    17.5,          -22.5),
                 ('Total Gol',                                    90.0,                   40.0,                    22.5,          -17.5),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -1111,16 +1111,15 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
             [
                 ('Accounts To Adjust',                             '',                     '',                      '',             ''),
                 ('Gol (1 USD = 4.0 Gol)',                        90.0,                   35.0,                    22.5,          -12.5),
-                ('101401 Bank',                                  20.0,                    0.0,                     5.0,            5.0),
+                ('101404 Bank',                                  20.0,                     '',                     5.0,            5.0),
                 ('BNK1/2023/00002 revenue line',                 30.0,                   10.0,                     7.5,           -2.5),
                 ('BNK1/2023/00001 payment_move_line',           -10.0,                  -10.0,                    -2.5,            7.5),
-                ('Total 101401 Bank',                            20.0,                    0.0,                     5.0,            5.0),
+                ('Total 101404 Bank',                            20.0,                     '',                     5.0,            5.0),
                 ('201 201 GOL',                                  70.0,                   35.0,                    17.5,          -17.5),
                 ('MISC/2023/01/0001 liability line',             70.0,                   35.0,                    17.5,          -17.5),
                 ('Total 201 201 GOL',                            70.0,                   35.0,                    17.5,          -17.5),
                 ('Total Gol',                                    90.0,                   35.0,                    22.5,          -12.5),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },
@@ -1160,7 +1159,6 @@ class TestMultiCurrenciesRevaluationReport(TestAccountReportsCommon):
                 ('Total 211000 Account Payable',              -1000.0,                 -1000.0,                  -500.0,         500.0),
                 ('Total Gol',                                 -1000.0,                 -1000.0,                  -500.0,         500.0),
             ],
-            options,
             currency_map={
                 1: {'currency': self.currency_data['currency']},
             },

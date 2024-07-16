@@ -7,7 +7,7 @@
     'author': 'Odoo SA',
     'depends': [
         'l10n_din5008',
-        'industry_fsm_report',
+        'industry_fsm',
     ],
     'assets': {
         'web.report_assets_common': [
@@ -18,5 +18,5 @@
         'report/worksheet_custom_report_templates.xml',
     ],
     'auto_install': True,
-    'license': 'OEEL-1',
+    'license': 'LGPL-3',
 }

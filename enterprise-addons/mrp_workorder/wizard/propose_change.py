@@ -17,7 +17,7 @@ class ProposeChange(models.TransientModel):
 
     workorder_id = fields.Many2one(
         'mrp.workorder', 'Workorder', required=True, ondelete='cascade')
-    title = fields.Char('Title')
+    title = fields.Char('title')
     step_id = fields.Many2one('quality.check', 'Step to change')
     note = fields.Html('New Instruction')
     comment = fields.Char('Comment')
@@ -44,8 +44,6 @@ class ProposeChange(models.TransientModel):
                 wizard._do_set_picture()
 
     def _workorder_name(self):
-        if self.workorder_id.employee_id:
-            return self.workorder_id.employee_id.name
         return self.env.user.name
 
     def _get_update_step_note(self, original_title=False):

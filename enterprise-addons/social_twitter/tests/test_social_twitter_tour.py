@@ -43,7 +43,6 @@ class TestSocialTwitter(HttpCase):
                 'author_name': 'Author name',
                 'message': 'A simple post',
                 'stream_id': self.social_stream.id,
-                'twitter_conversation_id': '1337',
                 'twitter_tweet_id': 'test_tweet_id',
                 'twitter_author_id': 'twitter_author_id',
                 'twitter_screen_name': 'social_demo',
@@ -51,7 +50,6 @@ class TestSocialTwitter(HttpCase):
             })
 
         self.env['ir.config_parameter'].sudo().set_param('social.twitter_consumer_secret_key', 'test_secret_key')
-        self.env['ir.config_parameter'].sudo().set_param('social_twitter.enable_reply_limit', True)
 
         with self.mock_twitter_call():
             self.start_tour("/web", 'social_twitter/static/tests/tours/tour_social_twitter_spam.js', login='social_manager')
@@ -64,9 +62,8 @@ class TestSocialTwitter(HttpCase):
         original_request_get = requests.get
 
         def _mock_request_get(url, *args, **kwargs):
-            self.unique_id_str += 1
             responses = {
-                '/tweets': {'data': [{'conversation_id': 1337, 'id': self.unique_id_str}]},
+                '/tweets': {'data': [{'conversation_id': 1337}]},
                 '/mentions': {},
                 '/2/users/by': {},
             }
@@ -105,11 +102,8 @@ class TestSocialTwitter(HttpCase):
                     'id': 'tweet_%i' % self.unique_id_str,
                     'text': params.get('text', ''),
                     'created_at': datetime.now().strftime("%Y-%m-%d %H:00:00"),
+                    'in_reply_to_status_id_str': params.get('in_reply_to_tweet_id'),
                     'from': {'screen_name': 'social_demo'},
-                    'referenced_tweets': [{
-                        'id': params.get('reply', {}).get('in_reply_to_tweet_id'),
-                        'type': 'replied_to',
-                    }]
                 }}).encode()
                 response.status_code = 200
                 return response

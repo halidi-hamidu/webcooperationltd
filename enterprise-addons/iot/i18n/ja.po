@@ -3,17 +3,17 @@
 # 	* iot
 # 
 # Translators:
-# Wil Odoo, 2023
-# Norimichi Sugimoto <norimichi.sugimoto@tls-ltd.co.jp>, 2023
-# Junko Augias, 2024
+# Martin Trigaux, 2022
+# 江口和志 <sandwhale1010@gmail.com>, 2022
+# Junko Augias, 2023
 # Ryoko Tsuda <ryoko@quartile.co>, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2023-04-14 06:16+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
 "Last-Translator: Ryoko Tsuda <ryoko@quartile.co>, 2024\n"
 "Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
 "MIME-Version: 1.0\n"
@@ -34,7 +34,7 @@ msgstr ""
 "0. IoT ボックスの電源を入れる<br/><br/>\n"
 "\n"
 "                    <strong>A. イーサネット接続</strong><br/>\n"
-"                    1. IoT Boxに接続された画面やサーマルプリンタから、ペアリングコードを読み取ります。<br/>\n"
+"                    1. IoT Boxに接続されたディスプレイやサーマルプリンタから、ペアリングコードを読み取ります。<br/>\n"
 "                    2. 下記のコードを入力し、\"ペア\"をクリックしてください。<br/>"
 
 #. module: iot
@@ -45,7 +45,7 @@ msgstr "<span class=\"badge text-bg-secondary\">未接続</span>"
 #. module: iot
 #: model_terms:ir.ui.view,arch_db:iot.iot_device_view_kanban
 msgid "<span class=\"badge text-bg-success\">Connected</span>"
-msgstr "<span class=\"badge text-bg-success\">接続済</span>"
+msgstr "<span class=\"badge badge-success\">接続済</span>"
 
 #. module: iot
 #: model_terms:ir.ui.view,arch_db:iot.view_add_iot_box
@@ -74,7 +74,7 @@ msgstr "IoT Box ウィザードを追加"
 #: code:addons/iot/static/src/view_widgets/iot_restart_odoo.js:0
 #, python-format
 msgid "Are you sure you want to reboot the IoT box?"
-msgstr "本当に IoT boxを再起動しますか？"
+msgstr "本当に IoT boxをリブートしますか？"
 
 #. module: iot
 #. odoo-javascript
@@ -104,34 +104,31 @@ msgid "Bluetooth"
 msgstr "Bluetooth"
 
 #. module: iot
+#. odoo-javascript
+#: code:addons/iot/static/src/views/box_kanban_view.xml:0
+#: code:addons/iot/static/src/views/box_list_view.xml:0
+#, python-format
+msgid "CONNECT"
+msgstr "接続"
+
+#. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__type__camera
 msgid "Camera"
 msgstr "カメラ"
-
-#. module: iot
-#: model_terms:ir.ui.view,arch_db:iot.view_select_printers_wizard
-msgid "Cancel"
-msgstr "取消"
 
 #. module: iot
 #. odoo-javascript
 #: code:addons/iot/static/src/views/iot_device_form.js:0
 #, python-format
 msgid "Check if the device is still connected"
-msgstr "デバイスがまだ接続されているか確認して下さい。"
-
-#. module: iot
-#: model:ir.actions.client,name:iot.action_iot_delete_linked_devices_menu
-#: model:ir.ui.menu,name:iot.view_iot_selected_printer_local_action
-msgid "Clear Selected Devices"
-msgstr "選択したデバイスを削除"
+msgstr "デバイスがまだ接続されているか確認して下さい、"
 
 #. module: iot
 #. odoo-javascript
-#: code:addons/iot/static/src/client_action/delete_local_storage.xml:0
+#: code:addons/iot/static/src/iot_report_action.js:0
 #, python-format
-msgid "Clear automatic reports"
-msgstr "自動レポートを削除"
+msgid "Check if the printer is still connected"
+msgstr "プリンタがまだ接続されているか確認して下さい。、"
 
 #. module: iot
 #. odoo-javascript
@@ -178,14 +175,15 @@ msgstr "このウィンドウを閉じて、もう一度試してください。
 
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_iot_box__company_id
-#: model:ir.model.fields,field_description:iot.field_iot_channel__company_id
 #: model:ir.model.fields,field_description:iot.field_iot_device__company_id
 msgid "Company"
 msgstr "会社"
 
 #. module: iot
-#: model_terms:ir.ui.view,arch_db:iot.iot_box_view_kanban
-#: model_terms:ir.ui.view,arch_db:iot.iot_box_view_list
+#. odoo-javascript
+#: code:addons/iot/static/src/views/box_kanban_view.xml:0
+#: code:addons/iot/static/src/views/box_list_view.xml:0
+#, python-format
 msgid "Connect"
 msgstr "接続"
 
@@ -216,27 +214,29 @@ msgid "Connection to device failed"
 msgstr "機器との接続に失敗しました"
 
 #. module: iot
+#. odoo-javascript
+#: code:addons/iot/static/src/iot_report_action.js:0
+#, python-format
+msgid "Connection to printer failed"
+msgstr "プリンタとの接続に失敗しました"
+
+#. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__create_uid
 #: model:ir.model.fields,field_description:iot.field_iot_box__create_uid
-#: model:ir.model.fields,field_description:iot.field_iot_channel__create_uid
 #: model:ir.model.fields,field_description:iot.field_iot_device__create_uid
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__create_uid
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__create_uid
 msgid "Created by"
 msgstr "作成者"
 
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__create_date
 #: model:ir.model.fields,field_description:iot.field_iot_box__create_date
-#: model:ir.model.fields,field_description:iot.field_iot_channel__create_date
 #: model:ir.model.fields,field_description:iot.field_iot_device__create_date
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__create_date
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__create_date
 msgid "Created on"
 msgstr "作成日"
 
 #. module: iot
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__device_ids
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__type__device
 msgid "Device"
 msgstr "デバイス"
@@ -272,17 +272,10 @@ msgid "Display"
 msgstr "表示"
 
 #. module: iot
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__display_device_ids
-msgid "Display Device"
-msgstr "デバイスを表示"
-
-#. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__display_name
 #: model:ir.model.fields,field_description:iot.field_iot_box__display_name
-#: model:ir.model.fields,field_description:iot.field_iot_channel__display_name
 #: model:ir.model.fields,field_description:iot.field_iot_device__display_name
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__display_name
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__display_name
 msgid "Display Name"
 msgstr "表示名"
 
@@ -315,7 +308,7 @@ msgstr "ログのダウンロード"
 #. odoo-javascript
 #: code:addons/iot/static/src/iot_connection_error_dialog.xml:0
 #, python-format
-msgid "Firefox only: Click on Confirm Security Exception"
+msgid "Firefox only : Click on Confirm Security Exception"
 msgstr "Firefoxのみ：「セキュリティ例外の確認」をクリックします。"
 
 #. module: iot
@@ -336,10 +329,8 @@ msgstr "HDMI"
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__id
 #: model:ir.model.fields,field_description:iot.field_iot_box__id
-#: model:ir.model.fields,field_description:iot.field_iot_channel__id
 #: model:ir.model.fields,field_description:iot.field_iot_device__id
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__id
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__id
 msgid "ID"
 msgstr "ID"
 
@@ -400,14 +391,10 @@ msgid "IoT Boxes"
 msgstr "IoT ボックス"
 
 #. module: iot
+#: model:ir.model.fields,field_description:iot.field_ir_actions_report__device_id
 #: model_terms:ir.ui.view,arch_db:iot.iot_device_search
 msgid "IoT Device"
 msgstr "IoT 機器"
-
-#. module: iot
-#: model:ir.model.fields,field_description:iot.field_ir_actions_report__device_ids
-msgid "IoT Devices"
-msgstr "IoTデバイス"
 
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_iot_device__is_scanner
@@ -426,6 +413,14 @@ msgid "Keyboard Layout"
 msgstr "キーボード・レイアウト"
 
 #. module: iot
+#: model:ir.model.fields,field_description:iot.field_add_iot_box____last_update
+#: model:ir.model.fields,field_description:iot.field_iot_box____last_update
+#: model:ir.model.fields,field_description:iot.field_iot_device____last_update
+#: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout____last_update
+msgid "Last Modified on"
+msgstr "最終更新日"
+
+#. module: iot
 #: model_terms:ir.ui.view,arch_db:iot.iot_device_view_form
 msgid "Last Sent Value"
 msgstr "最後に送信された値"
@@ -433,20 +428,16 @@ msgstr "最後に送信された値"
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__write_uid
 #: model:ir.model.fields,field_description:iot.field_iot_box__write_uid
-#: model:ir.model.fields,field_description:iot.field_iot_channel__write_uid
 #: model:ir.model.fields,field_description:iot.field_iot_device__write_uid
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__write_uid
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__write_uid
 msgid "Last Updated by"
 msgstr "最終更新者"
 
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_add_iot_box__write_date
 #: model:ir.model.fields,field_description:iot.field_iot_box__write_date
-#: model:ir.model.fields,field_description:iot.field_iot_channel__write_date
 #: model:ir.model.fields,field_description:iot.field_iot_device__write_date
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__write_date
-#: model:ir.model.fields,field_description:iot.field_select_printers_wizard__write_date
 msgid "Last Updated on"
 msgstr "最終更新日"
 
@@ -484,7 +475,6 @@ msgstr "製造業"
 
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_iot_box__name
-#: model:ir.model.fields,field_description:iot.field_iot_channel__name
 #: model:ir.model.fields,field_description:iot.field_iot_device__name
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__name
 msgid "Name"
@@ -497,15 +487,8 @@ msgstr "ネットワーク"
 
 #. module: iot
 #: model_terms:ir.actions.act_window,help:iot.iot_box_action
-msgid "No IoT Box found!"
-msgstr "IoT Boxが見つかりません！"
-
-#. module: iot
-#. odoo-javascript
-#: code:addons/iot/static/src/client_action/delete_local_storage.xml:0
-#, python-format
-msgid "No report to display"
-msgstr "表示するレポートはありません"
+msgid "No IoT Box found !"
+msgstr "IoTボックスが見つかりません！"
 
 #. module: iot
 #. odoo-javascript
@@ -527,7 +510,7 @@ msgstr "ペアリングコード"
 #. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__type__payment
 msgid "Payment Terminal"
-msgstr "決済端末"
+msgstr "支払ターミナル"
 
 #. module: iot
 #. odoo-javascript
@@ -535,8 +518,8 @@ msgstr "決済端末"
 #, python-format
 msgid ""
 "Please accept the certificate of your IoT Box (procedure depends on your "
-"browser):"
-msgstr "IoT Boxの証明書を承認して下さい(手順はブラウザによって異なります):"
+"browser) :"
+msgstr "IoT Boxの証明書を承認してください（手順はブラウザによって異なります）。"
 
 #. module: iot
 #. odoo-javascript
@@ -554,24 +537,21 @@ msgid "Please wait"
 msgstr "お待ち下さい"
 
 #. module: iot
-#: model_terms:ir.ui.view,arch_db:iot.view_select_printers_wizard
-msgid "Print"
-msgstr "印刷"
-
-#. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__type__printer
 msgid "Printer"
+msgstr "プリンタ"
+
+#. module: iot
+#. odoo-javascript
+#: code:addons/iot/static/src/iot_report_action.js:0
+#, python-format
+msgid "Printer "
 msgstr "プリンタ"
 
 #. module: iot
 #: model_terms:ir.ui.view,arch_db:iot.iot_device_view_form
 msgid "Printer Reports"
 msgstr "プリンタレポート"
-
-#. module: iot
-#: model_terms:ir.ui.view,arch_db:iot.view_select_printers_wizard
-msgid "Printers"
-msgstr "プリンター"
 
 #. module: iot
 #: model:ir.model,name:iot.model_publisher_warranty_contract
@@ -617,19 +597,9 @@ msgid "Restarting"
 msgstr "再起動中"
 
 #. module: iot
-#: model_terms:ir.ui.view,arch_db:iot.view_select_printers_wizard
-msgid "Sales Details"
-msgstr "販売詳細"
-
-#. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__type__scale
 msgid "Scale"
 msgstr "スケール"
-
-#. module: iot
-#: model:ir.model,name:iot.model_select_printers_wizard
-msgid "Selection of printers"
-msgstr "プリンタの選択"
 
 #. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__connection__serial
@@ -639,7 +609,7 @@ msgstr "シリアル"
 #. module: iot
 #: model:ir.model.fields,field_description:iot.field_iot_device__connected
 msgid "Status"
-msgstr "状態"
+msgstr "ステータス"
 
 #. module: iot
 #. odoo-javascript
@@ -649,14 +619,11 @@ msgid "Success"
 msgstr "成功"
 
 #. module: iot
-#: model:ir.model,name:iot.model_iot_channel
-msgid "The Websocket Iot Channel"
-msgstr "ウェブソケットIoTチャネル"
-
-#. module: iot
-#: model:ir.model.constraint,message:iot.constraint_iot_channel_unique_name
-msgid "The channel name must be unique"
-msgstr "チャネル名は一意にして下さい"
+#. odoo-javascript
+#: code:addons/iot/static/src/iot_report_action.js:0
+#, python-format
+msgid "Successfully sent to printer!"
+msgstr "プリンタへの送信に成功しました！"
 
 #. module: iot
 #. odoo-python
@@ -709,7 +676,7 @@ msgstr "機器タイプ"
 msgid ""
 "URL of the page that will be displayed by the device, leave empty to use the"
 " customer facing display of the POS."
-msgstr "機器で表示されるページのURL。POSの顧客用画面として使用する場合は空欄にします。"
+msgstr "機器で表示されるページのURL。POSの顧客向けディスプレイとして使用する場合は空欄にします。"
 
 #. module: iot
 #: model:ir.model.fields.selection,name:iot.selection__iot_device__connection__direct
@@ -717,16 +684,9 @@ msgid "USB"
 msgstr "USB"
 
 #. module: iot
-#. odoo-javascript
-#: code:addons/iot/static/src/client_action/delete_local_storage.xml:0
-#, python-format
-msgid "Unlink"
-msgstr "リンク除去"
-
-#. module: iot
 #: model:ir.model.fields,field_description:iot.field_iot_keyboard_layout__variant
 msgid "Variant"
-msgstr "バリアント"
+msgstr "製品バリアント"
 
 #. module: iot
 #. odoo-python
@@ -736,7 +696,7 @@ msgid "We had troubles pairing your IoT Box. Please try again later."
 msgstr "IoTボックスのペアリングに問題が発生しました。後ほどもう一度お試しください。"
 
 #. module: iot
-#: model:ir.model.fields,help:iot.field_ir_actions_report__device_ids
+#: model:ir.model.fields,help:iot.field_ir_actions_report__device_id
 msgid ""
 "When setting a device here, the report will be printed through this device "
 "on the IoT Box"

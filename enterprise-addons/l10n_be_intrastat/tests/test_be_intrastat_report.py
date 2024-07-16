@@ -10,7 +10,7 @@ from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 class TestBEIntrastatReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.company_data['company'].country_id = cls.env.ref('base.be')
         italy = cls.env.ref('base.it')
@@ -114,7 +114,7 @@ class TestBEIntrastatReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, '2022-05-01', '2022-05-31')
         arrivals, dispatches = options['intrastat_type']
         arrivals['selected'], dispatches['selected'] = False, True
-        options = self.report.get_options(options)
+        options = self.report._get_options(options)
 
         dispatches_only_tree = etree.fromstring(self.report_handler.be_intrastat_export_to_xml(options)['file_content'])
         expected_tree = self.with_applied_xpath(
@@ -133,7 +133,7 @@ class TestBEIntrastatReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, '2022-05-01', '2022-05-31')
         arrivals, dispatches = options['intrastat_type']
         arrivals['selected'], dispatches['selected'] = True, False
-        options = self.report.get_options(options)
+        options = self.report._get_options(options)
         arrivals_only_tree = etree.fromstring(self.report_handler.be_intrastat_export_to_xml(options)['file_content'])
         expected_tree = self.with_applied_xpath(
             etree.fromstring(self.expected_content_all),
@@ -148,7 +148,7 @@ class TestBEIntrastatReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, '2022-05-01', '2022-05-31')
         arrivals, dispatches = options['intrastat_type']
         arrivals['selected'], dispatches['selected'] = False, False
-        options = self.report.get_options(options)
+        options = self.report._get_options(options)
 
         # Both reports should be present, but they should be absent of items (until we post)
         full_export_tree = etree.fromstring(self.report_handler.be_intrastat_export_to_xml(options)['file_content'])

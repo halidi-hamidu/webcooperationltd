@@ -26,7 +26,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             'file_export_type': _('XML'),
         }
         options['buttons'].append(xml_button)
-        options['intrastat_grouped'] = previous_options.get('intrastat_grouped', True)
+        options['intrastat_grouped'] = True  # We always activate the grouping for the belgian intrastat report
 
     def _show_region_code(self):
         if self.env.company.account_fiscal_country_id.code == 'BE' and not self.env.company.intrastat_region_id:
@@ -59,7 +59,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
 
         self.env.cr.flush()
         query, params = self._build_query_group(options)
-        self._cr.execute(query, params)  # pylint: disable=sql-injection
+        self._cr.execute(query, params)
         query_res = self._cr.dictfetchall()
         query_res = self._fill_missing_values(query_res)
 
@@ -84,7 +84,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         })
 
         return {
-            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename(options, 'xml'),
+            'file_name': self.env['account.report'].browse(options['report_id']).get_default_report_filename('xml'),
             'file_content': etree.tostring(etree.fromstring(file_content), xml_declaration=True, encoding='utf-8', pretty_print=True),
             'file_type': 'xml',
         }

@@ -7,13 +7,13 @@
             <field name="arch" type="xml">
                 <form string="VFD Receipt" create="false" edit="false">
                     <header>
-                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" invisible="state == 'draft'"
+                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" states="draft"
                                 type="object"/>
-                        <button name="resend_receipt" string="Resend" invisible="state == 'error'"
+                        <button name="resend_receipt" string="Resend" states="error"
                                 type="object"/>
-                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" invisible="state == ''"
+                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" states=""
                                 type="object"/>
-                        <button name="cancel_receipt" string="Cancel" invisible="state not in ['draft', 'sent']" type="object"/>
+                        <button name="cancel_receipt" string="Cancel" states="draft,sent" type="object"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,sent,error,verified,cancel"/>
                     </header>
                     <sheet>
@@ -48,7 +48,7 @@
                                 </group>
                             </page>
                             <page name="error_page" string="Error Status"
-                                  invisible="state != 'error'">
+                                  attrs="{'invisible':[('state','!=','error')]}">
                                 <group>
                                     <field name="error_message" readonly="1"/>
                                 </group>

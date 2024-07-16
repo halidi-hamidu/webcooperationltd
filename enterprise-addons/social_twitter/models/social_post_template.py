@@ -19,7 +19,7 @@ class SocialPostTemplate(models.Model):
 
     @api.depends('message', 'has_twitter_accounts')
     def _compute_twitter_post_limit_message(self):
-        self.twitter_post_limit_message = False
+        self.twitter_post_limit_message = ''
         self.is_twitter_post_limit_exceed = False
         for post in self.filtered('has_twitter_accounts'):
             twitter_account = post.account_ids._filter_by_media_types(['twitter'])
@@ -37,8 +37,8 @@ class SocialPostTemplate(models.Model):
                     post.message,
                     'twitter',
                     **{field: post[field] for field in post._get_post_message_modifying_fields()}),
-                'image_urls': [
-                    f'/web/image/{image._origin.id or image.id}'
+                'images': [
+                    image.with_context(bin_size=False).datas
                     for image in post.image_ids.sorted(lambda image: image._origin.id or image.id, reverse=True)
                 ],
                 'limit': twitter_account.media_id.max_post_length,

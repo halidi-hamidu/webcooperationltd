@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, fields, models
+from odoo import fields, models, _
 
 
 class ResConfigSettings(models.TransientModel):
@@ -24,7 +24,7 @@ class ResConfigSettings(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': 'Payruns fetched',
-                'message': _("%s Payruns were fetched and added to your accounting", len(account_moves)),
+                'message': _("%s Payruns were fetched and added to your accounting") % (len(account_moves)),
                 'sticky': True,
             }
         }

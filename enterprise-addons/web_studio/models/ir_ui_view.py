@@ -12,8 +12,7 @@ import random
 
 from odoo import api, models, _
 from odoo.exceptions import UserError
-
-from odoo.addons.web_studio.controllers.report import get_report_view_copy
+from odoo.osv import expression
 
 
 CONTAINER_TYPES = (
@@ -28,7 +27,7 @@ class Model(models.AbstractModel):
     def _get_view_cache_key(self, *args, **kwargs):
         if self._context.get('studio'):
             self = self.with_context(no_address_format=True)
-        key = super()._get_view_cache_key(*args, **kwargs)
+        key = super(Model, self)._get_view_cache_key(*args, **kwargs)
         return key + (self._context.get("studio"),)
 
     @api.model
@@ -38,19 +37,6 @@ class Model(models.AbstractModel):
             keys.append('manual')
         return keys
 
-    @api.model
-    def get_views(self, views, options=None):
-        """Add an option to enable features for studio.
-
-        :param dict options: a dict optional boolean flags, set to enable:
-
-            ``studio``
-                enable studio feature, will add 'studio' and
-                'no_address_format' in the context.
-        """
-        if options and options.get('studio'):
-            self = self.with_context(studio=True, no_address_format=True)
-        return super().get_views(views, options)
 
 class View(models.Model):
     _name = 'ir.ui.view'
@@ -98,9 +84,9 @@ class View(models.Model):
             set_invisible_nodes = set()
 
             for node in tree.xpath('//*[@groups]'):
-                node_groups[node] = node.get('groups')
-
-                if not self.user_has_groups(node.get('groups')):
+                groups = node.get('groups')
+                node_groups[node] = groups
+                if groups and not self.user_has_groups(groups):
                     # Make invisible nodes for which the user is not part of the group,
                     # and remove the `groups` from the node before calling super so the nodes are not deleted.
                     if node.tag == 't' and node.get('postprocess_added'):
@@ -145,12 +131,16 @@ class View(models.Model):
                 return parent is not None and parent.tag == "tree"
 
             for node in set_invisible_nodes:
+                modifiers = json.loads(node.attrib.pop('modifiers', '{}'))
                 if is_in_tree(node):
-                    column_invisible = 'True'
-                    node.set('column_invisible', column_invisible)
+                    modifiers['column_invisible'] = True
                 else:
-                    invisible = 'True'
-                    node.set('invisible', invisible)
+                    modifiers['invisible'] = True
+                node.set('modifiers', json.dumps(modifiers))
+                if node.get('context-dependent-modifiers'):
+                    modifiers = json.loads(node.get('context-dependent-modifiers'))
+                    modifiers.pop('invisible', None)
+                    node.set('context-dependent-modifiers', json.dumps(modifiers))
 
             model = tree.get('model_access_rights')
             res = super(View, self)._postprocess_access_rights(tree)
@@ -237,7 +227,7 @@ class View(models.Model):
             fields.append(E.field(name='x_studio_company_id', groups='base.group_multi_company'))
         if 'x_studio_currency_id' in model._fields and 'x_studio_value' in model._fields:
             fields.append(E.field(name='x_studio_currency_id', invisible='1'))
-            fields.append(E.field(name='x_studio_value', sum=_("Total")))
+            fields.append(E.field(name='x_studio_value', widget='monetary', options="{'currency_field': 'x_studio_currency_id'}", sum=_("Total")))
         if 'x_studio_tag_ids' in model._fields:
             fields.append(E.field(name='x_studio_tag_ids', widget='many2many_tags', options="{'color_field': 'x_color'}"))
         if 'x_color' in model._fields:
@@ -264,7 +254,7 @@ class View(models.Model):
             header_content.append(E.field(name='x_studio_stage_id', widget='statusbar', options="{'clickable': '1'}"))
             sheet_content.append(E.field(name='x_studio_kanban_state', widget='state_selection'))
         if 'x_active' in model._fields:
-            sheet_content.append(E.widget(name='web_ribbon', text=_('Archived'), bg_color='text-bg-danger', invisible="x_active"))
+            sheet_content.append(E.widget(name='web_ribbon', text=_('Archived'), bg_color='bg-danger', attrs="{'invisible': [('x_active', '=', True)]}"))
             sheet_content.append(E.field(name='x_active', invisible='1'))
         if 'x_studio_image' in model._fields:
             sheet_content.append(E.field({'class': 'oe_avatar', 'widget': 'image', 'name': 'x_studio_image'}))
@@ -288,7 +278,7 @@ class View(models.Model):
             left_group_content.append(E.field(name='x_studio_partner_email', widget='email'))
         if 'x_studio_currency_id' in model._fields and 'x_studio_value' in model._fields:
             right_group_content.append(E.field(name='x_studio_currency_id', invisible='1'))
-            right_group_content.append(E.field(name='x_studio_value'))
+            right_group_content.append(E.field(name='x_studio_value', widget='monetary', options="{'currency_field': 'x_studio_currency_id'}"))
         if 'x_studio_tag_ids' in model._fields:
             right_group_content.append(E.field(name='x_studio_tag_ids', widget='many2many_tags', options="{'color_field': 'x_color'}"))
         if 'x_studio_company_id' in model._fields:
@@ -296,10 +286,12 @@ class View(models.Model):
         if 'x_studio_date' in model._fields:
             left_group_content.append(E.field(name='x_studio_date'))
         if 'x_studio_date_start' in model._fields and 'x_studio_date_stop' in model._fields:
-            left_group_content.append(
-                E.field(name='x_studio_date_start', string='Dates', widget='daterange', options="{'end_date_field': 'x_studio_date_stop'}"))
-            left_group_content.append(
-                E.field(name='x_studio_date_stop', invisible='1'))
+            left_group_content.append(E.label({'for': "x_studio_date_start"}, string='Dates'))
+            daterangeDiv = E.div({'class': 'o_row'})
+            daterangeDiv.append(E.field(name='x_studio_date_start', widget='daterange', options='{"related_end_date": "x_studio_date_stop"}'))
+            daterangeDiv.append(E.span(_(' to ')))
+            daterangeDiv.append(E.field(name='x_studio_date_stop', widget='daterange', options='{"related_start_date": "x_studio_date_start"}'))
+            left_group_content.append(daterangeDiv)
         if not left_group_content:
             # there is nothing in our left group; switch the groups' content
             # to avoid a weird looking form view
@@ -508,7 +500,7 @@ class View(models.Model):
         card_div = E.div({'t-attf-class': "#{!selection_mode ? kanban_color(record.x_color.raw_value) : ''} oe_kanban_global_click"})
         if 'x_studio_value' and 'x_studio_currency_id' in model._fields:
             pre_fields.append(E.field(name='x_studio_currency_id'))
-            bottom_left_div.append(E.field(name='x_studio_value'))
+            bottom_left_div.append(E.field(name='x_studio_value', widget='monetary', options="{'currency_field': 'x_studio_currency_id'}"))
         if 'x_studio_tag_ids' in model._fields:
             body_div.append(E.field(name='x_studio_tag_ids', options="{'color_field': 'x_color'}"))
         if 'x_studio_image' in model._fields:
@@ -615,7 +607,7 @@ class View(models.Model):
 
         Returns the normalized studio arch
         """
-        # Beware! By its reasoning, this function assumes that the view you
+        # Beware ! By its reasoning, this function assumes that the view you
         # want to normalize is the last one to be applied on its root view.
         # This could be improved by deactivating all views that would be applied
         # after this one when calling the get_combined_arch to get the old_view
@@ -732,7 +724,7 @@ class View(models.Model):
                         old_node = next(old_view_iterator)
                         node = next(new_view_iterator)
                         # If we are in moving boundary mode, then this node
-                        # definitely moved, since the boundary moved around it!
+                        # definitely moved, since the boundary moved around it !
                         if moving_boundary and node.tag == 'field':
                             # Only fields are currently supported.
                             removed_fields[node.get('name')] = old_node
@@ -965,20 +957,20 @@ class View(models.Model):
         return None
 
     def _add_xpath_to_arch(self, arch, xpath):
-        """
-        Appends the xpath to the arch if the xpath's position != 'replace'
-        (deletion), otherwise it is prepended to the arch.
+            """
+            Appends the xpath to the arch if the xpath's position != 'replace'
+            (deletion), otherwise it is prepended to the arch.
 
-        This is done because when moving an existing field somewhere before
-        its original position it will append a replace xpath and then
-        append the existing field xpath, effictively removing the one just
-        added and showing the one that existed before.
-        """
-        # TODO: Only add attributes if the xpath has children
-        if xpath.get('position') == 'replace':
-            arch.insert(0, xpath)
-        else:
-            arch.append(xpath)
+            This is done because when moving an existing field somewhere before
+            its original position it will append a replace xpath and then
+            append the existing field xpath, effictively removing the one just
+            added and showing the one that existed before.
+            """
+            # TODO: Only add attributes if the xpath has children
+            if xpath.get('position') == 'replace':
+                arch.insert(0, xpath)
+            else:
+                arch.append(xpath)
 
     def _clone_and_append_to(self, node, parent_node):
         """
@@ -1240,8 +1232,8 @@ class View(models.Model):
         domain = [
             ('type', '=', 'qweb'),
             ('key', '!=', new.key),
-            ('key', '=like', '%s_copy_%%' % new.key),
-            '!', ('key', '=like', '%s_copy_%%_copy_%%' % new.key)]
+            ('key', 'like', '%s_copy_%%' % new.key),
+            ('key', 'not like', '%s_copy_%%_copy_%%' % new.key)]
         old_copies = self.search_read(domain, order='key desc')
         nos = [int(old_copy.get('key').split('_copy_').pop()) for old_copy in old_copies]
         copy_no = (nos and max(nos) or 0) + 1
@@ -1301,57 +1293,3 @@ class View(models.Model):
             self._raise_view_error(_("studio_approval attribute can only be set in form views"), node)
         if studio_approval and studio_approval not in ['True', 'False']:
             self._raise_view_error(_("Invalid studio_approval %s in button", studio_approval), node)
-
-    # REPORT STUFF
-    def _render_template(self, template, values=None):
-        if self._context.get("studio"):
-            # Force inherit branding from report rendering
-            self = self.with_context(inherit_branding=True)
-        return super(View, self)._render_template(template, values)
-
-    def _contains_branded(self, node):
-        if not self._context.get("studio"):
-            return super()._contains_branded(node)
-        if node.tag == "t" and ('t-raw' in node.attrib or 't-call' in node.attrib):
-            return True
-        return any(self.is_node_branded(child) for child in node.iterdescendants())
-
-    def is_node_branded(self, node):
-        if self._context.get("studio"):
-            if "data-oe-model" in node.attrib:
-                return True
-            if node.tag is etree.ProcessingInstruction and node.target == 'apply-inheritance-specs-node-removal':
-                return True
-            if any([att in ("t-out", "t-raw", "t-esc") and node.get(att) == "0" for att in node.attrib]):
-                return True
-            if node.tag == 't' and "t-set" in node.attrib and len(node) > 0:
-                return True
-            if node.tag == "t" and "t-call" in node.attrib:
-                return True
-            return False
-        return super().is_node_branded(node)
-
-    @api.model
-    def save_embedded_field(self, el):
-        # never save the content of a t-field as the DB's column value
-        if self.env.context.get("studio"):
-            return
-        return super().save_embedded_field(el)
-
-
-
-class ResetViewArchWizard(models.TransientModel):
-    """ A wizard to compare and reset views architecture. """
-    _inherit = "reset.view.arch.wizard"
-
-    @api.model
-    def default_get(self, fields):
-        defaults = super().default_get(fields)
-        if self._context.get("studio_report_diff"):
-            main_view_id = defaults.get("view_id")
-            if main_view_id:
-                copy = get_report_view_copy(self.env["ir.ui.view"].browse(main_view_id))
-                if copy:
-                    defaults['reset_mode'] = 'other_view'
-                    defaults['compare_view_id'] = copy.id
-        return defaults

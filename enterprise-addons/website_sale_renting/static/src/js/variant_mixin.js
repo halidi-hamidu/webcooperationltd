@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import VariantMixin from '@website_sale/js/sale_variant_mixin';
+import VariantMixin from 'sale.VariantMixin';
 import { RentingMixin } from '@website_sale_renting/js/renting_mixin';
 
 VariantMixin._isDurationWithHours = RentingMixin._isDurationWithHours;

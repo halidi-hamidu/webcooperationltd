@@ -4,9 +4,9 @@ import { SpreadsheetPivotModel } from "@spreadsheet/pivot/pivot_model";
 import { patch } from "@web/core/utils/patch";
 import { Domain } from "@web/core/domain";
 
-patch(SpreadsheetPivotModel.prototype, {
+patch(SpreadsheetPivotModel.prototype, "documents_spreadsheet_templates_pivot_model", {
     setup() {
-        super.setup(...arguments);
+        this._super.apply(this, arguments);
         /**
          * Contains the possible values for each group by of the pivot. This attribute is used *only* for templates,
          * so it's computed only in prepareForTemplateGeneration

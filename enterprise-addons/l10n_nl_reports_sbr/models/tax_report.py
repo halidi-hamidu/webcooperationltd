@@ -13,6 +13,10 @@ class DutchReportCustomHandler(models.AbstractModel):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         options['buttons'].append({'name': _('XBRL'), 'sequence': 30, 'action': 'open_xbrl_wizard', 'file_export_type': _('XBRL')})
 
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        # Overridden to prevent having unnecessary lines from the generic tax report.
+        return []
+
     def open_xbrl_wizard(self, options):
         statusinformatiservice_module = self.env['ir.module.module']._get('l10n_nl_reports_sbr_status_info')
         if statusinformatiservice_module.state != 'installed':
@@ -26,11 +30,11 @@ class DutchReportCustomHandler(models.AbstractModel):
                 },
             )
         report = self.env['account.report'].browse(options['report_id'])
-        if report.filter_multi_company != 'tax_units' and len(options['companies']) > 1:
+        if report.filter_multi_company and report.filter_multi_company != 'tax_units' and len(options.get('multi_company', [])) > 1:
             raise UserError(_('Please select only one company to send the report. If you wish to aggregate multiple companies, please create a tax unit.'))
         date_to = datetime.date.fromisoformat(options['date']['date_to'])
         closing_date_from, closing_date_to = self.env.company._get_tax_closing_period_boundaries(date_to)
-        new_options = report.get_options({
+        new_options = report._get_options({
             **options,
             'date': {
                 'date_from': closing_date_from,
@@ -64,7 +68,7 @@ class DutchReportCustomHandler(models.AbstractModel):
         xbrl_element = etree.fromstring(xbrl)
         xbrl_file = etree.tostring(xbrl_element, xml_declaration=True, encoding='utf-8')
         return {
-            'file_name': report.get_default_report_filename(options, 'xbrl'),
+            'file_name': report.get_default_report_filename('xbrl'),
             'file_content': xbrl_file,
             'file_type': 'xml',
         }

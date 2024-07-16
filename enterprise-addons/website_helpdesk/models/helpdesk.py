@@ -108,14 +108,14 @@ class HelpdeskTeam(models.Model):
                 team.website_form_view_id = form_template.id
 
     def _ensure_website_menu(self):
-        with_website = self.filtered_domain([('use_website_helpdesk_form', '=', True)])
+        with_website = self.filtered_domain([('use_website_helpdesk_form', '=', True), ('is_published', '=', True)])
         without_website = self - with_website
         without_website.website_menu_id.unlink()
 
         team_count_data = self.env['helpdesk.team']._read_group([
             ('use_website_helpdesk_form', '=', True),
-        ], ['website_id'], ['__count', 'id:recordset'])
-        team_count = {website.id: count for website, count, teams in team_count_data}
+        ], ['website_id', 'ids:array_agg(id)'], ['website_id'])
+        team_count = {t['website_id'][0] if t['website_id'] else False: t['website_id_count'] for t in team_count_data}
 
         for team in with_website:
             if not team.website_menu_id:
@@ -130,17 +130,17 @@ class HelpdeskTeam(models.Model):
                     })
                     team.website_menu_id = menu.id
 
-        for team_count, teams in ((team_count, teams) for _, team_count, teams in team_count_data):
+        for team_ids, team_count in ((t.get('ids', []), t.get('website_id_count', 0)) for t in team_count_data):
             # Rename team menu from "{Team Name}" -> "Help"
             if team_count == 1:
-                team = teams.filtered(
+                team = self.env['helpdesk.team'].browse(team_ids).filtered(
                     lambda t: t.website_menu_id.name == t.name
                 )
                 if team:
                     team.website_menu_id.name = _('Help')
             # Rename team menu from "Help" -> "{Team Name}"
             elif team_count > 1:
-                teams = teams.filtered(
+                teams = self.env['helpdesk.team'].browse(team_ids).filtered(
                     lambda t: t.website_menu_id.name != t.name
                 )
                 for team in teams:

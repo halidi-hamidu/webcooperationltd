@@ -72,10 +72,10 @@ class SaleOrder(models.Model):
                 if len(line.tax_id) != 1 or float_compare(line.tax_id.amount, tax_rate, precision_digits=3):
                     tax_rate = float_round(tax_rate, precision_digits=3)
                     tax = self.env['account.tax'].with_context(active_test=False).sudo().search([
-                        *self.env['account.tax']._check_company_domain(company),
                         ('amount', '=', tax_rate),
                         ('amount_type', '=', 'percent'),
                         ('type_tax_use', '=', 'sale'),
+                        ('company_id', '=', company.id),
                     ], limit=1)
                     if tax:
                         # Only set if not already set, otherwise it triggers a

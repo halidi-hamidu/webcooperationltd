@@ -14,7 +14,7 @@ class SwedishECSalesReportCustomHandler(models.AbstractModel):
     _inherit = 'account.ec.sales.report.handler'
     _description = 'Swedish EC Sales Report Custom Handler'
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         """
         Generate the dynamic lines for the report in a horizontal style
         (one line partner, one column per operation type).
@@ -120,7 +120,7 @@ class SwedishECSalesReportCustomHandler(models.AbstractModel):
             writer.writerows(lines)
             content = buf.getvalue()
         return {
-            'file_name': report.get_default_report_filename(options, 'KVR'),
+            'file_name': report.get_default_report_filename('KVR'),
             'file_content': content,
             'file_type': 'csv',  # KVR is just csv with extra steps
         }

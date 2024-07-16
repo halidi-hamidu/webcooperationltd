@@ -3,6 +3,7 @@
 
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from unittest.mock import patch
 
 from .common import HelpdeskCommon
 from odoo.tests.common import HttpCase
@@ -102,22 +103,21 @@ class TestHelpdeskRating(HelpdeskCommon, HttpCase, MailCommon):
             3) Check the rating values in the dashboard data.
         """
         yesterday = date.today() - relativedelta(days=1)
-        yesterday_str = f'{yesterday.year}-{yesterday.month}-{yesterday.day}'
-        ratings = self.env['rating.rating'].create([
-            {
-                **self.default_rating_vals,
-                'rating': 5,
-                'rated_partner_id': self.helpdesk_user.partner_id.id,
-                'res_id': self.test_team_ticket2.id,
-            },
-            {
-                **self.default_rating_vals,
-                'rating': 3,
-                'rated_partner_id': self.helpdesk_manager.partner_id.id,
-                'res_id': self.test_team_ticket1.id,
-            },
-        ])
-        ratings.write({'create_date': yesterday, 'write_date': yesterday})  # Write with the orm to avoid pending recomputation override write_date
+        with patch.object(self.env.cr, 'now', lambda: yesterday):
+            ratings = self.env['rating.rating'].create([
+                {
+                    **self.default_rating_vals,
+                    'rating': 5,
+                    'rated_partner_id': self.helpdesk_user.partner_id.id,
+                    'res_id': self.test_team_ticket2.id,
+                },
+                {
+                    **self.default_rating_vals,
+                    'rating': 3,
+                    'rated_partner_id': self.helpdesk_manager.partner_id.id,
+                    'res_id': self.test_team_ticket1.id,
+                },
+            ])
 
         HelpdeskTeam = self.env['helpdesk.team']
         self.assertTrue(HelpdeskTeam.with_user(self.helpdesk_manager)._check_rating_feature_enabled(True))

@@ -1,36 +1,20 @@
 /** @odoo-module **/
 
-import { WebsiteSale } from '@website_sale/js/website_sale';
+import { WebsiteSale } from 'website_sale.website_sale';
 import { RentingMixin } from '@website_sale_renting/js/renting_mixin';
-import wSaleUtils from "@website_sale/js/website_sale_utils";
 import '@website_sale_renting/js/variant_mixin';
-import {
-    deserializeDateTime,
-    serializeDateTime,
-    formatDate,
-    formatDateTime,
-} from "@web/core/l10n/dates";
+import { momentToLuxon, serializeDateTime } from "@web/core/l10n/dates";
 
 WebsiteSale.include(RentingMixin);
 WebsiteSale.include({
     events: Object.assign(WebsiteSale.prototype.events, {
         'renting_constraints_changed': '_onRentingConstraintsChanged',
         'toggle_disable': '_onToggleDisable',
-        'change .js_main_product .o_website_sale_daterange_picker': 'onChangeVariant',
-        'daterangepicker_apply': '_onDatePickerApply',
+        'change .js_main_product .o_website_sale_daterange_picker input.daterange-input': 'onChangeVariant',
+        'outsideClick.daterangepicker': '_onDatePickerHide',
+        'apply.daterangepicker': '_onDatePickerApply',
         'click .clear-daterange': '_onDatePickerClear',
     }),
-
-    async _check_new_dates_on_cart(){
-        const { start_date, end_date, values } = await this.rpc(
-            '/shop/cart/update_renting',
-            this._getSerializedRentingDates()
-        );
-        wSaleUtils.updateCartNavBar(values);
-        const format = this._isDurationWithHours() ? formatDateTime : formatDate;
-        document.querySelector("input[name=renting_start_date]").value = format(deserializeDateTime(start_date));
-        document.querySelector("input[name=renting_end_date]").value = format(deserializeDateTime(end_date));
-    },
 
     /**
      * Assign the renting dates to the rootProduct for rental products.
@@ -128,9 +112,11 @@ WebsiteSale.include({
      * @param {string} inputName
      */
     _verifyValidInput(rentingDates, inputName) {
-        const input = this.el.querySelector('input[name=renting_' + inputName + ']');
-        if (input) {
-            input.classList.toggle('is-invalid', !rentingDates[inputName]);
+        if (!rentingDates[inputName]) {
+            const input = this.el.querySelector('input[name=renting_dates]');
+            if (input) {
+                input.classList.add('border-danger');
+            }
         }
         return rentingDates[inputName];
     },
@@ -149,27 +135,33 @@ WebsiteSale.include({
         return result;
     },
 
-    _onDatePickerApply: function (ev, { start_date, end_date }) {
-        if (document.querySelector(".oe_cart")) {
-            if (start_date && end_date) {
-                this._check_new_dates_on_cart();
+    /**
+     * Redirect to the shop page with the appropriate dates as search.
+     */
+    _onDatePickerApply: function (ev) {
+        const datepickerEl = ev.target.closest('.o_website_sale_shop_daterange_picker');
+        if (datepickerEl) {
+            // get current URL parameters
+            const searchParams = new URLSearchParams(window.location.search);
+            const $daterangeInput = $(datepickerEl.querySelector(".daterange-input"));
+            const daterangepicker = $daterangeInput.data("daterangepicker");
+            if (daterangepicker.startDate && daterangepicker.endDate) {
+                searchParams.set("start_date", serializeDateTime(momentToLuxon(daterangepicker.startDate)));
+                searchParams.set("end_date", serializeDateTime(momentToLuxon(daterangepicker.endDate)));
             }
-        } else if (document.querySelector(".o_website_sale_shop_daterange_picker")) {
-            this._addDatesToQuery(start_date, end_date);
+            const searchString = searchParams.toString();
+            window.location = `/shop` + searchString.length ? `?${searchString}` : ``;
+            this.isRedirecting = true;
         }
     },
+
     /**
-     * Redirect to the shop page with the appropriate dates as search params.
+     * Upon hiding the daterangepicker, if no date was set and on the shop page, clear the input.
      */
-    _addDatesToQuery(start_date, end_date) {
-        // get current URL parameters
-        const searchParams = new URLSearchParams(window.location.search);
-        if (start_date && end_date) {
-            searchParams.set("start_date", serializeDateTime(start_date));
-            searchParams.set("end_date", serializeDateTime(end_date));
+    _onDatePickerHide: function (ev) {
+        if (!this.isRedirecting && ev.target.closest(".o_website_sale_shop_daterange_picker") && ev.target.dataset.hasDefaultDates === "false") {
+            ev.target.value = '';
         }
-        window.location = `/shop?${searchParams}`;
-        this.isRedirecting = true;
     },
 
     _onDatePickerClear: function (ev) {

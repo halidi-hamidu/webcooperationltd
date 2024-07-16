@@ -2,6 +2,7 @@
 
 from freezegun import freeze_time
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.account_accountant.tests.test_bank_rec_widget_common import WizardForm
 
 from odoo import Command, fields
 from odoo.exceptions import UserError
@@ -13,7 +14,7 @@ from odoo.tests import tagged
 class TestResPartner(AccountTestInvoicingCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.invoice = cls.init_invoice('in_invoice')
@@ -510,10 +511,12 @@ class TestResPartner(AccountTestInvoicingCommon):
         st_line = statement.line_ids
         wizard = self.env['bank.rec.widget'].with_context(default_st_line_id=st_line.id).new({})
         line = wizard.line_ids.filtered(lambda x: x.flag == 'auto_balance')
-        wizard._js_action_mount_line_in_edit(line.index)
-        line.account_id = expense_account_atn_281_50
-        wizard._line_value_changed_account_id(line)
-        wizard._action_validate()
+        form = WizardForm(wizard)
+        form._view['modifiers']['todo_command']['invisible'] = False
+        form.todo_command = f'mount_line_in_edit,{line.index}'
+        form.form_account_id = expense_account_atn_281_50
+        wizard = form.save()
+        wizard.button_validate(async_action=False)
 
         form_325 = self.create_325_form()
         form_281_50 = form_325.form_281_50_ids
@@ -552,10 +555,12 @@ class TestResPartner(AccountTestInvoicingCommon):
         st_line = statement.line_ids
         wizard = self.env['bank.rec.widget'].with_context(default_st_line_id=st_line.id).new({})
         line = wizard.line_ids.filtered(lambda x: x.flag == 'auto_balance')
-        wizard._js_action_mount_line_in_edit(line.index)
-        line.account_id = expense_account_atn_281_50
-        wizard._line_value_changed_account_id(line)
-        wizard._action_validate()
+        form = WizardForm(wizard)
+        form._view['modifiers']['todo_command']['invisible'] = False
+        form.todo_command = f'mount_line_in_edit,{line.index}'
+        form.form_account_id = expense_account_atn_281_50
+        wizard = form.save()
+        wizard.button_validate(async_action=False)
 
         form_325 = self.create_325_form()
         form_281_50_partner_b = form_325.form_281_50_ids.filtered(lambda f: f.partner_id == self.partner_b)

@@ -3,16 +3,20 @@
 # 	* account_winbooks_import
 # 
 # Translators:
-# Alena Vlasova, 2023
-# Martin Trigaux, 2023
+# Viktor Pogrebniak <vp@aifil.ru>, 2022
+# Сергей Шебанин <sergey@shebanin.ru>, 2022
+# Irina Fedulova <istartlin@gmail.com>, 2022
+# ILMIR <karamov@it-projects.info>, 2022
+# Ivan Kropotkin <yelizariev@itpp.dev>, 2022
+# Martin Trigaux, 2022
 # Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2023-04-14 06:17+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
 "Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Russian (https://app.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
@@ -25,14 +29,10 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account_winbooks_import.winbooks_import_form
 msgid ""
 "<span/>\n"
-"                    <span class=\"text-warning mb4 mt16\" invisible=\"only_open\">\n"
+"                    <span class=\"text-warning mb4 mt16\" attrs=\"{'invisible': [('only_open', '=', True)]}\">\n"
 "                        The export of data from Winbooks for closed years might contain unbalanced entries. However if you want to try to import everything, Odoo will set the difference of balance in a Suspense Account.\n"
 "                    </span>"
 msgstr ""
-"<span/>\n"
-"                    <span class=\"text-warning mb4 mt16\" invisible=\"only_open\">\n"
-"                        Экспорт данных из Winbooks за закрытые годы может содержать несбалансированные записи. Однако если вы хотите попытаться импортировать все, Odoo установит разницу в балансе на промежуточном счете.\n"
-"                    </span>"
 
 #. module: account_winbooks_import
 #: model:ir.model,name:account_winbooks_import.model_account_winbooks_import_wizard
@@ -44,12 +44,12 @@ msgstr "Мастер импорта учетных записей Winbooks"
 #: code:addons/account_winbooks_import/wizard/import_wizard.py:0
 #, python-format
 msgid "Accounting Settings"
-msgstr "Бухгалтерские настройки"
+msgstr "Настройки бухгалтерии"
 
 #. module: account_winbooks_import
 #: model_terms:ir.ui.view,arch_db:account_winbooks_import.winbooks_import_form
 msgid "Cancel"
-msgstr "Отменить"
+msgstr "Отмена"
 
 #. module: account_winbooks_import
 #: model:ir.model,name:account_winbooks_import.model_res_company
@@ -75,17 +75,22 @@ msgstr "Контрагент (генерируется при импорте и�
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__create_uid
 msgid "Created by"
-msgstr "Создано"
+msgstr "Создал"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__create_date
 msgid "Created on"
-msgstr "Создано"
+msgstr "Дата создания"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__display_name
 msgid "Display Name"
 msgstr "Отображаемое имя"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__done
+msgid "Done"
+msgstr "Выполнено"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__zip_file
@@ -95,7 +100,7 @@ msgstr "Файл"
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__id
 msgid "ID"
-msgstr "ID"
+msgstr "Идентификатор"
 
 #. module: account_winbooks_import
 #: model_terms:ir.ui.view,arch_db:account_winbooks_import.winbooks_import_form
@@ -122,12 +127,22 @@ msgstr "Импорт только открытых лет"
 #. module: account_winbooks_import
 #: model:ir.model,name:account_winbooks_import.model_account_move_line
 msgid "Journal Item"
-msgstr "Наименование в журнале"
+msgstr "Элемент журнала"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__just_done
+msgid "Just done"
+msgstr "только завершено"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard____last_update
+msgid "Last Modified on"
+msgstr "Последнее изменение"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__write_uid
 msgid "Last Updated by"
-msgstr "Последнее обновление"
+msgstr "Последний раз обновил"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__write_date
@@ -135,14 +150,14 @@ msgid "Last Updated on"
 msgstr "Последнее обновление"
 
 #. module: account_winbooks_import
-#: model:ir.model.fields,help:account_winbooks_import.field_account_move_line__winbooks_line_id
-msgid "Line ID that was used in Winbooks"
-msgstr "Идентификатор линии, который использовался в Winbooks"
-
-#. module: account_winbooks_import
 #: model:ir.model.fields,help:account_winbooks_import.field_account_move_line__winbooks_matching_number
 msgid "Matching number that was used in Winbooks"
 msgstr "Соответствие номеру, который использовался в Winbooks"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__not_done
+msgid "Not done"
+msgstr "не завершено"
 
 #. module: account_winbooks_import
 #. odoo-python
@@ -154,7 +169,12 @@ msgstr "Пожалуйста, определите страну, в которо
 #. module: account_winbooks_import
 #: model_terms:ir.ui.view,arch_db:account_winbooks_import.winbooks_import_form
 msgid "Stage Search"
-msgstr "Поиск сцены"
+msgstr "Поиск этапа"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields,field_description:account_winbooks_import.field_res_company__account_onboarding_winbooks_state
+msgid "State of the onboarding winbooks step"
+msgstr ""
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__suspense_code
@@ -196,11 +216,6 @@ msgstr ""
 #: model:ir.actions.act_window,name:account_winbooks_import.winbooks_import_action
 msgid "Winbooks Import"
 msgstr "Winbooks Import"
-
-#. module: account_winbooks_import
-#: model:ir.model.fields,field_description:account_winbooks_import.field_account_move_line__winbooks_line_id
-msgid "Winbooks Line"
-msgstr "Линия Winbooks"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_move_line__winbooks_matching_number

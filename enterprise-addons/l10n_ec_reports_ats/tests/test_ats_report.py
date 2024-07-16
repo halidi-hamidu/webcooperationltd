@@ -9,11 +9,11 @@ from odoo.tests import tagged
 from odoo.addons.l10n_ec_edi.tests.test_edi_xml import TestEcEdiCommon
 from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 
-@tagged('ats_tests_l10n', 'post_install_l10n', 'post_install', '-at_install')
+@tagged('post_install_l10n', 'post_install', '-at_install')
 class TestAtsReport(TestEcEdiCommon, TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='ec', edi_format_ref='l10n_ec_edi.ecuadorian_edi_format'):
+    def setUpClass(cls, chart_template_ref='l10n_ec.l10n_ec_ifrs', edi_format_ref='l10n_ec_edi.ecuadorian_edi_format'):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
 
         # For ATS report, the partner company must be have RUC identification type
@@ -78,7 +78,7 @@ class TestAtsReport(TestEcEdiCommon, TestAccountReportsCommon):
             'default_account_id': cls.env['account.account'].search([('code', '=', '410201')], limit=1).id,
             'l10n_latam_use_documents': True,
             'refund_sequence': True,
-            'edi_format_ids': [Command.unlink(cls.env.ref('l10n_ec_edi.ecuadorian_edi_format').id)],
+            'edi_format_ids': [Command.unlink(cls.env.ref('l10n_ec.l10n_ec_ifrs').id)],
             'code': 'INV3',
         })
         cls.journal_purchase = cls.env['account.journal'].search([
@@ -532,7 +532,7 @@ class TestAtsReport(TestEcEdiCommon, TestAccountReportsCommon):
         # Generate xml content of ats
         report = self.env.ref('l10n_ec.tax_report_104')
         options = self._generate_options(report, fields.Date.to_date('2022-01-01'), fields.Date.to_date('2023-01-01'))
-        set_time_interval_function = self.env[report._get_custom_handler_model()].l10n_ec_export_ats
+        set_time_interval_function = self.env[report.custom_handler_model_name].l10n_ec_export_ats
         xml_content_ats = set_time_interval_function(options)
         return xml_content_ats['file_content']
 

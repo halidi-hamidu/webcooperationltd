@@ -8,7 +8,7 @@
     'summary': 'Quality Worksheet for Workorder',
     'depends': ['quality_control_worksheet', 'quality_mrp_workorder'],
     'description': """
-Create customizable quality worksheet for workorder.
+    Create customizable quality worksheet for workorder.
 """,
     "data": [
         'views/quality_views.xml',

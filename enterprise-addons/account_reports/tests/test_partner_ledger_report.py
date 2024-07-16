@@ -96,13 +96,12 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     200.0,          200.0,          0.0),
                 ('Total',                               21550.0,        21550.0,        0.0),
             ],
-            options,
         )
 
         options['unfolded_lines'] = [self.report._get_generic_line_id('res.partner', self.partner_a.id)]
@@ -112,20 +111,19 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('Initial Balance',                     150.0,          0.0,            150.0),
-                ('MISC/2017/01/0001 - 2017_1_2',        2000.0,         0.0,            2150.0),
-                ('MISC/2017/01/0001 - 2017_1_3',        3000.0,         0.0,            5150.0),
-                ('MISC/2017/01/0001 - 2017_1_4',        4000.0,         0.0,            9150.0),
-                ('MISC/2017/01/0001 - 2017_1_5',        5000.0,         0.0,            14150.0),
-                ('MISC/2017/01/0001 - 2017_1_6',        6000.0,         0.0,            20150.0),
-                ('Total partner_a',                     20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('Initial Balance',                     150.0,          '',             150.0),
+                ('01/01/2017',                          2000.0,         '',             2150.0),
+                ('01/01/2017',                          3000.0,         '',             5150.0),
+                ('01/01/2017',                          4000.0,         '',             9150.0),
+                ('01/01/2017',                          5000.0,         '',             14150.0),
+                ('01/01/2017',                          6000.0,         '',             20150.0),
+                ('Total partner_a',                     20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     200.0,          200.0,          0.0),
                 ('Total',                               21550.0,        21550.0,        0.0),
             ],
-            options,
         )
 
     def test_partner_ledger_load_more(self):
@@ -142,23 +140,22 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('Initial Balance',                     150.0,          0.0,            150.0),
-                ('MISC/2017/01/0001 - 2017_1_2',        2000.0,         0.0,            2150.0),
-                ('MISC/2017/01/0001 - 2017_1_3',        3000.0,         0.0,            5150.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('Initial Balance',                     150.0,          '',             150.0),
+                ('01/01/2017',                          2000.0,         '',             2150.0),
+                ('01/01/2017',                          3000.0,         '',             5150.0),
                 ('Load more...',                        '',             '',             ''),
-                ('Total partner_a',                     20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('Total partner_a',                     20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     200.0,          200.0,          0.0),
                 ('Total',                               21550.0,        21550.0,        0.0),
             ],
-            options,
         )
 
         load_more_1 = self.report._expand_unfoldable_line('_report_expand_unfoldable_line_partner_ledger',
                                                           report_lines[0]['id'], report_lines[4]['groupby'], options,
-                                                          report_lines[4]['progress'],
+                                                          json.loads(report_lines[4]['progress']),
                                                           report_lines[4]['offset'])
 
         self.assertLinesValues(
@@ -166,16 +163,15 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('MISC/2017/01/0001 - 2017_1_4',          4000.0,         0.0,            9150.0),
-                ('MISC/2017/01/0001 - 2017_1_5',          5000.0,         0.0,            14150.0),
+                ('01/01/2017',                          4000.0,         '',             9150.0),
+                ('01/01/2017',                          5000.0,         '',             14150.0),
                 ('Load more...',                        '',             '',             ''),
             ],
-            options,
         )
 
         load_more_2 = self.report._expand_unfoldable_line('_report_expand_unfoldable_line_partner_ledger',
                                                           report_lines[0]['id'], load_more_1[2]['groupby'], options,
-                                                          load_more_1[2]['progress'],
+                                                          json.loads(load_more_1[2]['progress']),
                                                           load_more_1[2]['offset'])
 
         self.assertLinesValues(
@@ -183,9 +179,8 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('MISC/2017/01/0001 - 2017_1_6',          6000.0,         0.0,            20150.0),
+                ('01/01/2017',                          6000.0,         '',             20150.0),
             ],
-            options,
         )
 
     def test_partner_ledger_filter_account_types(self):
@@ -201,16 +196,15 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           15000.0,        0.0,            15000.0),
-                ('MISC/2017/01/0001 - 2017_1_4',        4000.0,         0.0,            4000.0),
-                ('MISC/2017/01/0001 - 2017_1_5',        5000.0,         0.0,            9000.0),
-                ('MISC/2017/01/0001 - 2017_1_6',        6000.0,         0.0,            15000.0),
-                ('Total partner_a',                     15000.0,        0.0,            15000.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           15000.0,        '',             15000.0),
+                ('01/01/2017',                          4000.0,         '',             4000.0),
+                ('01/01/2017',                          5000.0,         '',             9000.0),
+                ('01/01/2017',                          6000.0,         '',             15000.0),
+                ('Total partner_a',                     15000.0,        '',             15000.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     200.0,          200.0,          0.0),
                 ('Total',                               15200.0,        21550.0,        -6350.0),
             ],
-            options,
         )
 
     def test_partner_ledger_filter_partners(self):
@@ -223,11 +217,10 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Total',                               20150.0,        21350.0,        -1200.0),
             ],
-            options,
         )
 
     def test_partner_ledger_filter_partner_categories(self):
@@ -240,11 +233,10 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
                 ('Total',                               21350.0,        0.0,            21350.0),
             ],
-            options,
         )
 
     def test_partner_ledger_unknown_partner(self):
@@ -267,13 +259,12 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     200.0,          1200.0,         -1000.0),
                 ('Total',                               21550.0,        22550.0,        -1000.0),
             ],
-            options,
         )
 
         debit_line = self.move_2017_1.line_ids.filtered(lambda line: line.debit == 4000.0)
@@ -286,12 +277,11 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [   0,                                      6,              7,              9],
             [
                 ('partner_a',                           20150.0,        1000.0,         19150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     1200.0,         1200.0,         0.0),
                 ('Total',                               22550.0,        23550.0,        -1000.0),
             ],
-            options,
         )
 
         # Unfold 'partner_a'
@@ -303,20 +293,19 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [   0,                                      6,              7,              9],
             [
                 ('partner_a',                           20150.0,        1000.0,         19150.0),
-                ('Initial Balance',                     150.0,          0.0,            150.0),
-                ('MISC/2017/01/0001 - 2017_1_2',        2000.0,         0.0,            2150.0),
-                ('MISC/2017/01/0001 - 2017_1_3',        3000.0,         0.0,            5150.0),
-                ('MISC/2017/01/0001 - 2017_1_4',        4000.0,         0.0,            9150.0),
-                ('MISC/2017/01/0001 - 2017_1_5',        5000.0,         0.0,            14150.0),
-                ('MISC/2017/01/0001 - 2017_1_6',        6000.0,         0.0,            20150.0),
-                ('MISC/2017/03/0001',                   0.0,            1000.0,         19150.0),
+                ('Initial Balance',                     150.0,          '',             150.0),
+                ('01/01/2017',                          2000.0,         '',             2150.0),
+                ('01/01/2017',                          3000.0,         '',             5150.0),
+                ('01/01/2017',                          4000.0,         '',             9150.0),
+                ('01/01/2017',                          5000.0,         '',             14150.0),
+                ('01/01/2017',                          6000.0,         '',             20150.0),
+                ('03/31/2017',                          '',             1000.0,         19150.0),
                 ('Total partner_a',                     20150.0,        1000.0,         19150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     1200.0,         1200.0,         0.0),
                 ('Total',                               22550.0,        23550.0,        -1000.0),
             ],
-            options,
         )
 
         # Unfold 'Unknown Partner'
@@ -328,17 +317,16 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [   0,                                      6,              7,              9],
             [
                 ('partner_a',                           20150.0,        1000.0,         19150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     1200.0,         1200.0,         0.0),
-                ('MISC/2017/03/0001',                   0.0,            1000.0,         -1000.0),
-                ('MISC/2017/06/0001 - 2017_2_1',        200.0,          0.0,            -800.0),
-                ('MISC/2017/06/0001 - 2017_2_2',        0.0,            200.0,          -1000.0),
-                ('MISC/2017/03/0001',                   1000.0,         0.0,            0.0),
+                ('03/31/2017',                          '',             1000.0,         -1000.0),
+                ('06/01/2017',                          200.0,          '',             -800.0),
+                ('06/01/2017',                          '',             200.0,          -1000.0),
+                ('03/31/2017',                          1000.0,         '',             0.0),
                 ('Total Unknown Partner',               1200.0,         1200.0,         0.0),
                 ('Total',                               22550.0,        23550.0,        -1000.0),
             ],
-            options,
         )
 
         # Change the dates to exclude the reconciliation max date: situation is back to the beginning
@@ -349,12 +337,11 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Balance
             [   0,                                      6,              7,              9],
             [
-                ('partner_a',                           20150.0,        0.0,            20150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_a',                           20150.0,        '',             20150.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Total',                               21350.0,        21350.0,        0.0),
             ],
-            options,
         )
 
         # Change the dates to have a date_from > to the reconciliation max date and check the initial balances are correct
@@ -366,12 +353,11 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [   0,                                      6,              7,              9],
             [
                 ('partner_a',                           20150.0,        1000.0,         19150.0),
-                ('partner_b',                           1200.0,         0.0,            1200.0),
-                ('partner_c',                           0.0,            21350.0,        -21350.0),
+                ('partner_b',                           1200.0,         '',             1200.0),
+                ('partner_c',                           '',             21350.0,        -21350.0),
                 ('Unknown Partner',                     1000.0,         1000.0,         0.0),
                 ('Total',                               22350.0,        23350.0,        -1000.0),
             ],
-            options,
         )
 
     def test_partner_ledger_prefix_groups(self):
@@ -388,11 +374,13 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
         ]
 
         test_date = '2010-12-13'
+        invoices_map = {}
         test_partners = self.env['res.partner']
         for name in partner_names:
             partner = self.env['res.partner'].create({'name': name})
             test_partners += partner
             invoice = self.init_invoice('out_invoice', partner=partner, invoice_date=test_date, amounts=[42.0], taxes=[], post=True)
+            invoices_map[name] = invoice.date.strftime('%m/%d/%Y')
 
         # Without prefix groups
         options = self._generate_options(self.report, test_date, test_date)
@@ -402,22 +390,21 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                 Debit          Credit            Balance
             [   0,                                      6,              7,                9],
             [
-                ('A',                                42.0,            0.0,             42.0),
-                ('A new partner',                    42.0,            0.0,             42.0),
-                ('A nice partner',                   42.0,            0.0,             42.0),
-                ('A partner',                        42.0,            0.0,             42.0),
-                ('An original partner',              42.0,            0.0,             42.0),
-                ('Annoyed partner',                  42.0,            0.0,             42.0),
-                ('Anonymous partner',                42.0,            0.0,             42.0),
-                ('Another partner',                  42.0,            0.0,             42.0),
-                ('Brave partner',                    42.0,            0.0,             42.0),
+                ('A',                                42.0,             '',             42.0),
+                ('A new partner',                    42.0,             '',             42.0),
+                ('A nice partner',                   42.0,             '',             42.0),
+                ('A partner',                        42.0,             '',             42.0),
+                ('An original partner',              42.0,             '',             42.0),
+                ('Annoyed partner',                  42.0,             '',             42.0),
+                ('Anonymous partner',                42.0,             '',             42.0),
+                ('Another partner',                  42.0,             '',             42.0),
+                ('Brave partner',                    42.0,             '',             42.0),
                 ('Total',                           378.0,            0.0,            378.0),
             ],
-            options,
         )
 
         # With prefix groups
-        self.report.prefix_groups_threshold = 3
+        self.env['ir.config_parameter'].set_param('account_reports.partner_ledger.groupby_prefix_groups_threshold', '3')
         options = self._generate_options(self.report, test_date, test_date, default_options={'unfold_all': True})
 
         self.assertLinesValues(
@@ -425,54 +412,53 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             #   Name                                  Debit          Credit            Balance
             [   0,                                       6,              7,                9],
             [
-                ('A (8 lines)',                      336.0,            0.0,            336.0),
-                ('A',                                 42.0,            0.0,             42.0),
-                ('INV/2010/00001',                    42.0,            0.0,             42.0),
-                ('Total A',                           42.0,            0.0,             42.0),
-                ('A[ ] (3 lines)',                   126.0,            0.0,            126.0),
-                ('A N (2 lines)',                     84.0,            0.0,             84.0),
-                ('A new partner',                     42.0,            0.0,             42.0),
-                ('INV/2010/00004',                    42.0,            0.0,             42.0),
-                ('Total A new partner',               42.0,            0.0,             42.0),
-                ('A nice partner',                    42.0,            0.0,             42.0),
-                ('INV/2010/00003',                    42.0,            0.0,             42.0),
-                ('Total A nice partner',              42.0,            0.0,             42.0),
-                ('Total A N (2 lines)',               84.0,            0.0,             84.0),
-                ('A P (1 line)',                      42.0,            0.0,             42.0),
-                ('A partner',                         42.0,            0.0,             42.0),
-                ('INV/2010/00002',                    42.0,            0.0,             42.0),
-                ('Total A partner',                   42.0,            0.0,             42.0),
-                ('Total A P (1 line)',                42.0,            0.0,             42.0),
-                ('Total A[ ] (3 lines)',             126.0,            0.0,            126.0),
-                ('AN (4 lines)',                     168.0,            0.0,            168.0),
-                ('AN[ ] (1 line)',                    42.0,            0.0,             42.0),
-                ('An original partner',               42.0,            0.0,             42.0),
-                ('INV/2010/00005',                    42.0,            0.0,             42.0),
-                ('Total An original partner',         42.0,            0.0,             42.0),
-                ('Total AN[ ] (1 line)',              42.0,            0.0,             42.0),
-                ('ANN (1 line)',                      42.0,            0.0,             42.0),
-                ('Annoyed partner',                   42.0,            0.0,             42.0),
-                ('INV/2010/00008',                    42.0,            0.0,             42.0),
-                ('Total Annoyed partner',             42.0,            0.0,             42.0),
-                ('Total ANN (1 line)',                42.0,            0.0,             42.0),
-                ('ANO (2 lines)',                     84.0,            0.0,             84.0),
-                ('Anonymous partner',                 42.0,            0.0,             42.0),
-                ('INV/2010/00007',                    42.0,            0.0,             42.0),
-                ('Total Anonymous partner',           42.0,            0.0,             42.0),
-                ('Another partner',                   42.0,            0.0,             42.0),
-                ('INV/2010/00006',                    42.0,            0.0,             42.0),
-                ('Total Another partner',             42.0,            0.0,             42.0),
-                ('Total ANO (2 lines)',               84.0,            0.0,             84.0),
-                ('Total AN (4 lines)',               168.0,            0.0,            168.0),
-                ('Total A (8 lines)',                336.0,            0.0,            336.0),
-                ('B (1 line)',                        42.0,            0.0,             42.0),
-                ('Brave partner',                     42.0,            0.0,             42.0),
-                ('INV/2010/00009',                    42.0,            0.0,             42.0),
-                ('Total Brave partner',               42.0,            0.0,             42.0),
-                ('Total B (1 line)',                  42.0,            0.0,             42.0),
+                ('A (8 lines)',                      336.0,             '',            336.0),
+                ('A',                                 42.0,             '',             42.0),
+                (invoices_map['A'],                   42.0,             '',             42.0),
+                ('Total A',                           42.0,             '',             42.0),
+                ('A[ ] (3 lines)',                   126.0,             '',            126.0),
+                ('A N (2 lines)',                     84.0,             '',             84.0),
+                ('A new partner',                     42.0,             '',             42.0),
+                (invoices_map['A new partner'],       42.0,             '',             42.0),
+                ('Total A new partner',               42.0,             '',             42.0),
+                ('A nice partner',                    42.0,             '',             42.0),
+                (invoices_map['A nice partner'],      42.0,             '',             42.0),
+                ('Total A nice partner',              42.0,             '',             42.0),
+                ('Total A N (2 lines)',               84.0,             '',             84.0),
+                ('A P (1 line)',                      42.0,             '',             42.0),
+                ('A partner',                         42.0,             '',             42.0),
+                (invoices_map['A partner'],           42.0,             '',             42.0),
+                ('Total A partner',                   42.0,             '',             42.0),
+                ('Total A P (1 line)',                42.0,             '',             42.0),
+                ('Total A[ ] (3 lines)',             126.0,             '',            126.0),
+                ('AN (4 lines)',                     168.0,             '',            168.0),
+                ('AN[ ] (1 line)',                    42.0,             '',             42.0),
+                ('An original partner',               42.0,             '',             42.0),
+                (invoices_map['An original partner'], 42.0,             '',             42.0),
+                ('Total An original partner',         42.0,             '',             42.0),
+                ('Total AN[ ] (1 line)',              42.0,             '',             42.0),
+                ('ANN (1 line)',                      42.0,             '',             42.0),
+                ('Annoyed partner',                   42.0,             '',             42.0),
+                (invoices_map['Annoyed partner'],     42.0,             '',             42.0),
+                ('Total Annoyed partner',             42.0,             '',             42.0),
+                ('Total ANN (1 line)',                42.0,             '',             42.0),
+                ('ANO (2 lines)',                     84.0,             '',             84.0),
+                ('Anonymous partner',                 42.0,             '',             42.0),
+                (invoices_map['Anonymous partner'],   42.0,             '',             42.0),
+                ('Total Anonymous partner',           42.0,             '',             42.0),
+                ('Another partner',                   42.0,             '',             42.0),
+                (invoices_map['Another partner'],     42.0,             '',             42.0),
+                ('Total Another partner',             42.0,             '',             42.0),
+                ('Total ANO (2 lines)',               84.0,             '',             84.0),
+                ('Total AN (4 lines)',               168.0,             '',            168.0),
+                ('Total A (8 lines)',                336.0,             '',            336.0),
+                ('B (1 line)',                        42.0,             '',             42.0),
+                ('Brave partner',                     42.0,             '',             42.0),
+                (invoices_map['Brave partner'],       42.0,             '',             42.0),
+                ('Total Brave partner',               42.0,             '',             42.0),
+                ('Total B (1 line)',                  42.0,             '',             42.0),
                 ('Total',                            378.0,            0.0,            378.0),
             ],
-            options,
         )
 
     def test_filter_unreconciled_entries_only(self):
@@ -501,8 +487,7 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [
                 ('Obiwan Kenobi',                        6000.0,             5700.0,             300.0),
                 ('Total',                                6000.0,             5700.0,             300.0),
-            ],
-            options
+            ]
         )
 
         options['unreconciled'] = True
@@ -513,8 +498,7 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
             [
                 ('Obiwan Kenobi',                        1000.0,             700.0,             300.0),
                 ('Total',                                1000.0,             700.0,             300.0),
-            ],
-            options
+            ]
         )
 
     def test_print_pdf_exclude_partner_with_name_similar_to_another_partner_email(self):
@@ -524,9 +508,8 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
         """
         partner = self.env['res.partner'].create({'name': 'Great Customer', 'email': 'partner_a@test.com'})
         self.init_invoice('out_invoice', partner=partner, invoice_date='2019-02-14', amounts=[1000.0], taxes=[], post=True)
-        options = self._generate_options(self.report, '2019-02-01', '2019-02-28', default_options={
-                'filter_search_bar': 'partner_a',
-                'export_mode': 'print',
-            })
-        lines = self.report._get_lines(options)
+        options = self._generate_options(self.report, '2019-02-01', '2019-02-28')
+
+        options['filter_search_bar'] = 'partner_a'
+        lines = self.report.with_context(print_mode=True)._get_lines(options)
         self.assertFalse(partner.name in [line['name'] for line in lines])

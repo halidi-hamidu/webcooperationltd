@@ -15,7 +15,7 @@ class MrpCostStructure(models.AbstractModel):
         ProductProduct = self.env['product.product']
         StockMove = self.env['stock.move']
         res = []
-        currency_table = self.env['res.currency']._get_query_currency_table(self.env.companies.ids, fields.Date.today())
+        currency_table = self.env['res.currency']._get_query_currency_table({'multi_company': True, 'date': {'date_to': fields.Date.today()}})
         for product in productions.mapped('product_id'):
             mos = productions.filtered(lambda m: m.product_id == product)
             # variables to calc cost share (i.e. between products/byproducts) since MOs can have varying distributions
@@ -92,7 +92,11 @@ class MrpCostStructure(models.AbstractModel):
                 total_cost_by_product[product] += total_cost_by_mo[m.id] * cost_share
                 component_cost_by_product[product] += component_cost_by_mo[m.id] * cost_share
                 operation_cost_by_product[product] += operation_cost_by_mo[m.id] * cost_share
-                mo_qty += sum(m.move_finished_ids.filtered(lambda mo: mo.state == 'done' and mo.product_id == product).mapped('product_qty'))
+                qty = sum(m.move_finished_ids.filtered(lambda mo: mo.state == 'done' and mo.product_id == product).mapped('product_uom_qty'))
+                if m.product_uom_id.id == uom.id:
+                    mo_qty += qty
+                else:
+                    mo_qty += m.product_uom_id._compute_quantity(qty, uom)
             res.append({
                 'product': product,
                 'mo_qty': mo_qty,

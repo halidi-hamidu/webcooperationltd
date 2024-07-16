@@ -1,9 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from psycopg2 import sql
-
 from odoo import models, fields, api, osv
 from odoo.addons.web.controllers.utils import clean_action
-from odoo.tools import SQL
+from psycopg2 import sql
 
 
 class AccountReport(models.AbstractModel):
@@ -28,8 +26,8 @@ class AccountReport(models.AbstractModel):
         if not enable_analytic_accounts:
             return
 
-        options['display_analytic_groupby'] = True
-        options['display_analytic_plan_groupby'] = True
+        options['analytic_groupby'] = True
+        options['analytic_plan_groupby'] = True
 
         options['include_analytic_without_aml'] = (previous_options or {}).get('include_analytic_without_aml', False)
         previous_analytic_accounts = (previous_options or {}).get('analytic_accounts_groupby', [])
@@ -130,9 +128,7 @@ class AccountReport(models.AbstractModel):
                     asname=sql.SQL(fname),
                 ))
             elif fname == 'analytic_distribution':
-                project_plan, other_plans = self.env['account.analytic.plan']._get_all_plans()
-                analytic_cols = ", ".join(n._column_name() for n in (project_plan+other_plans))
-                selected_fields.append(sql.SQL(f'to_jsonb(UNNEST(ARRAY[{analytic_cols}])) AS "account_move_line.analytic_distribution"'))
+                selected_fields.append(sql.SQL('to_jsonb(account_id) AS "account_move_line.analytic_distribution"'))
             else:
                 if line_fields[fname].get("translate"):
                     typecast = sql.SQL('jsonb')
@@ -179,17 +175,10 @@ class AccountReport(models.AbstractModel):
 
         # We add the domain filter for analytic_distribution here, as the search is not available
         tables, where_clause, where_params = super(AccountReport, context_self)._query_get(options, date_scope, domain)
-        if options.get('analytic_accounts'):
-            if 'analytic_accounts_list' in options:
-                # the table will be `analytic_temp_account_move_line` and thus analytic_distribution will be a single ID
-                analytic_account_ids = tuple(str(account_id) for account_id in options['analytic_accounts'])
-                where_params.append(analytic_account_ids)
-                where_clause = f"""{where_clause} AND "account_move_line".analytic_distribution IN %s"""
-            else:
-                # Real `account_move_line` table so real JSON with percentage
-                analytic_account_ids = [[str(account_id) for account_id in options['analytic_accounts']]]
-                where_params.append(analytic_account_ids)
-                where_clause = fr"""{where_clause} AND %s && regexp_split_to_array(jsonb_path_query_array("account_move_line".analytic_distribution, '$.keyvalue()."key"')::text, '\D+')"""
+        if options.get('analytic_accounts') and not any(x in options.get('analytic_accounts_list', []) for x in options['analytic_accounts']):
+            analytic_account_ids = [[str(account_id) for account_id in options['analytic_accounts']]]
+            where_params.append(analytic_account_ids)
+            where_clause = f'{where_clause} AND "account_move_line".analytic_distribution ?| array[%s]'
 
         return tables, where_clause, where_params
 
@@ -218,7 +207,8 @@ class AccountReport(models.AbstractModel):
                     expression = [(field, operator, right_term)]
                 # Replace the 'analytic_distribution' by the account_id domain as we expect for analytic lines.
                 elif field == 'analytic_distribution':
-                    expression = [('auto_account_id', 'in', right_term)]
+                    account_ids = tuple(int(account_id) for account_id in column_group_options.get('analytic_accounts_list', []))
+                    expression = [('account_id', 'in', account_ids)]
                 # For other fields not present in on the analytic line model, map them to get the info from the move_line.
                 # Or ignore these conditions if there is no move lines.
                 elif field.split('.')[0] not in AccountAnalyticLine._fields:
@@ -273,5 +263,5 @@ class AccountMoveLine(models.Model):
         query = super()._where_calc(domain, active_test)
         if self.env.context.get('account_report_analytic_groupby') and not self.env.context.get('account_report_cash_basis'):
             self.env['account.report']._prepare_lines_for_analytic_groupby()
-            query._tables['account_move_line'] = SQL.identifier('analytic_temp_account_move_line')
+            query._tables['account_move_line'] = 'analytic_temp_account_move_line'
         return query

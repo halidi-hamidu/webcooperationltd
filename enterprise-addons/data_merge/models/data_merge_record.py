@@ -10,6 +10,7 @@ from odoo.tools.misc import format_datetime, format_date, partition as tools_par
 from collections.abc import Iterable
 
 from datetime import datetime, date
+from psycopg2.extensions import quote_ident
 import psycopg2
 import itertools
 import ast
@@ -67,8 +68,6 @@ class DataMergeRecord(models.Model):
             raise NotImplementedError()
 
         cr = self._cr
-        # flush in case record was just created but not yet in database
-        self.env['data_merge.model'].flush_model()
         restrict_model_ids = self.env.context.get('data_merge_model_ids')
         if restrict_model_ids:
             cr.execute(
@@ -266,12 +265,14 @@ class DataMergeRecord(models.Model):
                 ref_fields = group_model_fields[model]  # fields for the model
                 domain = OR([[(f, 'in', records.mapped('res_id'))] for f in ref_fields])
                 groupby_field = ref_fields[0]
-                count_grouped = self.env[model]._read_group([(groupby_field, '!=', False)] + domain, [groupby_field], ['__count'])
-                for group_value, count in count_grouped:
-                    record_id = records_mapped.get(group_value.id)
+                count_grouped = self.env[model].read_group(domain, [groupby_field], [groupby_field])
+                for count in count_grouped:
+                    if not count[groupby_field]:
+                        continue
+                    record_id = records_mapped.get(count[groupby_field][0])
                     if not record_id:
                         continue
-                    references[record_id].append((count, model_name[model]))
+                    references[record_id].append((count['%s_count' % groupby_field], model_name[model]))
         return references
 
     @api.depends('res_id')
@@ -521,25 +522,6 @@ class DataMergeRecord(models.Model):
                 except psycopg2.Error:
                     raise ValidationError(_('Query Failed.'))
 
-        # Company-dependent fields
-        with self._cr.savepoint():
-            params = {
-                'destination_id': f'res.partner,{destination.id}',
-                'source_ids': tuple(f'res.partner,{src}' for src in source_ids),
-            }
-            self._cr.execute("""
-UPDATE ir_property AS _ip1
-SET res_id = %(destination_id)s
-WHERE res_id IN %(source_ids)s
-AND NOT EXISTS (
-     SELECT
-     FROM ir_property AS _ip2
-     WHERE _ip2.res_id = %(destination_id)s
-     AND _ip2.fields_id = _ip1.fields_id
-     AND _ip2.company_id = _ip1.company_id
-)""", params)
-
-
     #############
     ### Override
     #############
@@ -599,7 +581,7 @@ AND NOT EXISTS (
 
         if len(active_ids) < 2:
             translated_desc = records.with_context(lang=get_lang(self.env).code)._description
-            raise UserError(_("You must select at least two %s in order to merge them.", translated_desc))
+            raise UserError(_("You must select at least two %s in order to merge them.") % translated_desc)
         if active_model not in self.env:
             raise ValidationError(_('The target model does not exists.'))
 

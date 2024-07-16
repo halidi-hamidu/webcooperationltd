@@ -11,7 +11,7 @@ class BelgiumSalesReportTest(AccountSalesReportCommon):
 
     @classmethod
     def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass('be_comp')
+        super().setUpClass('l10n_be.l10nbe_chart_template')
         cls.partner_b.update({
             'country_id': cls.env.ref('base.de').id,
             "vat": "DE123456788",
@@ -45,7 +45,7 @@ class BelgiumSalesReportTest(AccountSalesReportCommon):
             (self.partner_b, s_tax, 700),
         ])
 
-        options = self.report.get_options({'date': {'mode': 'range', 'filter': 'this_month'}})
+        options = self.report._get_options({'date': {'mode': 'range', 'filter': 'this_month'}})
         lines = self.report._get_lines(options)
         self.assertLinesValues(
             lines,
@@ -60,7 +60,6 @@ class BelgiumSalesReportTest(AccountSalesReportCommon):
                 (self.partner_b.name,  self.partner_b.vat[:2],  self.partner_b.vat[2:],  'S (44)',   f'700.00{NON_BREAKING_SPACE}€'),
                 ('Total',              '',                      '',                      '',         f'3,000.00{NON_BREAKING_SPACE}€'),
             ],
-            options,
         )
 
         expected_xml = '''
@@ -122,7 +121,7 @@ class BelgiumSalesReportTest(AccountSalesReportCommon):
         self._create_invoices([(self.partner_a, l_tax, 100), (self.partner_a, t_tax, 90), (self.partner_a, s_tax, 80)])
         self._create_invoices([(self.partner_a, l_tax, 42), (self.partner_a, t_tax, 42), (self.partner_a, s_tax, 42)], is_refund=True)
 
-        options = self.report.get_options({'date': {'mode': 'range', 'filter': 'this_month'}})
+        options = self.report._get_options({'date': {'mode': 'range', 'filter': 'this_month'}})
         lines = self.report._get_lines(options)
         self.assertLinesValues(
             lines,

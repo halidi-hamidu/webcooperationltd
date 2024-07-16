@@ -7,7 +7,7 @@
             <field name="model">hr.leave</field>
             <field name="arch" type="xml">
                 <gantt
-                       js_class="hr_gantt"
+                       js_class="hr_holidays_gantt"
                        date_start="date_from"
                        date_stop="date_to"
                        string="Days"
@@ -30,13 +30,13 @@
             <field name="model">hr.leave.allocation</field>
             <field name="arch" type="xml">
                 <gantt
-                    js_class="hr_gantt"
+                    js_class="hr_holidays_gantt"
                     date_start="date_from"
                     date_stop="date_to"
                     string="Days"
                     default_group_by="employee_id"
                     decoration-warning="state == 'refuse'"
-                    decoration-info="state in ['confirm']"
+                    decoration-info="state in ['confirm', 'validate1']"
                     plan="0"
                 >
                     <field name="state" invisible="1"/>
@@ -49,7 +49,7 @@
             <field name="model">hr.leave.report.calendar</field>
             <field name="arch" type="xml">
                 <gantt
-                    js_class="hr_gantt"
+                    js_class="hr_holidays_gantt"
                     string="Time Off"
                     date_start="start_datetime"
                     date_stop="stop_datetime"
@@ -63,9 +63,7 @@
                     <field name="state" invisible="1"/>
                 <templates>
                     <div t-name="gantt-popover">
-                        <t t-esc="start_datetime.toFormat('f ')"/>
-                        <i class="fa fa-long-arrow-right" title="Arrow"/>
-                        <t t-esc="stop_datetime.toFormat(' f')"/>
+                        <div><t t-esc="userTimezoneStartDate.format('l LT ')"/><i class="fa fa-long-arrow-right" title="Arrow"/><t t-esc="userTimezoneStopDate.format(' l LT')"/></div>
                     </div>
                 </templates>
                 </gantt>

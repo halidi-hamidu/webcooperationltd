@@ -30,7 +30,7 @@ class SaleOrder(models.Model):
                     })
                     # It is necessary to set the parent after the copy to avoid
                     # infinite recursion issues.
-                    project_sudo.documents_folder_id.parent_folder_id = self.env.ref('documents_project.documents_project_folder').id
+                    project_sudo.documents_folder_id.parent_folder_id = self.env.ref('documents_project.documents_project_folder').id,
                 elif len(template_folders) == 1:
                     project_sudo.documents_folder_id = template_folders.sudo().copy({
                         'name': project.name,

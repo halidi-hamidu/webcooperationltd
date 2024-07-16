@@ -79,7 +79,7 @@ class TestWebsiteSaleRentingProductAttributeValueConfig(TestSaleProductAttribute
             )
 
     def test_product_attribute_value_config_get_combination_info(self):
-        pricelist = self.website.pricelist_id
+        pricelist = self.website.get_current_pricelist()
 
         # make sure the pricelist has a 10% discount
         self.env['product.pricelist.item'].create({

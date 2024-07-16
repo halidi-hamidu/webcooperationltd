@@ -4,6 +4,7 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 from odoo.tools import file_open
 from odoo.exceptions import UserError
+from odoo.modules.module import get_module_resource
 from odoo.addons.account_bank_statement_import_camt.models.account_journal import _logger as camt_wizard_logger
 
 NORMAL_AMOUNTS = [100, 150, 250]
@@ -405,5 +406,18 @@ class TestAccountBankStatementImportCamt(AccountTestInvoicingCommon):
         imported_statement = self.env['account.bank.statement'].search([('company_id', '=', self.env.company.id)], order='id desc', limit=1)
         self.assertEqual(len(imported_statement.line_ids), 3)
         third_line = imported_statement.line_ids[2]
-        self.assertEqual(third_line.payment_ref, 'Transaction 03 name')  # and not label03: AddtlRmtInf should take precedence on Ustrd
+        self.assertEqual(third_line.payment_ref, 'Transaction 03 name')
         self.assertEqual(third_line.partner_name, 'Ultimate Debtor Name')
+
+    def test_import_camt_additional_entry_info(self):
+        """
+        Ensures that '<AddtlNtryInf>' is used as a fallback for the payment reference
+        """
+        usd_currency = self.env.ref("base.USD")
+        self.assertEqual(self.env.company.currency_id.id, usd_currency.id)
+        self._import_camt_file("camt_053_additional_entry_info.xml", usd_currency)
+        imported_statement = self.env["account.bank.statement"].search(
+            [("company_id", "=", self.env.company.id)], order="id desc", limit=1
+        )
+        self.assertEqual(len(imported_statement.line_ids), 1)
+        self.assertEqual(imported_statement.line_ids.payment_ref, "entry info")

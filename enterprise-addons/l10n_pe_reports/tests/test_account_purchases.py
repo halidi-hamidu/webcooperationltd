@@ -9,17 +9,16 @@ from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 @tagged("post_install", "post_install_l10n", "-at_install")
 class TestPePurchase(TestAccountReportsCommon):
     @classmethod
-    def setUpClass(cls, chart_template_ref="pe"):
+    def setUpClass(cls, chart_template_ref="l10n_pe.pe_chart_template"):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.purchase_taxes = cls._get_purchase_taxes()
-        cls.company_data['default_journal_purchase'].l10n_latam_use_documents = True
 
     @classmethod
     def _get_purchase_taxes(cls):
         taxes = cls.env["account.tax"]
         for tax in ["igv_18", "igv_18_included", "exo", "ina", "gra"]:
-            taxes += cls.env.ref(f"account.{cls.env.company.id}_purchase_tax_{tax}")
+            taxes += cls.env.ref(f"l10n_pe.{cls.env.company.id}_purchase_tax_{tax}")
 
         return taxes
 
@@ -58,6 +57,7 @@ class TestPePurchase(TestAccountReportsCommon):
                 .with_context(active_ids=move.ids, active_model="account.move")
                 .create(
                     {
+                        "refund_method": "refund",
                         "reason": "Testing",
                         "date": move.invoice_date + timedelta(days=1),
                         "journal_id": move.journal_id.id,
@@ -89,6 +89,7 @@ class TestPePurchase(TestAccountReportsCommon):
             report, fields.Date.from_string("2022-01-01"), fields.Date.from_string("2022-12-31")
         )
         options.update({"journal_type": "purchase"})
+
         self.maxDiff = None
         self.assertEqual(
             "\n".join(

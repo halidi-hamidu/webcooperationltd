@@ -25,9 +25,7 @@ class FollowupManualReminder(models.TransientModel):
             )
         defaults.update(
             partner_id=partner.id,
-            email_recipient_ids=[Command.set((partner._get_all_followup_contacts() or partner).ids)],
             attachment_ids=[Command.set(partner._get_included_unreconciled_aml_ids().move_id.message_main_attachment_id.ids)],
-            render_model='res.partner'
         )
         return defaults
 
@@ -35,7 +33,11 @@ class FollowupManualReminder(models.TransientModel):
 
     # email fields
     email = fields.Boolean()
+    body_html = fields.Html(compute='_compute_body_html', inverse='_inverse_body_html', render_engine='qweb', sanitize_style=True)
+    template_id = fields.Many2one(domain=[('model', '=', 'res.partner')])  # OVERRIDES mail.composer.mixin
+    email_add_signature = fields.Boolean(default=True)
     email_recipient_ids = fields.Many2many(string="Extra Recipients", comodel_name='res.partner',
+                                           compute='_compute_email_recipient_ids', store=True, readonly=False,
                                            relation='rel_followup_manual_reminder_res_partner')  # override
 
     # sms fields
@@ -73,6 +75,40 @@ class FollowupManualReminder(models.TransientModel):
             }
             wizard.body = self.env['account.followup.report']._get_main_body(options)
 
+    @api.depends('template_id')
+    def _compute_body_html(self):
+        # Since body_html is not stored, it is recomputed when sending/printing an email/letter
+        # This overrides the value entered by the user and prevents him from modifying body_html for some reason
+        # This is a stable workaround, using body (stored) and an inverse method to be able to save the modifications
+        # body_html is to be completely removed (from here and the view) and replaced by body in master
+        for wizard in self:
+            if wizard.body:
+                wizard.body_html = wizard.body
+                return
+            options = {
+                'partner_id': wizard.partner_id.id,
+                'mail_template': wizard.template_id,
+            }
+            wizard.body_html = self.env['account.followup.report']._get_main_body(options)
+
+    def _inverse_body_html(self):
+        for wizard in self:
+            wizard.body = wizard.body_html
+
+    @api.depends('template_id')
+    def _compute_email_recipient_ids(self):
+        for wizard in self:
+            partner = wizard.partner_id
+            template = wizard.template_id
+            wizard.email_recipient_ids = partner._get_all_followup_contacts() or partner
+            if template:
+                recipients = {partner.id: {}}
+                for field in ['partner_to', 'email_cc', 'email_to']:
+                    recipients[partner.id][field] = template._render_field(field, [partner.id])[partner.id]
+                rendered_values = template.with_context(tpl_partners_only=True).generate_recipients(recipients, [partner.id])[partner.id]
+                if rendered_values.get('partner_ids'):
+                    wizard.email_recipient_ids = [Command.link(partner_id) for partner_id in rendered_values['partner_ids']]
+
     @api.depends('sms_template_id')
     def _compute_sms_body(self):
         for wizard in self:
@@ -91,7 +127,7 @@ class FollowupManualReminder(models.TransientModel):
             'email_from': self.template_id.email_from,
             'email_subject': self.subject,
             'email_recipient_ids': self.email_recipient_ids,
-            'body': self.body,
+            'body': self.body_html,
             'attachment_ids': self.attachment_ids.ids,
             'sms': self.sms,
             'sms_body': self.sms_body,

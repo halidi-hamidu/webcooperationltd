@@ -5,6 +5,7 @@ from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 from odoo.tools import file_open
+from odoo.modules.module import get_module_resource
 
 
 @tagged('post_install', '-at_install')

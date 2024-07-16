@@ -13,9 +13,8 @@ from lxml import etree
 
 from odoo import api, fields, models, _
 from odoo.tools import date_utils
-from odoo.tools.misc import file_path
 from odoo.exceptions import ValidationError, UserError
-
+from odoo.modules.module import get_resource_path
 
 def format_amount(amount, width=11, hundredth=True):
     """
@@ -278,10 +277,6 @@ class DMFAWorker(DMFANode):
             return []
 
         contributions = [
-            DMFAWorkerContributionAmiante(contribution_payslips, basis, self.quarter_start)
-        ] + [
-            DMFAWorkerContributionSpecialWorkAccident(contribution_payslips, basis, self.quarter_start)
-        ] + [
             DMFAWorkerContribution(contribution_payslips, basis, self.quarter_start)
         ] + [
             DMFAWorkerContributionFFE(contribution_payslips, basis, self.worker_count, self.quarter_start)
@@ -296,6 +291,16 @@ class DMFAWorker(DMFANode):
         ] + [
             DMFAWorkerContributionTemporaryUnemployment(contribution_payslips, basis, self.quarter_start)
         ]
+
+        # Check if special cotisations on termination fees are needed
+        # https://www.socialsecurity.be/employer/instructions/dmfa/fr/latest/instructions/special_contributions/other_specialcontributions/terminationfeecontribution.html
+        # pour les travailleurs à temps partiel [(A/C)*D/5]*260
+        # où:
+        # A = montant du salaire brut qui doit être renseigné sous le code rémunération Dmfa 1.
+        # B = nombre de jours déclarés sous le code prestation DmfA 1
+        # C = nombre d'heures déclarées sous code prestation 1
+        # D = nombre moyen d'heures/semaine de la personne de référence
+        # YTI TODO
 
         return contributions
 
@@ -359,6 +364,7 @@ class DMFAWorker(DMFANode):
             payslips = self.payslips.filtered(lambda p: p.contract_id in occupation_contracts)
             termination_payslips = payslips.filtered(lambda p: p.struct_id.code == 'CP200TERM')
             if termination_payslips:
+                # YTI TODO master: Store the supposed notice period even for termination fees
                 # Le salaire et les données relatives aux prestations se rapportant à une indemnité
                 # payée suite à une rupture irrégulière de contrat de travail doivent toujours être
                 # repris sur une ligne d'occupation distincte (donc séparée des données se
@@ -414,8 +420,7 @@ class DMFAWorker(DMFANode):
                 # </Remun>
                 termination_periods = _split_termination_period(
                     employee.start_notice_period, employee.end_notice_period)
-                termination_values = termination_payslips._get_line_values(['BASIC'])
-                termination_remuneration = sum(termination_values['BASIC'][p.id]['total'] for p in termination_payslips)
+                termination_remuneration = termination_payslips._get_line_values(['BASIC'])['BASIC'][termination_payslips.id]['total']
 
                 period_remuneration = termination_remuneration / len(termination_periods)
                 # values.append((occupation_contracts, termination_payslips, termination_from, termination_to))
@@ -482,38 +487,6 @@ class DMFAStudentContribution(DMFANode):
         self.student_contribution_amount = format_amount(round(basis * 0.0813, 2), width=9)
         self.student_nbr_days = -1
         self.student_hours_nbr = round(payslips._get_worked_days_line_number_of_hours('WORK100'))
-
-class DMFAWorkerContributionSpecialWorkAccident(DMFANode):
-    """
-    Represents the paid amounts on the employee payslips
-    """
-
-    def __init__(self, payslips, basis, quarter_start, sequence=None):
-        super().__init__(payslips.env, sequence=sequence)
-        self.worker_code = 255
-        self.quarter_start = quarter_start
-        self.contribution_type = 0
-        self.calculation_basis = format_amount(basis)
-        rate = payslips.env['hr.rule.parameter'].sudo()._get_parameter_from_code(
-            'l10n_be_special_work_accident_rate', date=self.quarter_start, raise_if_not_found=False)
-        self.amount = format_amount(round(basis * rate / 100, 2))
-        self.first_hiring_date = -1
-
-class DMFAWorkerContributionAmiante(DMFANode):
-    """
-    Represents the paid amounts on the employee payslips
-    """
-
-    def __init__(self, payslips, basis, quarter_start, sequence=None):
-        super().__init__(payslips.env, sequence=sequence)
-        self.worker_code = 256
-        self.quarter_start = quarter_start
-        self.contribution_type = 0
-        self.calculation_basis = format_amount(basis)
-        rate = payslips.env['hr.rule.parameter'].sudo()._get_parameter_from_code(
-            'l10n_be_amiante_rate', date=self.quarter_start, raise_if_not_found=False)
-        self.amount = format_amount(round(basis * rate / 100, 2))
-        self.first_hiring_date = -1
 
 class DMFAWorkerContribution(DMFANode):
     """
@@ -677,8 +650,6 @@ class DMFAOccupation(DMFANode):
                 self.reorganisation_measure = 3
             else:
                 self.reorganisation_measure = 4
-        elif contract.time_credit and contract.time_credit_type_id.code == "LEAVE281":
-            self.reorganisation_measure = 5
         else:
             self.reorganisation_measure = -1
 
@@ -755,6 +726,7 @@ class DMFAOccupation(DMFANode):
         # |   41 | Indemnité pour responsabilités supplémentaires d'un membre du parlement/gouvernement fédéral ou régional                                                                                                                                                                                  |
         # |   51 | Indemnité payée à un membre du personnel nommé à titre définitif qui est totalement absent dans le cadre d'une mesure de réorganisation du temps de travail                                                                                                                               |
         # +------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        # YTI TODO: Add a field dmfa_remuneration_code on hr.salary.rule
         regular_gross = self.env.ref('l10n_be_hr_payroll.cp200_employees_salary_gross_salary')
         student_struct = self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_student_regular_pay')
         regular_gross_student = self.env['hr.salary.rule'].search([
@@ -855,6 +827,7 @@ class DMFAOccupationInformation(DMFANode):
         self.mobility_budget = -1
         self.flemish_training_hours = -1
         if self.display_info:
+            # YTI TODO: Manage Flemish Training Hours work_entry_type_flemish_training_time_off
             self.flemish_training_hours = 400
             self.display_info = True
         self.regional_aid_measure = -1
@@ -947,7 +920,7 @@ class HrDMFAReport(models.Model):
     @api.depends('reference', 'quarter', 'year')
     def _compute_name(self):
         for dmfa in self:
-            dmfa.name = _('%s %s quarter %s', dmfa.reference, dmfa.quarter, dmfa.year)
+            dmfa.name = _('%s %s quarter %s') % (dmfa.reference, dmfa.quarter, dmfa.year)
 
     @api.constrains('year')
     def _check_year(self):
@@ -959,7 +932,11 @@ class HrDMFAReport(models.Model):
 
     @api.depends('dmfa_xml')
     def _compute_validation_state(self):
-        dmfa_schema_file_path = file_path('l10n_be_hr_payroll/data/DmfAOriginal_20231.xsd')
+        dmfa_schema_file_path = get_resource_path(
+            'l10n_be_hr_payroll',
+            'data',
+            'DmfAOriginal_20231.xsd',
+        )
         xsd_root = etree.parse(dmfa_schema_file_path)
         schema = etree.XMLSchema(xsd_root)
         for dmfa in self:
@@ -1094,7 +1071,7 @@ class HrDMFAReport(models.Model):
 
         # GO File
         # =======
-        self.dmfa_go = base64.b64encode(b'go')
+        self.dmfa_go = base64.b64encode('go')
 
     def generate_dmfa_pdf_report(self):
         dmfa_pdf, dummy = self.env["ir.actions.report"].sudo()._render_qweb_pdf(
@@ -1113,10 +1090,7 @@ class HrDMFAReport(models.Model):
         ])
         # Exclude CIP contracts from DmfA, as they only have a DIMONA
         contract_type_cip = self.env.ref('l10n_be_hr_payroll.l10n_be_contract_type_cip')
-        valid_structure_types = self.env.ref('hr_contract.structure_type_employee_cp200_pfi') \
-                              + self.env.ref('hr_contract.structure_type_employee_cp200') \
-                              + self.env.ref('l10n_be_hr_payroll.structure_type_student')
-        payslips = payslips.filtered(lambda p: p.contract_id.contract_type_id != contract_type_cip and p.contract_id.structure_type_id in valid_structure_types)
+        payslips = payslips.filtered(lambda p: p.contract_id.contract_type_id != contract_type_cip)
         employees = payslips.mapped('employee_id')
         worker_count = len(employees)
 
@@ -1176,7 +1150,7 @@ class HrDMFAReport(models.Model):
 
         # Special employer contribution reduction due to 2023 index
         contribution_reduction = 0
-        if self.quarter_start.year == 2023 and self.quarter_start.month < 5:
+        if self.quarter_start.year == 2023 and self.quarter_start.month < 4:
             # The 7.07% contribution reduction is calculated on the overall net basic
             # employer contributions. These are the employer contributions calculated
             # on all the remuneration codes on which the basic employer contributions

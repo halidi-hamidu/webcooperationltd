@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-import ast
+
 import logging
 from odoo import api, fields, models, _
 from odoo.tools.misc import format_date
@@ -14,18 +14,8 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    followup_next_action_date = fields.Date(
-        string='Next reminder',
-        copy=False,
-        company_dependent=True,
-        help="""The date before which no follow-up action should be taken.
-                You can set it manually if desired but it is automatically set when follow-ups are processed.
-                The date is computed according to the following rules (depending on the follow-up levels):
-                - default -> next date set in {next level delay - current level delay} days
-                - if no next level -> next date set in {current level delay - previous level delay} days
-                - if no next level AND no previous level -> next date set in {current level delay} days
-                - if no level defined at all -> next date never automatically set""",
-    )
+    followup_next_action_date = fields.Date(string='Next reminder', copy=False, company_dependent=True,
+                                           help="The date before which no follow-up action should be taken.")
 
     # readonly=False in order to be able to edit it directly in the view form, without having to click on 'Edit'
     # It's mainly used for usability purposes to easily include/exclude unreconciled move lines
@@ -55,27 +45,24 @@ class ResPartner(models.Model):
         groups='account.group_account_readonly,account.group_account_invoice',
     )
     followup_reminder_type = fields.Selection([('automatic', 'Automatic'), ('manual', 'Manual')], string="Reminders", default='automatic')
-    type = fields.Selection(
-        selection_add=[('followup', 'Follow-up Address'), ('other',)],
-        help="- Contact: Use this to organize the contact details of employees of a given company (e.g. CEO, CFO, ...).\n"
-             "- Invoice Address: Preferred address for all invoices. Selected by default when you invoice an order that belongs to this company.\n"
-             "- Delivery Address: Preferred address for all deliveries. Selected by default when you deliver an order that belongs to this company.\n"
-             "- Private: Private addresses are only visible by authorized users and contain sensitive data (employee home addresses, ...).\n"
-             "- Follow-up Address: Preferred address for follow-up reports. Selected by default when you send reminders about overdue invoices.\n"
-             "- Other: Other address for the company (e.g. subsidiary, ...)")
+    type = fields.Selection(selection_add=[('followup', 'Follow-up Address')])
     followup_responsible_id = fields.Many2one(
         comodel_name='res.users',
         string='Responsible',
-        help="The responsible assigned to manual followup activities, if defined in the level.",
+        help="Optionally you can assign a user to this field, which will make him responsible for the activities. If empty, we will find someone responsible.",
         tracking=True,
         copy=False,
         company_dependent=True,
         groups='account.group_account_readonly,account.group_account_invoice',
     )
 
-    @property
-    def _complete_name_displayed_types(self):
-        return super()._complete_name_displayed_types + ('followup',)
+    def _get_name(self):
+        # OVERRIDE base/models/res_partner.py
+        name = super()._get_name()
+        # Add a placeholder name for the followup address
+        if self.type == 'followup' and not self.name:
+            name += dict(self.fields_get(['type'])['type']['selection'])[self.type]
+        return name
 
     def _search_status(self, operator, value):
         """
@@ -96,7 +83,7 @@ class ResPartner(models.Model):
         ])]
 
     def _search_followup_line(self, operator, value):
-        company_domain = [('company_id', 'parent_of', self.env.company.id)]
+        company_domain = [('company_id', '=', self.env.company.id)]
         if isinstance(value, str):
             domain = [('name', operator, value)]
         elif isinstance(value, (int, list, tuple)):
@@ -121,7 +108,7 @@ class ResPartner(models.Model):
             total_due = 0
             for aml in partner.unreconciled_aml_ids:
                 is_overdue = today > aml.date_maturity if aml.date_maturity else today > aml.date
-                if self.env.company in aml.company_id.parent_ids and not aml.blocked:
+                if aml.company_id == self.env.company and not aml.blocked:
                     total_due += aml.amount_residual
                     if is_overdue:
                         total_overdue += aml.amount_residual
@@ -140,7 +127,7 @@ class ResPartner(models.Model):
     def _compute_unpaid_invoices(self):
         for partner in self:
             unpaid_receivable_lines = self.env['account.move.line'].search([
-                ('company_id', 'child_of', self.env.company.id),
+                ('company_id', '=', self.env.company.id),
                 ('move_id.commercial_partner_id', '=', partner.id),
                 ('parent_state', '=', 'posted'),
                 ('move_id.payment_state', 'in', ('not_paid', 'partial')),
@@ -163,32 +150,25 @@ class ResPartner(models.Model):
         }
         return action
 
-    def action_open_unreconciled_partner(self):
-        action_values = self.env["ir.actions.actions"]._for_xml_id("account_accountant.action_move_line_posted_unreconciled")
-        domain = ast.literal_eval(action_values['domain'])
-        domain.append(('partner_id', 'in', self.ids))
-        action_values['domain'] = domain
-        return action_values
-
     @api.depends('invoice_ids')
     @api.depends_context('company', 'allowed_company_ids')
     def _compute_unreconciled_aml_ids(self):
         values = {
-            partner.id: line_ids
-            for partner, line_ids in self.env['account.move.line']._read_group(
+            read['partner_id'][0]: read['line_ids']
+            for read in self.env['account.move.line'].read_group(
                 domain=self._get_unreconciled_aml_domain(),
-                groupby=['partner_id'],
-                aggregates=['id:array_agg'],
+                fields=['line_ids:array_agg(id)'],
+                groupby=['partner_id']
             )
         }
         for partner in self:
             partner.unreconciled_aml_ids = values.get(partner.id, False)
 
     def _set_followup_line_on_unreconciled_amls(self):
-        today = fields.Date.context_today(self)
+        today = fields.Date.today()
         for partner in self:
             current_followup_line = partner.followup_line_id
-            previous_followup_line = self.env['account_followup.followup.line'].search([('delay', '<', current_followup_line.delay), ('company_id', 'parent_of', self.env.company.id)], order='delay desc', limit=1)
+            previous_followup_line = self.env['account_followup.followup.line'].search([('delay', '<', current_followup_line.delay), ('company_id', '=', self.env.company.id)], order='delay desc', limit=1)
             for unreconciled_aml in partner.unreconciled_aml_ids:
                 if not unreconciled_aml.blocked:
                     unreconciled_aml.followup_line_id = previous_followup_line
@@ -202,7 +182,7 @@ class ResPartner(models.Model):
             ('account_id.account_type', '=', 'asset_receivable'),
             ('parent_state', '=', 'posted'),
             ('partner_id', 'in', self.ids),
-            ('company_id', 'child_of', self.env.company.id),
+            ('company_id', '=', self.env.company.id),
         ]
 
     def _get_followup_responsible(self):
@@ -258,7 +238,7 @@ class ResPartner(models.Model):
             if is_overdue:
                 has_overdue_invoices = True
 
-            if self.env.company in aml.company_id.parent_ids and not aml.blocked:
+            if aml.company_id == self.env.company and not aml.blocked:
                 if aml.followup_line_id and aml.followup_line_id.delay >= (highest_followup_line or first_followup_line).delay:
                     highest_followup_line = aml.followup_line_id
                 max_delay = max(max_delay, aml_delay)
@@ -294,19 +274,21 @@ class ResPartner(models.Model):
 
     @api.model
     def _get_first_followup_level(self):
-        return self.env['account_followup.followup.line'].search([('company_id', 'parent_of', self.env.company.id)], order='delay asc', limit=1)
+        return self.env['account_followup.followup.line'].search([('company_id', '=', self.env.company.id)], order='delay asc', limit=1)
 
     def _update_next_followup_action_date(self, followup_line):
         """Updates the followup_next_action_date of the right account move lines
         """
         self.ensure_one()
-        if followup_line:
-            next_date = followup_line._get_next_date()
-            self.followup_next_action_date = datetime.strftime(next_date, DEFAULT_SERVER_DATE_FORMAT)
-            msg = _('Next Reminder Date set to %s', format_date(self.env, self.followup_next_action_date))
-            self.message_post(body=msg)
 
-        today = fields.Date.context_today(self)
+        # Arbitrary 14 days delay (like the _get_next_date() method) if there is no followup_line
+        # This will be changed/removed in an upcoming improvement
+        next_date = followup_line._get_next_date() if followup_line else fields.Date.today() + timedelta(days=14)
+        self.followup_next_action_date = datetime.strftime(next_date, DEFAULT_SERVER_DATE_FORMAT)
+        msg = _('Next Reminder Date set to %s', format_date(self.env, self.followup_next_action_date))
+        self.message_post(body=msg)
+
+        today = fields.Date.today()
         previous_levels = self.env['account_followup.followup.line'].search([('delay', '<=', followup_line.delay), ('company_id', '=', self.env.company.id)])
         for aml in self._get_included_unreconciled_aml_ids().filtered('date_maturity'):
             eligible_levels = previous_levels.filtered(lambda level: (today - aml.date_maturity).days >= level.delay)
@@ -349,6 +331,7 @@ class ResPartner(models.Model):
         options.update({
             'partner_id': self.id,
             'followup_line_id': self.followup_line_id,
+            'keep_summary': True
         })
         return self.env['account.followup.report'].with_context(print_mode=True, lang=self.lang or self.env.user.lang).get_followup_report_html(options)
 
@@ -356,11 +339,11 @@ class ResPartner(models.Model):
         """ returns the followup plan of the current user's company
         in the form of a dictionary with
          * keys being the different possible lines of followup for account.move.line's (None or IDs of account_followup.followup.line)
-         * values being a dict of 2 elements:
+         * values being a dict of 3 elements:
            - 'next_followup_line_id': the followup ID of the next followup line
            - 'next_delay': the delay in days of the next followup line
         """
-        followup_lines = self.env['account_followup.followup.line'].search([('company_id', 'parent_of', self.env.company.id)], order="delay asc")
+        followup_lines = self.env['account_followup.followup.line'].search([('company_id', '=', self.env.company.id)], order="delay asc")
 
         previous_line_id = None
         followup_lines_info = {}
@@ -382,7 +365,6 @@ class ResPartner(models.Model):
         self.env['account.move.line'].check_access_rights('read')
         self.env['account.move.line'].flush_model()
         self.env['res.partner'].flush_model()
-        self.env['ir.property'].flush_model()
         self.env['account_followup.followup.line'].flush_model()
 
         # Put the data in a cache in the database to avoid running costly query multiple times in same transaction.
@@ -429,7 +411,7 @@ class ResPartner(models.Model):
                     SELECT next_ful.id
                       FROM account_followup_followup_line next_ful
                      WHERE next_ful.delay > COALESCE(ful.delay, %(min_delay)s - 1)
-                       AND next_ful.company_id = %(root_company_id)s
+                       AND next_ful.company_id = %(company_id)s
                   ORDER BY next_ful.delay ASC
                      LIMIT 1
                  )
@@ -438,11 +420,11 @@ class ResPartner(models.Model):
              AND aml.parent_state = 'posted'
              AND aml.reconciled IS NOT TRUE
              AND aml.blocked IS FALSE
-             AND aml.company_id = ANY(%(company_ids)s)
+             AND aml.company_id = %(company_id)s
              {"" if partner_ids is None else "AND aml.partner_id IN %(partner_ids)s"}
         GROUP BY partner.id
             ) partner
-            LEFT JOIN account_followup_followup_line ful ON ful.delay = partner.followup_delay AND ful.company_id = %(root_company_id)s
+            LEFT JOIN account_followup_followup_line ful ON ful.delay = partner.followup_delay AND ful.company_id = %(company_id)s
             -- Get the followup status data
             LEFT OUTER JOIN LATERAL (
                 SELECT line.id
@@ -456,7 +438,7 @@ class ResPartner(models.Model):
                    AND line.reconciled IS NOT TRUE
                    AND line.balance > 0
                    AND line.blocked IS FALSE
-                   AND line.company_id = ANY(%(company_ids)s)
+                   AND line.company_id = %(company_id)s
                    AND COALESCE(ful.delay, %(min_delay)s - 1) <= partner.followup_delay
                    AND COALESCE(line.date_maturity, line.date) + COALESCE(ful.delay, %(min_delay)s - 1) < %(current_date)s
                  LIMIT 1
@@ -472,16 +454,15 @@ class ResPartner(models.Model):
                    AND line.reconciled IS NOT TRUE
                    AND line.balance > 0
                    AND line.blocked IS FALSE
-                   AND line.company_id = ANY(%(company_ids)s)
+                   AND line.company_id = %(company_id)s
                    AND COALESCE(line.date_maturity, line.date) < %(current_date)s
                  LIMIT 1
             ) exceeded_unreconciled_aml ON true
             LEFT OUTER JOIN ir_property prop_date ON prop_date.res_id = CONCAT('res.partner,', partner.id)
                                                  AND prop_date.name = 'followup_next_action_date'
-                                                 AND prop_date.company_id = %(root_company_id)s
+                                                 AND prop_date.company_id = %(company_id)s
         """, {
-            'company_ids': self.env.company.search([('id', 'child_of', self.env.company.id)]).ids,
-            'root_company_id': self.env.company.root_id.id,
+            'company_id': self.env.company.id,
             'partner_ids': tuple(partner_ids or []),
             'current_date': fields.Date.context_today(self),  # Allow mocking the current day for testing purpose.
             'min_delay': self._get_first_followup_level().delay or 0,
@@ -552,49 +533,9 @@ class ResPartner(models.Model):
         if options.get('print') and to_print:
             return self.env['account.followup.report']._print_followup_letter(self, options)
 
-    def _create_followup_missing_information_wizard(self):
-        """ Returns a wizard containing all the partners with missing information.
-        """
-
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _("Missing information"),
-            'view_mode': 'form',
-            'res_model': 'account_followup.missing.information.wizard',
-            'target': 'new',
-            'context': {'default_partner_ids': self.ids},
-        }
-
-    def _has_missing_followup_info(self):
-        self.ensure_one()
-
-        followup_contacts = self._get_all_followup_contacts() or self
-
-        if self.followup_line_id.send_email and not any(followup_contacts.mapped('email')):
-            return True
-
-        if self.followup_line_id.send_sms and not (any(followup_contacts.mapped('mobile'))
-                                            or any(followup_contacts.mapped('phone'))):
-            return True
-        return False
-
     def action_manually_process_automatic_followups(self):
-        partners_with_missing_info = self.env['res.partner']
-
         for partner in self:
-            if partner.followup_status != 'in_need_of_action':
-                continue
-
-            # Skip partner with missing info.
-            if partner._has_missing_followup_info():
-                partners_with_missing_info |= partner
-                continue
-
             partner._execute_followup_partner()
-
-        # If one or more partners are missing information, open a wizard listing them.
-        if partners_with_missing_info:
-            return partners_with_missing_info._create_followup_missing_information_wizard()
 
     def _cron_execute_followup_company(self):
         followup_data = self._query_followup_data(all_partners=True)

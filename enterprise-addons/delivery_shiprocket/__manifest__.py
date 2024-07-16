@@ -3,10 +3,10 @@
     'name': "Shiprocket Shipping",
     'description': "Send your parcels through shiprocket and track them online",
     'category': 'Inventory/Delivery',
-    'sequence': 317,
+    'sequence': 316,
     'version': '1.0',
     'application': True,
-    'depends': ['stock_delivery', 'mail'],
+    'depends': ['delivery', 'mail'],
     'data': [
         'security/ir.model.access.csv',
         'data/data.xml',

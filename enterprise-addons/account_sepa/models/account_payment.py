@@ -1,21 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from uuid import uuid4
-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 
 
 class AccountPayment(models.Model):
     _inherit = "account.payment"
-
-    sepa_pain_version = fields.Selection(related='journal_id.sepa_pain_version')
-    sepa_uetr = fields.Char(
-        string='UETR',
-        compute='_compute_sepa_uetr',
-        store=True,
-        help='Unique end-to-end transaction reference',
-    )
 
     @api.model
     def _get_method_codes_using_bank_account(self):
@@ -45,13 +35,3 @@ class AccountPayment(models.Model):
         if sepa_ct and self.currency_id not in currency_ids:
             res.append(sepa_ct.code)
         return res
-
-    @api.depends('payment_method_id')
-    def _compute_sepa_uetr(self):
-        # don't make changes to the existing uetr even if the pain version changes
-        # add uetr only on payments with a SEPA credit transfer
-        payments = self.filtered(
-            lambda p: not p.sepa_uetr and p.payment_method_id.code == 'sepa_ct'
-        )
-        for payment in payments:
-            payment.sepa_uetr = uuid4() if payment.journal_id.sepa_pain_version == 'pain.001.001.09' else False

@@ -11,6 +11,7 @@ PROXY_URL = 'https://iap-services.odoo.com/'
 # The endpoints of the Amazon proxy.
 PROXY_ENDPOINTS = {
     'authorization': '/amazon/v1/forward_authorization_request',  # Exchange LWA tokens
+    'aws_tokens': '/amazon/v1/forward_aws_credentials_request',  # Request AWS credentials
 }
 
 
@@ -36,23 +37,9 @@ API_OPERATIONS_MAPPING = {
         'url_path': '/tokens/2021-03-01/restrictedDataToken',
         'restricted_resource_path': None,
     },
-    'getFeed': {
-        'url_path': '/feeds/2021-06-30/feeds/{param}',
-        'restricted_resource_path': None,
-    },
-    'getFeedDocument': {
-        'url_path': '/feeds/2021-06-30/documents/{param}',
-        'restricted_resource_path': None,
-    },
     'getMarketplaceParticipations': {
         'url_path': '/sellers/v1/marketplaceParticipations',
         'restricted_resource_path': None,
-    },
-    'getOrder': {
-        'url_path': '/orders/v0/orders/{param}',
-        # Amazon requires the path to include the placeholder "{orderID}" to grant the RDT.
-        'restricted_resource_path': '/orders/v0/orders/{orderId}',
-        'restricted_resource_data_elements': ['buyerInfo', 'shippingAddress'],
     },
     'getOrders': {
         'url_path': '/orders/v0/orders',

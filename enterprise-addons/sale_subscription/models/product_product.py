@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models
+from odoo import api, models
 
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    def _get_best_subscription_pricing_rule(self, **kwargs):
+    def _get_best_pricing_rule(self, **kwargs):
         """ Return the best pricing rule for the given duration.
         :param float duration: duration, in unit uom
         :param str unit: duration unit (hour, day, week)
@@ -20,15 +20,14 @@ class ProductProduct(models.Model):
         duration, unit = kwargs.get('duration', False), kwargs.get('unit', '')
 
         if not self.recurring_invoice or not duration or not unit:
-            return self.env['sale.subscription.pricing']
+            return super()._get_best_pricing_rule(**kwargs)
 
-        # TODO we might want to change the behaviour
         # For subscription products, we select either the list_price if no pricing correspond to the
-        # SO plan_id or the best suited, we don't calculate the lowest price.
+        # SO recurrence_id or the best suited but we don't calculate the lowest price.
         pricelist = kwargs.get('pricelist', self.env['product.pricelist'])
-        available_pricings = self.product_subscription_pricing_ids.filtered(lambda p: p.plan_id.billing_period_value == duration and p.plan_id.billing_period_unit == unit and p._applies_to(self))
-        best_pricing_with_pricelist = self.env['sale.subscription.pricing']
-        best_pricing_without_pricelist = self.env['sale.subscription.pricing']
+        available_pricings = self.product_pricing_ids.filtered(lambda p: p.recurrence_id.duration == duration and p.recurrence_id.unit == unit)
+        best_pricing_with_pricelist = self.env['product.pricing']
+        best_pricing_without_pricelist = self.env['product.pricing']
         for pricing in available_pricings:
             # If there are any variants for the pricing, check if current product id is included in the variants ids.
             variants_ids = pricing.product_variant_ids.ids
@@ -38,4 +37,22 @@ class ProductProduct(models.Model):
             elif not pricing.pricelist_id and variant_pricing_compatibility:
                 best_pricing_without_pricelist |= pricing
 
-        return best_pricing_with_pricelist[:1] or best_pricing_without_pricelist[:1] or self.env['sale.subscription.pricing']
+        return best_pricing_with_pricelist[:1] or best_pricing_without_pricelist[:1] or self.env['product.pricing']
+
+    @api.onchange('recurring_invoice')
+    def _onchange_recurring_invoice(self):
+        """
+        Raise a warning if the user has checked 'Subscription Product'
+        while the product has already been set as a 'Storable Product'.
+        In this case, the 'Subscription Product' field is automatically
+        unchecked.
+        """
+        return self.product_tmpl_id._onchange_recurring_invoice()
+
+    @api.onchange('type')
+    def _onchange_product_type(self):
+        """
+        Raise a warning if the user has selected 'Storable Product'
+        while the product has already been set as a 'Subscription Product'.
+        """
+        return self.product_tmpl_id._onchange_product_type()

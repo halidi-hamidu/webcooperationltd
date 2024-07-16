@@ -11,7 +11,7 @@ from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 class TestLTIntrastatReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='lt'):
+    def setUpClass(cls, chart_template_ref='l10n_lt.account_chart_template_lithuania'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.company_data['company'].country_id = cls.env.ref('base.lt')
         cls.company_data['company'].company_registry = '0123456789'
@@ -162,7 +162,7 @@ class TestLTIntrastatReport(TestAccountReportsCommon):
         options = self._generate_options(self.report, '2022-05-01', '2022-05-31')
         arrivals, dispatches = options['intrastat_type']
         arrivals['selected'], dispatches['selected'] = False, False
-        options = self.report.get_options(options)
+        options = self.report._get_options(options)
 
         full_export_tree = etree.fromstring(self.report_handler.lt_intrastat_export_to_xml(options)['file_content'])
         expected_tree = etree.fromstring(self.expected_content_all)

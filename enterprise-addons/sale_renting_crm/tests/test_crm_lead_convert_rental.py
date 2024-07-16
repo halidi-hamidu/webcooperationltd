@@ -118,3 +118,26 @@ class TestLeadConvertToRental(crm_common.TestCrmCommon):
         self.assertEqual(new_partner, self.env['res.partner'])
         self.assertEqual(lead.partner_id, self.env['res.partner'])
         self.assertEqual(action['context']['default_partner_id'], False)
+
+    def test_rental_count_in_lead(self):
+        partner = self.env['res.partner'].create({
+            'name': 'partner_1'
+        })
+
+        rental = self.env['sale.order'].create({
+            'state': 'draft',
+            'is_rental_order': True,
+            'opportunity_id': self.lead_1.id,
+            'partner_id': partner.id,
+        })
+
+        self.lead_1._compute_rental_count()
+        self.assertEqual(self.lead_1.rental_order_count, 0)
+
+        rental.state = 'sale'
+        self.lead_1._compute_rental_count()
+        self.assertEqual(self.lead_1.rental_order_count, 1)
+
+        rental.state = 'done'
+        self.lead_1._compute_rental_count()
+        self.assertEqual(self.lead_1.rental_order_count, 1)

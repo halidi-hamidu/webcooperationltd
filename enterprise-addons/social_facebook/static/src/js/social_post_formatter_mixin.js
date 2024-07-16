@@ -1,21 +1,21 @@
 /** @odoo-module **/
 
-import { SocialPostFormatterMixinBase, SocialPostFormatterRegex } from '@social/js/social_post_formatter_mixin';
+import { SocialPostFormatterMixin } from '@social/js/social_post_formatter_mixin';
 
-import { patch } from "@web/core/utils/patch";
+import { patch } from '@web/core/utils/patch';
 
 /*
  * Add Facebook @tag and #hashtag support.
  * Replace all occurrences of `#hashtag` and of `@tag` by a HTML link to a
  * search of the hashtag/tag on the media website
  */
-patch(SocialPostFormatterMixinBase, {
+patch(SocialPostFormatterMixin, 'social_facebook.SocialPostFormatterMixin', {
 
     _formatPost(value) {
-        value = super._formatPost(...arguments);
+        value = this._super(...arguments);
         const mediaType = this._getMediaType();
         if (['facebook', 'facebook_preview'].includes(mediaType)) {
-            value = value.replace(SocialPostFormatterRegex.REGEX_HASHTAG,
+            value = value.replace(this.REGEX_HASHTAG,
                 `$1<a href='https://www.facebook.com/hashtag/$2' target='_blank'>#$2</a>`);
 
             const accountId = this.record && this.record.account_id.raw_value ||

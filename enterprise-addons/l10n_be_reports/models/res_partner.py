@@ -75,4 +75,4 @@ class ResPartner(models.Model):
 
     def _get_bce_number(self):
         self.ensure_one()
-        return vat.compact(self.vat)
+        return vat.compact(self.vat or '')

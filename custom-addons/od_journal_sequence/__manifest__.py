@@ -2,7 +2,7 @@
 
 {
     'name': 'Journal Sequence For Odoo 16',
-    'version': '1.0.1',
+    'version': '16.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Odoo Journal Sequence, Journal Entry Sequence, Odoo 16 Journal Sequence, Journal Sequence For Odoo 16, Journal Sequence For Invoice',
     'description': 'Odoo Journal Sequence, Journal Entry Sequence, Odoo 16 Journal Sequence, Journal Sequence For Odoo 16, Journal Sequence For Invoice',

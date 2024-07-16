@@ -3,7 +3,7 @@
 
 {
     "name": "Indian - GSTR India eFiling",
-    "countries": ["in"],
+    "icon": "/l10n_in/static/description/icon.png",
     "version": "1.0",
     "description": """
 GST return filing using IAP
@@ -24,8 +24,10 @@ GST return filing using IAP
     ],
     "demo": [
         "demo/demo_company.xml",
+        "demo/res_partner_demo.xml",
+        "demo/account_invoice_demo.xml",
     ],
-    "auto_install": ['l10n_in_reports'],
+    "auto_install": ['l10n_in_reports', 'l10n_in_edi'],
     "installable": True,
     "license": "OEEL-1",
 }

@@ -24,10 +24,10 @@ class BACSDirectDebitInstruction(models.Model):
     _sql_constraints = [('name_unique', 'unique(name)', "Direct Debit Instruction identifier must be unique! Please choose another one.")]
 
 
-    name = fields.Char(string='Identifier', required=True, help="The unique identifier of this DDI.", default=lambda self: datetime.now().strftime('%f%S%M%H%d%m%y'), copy=False)
-    partner_id = fields.Many2one(comodel_name='res.partner', string='Customer', required=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="Customer whose payments are to be managed by this DDI.")
+    name = fields.Char(string='Identifier', required=True, readonly=True, states={'draft':[('readonly', False)]}, help="The unique identifier of this DDI.", default=lambda self: datetime.now().strftime('%f%S%M%H%d%m%y'), copy=False)
+    partner_id = fields.Many2one(comodel_name='res.partner', string='Customer', required=True, readonly=True, states={'draft':[('readonly', False)]}, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="Customer whose payments are to be managed by this DDI.")
     company_id = fields.Many2one(comodel_name='res.company', default=lambda self: self.env.company, help="Company for whose invoices the DDI can be used.")
-    partner_bank_id = fields.Many2one(string='IBAN', comodel_name='res.partner.bank', domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="Account of the customer to collect payments from.")
+    partner_bank_id = fields.Many2one(string='IBAN', readonly=True, states={'draft':[('readonly', False)]}, comodel_name='res.partner.bank', domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="Account of the customer to collect payments from.")
     start_date = fields.Date(default=lambda self: fields.Date.today(), string='Date')
     state = fields.Selection([('draft', 'Draft'), ('active', 'Active'), ('revoked', 'Revoked'), ('closed', 'Closed')],
                             string="State",

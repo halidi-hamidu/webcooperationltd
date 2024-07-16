@@ -21,6 +21,16 @@
         <field name="company_id" ref="demo_company_hk" />
     </record>
 
+    <record id="demo_leave_allocation" model="hr.leave.allocation">
+        <field name="name">HK Paid Leaves Allocation</field>
+        <field name="holiday_status_id" ref="holiday_type_hk_annual_leave" />
+        <field name="number_of_days">20</field>
+        <field name="holiday_type">company</field>
+        <field name="mode_company_id" ref="demo_company_hk" />
+        <field name="date_from" eval="time.strftime('%Y-01-01')" />
+        <field name="date_to" eval="time.strftime('%Y-12-31')"/>
+    </record>
+
     <!-- EMPLOYEE -->
     <record id="demo_user_hk" model="res.users">
         <field name="name">HK User</field>
@@ -35,7 +45,8 @@
         <field name="name">Employee HK</field>
         <field name="user_id" ref="demo_user_hk" />
         <field name="company_id" ref="demo_company_hk"/>
-        <field name="resource_calendar_id" ref="calendar_hk"/>
+        <field name="l10n_hk_rental_date_start" eval="time.strftime('%Y-03-01')" />
+        <field name="l10n_hk_rental_amount">8000</field>
     </record>
     <record id="demo_contract_hk" model="hr.contract">
         <field name="name">Demo Contract HK</field>
@@ -48,50 +59,31 @@
         <field name="resource_calendar_id" ref="calendar_hk"/>
         <field name="structure_type_id" ref="structure_type_employee_cap57" />
         <field name="state">open</field>
-    </record>
-    <record id="demo_rental_hk" model="l10n_hk.rental">
-        <field name="name">Demo Rental HK</field>
-        <field name="employee_id" ref="demo_employee_hk" />
-        <field name="company_id" ref="demo_company_hk" />
-        <field name="state">open</field>
-        <field name="date_start" eval="time.strftime('%Y-01-01')" />
-        <field name="amount">8000</field>
-        <field name="nature">flat</field>
-        <field name="address">1, Hong Kong Street</field>
+        <field name="l10n_hk_internet" eval="1"/>
     </record>
 
     <!-- PUBLIC HOLIDAYS -->
     <record id="demo_public_holiday" model="resource.calendar.leaves">
         <field name="name">The first day of January</field>
         <field name="company_id" ref="demo_company_hk" />
-        <field name="calendar_id" ref="calendar_hk"/>
-        <field name="date_from" eval="time.strftime('%Y-01-01 07:00:00')" />
-        <field name="date_to" eval="time.strftime('%Y-01-01 16:00:00')" />
+        <field name="date_from" eval="time.strftime('%Y-01-01 00:00:00')" />
+        <field name="date_to" eval="time.strftime('%Y-01-01 09:00:00')" />
         <field name="work_entry_type_id" ref="work_entry_type_statutory_holiday" />
     </record>
 
     <!-- LEAVES -->
-    <record id="demo_leave_allocation" model="hr.leave.allocation">
-        <field name="name">HK Paid Leaves Allocation</field>
-        <field name="holiday_status_id" ref="holiday_type_hk_annual_leave" />
-        <field name="number_of_days">20</field>
-        <field name="holiday_type">company</field>
-        <field name="mode_company_id" ref="demo_company_hk" />
-        <field name="date_from" eval="time.strftime('%Y-01-01')" />
-        <field name="date_to" eval="time.strftime('%Y-12-31')"/>
-    </record>
     <record id="demo_unpaid_leave" model="hr.leave">
         <field name="holiday_type">employee</field>
         <field name="employee_id" ref="demo_employee_hk" />
-        <field name="request_date_from" eval="time.strftime('%Y-01-14')" />
-        <field name="request_date_to" eval="time.strftime('%Y-01-17')"/>
+        <field name="date_from" eval="time.strftime('%Y-01-14 00:00:00')" />
+        <field name="date_to" eval="time.strftime('%Y-01-18 00:00:00')"/>
         <field name="holiday_status_id" ref="holiday_type_hk_unpaid_leave" />
     </record>
     <record id="demo_annual_leave" model="hr.leave">
         <field name="holiday_type">employee</field>
         <field name="employee_id" ref="demo_employee_hk" />
-        <field name="request_date_from" eval="time.strftime('%Y-02-11')" />
-        <field name="request_date_to" eval="time.strftime('%Y-02-15')"/>
+        <field name="date_from" eval="time.strftime('%Y-02-11 00:00:00')" />
+        <field name="date_to" eval="time.strftime('%Y-02-16 00:00:00')"/>
         <field name="holiday_status_id" ref="holiday_type_hk_annual_leave" />
     </record>
 

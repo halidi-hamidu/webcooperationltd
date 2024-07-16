@@ -23,7 +23,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
         81 or 82. At that point, everything starts over for a period of 3 months.
     """
     @classmethod
-    def setUpClass(cls, chart_template_ref="bg"):
+    def setUpClass(cls, chart_template_ref="l10n_bg.l10n_bg_chart_template"):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.company_data['company'].country_id = cls.env.ref('base.bg')
@@ -61,7 +61,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             vat_closing_move.action_post()
 
     def _fill_tax_report_line_50(self, amount, date):
-        tax_sale = self.env['account.tax'].search([('name', '=', '20%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        tax_sale = self.env['account.tax'].search([('name', '=', '20% VAT'), ('company_id', '=', self.company_data['company'].id)], limit=1)
 
         # We multiply the amount by '5' because this line is for tax amounts and the tax is of 20%.
         self._create_invoice('out_invoice', amount * 5, date, tax_sale, 'default_journal_sale')
@@ -103,14 +103,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [   0,                                                                                                       1],
             [
                 ('Section C: Result for the period',                                                                    ''),
-                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     0.0),
+                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      ''),
                 ('[60] VAT for refund (class 20 - class 40) < 0',                                                    400.0),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                 ''),
             ],
-            options,
         )
 
         # Month 2
@@ -125,14 +124,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [   0,                                                                                                       1],
             [
                 ('Section C: Result for the period',                                                                    ''),
-                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     0.0),
+                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      ''),
                 ('[60] VAT for refund (class 20 - class 40) < 0',                                                    200.0),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                 ''),
             ],
-            options,
         )
 
         # Month 3
@@ -148,14 +146,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      150.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 600 in refund, we deduct 150 from it. We are entitled to 450 now.
                 ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      150.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                   0.0),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                    ''),
             ],
-            options,
         )
 
     def test_tax_report_partial_deduction(self):
@@ -171,14 +168,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [   0,                                                                                                       1],
             [
                 ('Section C: Result for the period',                                                                    ''),
-                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     0.0),
+                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      ''),
                 ('[60] VAT for refund (class 20 - class 40) < 0',                                                    400.0),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                 ''),
             ],
-            options,
         )
 
         # Month 2
@@ -194,14 +190,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      250.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 400 in refund, we deduct 250 from it. We are entitled to 150 now.
                 ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      250.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                   0.0),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                    ''),
             ],
-            options,
         )
 
         # Month 3
@@ -217,7 +212,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      250.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 150 in refund, we deduct 150 from it.
@@ -226,7 +221,6 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
                 # We pay the 100 that we still owe (after all deductions).
                 ('[71] Tax for payment from Art. 50, effectively paid',                                                 100.0),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_does_not_change_simple_deduction(self):
@@ -242,14 +236,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [   0,                                                                                                       1],
             [
                 ('Section C: Result for the period',                                                                    ''),
-                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     0.0),
+                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      ''),
                 ('[60] VAT for refund (class 20 - class 40) < 0',                                                    200.0),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                 ''),
             ],
-            options,
         )
 
         # Month 2
@@ -264,14 +257,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 200 in refund, we deduct 100 from it.
                 ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      100.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                   0.0),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                    ''),
             ],
-            options,
         )
 
         self._vat_closing(options)
@@ -284,14 +276,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 200 in refund, we deduct 100 from it.
                 ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      100.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                   0.0),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                    ''),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_does_not_change_partial_deduction(self):
@@ -307,14 +298,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [   0,                                                                                                       1],
             [
                 ('Section C: Result for the period',                                                                    ''),
-                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     0.0),
+                ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      ''),
                 ('[60] VAT for refund (class 20 - class 40) < 0',                                                    100.0),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
-                ('[71] Tax for payment from Art. 50, effectively paid',                                                0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
+                ('[71] Tax for payment from Art. 50, effectively paid',                                                 ''),
             ],
-            options,
         )
 
         # Month 2
@@ -329,7 +319,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      200.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 100 in refund, we deduct 100 from it.
@@ -338,7 +328,6 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
                 # We pay the 100 that we still owe (after all deductions).
                 ('[71] Tax for payment from Art. 50, effectively paid',                                                 100.0),
             ],
-            options,
         )
 
         self._vat_closing(options)
@@ -351,7 +340,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                       ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                      200.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                          ''),
 
                 ('Section D. VAT for deposition',                                                                          ''),
                 # Since we are still entitled to 150 in refund, we deduct 150 from it.
@@ -360,7 +349,6 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
                 # We pay the 100 that we still owe (after all deductions).
                 ('[71] Tax for payment from Art. 50, effectively paid',                                                 100.0),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_move_lines_on_exact_refundable_amount(self):
@@ -400,14 +388,13 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                    ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                   100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                      0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                       ''),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
                 # Since we asked for the correct vat refund amount, we are entitled to nothing more. We pay 100.
                 ('[71] Tax for payment from Art. 50, effectively paid',                                              100.0),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_move_lines_on_insufficient_refundable_amount(self):
@@ -447,7 +434,7 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                      ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                     100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                        0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                         ''),
 
                 ('Section D. VAT for deposition',                                                                         ''),
 
@@ -457,7 +444,6 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
                 # We pay the 50 that we still owe (after all deductions).
                 ('[71] Tax for payment from Art. 50, effectively paid',                                                 50.0),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_move_lines_on_excessive_refundable_amount(self):
@@ -497,15 +483,14 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                    ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                   100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                      0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                       ''),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
                 # Although we asked for the incorrect vat refund amount, the error is not reflected on the report.
                 # We pay 100.
                 ('[71] Tax for payment from Art. 50, effectively paid',                                              100.0),
             ],
-            options,
         )
 
     def test_tax_report_vat_closing_move_lines_on_premature_refund(self):
@@ -539,13 +524,12 @@ class BulgarianTaxReportTest(TestAccountReportsCommon):
             [
                 ('Section C: Result for the period',                                                                    ''),
                 ('[50] VAT to be paid (class 20 - class 40) >= 0',                                                   100.0),
-                ('[60] VAT for refund (class 20 - class 40) < 0',                                                      0.0),
+                ('[60] VAT for refund (class 20 - class 40) < 0',                                                       ''),
 
                 ('Section D. VAT for deposition',                                                                       ''),
-                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',     0.0),
+                ('[70] Tax for payment from Art. 50, deducted in accordance with Art. 92, para. 1 of the VAT Act',      ''),
                 # Although we asked for the incorrect vat refund amount, the error is not reflected on the report.
                 # We pay 100.
                 ('[71] Tax for payment from Art. 50, effectively paid',                                              100.0),
             ],
-            options,
         )

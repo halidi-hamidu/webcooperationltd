@@ -2,7 +2,7 @@ from odoo import models, fields, _
 from odoo.addons.l10n_nl_reports_sbr.wizard.l10n_nl_reports_sbr_tax_report_wizard import _create_soap_client
 from datetime import timedelta
 from tempfile import NamedTemporaryFile
-from odoo.tools.zeep.exceptions import Fault
+from zeep.exceptions import Fault
 from requests.exceptions import ConnectionError
 
 class L10nNlSBRStatusService(models.Model):

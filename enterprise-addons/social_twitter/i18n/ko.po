@@ -3,16 +3,20 @@
 # 	* social_twitter
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
+# 조성현 (jaymz9634) <jaymz9634@gmail.com>, 2022
+# JH CHOI <hwangtog@gmail.com>, 2022
 # Daye Jeong, 2023
+# Sarah Park, 2023
+# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:47+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Daye Jeong, 2023\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
+"PO-Revision-Date: 2022-09-22 05:49+0000\n"
+"Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,6 +66,11 @@ msgid "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
 msgstr "<i class=\"fa fa-retweet me-1\" title=\"Retweet a tweet\"/>"
 
 #. module: social_twitter
+#: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
+msgid "<span class=\"fst-italic\">Empty tweet</span>"
+msgstr "<span class=\"fst-italic\">빈 트윗</span>"
+
+#. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
 msgid "@twitteraccount ·"
 msgstr "@twitteraccount ·"
@@ -78,11 +87,10 @@ msgstr "리트윗이 이미 존재합니다"
 #: code:addons/social_twitter/controllers/main.py:0
 #, python-format
 msgid "Authentication failed. Please enter valid credentials."
-msgstr "인증에 실패했습니다. 유효한 자격 증명을 입력하세요."
+msgstr "인증에 실패했습니다. 유효한 자격 증명을 확인하세요."
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_post_view_kanban
 #, python-format
@@ -117,7 +125,7 @@ msgstr "제공된 계정 대신 개인 트위터 개발자 계정을 사용하�
 #. module: social_twitter
 #: model:ir.model,name:social_twitter.model_res_config_settings
 msgid "Config Settings"
-msgstr "환경 설정"
+msgstr "설정 구성"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -157,21 +165,6 @@ msgstr "트위터 미리보기 표시"
 
 #. module: social_twitter
 #. odoo-javascript
-#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
-#, python-format
-msgid ""
-"Easy, tiger! No spamming allowed. Let's stick to three replies per Tweet."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
-#, python-format
-msgid "Empty tweet"
-msgstr "빈 트윗"
-
-#. module: social_twitter
-#. odoo-javascript
 #: code:addons/social_twitter/static/src/js/stream_post_kanban_record.js:0
 #, python-format
 msgid "Error"
@@ -199,9 +192,16 @@ msgstr ""
 #. odoo-python
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
+msgid "Failed to fetch the conversation id: '%s' using the account %s."
+msgstr "%s 계정으로 '%s' 대화 ID를 가져오는 데 실패했습니다."
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
 msgid ""
 "Failed to fetch the tweets in the same thread: '%s' using the account %s."
-msgstr "동일한 스레드의 트윗을 가져오는 데 실패했습니다: %s 계정 '%s'"
+msgstr "동일한 스레드의 트윗을 가져오는 데 실패했습니다: %s 계정으로 '%s'"
 
 #. module: social_twitter
 #. odoo-python
@@ -235,6 +235,11 @@ msgstr "트위터 게시글 제한 초과"
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_keyword
 msgid "Keyword"
 msgstr "핵심어"
+
+#. module: social_twitter
+#: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account____last_update
+msgid "Last Modified on"
+msgstr "최근 수정일"
 
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_uid
@@ -279,6 +284,13 @@ msgstr "이름"
 
 #. module: social_twitter
 #. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Oops! Couldn't find this tweet on Twitter.com"
+msgstr "죄송합니다. Twitter에서 트윗을 찾을 수 없습니다."
+
+#. module: social_twitter
+#. odoo-python
 #: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Please select a Twitter account for this stream type."
@@ -289,7 +301,7 @@ msgstr "이 스트림 유형에 대한 트위터 계정을 선택하십시오."
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #, python-format
 msgid "Post"
-msgstr "발행"
+msgstr "전기"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.twitter_preview
@@ -332,13 +344,6 @@ msgstr "RT"
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_retweet_count
 msgid "Re-tweets"
 msgstr "리트윗"
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/controllers/main.py:0
-#, python-format
-msgid "Read More about Twitter Accounts"
-msgstr "트위터 계정에 대해 자세히 알아보기"
 
 #. module: social_twitter
 #. odoo-python
@@ -447,13 +452,6 @@ msgid "This Tweet has been deleted."
 msgstr "삭제된 트윗입니다."
 
 #. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "This tweet is outdated, please refresh the stream and try again."
-msgstr "이 트윗은 오래된 트윗입니다. 스트림을 새로고침하고 다시 시도하세요."
-
-#. module: social_twitter
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_follow
 msgid "Tweets of"
 msgstr "트윗 -"
@@ -491,11 +489,6 @@ msgstr "트위터 소비자 키"
 #: model:ir.model.fields,field_description:social_twitter.field_res_config_settings__twitter_consumer_secret_key
 msgid "Twitter Consumer Secret Key"
 msgstr "트위터 소비자 비밀 키"
-
-#. module: social_twitter
-#: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_conversation_id
-msgid "Twitter Conversation ID"
-msgstr "트위터 대화 ID"
 
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.res_config_settings_view_form
@@ -613,8 +606,8 @@ msgid "Undo Retweet"
 msgstr "리트윗 실행 취소"
 
 #. module: social_twitter
-#. odoo-javascript
-#: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
 msgid "Unknown"
 msgstr "알 수 없음"
@@ -658,6 +651,15 @@ msgid "You are not authenticated"
 msgstr "인증되지 않았습니다"
 
 #. module: social_twitter
+#. odoo-javascript
+#: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
+#, python-format
+msgid ""
+"You can comment only three times a tweet as it may be considered as spamming"
+" by Twitter"
+msgstr "트위터에서 스팸으로 처리될 수 있으므로 트윗에 대한 댓글 작성은 세 번으로 제한합니다. "
+
+#. module: social_twitter
 #: model:ir.model.constraint,message:social_twitter.constraint_social_stream_post_tweet_uniq
 msgid "You can not store two times the same tweet on the same stream!"
 msgstr "같은 스트림에 동일한 트윗을 두 번 저장할 수 없습니다"
@@ -692,7 +694,7 @@ msgstr "트위터 애플리케이션 설정에 다음 콜백 URL을 추가해야
 #. module: social_twitter
 #: model_terms:ir.ui.view,arch_db:social_twitter.social_stream_view_form
 msgid "e.g. #odoo"
-msgstr "예: #odoo"
+msgstr "예 : #odoo"
 
 #. module: social_twitter
 #. odoo-javascript

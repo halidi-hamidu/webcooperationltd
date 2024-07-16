@@ -4,7 +4,7 @@
 
 {
     'name': 'Portugal - Accounting Reports',
-    'countries': ['pt'],
+    'icon': '/l10n_pt/static/description/icon.png',
     'version': '1.0',
     'description': """
 Accounting reports for Portugal
@@ -14,8 +14,8 @@ Accounting reports for Portugal
     'category': 'Accounting/Localizations/Reporting',
     'depends': ['l10n_pt', 'account_reports'],
     'data': [
-        'data/profit_loss.xml',
         'data/balance_sheet.xml',
+        'data/profit_loss.xml',
         'data/account_report_ec_sales_list_report.xml',
     ],
     'auto_install': ['l10n_pt', 'account_reports'],

@@ -6,9 +6,8 @@ import { serializeDateTime } from "@web/core/l10n/dates";
 import { makeTestEnv } from "@web/../tests/helpers/mock_env";
 import { getFixture, mount, nextTick } from "@web/../tests/helpers/utils";
 
-import { TimesheetDisplayTimer, TimesheetTimerFloatTimerField } from "@timesheet_grid/components/timesheet_display_timer/timesheet_display_timer";
+import { TimesheetDisplayTimer, TimesheetTimerFloatTimerField } from "../src/js/components/timesheet_display_timer/timesheet_display_timer";
 import { timerService } from "@timer/services/timer_service";
-import { EventBus } from "@odoo/owl";
 
 const { DateTime } = luxon;
 
@@ -32,14 +31,11 @@ QUnit.module("timesheet_grid", (hooks) => {
             timerRunning,
             record: {
                 isInvalid: () => false,
-                model: { bus: new EventBus() },
-                isFieldInvalid: () => {},
             },
-            displayRed: false,
         };
         await mount(TimesheetTimerFloatTimerField, target, { env, props });
         await nextTick();
-        const inputText = target.querySelector("input.o_input").value;
+        const inputText = target.querySelector("input").value;
         assert.equal(`12:34${timerRunning ? ":56" : ""}`, inputText, `TimesheetTimerFloatTimerField should ${!timerRunning ? "not " : ""}display seconds when 'timerRunning' is ${timerRunning ? "true" : "false"}.`);
     }
 
@@ -62,17 +58,14 @@ QUnit.module("timesheet_grid", (hooks) => {
             },
         });
         const props = {
-            name: "plop",
+            value: duration,
             record: {
                 resModel: "dummy",
                 isInvalid: () => false,
-                model: { bus: new EventBus() },
                 data: {
                     timer_start: timerStart,
                     timer_pause: timerPause,
-                    plop: duration,
                 },
-                isFieldInvalid: () => {},
             },
         };
         await mount(TimesheetDisplayTimer, target, { env, props: props });

@@ -20,7 +20,7 @@ class TestFsmSaleProducts(HttpCase, TestFsmFlowCommon):
         cls.task.write({
             'user_ids': [Command.link(cls.env.ref("base.user_admin").id)],
             'planned_date_begin': fields.Datetime.today() + timedelta(days=1),
-            'date_deadline': fields.Datetime.today() + timedelta(days=2),
+            'planned_date_end': fields.Datetime.today() + timedelta(days=2),
         })
         cls.consu_product_ordered.priority = '1'
         cls.my_custom_price_list = cls.env['product.pricelist'].create({
@@ -51,40 +51,3 @@ class TestFsmSaleProducts(HttpCase, TestFsmFlowCommon):
 
     def test_industry_fsm_sale_quantity_products_tour(self):
         self.start_tour("/web", 'industry_fsm_sale_quantity_products_tour', login="admin")
-
-    def test_industry_fsm_sale_products_from_fsm_tour(self):
-        """
-        Checks that the catalogs associated to field services tasks generated from the same main SO
-        do not share their catalogs.
-        """
-        self.partner_1.name = "fsm tester"
-        admin = self.env.ref('base.user_admin')
-        field_service = self.env.ref('industry_fsm_sale.field_service_product')
-        main_so = self.env['sale.order'].with_context(default_user_id=admin.id).create({
-            'partner_id': self.partner_1.id,
-            'order_line': [
-                Command.create({
-                    'name': 'task 1',
-                    'product_id': field_service.id,
-                }),
-                Command.create({
-                    'name': 'task 2',
-                    'product_id': field_service.id,
-                }),
-                Command.create({
-                    'name': 'task 3',
-                    'product_id': field_service.id,
-                }),
-            ]
-        })
-        main_so.action_confirm()
-        super_product = self.env['product.product'].create({
-                'name': 'Super Product',
-                'invoice_policy': 'delivery',
-                'list_price': 100.0,
-                'priority': '1',
-        })
-        self.start_tour("/web", 'industry_fsm_sale_products_compute_catalog_tour', login="admin")
-        self.assertTrue(main_so.order_line.filtered(lambda sol: 'task 1' in sol.task_id.name and sol.product_id == super_product))
-        self.assertTrue(main_so.order_line.filtered(lambda sol: 'task 2' in sol.task_id.name and sol.product_id == super_product))
-        self.assertTrue(main_so.order_line.filtered(lambda sol: 'task 3' in sol.task_id.name and sol.product_id == super_product))

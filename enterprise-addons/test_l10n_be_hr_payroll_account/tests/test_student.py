@@ -21,7 +21,7 @@ class TestStudent(AccountTestInvoicingCommon):
         self.assertEqual(len(error), 0, '\n' + '\n'.join(error))
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.company_data['company'].country_id = cls.env.ref('base.be')

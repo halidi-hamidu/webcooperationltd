@@ -5,13 +5,12 @@ import logging
 import re
 
 from datetime import datetime, date
-from os.path import join as opj
 from odoo.tools.zeep import Client, Plugin, Settings
 from odoo.tools.zeep.exceptions import Fault
 from odoo.tools.zeep.wsdl.utils import etree_to_string
 
+from odoo.modules.module import get_resource_path
 from odoo.tools import remove_accents, float_repr
-from odoo.tools.misc import file_path
 
 
 _logger = logging.getLogger(__name__)
@@ -71,10 +70,10 @@ class FedexRequest():
 
         wsdl_folder = 'prod' if prod_environment else 'test'
         if request_type == "shipping":
-            wsdl_path = opj('delivery_fedex', 'api', wsdl_folder, 'ShipService_v28.wsdl')
+            wsdl_path = get_resource_path('delivery_fedex', 'api', wsdl_folder, 'ShipService_v28.wsdl')
             self.start_shipping_transaction(wsdl_path)
         elif request_type == "rating":
-            wsdl_path = opj('delivery_fedex', 'api', wsdl_folder, 'RateService_v31.wsdl')
+            wsdl_path = get_resource_path('delivery_fedex', 'api', wsdl_folder, 'RateService_v31.wsdl')
             self.start_rating_transaction(wsdl_path)
 
     # Authentification stuff
@@ -191,9 +190,9 @@ class FedexRequest():
         package.PhysicalPackaging = 'BOX'
         if delivery_package.packaging_type == 'YOUR_PACKAGING':
             package.Dimensions = self.factory.Dimensions()
-            package.Dimensions.Height = int(delivery_package.dimension['height'])
-            package.Dimensions.Width = int(delivery_package.dimension['width'])
-            package.Dimensions.Length = int(delivery_package.dimension['length'])
+            package.Dimensions.Height = delivery_package.dimension['height']
+            package.Dimensions.Width = delivery_package.dimension['width']
+            package.Dimensions.Length = delivery_package.dimension['length']
             # TODO in master, add unit in product packaging and perform unit conversion
             package.Dimensions.Units = "IN" if self.RequestedShipment.TotalWeight.Units == 'LB' else 'CM'
         if po_number:
@@ -239,7 +238,7 @@ class FedexRequest():
 
     def start_rating_transaction(self, wsdl_path):
         settings = Settings(strict=False)
-        self.client = Client(file_path(wsdl_path), plugins=[LogPlugin(self.debug_logger)], settings=settings)
+        self.client = Client(wsdl_path, plugins=[LogPlugin(self.debug_logger)], settings=settings)
         self.factory = self.client.type_factory('ns0')
         self.VersionId = self.factory.VersionId()
         self.VersionId.ServiceId = 'crs'
@@ -284,7 +283,7 @@ class FedexRequest():
     # Shipping stuff
 
     def start_shipping_transaction(self, wsdl_path):
-        self.client = Client(file_path(wsdl_path), plugins=[LogPlugin(self.debug_logger)])
+        self.client = Client(wsdl_path, plugins=[LogPlugin(self.debug_logger)])
         self.factory = self.client.type_factory("ns0")
         self.VersionId = self.factory.VersionId()
         self.VersionId.ServiceId = 'ship'

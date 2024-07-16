@@ -72,10 +72,10 @@ class TestStudioIrModel(TransactionCase):
         })
         # ensure the partner is suggested in email and sms communication
         mail_suggested_recipients = bfr._message_get_suggested_recipients()
-        self.assertIn((self.partner_elon.id, '"Elon Tusk" <elon@spacex.com>', None, 'Contact', {}),
+        self.assertIn((self.partner_elon.id, '"Elon Tusk" <elon@spacex.com>', None, 'Contact'),
                       mail_suggested_recipients.get(bfr.id),
                       'custom partner field should be suggested in mail communications')
-        sms_suggested_recipients = bfr._mail_get_partner_fields(introspect_fields=False)
+        sms_suggested_recipients = bfr._sms_get_partner_fields()
         self.assertIn('x_studio_partner_id', sms_suggested_recipients,
                       'custom partner field should be included in sms communications')
 
@@ -86,7 +86,7 @@ class TestStudioIrModel(TransactionCase):
         self.assertEqual(len(extra_models), 0, 'no extra model should have been created')
         fields = self.env[model.model]._fields
         self.assertIn('x_active', fields, 'a custom active field should be set up')
-        default = self.env['ir.default']._get(model.model, 'x_active')
+        default = self.env['ir.default'].get(model.model, 'x_active')
         self.assertTrue(default, 'the default value for the x_active field should be True')
         active_field = self.env['ir.model.fields'].search([('name', '=', 'x_active'), ('model_id', '=', model.id)])
         self.assertTrue(active_field.tracking, 'the x_active field should be tracked')
@@ -98,7 +98,7 @@ class TestStudioIrModel(TransactionCase):
         self.assertEqual(len(extra_models), 0, 'no extra model should have been created')
         fields = self.env[model.model]._fields
         self.assertIn('x_studio_sequence', fields, 'a custom sequence field should be set up')
-        default = self.env['ir.default']._get(model.model, 'x_studio_sequence')
+        default = self.env['ir.default'].get(model.model, 'x_studio_sequence')
         self.assertEqual(default, 10, 'the default value for the x_studio_sequence field should be 10')
 
     def test_04_model_option_responsible(self):
@@ -138,10 +138,10 @@ class TestStudioIrModel(TransactionCase):
         comp_field = self.env['ir.model.fields'].search([('name', '=', 'x_studio_company_id'), ('model_id', '=', model.id)])
         self.assertTrue(comp_field.tracking, 'the x_studio_company_id field should be tracked')
         main_company = self.env.ref('base.main_company')
-        default = self.env['ir.default']._get(model.model, 'x_studio_company_id', company_id=main_company.id)
+        default = self.env['ir.default'].get(model.model, 'x_studio_company_id', company_id=main_company.id)
         self.assertEqual(default, main_company.id, 'the default value for the x_studio_company_id should be set')
         new_company = self.env['res.company'].create({'name': 'SpaceY'})
-        new_default = self.env['ir.default']._get(model.model, 'x_studio_company_id', company_id=new_company.id)
+        new_default = self.env['ir.default'].get(model.model, 'x_studio_company_id', company_id=new_company.id)
         self.assertEqual(new_default, new_company.id, 'default values for new companies should be created with the company')
 
     def test_07_model_option_notes(self):
@@ -185,10 +185,10 @@ class TestStudioIrModel(TransactionCase):
         value_field = self.env['ir.model.fields'].search([('name', '=', 'x_studio_value'), ('model_id', '=', model.id)])
         self.assertTrue(value_field.tracking, 'the x_studio_value field should be tracked')
         main_company = self.env.ref('base.main_company')
-        default = self.env['ir.default']._get(model.model, 'x_studio_currency_id', company_id=main_company.id)
+        default = self.env['ir.default'].get(model.model, 'x_studio_currency_id', company_id=main_company.id)
         self.assertEqual(default, main_company.currency_id.id, 'the default value for the x_studio_currency_id should be set')
         new_company = self.env['res.company'].create({'name': 'SpaceY', 'currency_id': self.env.ref('base.INR').id})
-        new_default = self.env['ir.default']._get(model.model, 'x_studio_currency_id', company_id=new_company.id)
+        new_default = self.env['ir.default'].get(model.model, 'x_studio_currency_id', company_id=new_company.id)
         self.assertEqual(new_default, new_company.currency_id.id, 'default currency for new companies should be create with the company')
 
     def test_11_model_option_image(self):
@@ -212,7 +212,7 @@ class TestStudioIrModel(TransactionCase):
         self.assertIn('x_color', fields, 'a custom color field should be set up')
         self.assertIn('x_studio_kanban_state', fields, 'a custom kanban state field should be set up')
         auto_stage = self.env[extra_model.model].search([])
-        default = self.env['ir.default']._get(model.model, 'x_studio_stage_id')
+        default = self.env['ir.default'].get(model.model, 'x_studio_stage_id')
         self.assertEqual(default, auto_stage.ids[0], 'the default stage should be set')
         stage_field = self.env['ir.model.fields'].search([('name', '=', 'x_studio_stage_id'), ('model_id', '=', model.id)])
         self.assertTrue(stage_field.tracking, 'the x_studio_stage_id field should be tracked')
@@ -456,10 +456,3 @@ class TestStudioIrModel(TransactionCase):
             # the model will be missing but x_rockets is still in the pool, breaking some optimizations
             self.env['ir.model'].with_context(studio=True).studio_model_create('PerformanceIssues', options=OPTIONS_WL)
         self.assertEqual(count_setup_models, 1)
-
-    def test_update_xmlid(self):
-        record = self.env['ir.model.data'].search([], limit=1)
-        with self.assertQueryCount(1):
-            self.env['ir.model.data'].with_context(studio=True)._update_xmlids([
-                {'xml_id': 'web_studio.xmlid', 'record': record}
-            ])

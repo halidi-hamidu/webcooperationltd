@@ -78,7 +78,7 @@
         '&amp;',
             ('move_id.move_type', '=', 'entry'),('move_id.l10n_in_pos_session_ids', '!=', False),
             ('move_id.move_type', 'in', ['out_invoice', 'out_refund']),
-        ('move_id.l10n_in_gst_treatment', '!=', 'overseas'), ('tax_tag_ids', 'in', [ref('l10n_in.tax_tag_exempt'), ref('l10n_in.tax_tag_nil_rated'), ref('l10n_in.tax_tag_non_gst_supplies')])]"/>
+        ('move_id.l10n_in_gst_treatment', 'not in', ['overseas','special_economic_zone']), ('tax_tag_ids', 'in', [ref('l10n_in.tax_tag_exempt'), ref('l10n_in.tax_tag_nil_rated'), ref('l10n_in.tax_tag_non_gst_supplies')])]"/>
     </record>
 
     <!-- HSN -->

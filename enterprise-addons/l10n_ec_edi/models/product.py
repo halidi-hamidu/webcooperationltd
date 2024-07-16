@@ -12,5 +12,5 @@ class ProductTemplate(models.Model):
         company_dependent=True,
         string="Profit Withhold",
         domain=[('tax_group_id.l10n_ec_type', '=', 'withhold_income_purchase')],
-        help="Ecuador: Default profit withholding tax when the product is purchased.",
+        help="Default profit withholding tax when the product is purchased",
     )

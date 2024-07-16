@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, api, fields, _
+from odoo import models, api, fields
 from odoo.models import MAGIC_COLUMNS
 from odoo.osv import expression
 from odoo.tools import split_every
@@ -29,10 +29,13 @@ class DataMergeGroup(models.Model):
         compute='_compute_similarity', store=True)
     record_ids = fields.One2many('data_merge.record', 'group_id')
 
-    @api.depends('model_id', 'similarity')
-    def _compute_display_name(self):
+    def name_get(self):
+        result = []
         for group in self:
-            group.display_name = _('%s - Similarity: %s%%', group.model_id.name, int(group.similarity * 100))
+            name = '%s - Similarity: %s%%' % (group.model_id.name, int(group.similarity * 100))
+            result.append((group.id, name))
+
+        return result
 
     def _get_similarity_fields(self):
         self.ensure_one()
@@ -60,6 +63,7 @@ class DataMergeGroup(models.Model):
             group.divergent_fields = ','.join(diff_fields)
             group.similarity = min(1, len(data) / len(read_fields))
 
+    # YTI TODO: Move this on the data_merge.record model
     def discard_records(self, records=None):
         domain = [('group_id', '=', self.id)]
 
@@ -109,6 +113,7 @@ class DataMergeGroup(models.Model):
     ###########
     ### Merge
     ###########
+    # YTI TODO: Move this on the data_merge.record model
     @api.model
     def merge_multiple_records(self, group_records):
         group_ids = self.browse([int(group_id) for group_id in group_records.keys()])
@@ -193,8 +198,8 @@ class DataMergeGroup(models.Model):
                 'archived': rec._original_records().exists(),
             })
             if self.model_id.removal_mode == 'archive':
-                rec._original_records()._message_log_with_view('data_merge.data_merge_merged', render_values=values)
-            master_record._original_records()._message_log_with_view('data_merge.data_merge_main', render_values=master_values)
+                rec._original_records()._message_log_with_view('data_merge.data_merge_merged', values=values)
+            master_record._original_records()._message_log_with_view('data_merge.data_merge_main', values=master_values)
 
 
     ## Generic Merge

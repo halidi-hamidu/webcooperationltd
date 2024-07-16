@@ -10,9 +10,6 @@
                 <filter string="To Defer" name="to_defer" domain="[('payslip_state', '=', 'blocked')]" groups="hr_holidays.group_hr_holidays_user"/>
                 <separator/>
             </xpath>
-            <xpath expr="//field[@name='employee_id']" position="after">
-                <field name="employee_id" string="Employee Code" filter_domain="[('employee_id.registration_number','ilike', self)]"/>
-            </xpath>
         </field>
     </record>
 
@@ -30,8 +27,7 @@
         <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_manager"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='holiday_status_id']" position="after">
-                <field name="payslip_state" widget="state_selection"
-                    options="{'hide_label': False}" class="ms-auto mb-2"/>
+                <field name="payslip_state" widget="state_selection" class="ms-auto mb-2"/>
             </xpath>
             <button name="action_refuse" position="before">
                 <button
@@ -40,7 +36,7 @@
                     type="object"
                     class="oe_highlight"
                     groups="hr_payroll.group_hr_payroll_user"
-                    invisible="payslip_state != 'blocked' or state != 'validate'"/>
+                    attrs="{'invisible': ['|', ('payslip_state', '!=', 'blocked'), ('state', '!=', 'validate')]}"/>
             </button>
         </field>
     </record>
@@ -52,7 +48,7 @@
         <field name="mode">primary</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="after">
-                <field name="payslip_state" widget="state_selection" options="{'hide_label': False}"/>
+                <field name="payslip_state" widget="state_selection"/>
             </xpath>
         </field>
     </record>

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
 import requests
 
 from unittest.mock import patch
-from odoo.addons.mail.tools import link_preview
 from odoo.addons.social.tests.common import SocialCase
 from odoo.addons.social.tests.tools import mock_void_external_calls
 from odoo.addons.social_linkedin.models.social_live_post import SocialLivePostLinkedin
@@ -63,7 +61,7 @@ class SocialLinkedinCase(SocialCase):
         Check the priority of the ``post type``
         The first priority is image
         """
-        self.social_post.message = 'A message https://example.com'
+        self.social_post.message = 'A message https://odoo.com'
         self.assertTrue(self.social_post.image_ids)
         self._test_post_type('multiImage')
 
@@ -72,32 +70,9 @@ class SocialLinkedinCase(SocialCase):
         Check the priority of the ``post type``
         The second priority is urls
         """
-        self.social_post.message = 'A message https://example.com'
+        self.social_post.message = 'A message https://odoo.com'
         self.social_post.image_ids = False
-        return self._test_post_type('article')
-
-    def test_post_urls_metadata(self):
-        """Same as @test_post_urls, but this time the page has some metadata."""
-
-        def _patched_get_link_preview_from_url(*args, **kwargs):
-            return {
-                'og_image': 'https://example.com/thumbnail',
-                'og_mimetype': 'text/html',
-                'og_title': 'Super Article',
-            }
-
-        def _patched_get(url, *args, **kwargs):
-            response = requests.Response()
-            response.status_code = 200
-            if url == 'https://example.com/thumbnail':
-                response._content = base64.b64decode(b'R0lGODlhAQABAIAAANvf7wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==')
-                response.headers['Content-Type'] = 'image/gif'
-            return response
-
-        with (patch.object(link_preview, 'get_link_preview_from_url', side_effect=_patched_get_link_preview_from_url),
-              patch.object(requests, 'get', side_effect=_patched_get)):
-            posts_values = self.test_post_urls()
-        self.assertEqual(posts_values[0].get('content', {}).get('article', {}).get('thumbnail', {}), 'fake_image_urn')
+        self._test_post_type('article')
 
     def test_post_text(self):
         """
@@ -115,22 +90,20 @@ class SocialLinkedinCase(SocialCase):
             response = requests.Response()
             response._content = b'{"id": "42"}'
             response.status_code = 200
-            post_values = kwargs.get('json', {})
-            post_types = post_values.get('content', {}).keys()
-            posts_types.extend(post_types or [None])
-            posts_values.append(post_values)
+
+            post_type = next(iter(kwargs.get('json', {}).get('content', {})), None)
+
+            responses.append(post_type)
             return response
 
-        posts_types = []
-        posts_values = []
+        responses = []
         with patch.object(requests, 'post', _patched_post), \
              patch.object(SocialLivePostLinkedin, '_linkedin_upload_image', lambda *a, **kw: 'fake_image_urn'):
             self.social_post._action_post()
 
-        self.assertTrue(posts_types)
-        self.assertTrue(all(response == expected_post_type for response in posts_types),
+        self.assertTrue(responses)
+        self.assertTrue(all([response == expected_post_type for response in responses]),
                         'The post type must be [%s]' % expected_post_type)
-        return posts_values
 
     @classmethod
     def _get_social_media(cls):

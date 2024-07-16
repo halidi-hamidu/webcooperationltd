@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo auto_sequence="1">
+<odoo>
     <record id="account_report_profit_and_loss" model="account.report">
         <field name="name">Profit and Loss Report</field>
         <field name="root_report_id" ref="account_reports.profit_and_loss"/>
@@ -16,7 +16,6 @@
             <record id="report_profit_root" model="account.report.line">
                 <field name="name">Profit and Loss</field>
                 <field name="code">MNPL_ROOT</field>
-                <field name="hierarchy_level">0</field>
                 <field name="aggregation_formula">MNPL_PROFIT.balance + MNPL_COMPRE.balance</field>
                 <field name="children_ids">
                     <record id="report_line_gross_profit_sale" model="account.report.line">
@@ -31,15 +30,7 @@
                         <field name="code">MNPL_COS</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_gross_profit_cost_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">61</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">61</field>
                     </record>
                     <record id="report_line_gross_profit" model="account.report.line">
                         <field name="name">Gross Profit (loss)</field>
@@ -86,60 +77,28 @@
                         <field name="code">MNPL_SEXP</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_expense_sale_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">71</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">71</field>
                     </record>
                     <record id="report_line_expense_admin" model="account.report.line">
                         <field name="name">General and administrative expenses</field>
                         <field name="code">MNPL_AEXP</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_expense_admin_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">70</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">70</field>
                     </record>
                     <record id="report_line_expense_finance" model="account.report.line">
                         <field name="name">Financial expenses</field>
                         <field name="code">MNPL_FEXP</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_expense_finance_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">72</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">72</field>
                     </record>
                     <record id="report_line_expense_other" model="account.report.line">
                         <field name="name">Other expenses</field>
                         <field name="code">MNPL_OEXP</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_expense_other_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">73 + 74</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">73 + 74</field>
                     </record>
                     <record id="report_line_gainloss_exchange" model="account.report.line">
                         <field name="name">Foreign exchange gain (loss)</field>
@@ -186,15 +145,7 @@
                         <field name="code">MNPL_INCTAX</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_profit_tax_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">9101</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">9101</field>
                     </record>
                     <record id="report_line_after_tax" model="account.report.line">
                         <field name="name">Profit (loss) after tax</field>
@@ -206,15 +157,7 @@
                         <field name="code">MNPL_STOPTAX</field>
                         <field name="groupby">account_id</field>
                         <field name="foldable" eval="True"/>
-                        <field name="account_codes_formula" eval="False"/>
-                        <field name="expression_ids">
-                            <record id="report_line_delayed_balance" model="account.report.expression">
-                                <field name="label">balance</field>
-                                <field name="engine">account_codes</field>
-                                <field name="formula">9102</field>
-                                <field name="green_on_positive" eval="False"/>
-                            </record>
-                        </field>
+                        <field name="account_codes_formula">9102</field>
                     </record>
                     <record id="report_line_net_profit" model="account.report.line">
                         <field name="name">Net profit (loss) for the current period</field>

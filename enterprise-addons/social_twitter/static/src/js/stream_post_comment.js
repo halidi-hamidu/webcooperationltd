@@ -1,6 +1,5 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { StreamPostComment } from '@social/js/stream_post_comment';
 import { StreamPostCommentsReplyTwitter } from './stream_post_comments_reply';
 
@@ -13,7 +12,7 @@ export class StreamPostCommentTwitter extends StreamPostComment {
     //--------
 
     get authorPictureSrc() {
-        return this.comment.from.profile_image_url
+        return this.comment.from.profile_image_url_https
     }
 
     get link() {
@@ -45,16 +44,7 @@ export class StreamPostCommentTwitter extends StreamPostComment {
     }
 
     get commentName() {
-        return _t('tweet');
+        return this.env._t('tweet');
     }
 
-    /**
-     * Twitter API v2 uses ISO 8601 format, and v1.1 uses custom format
-     *
-     * @returns {DateTime}
-     */
-    get commentCreatedTime() {
-        const createdTime = super.commentCreatedTime;
-        return !createdTime.invalid ? createdTime : luxon.DateTime.fromFormat(this.comment.created_time, {format: 'EEE MMM d HH:mm:ss ZZZ yyyy'});
-    }
 }

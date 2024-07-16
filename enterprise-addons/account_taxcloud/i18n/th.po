@@ -3,15 +3,17 @@
 # 	* account_taxcloud
 # 
 # Translators:
-# Wil Odoo, 2023
+# Wichanon Jamwutthipreecha, 2022
+# Martin Trigaux, 2022
+# Rasareeyar Lappiam, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 15.5alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Wil Odoo, 2023\n"
+"POT-Creation-Date: 2022-09-20 09:48+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Rasareeyar Lappiam, 2023\n"
 "Language-Team: Thai (https://app.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,8 +23,8 @@ msgstr ""
 
 #. module: account_taxcloud
 #: model_terms:ir.ui.view,arch_db:account_taxcloud.res_config_settings_view_form
-msgid "<i class=\"oi oi-fw oi-arrow-right\"/>How to Get Credentials"
-msgstr "<i class=\"oi oi-fw oi-arrow-right\"/>วิธีการรับข้อมูลประจำตัว"
+msgid "<i class=\"fa fa-fw fa-arrow-right\"/>How to Get Credentials"
+msgstr ""
 
 #. module: account_taxcloud
 #: model_terms:ir.ui.view,arch_db:account_taxcloud.res_config_settings_view_form
@@ -44,14 +46,9 @@ msgid "API KEY"
 msgstr "API KEY"
 
 #. module: account_taxcloud
-#: model:account.fiscal.position,name:account_taxcloud.account_fiscal_position_taxcloud_us
-msgid "Automatic Tax Mapping (TaxCloud)"
-msgstr "การแมปภาษีอัตโนมัติ (TaxCloud)"
-
-#. module: account_taxcloud
 #: model:ir.model,name:account_taxcloud.model_res_company
 msgid "Companies"
-msgstr "บริษัท"
+msgstr "หลายบริษัท"
 
 #. module: account_taxcloud
 #: model:ir.model,name:account_taxcloud.model_res_config_settings
@@ -96,7 +93,7 @@ msgstr ""
 #. module: account_taxcloud
 #: model:ir.model,name:account_taxcloud.model_account_fiscal_position
 msgid "Fiscal Position"
-msgstr "สถานะทางการเงิน"
+msgstr "ฐานะทางการเงิน"
 
 #. module: account_taxcloud
 #: model_terms:ir.ui.view,arch_db:account_taxcloud.account_position_taxcloud_inherit_from_view
@@ -121,12 +118,17 @@ msgstr "มีการกำหนดค่า Taxcloud"
 #. module: account_taxcloud
 #: model:ir.model,name:account_taxcloud.model_account_move
 msgid "Journal Entry"
-msgstr "รายการสมุดรายวัน"
+msgstr "รายการบันทึกประจำวัน"
 
 #. module: account_taxcloud
 #: model:ir.model,name:account_taxcloud.model_account_move_line
 msgid "Journal Item"
-msgstr "รายการสมุดรายวัน"
+msgstr "รายการบันทึก"
+
+#. module: account_taxcloud
+#: model:ir.model.fields,field_description:account_taxcloud.field_product_tic_category____last_update
+msgid "Last Modified on"
+msgstr "แก้ไขครั้งล่าสุดเมื่อ"
 
 #. module: account_taxcloud
 #: model:ir.model.fields,field_description:account_taxcloud.field_product_tic_category__write_uid
@@ -139,7 +141,6 @@ msgid "Last Updated on"
 msgstr "อัปเดตครั้งล่าสุดเมื่อ"
 
 #. module: account_taxcloud
-#. odoo-python
 #: code:addons/account_taxcloud/models/taxcloud_request.py:0
 #, python-format
 msgid ""
@@ -246,6 +247,11 @@ msgid "TaxCloud Category"
 msgstr "หมวดหมู่ TaxCloud"
 
 #. module: account_taxcloud
+#: model:ir.model,name:account_taxcloud.model_account_fiscal_position_template
+msgid "Template for Fiscal Position"
+msgstr "Template for Fiscal Position"
+
+#. module: account_taxcloud
 #. odoo-python
 #: code:addons/account_taxcloud/models/product.py:0
 #, python-format
@@ -253,7 +259,6 @@ msgid "The Taxcloud Category must be integer."
 msgstr "หมวดหมู่ Taxcloud ต้องเป็นจำนวนเต็ม"
 
 #. module: account_taxcloud
-#. odoo-python
 #: code:addons/account_taxcloud/models/account_invoice.py:0
 #, python-format
 msgid ""
@@ -288,7 +293,6 @@ msgstr ""
 "ระบบจะใช้ค่าเริ่มต้นที่ตั้งไว้ในการตั้งค่าการออกใบแจ้งหนี้"
 
 #. module: account_taxcloud
-#. odoo-python
 #: code:addons/account_taxcloud/models/account_invoice.py:0
 #: code:addons/account_taxcloud/models/res_config_settings.py:0
 #, python-format
@@ -298,6 +302,7 @@ msgstr "ไม่สามารถเรียกภาษีจาก TaxCloud
 #. module: account_taxcloud
 #: model:ir.model.fields,field_description:account_taxcloud.field_account_bank_statement_line__is_taxcloud
 #: model:ir.model.fields,field_description:account_taxcloud.field_account_fiscal_position__is_taxcloud
+#: model:ir.model.fields,field_description:account_taxcloud.field_account_fiscal_position_template__is_taxcloud
 #: model:ir.model.fields,field_description:account_taxcloud.field_account_move__is_taxcloud
 #: model:ir.model.fields,field_description:account_taxcloud.field_account_payment__is_taxcloud
 msgid "Use TaxCloud API"
@@ -314,7 +319,6 @@ msgid ""
 msgstr "ใช้เพื่อกำหนดว่าควรจะเตือนผู้ใช้ให้กำหนดค่า TaxCloud หรือไม่"
 
 #. module: account_taxcloud
-#. odoo-python
 #: code:addons/account_taxcloud/models/account_invoice.py:0
 #, python-format
 msgid ""
@@ -327,7 +331,6 @@ msgstr ""
 "วิธีนี้รายการภาษีจะถูกยกเลิกใน TaxCloud"
 
 #. module: account_taxcloud
-#. odoo-python
 #: code:addons/account_taxcloud/models/product.py:0
 #, python-format
 msgid "[%s] %s"

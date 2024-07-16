@@ -2,7 +2,9 @@
 
 import { registry } from '@web/core/registry';
 import { useService } from "@web/core/utils/hooks";
-import { Component } from "@odoo/owl";
+import { pick } from "@web/core/utils/objects";
+
+const { Component } = owl;
 
 class ConsolidationDashboard extends Component {
     setup() {
@@ -11,19 +13,24 @@ class ConsolidationDashboard extends Component {
     }
 
     get datas() {
-        return JSON.parse(this.props.record.data[this.props.name]);
+        return JSON.parse(this.props.value);
     }
 
 
     async onUnmappedAccountClick(company_id) {
-        const action = await this.orm.call('consolidation.period', 'action_open_mapping', 
-            [this.props.record.resId], {context: {company_id: company_id}});
-        this.action.doAction(action);
+        await this.env.onClickViewButton({
+            clickParams: {
+                type: "object",
+                name: "action_open_mapping",
+            },
+            getResParams: () => ({
+                ...pick(this.props.record, "context", "evalContext", "resModel", "resId", "resIds"),
+                context: { company_id: company_id },
+            }),
+        });
     }    
 }
 ConsolidationDashboard.template = "account_consolidation.ConsolidatedDashboardTemplate";
+ConsolidationDashboard.supportedTypes = ["char"];
 
-registry.category("fields").add("consolidation_dashboard_field", {
-    component: ConsolidationDashboard,
-    supportedTypes: ["char"],
-});
+registry.category("fields").add("consolidation_dashboard_field", ConsolidationDashboard);

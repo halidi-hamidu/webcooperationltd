@@ -271,14 +271,10 @@ class ShipRocket:
                 else:
                     if any(ml.result_package_id.name == package.name for ml in move.move_line_ids):
                         moves |= move
-            dest_moves = picking.env['stock.move']
-            for move in picking.move_ids:
-                move_dest = move._rollup_move_dests(set())
-                if move_dest:
-                    # need only those moves which have sale_line_id links for 3 step delivery
-                    dest_moves |= picking.env['stock.move'].browse(move_dest)
-            if dest_moves:
-                moves = dest_moves
+            moves_dest = picking.move_ids._rollup_move_dests(set())
+            if moves_dest:
+                # need only those moves which have sale_line_id links for 3 step delivery
+                moves = picking.env['stock.move'].browse(moves_dest)
             # label price must be in the INR currency
             unit_price = self._get_currency_converted_amount(round(commodity.monetary_value, 2), package.picking_id)
             line_by_product[commodity.product_id.id] = {

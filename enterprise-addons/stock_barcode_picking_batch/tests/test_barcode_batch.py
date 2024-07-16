@@ -342,6 +342,86 @@ class TestBarcodeBatchClientAction(TestBarcodeClientAction):
         url = self._get_batch_client_action_url(batch_delivery.id)
         self.start_tour(url, 'test_barcode_batch_delivery_2_move_entire_package', login='admin', timeout=180)
 
+    def test_barcode_batch_scan_lots(self):
+        """ Checks while scanning lots for a tracked product, the currently selected line must be
+        completed before changing the line, even if the scanned lot is planned for another picking
+        or another picking has an empty line for this product.
+        """
+        self.clean_access_rights()
+        grp_pack = self.env.ref('stock.group_tracking_lot')
+        self.env.user.write({'groups_id': [(4, grp_pack.id, 0)]})
+        common_vals = {'product_id': self.productlot1.id, 'company_id': self.env.company.id}
+        lot1 = self.env['stock.lot'].create({**common_vals, 'name': 'lot1'})
+        lot2 = self.env['stock.lot'].create({**common_vals, 'name': 'lot2'})
+        self.env['stock.quant']._update_available_quantity(self.productlot1, self.stock_location, 3, lot1)
+        self.env['stock.quant']._update_available_quantity(self.productlot1, self.stock_location, 3, lot2)
+
+        # Create two receipts and batch them (test for unreserved lots.)
+        receipt_form = Form(self.env['stock.picking'])
+        receipt_form.picking_type_id = self.picking_type_in
+        with receipt_form.move_ids_without_package.new() as move:
+            move.product_id = self.productlot1
+            move.product_uom_qty = 4
+        receipt_1 = receipt_form.save()
+        receipt_1.action_confirm()
+        receipt_1.name = "receipt_1"
+
+        receipt_2 = receipt_1.copy()
+        receipt_2.action_confirm
+        receipt_2.name = "receipt_2"
+
+        batch_form = Form(self.env['stock.picking.batch'])
+        batch_form.picking_ids.add(receipt_1)
+        batch_form.picking_ids.add(receipt_2)
+        batch_receipt = batch_form.save()
+        batch_receipt.action_confirm()
+        batch_receipt.name = "test_barcode_batch_scan_lots - receipt"
+
+        # Create two deliveries and batch them (test for reserved lots.)
+        delivery_form = Form(self.env['stock.picking'])
+        delivery_form.picking_type_id = self.picking_type_out
+        with delivery_form.move_ids_without_package.new() as move:
+            move.product_id = self.productlot1
+            move.product_uom_qty = 3
+        delivery_1 = delivery_form.save()
+        delivery_1.action_confirm()
+        delivery_1.name = "delivery_1"
+
+        delivery_2 = delivery_1.copy()
+        delivery_2.action_confirm()
+        delivery_2.name = "delivery_2"
+
+        batch_form = Form(self.env['stock.picking.batch'])
+        batch_form.picking_ids.add(delivery_1)
+        batch_form.picking_ids.add(delivery_2)
+        batch_delivery = batch_form.save()
+        batch_delivery.action_confirm()
+        batch_delivery.name = "test_barcode_batch_scan_lots - delivery"
+
+        # Process both of them (first the receipt then the delivery.)
+        action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
+        self.start_tour(f'/web#action={action_id.id}', 'test_barcode_batch_scan_lots', login='admin', timeout=180)
+
+        # Checks pickings move lines values.
+        lot1, lot2, lot3 = (batch_receipt | batch_delivery).move_line_ids.lot_id.sorted('name')
+        self.assertRecordValues(receipt_1.move_line_ids, [
+            {'lot_id': lot1.id, 'lot_name': 'lot1', 'qty_done': 3},
+            {'lot_id': lot2.id, 'lot_name': 'lot2', 'qty_done': 1},
+        ])
+        self.assertRecordValues(receipt_2.move_line_ids, [
+            {'lot_id': lot2.id, 'lot_name': 'lot2', 'qty_done': 2},
+            {'lot_id': lot3.id, 'lot_name': 'lot3', 'qty_done': 2},
+        ])
+        self.assertRecordValues(delivery_1.move_line_ids, [
+            {'lot_id': lot2.id, 'qty_done': 2},
+            {'lot_id': lot3.id, 'qty_done': 1},
+        ])
+        self.assertRecordValues(delivery_2.move_line_ids, [
+            {'lot_id': lot2.id, 'qty_done': 1},
+            {'lot_id': lot1.id, 'qty_done': 1},
+            {'lot_id': lot3.id, 'qty_done': 1},
+        ])
+
     def test_put_in_pack_from_multiple_pages(self):
         """ A batch picking of 2 internal pickings where prod1 and prod2 are reserved in shelf1 and shelf2,
         processing all these products and then hitting put in pack should move them all in the new pack.
@@ -613,71 +693,13 @@ class TestBarcodeBatchClientAction(TestBarcodeClientAction):
         self.start_tour(url, 'test_pack_and_same_product_several_sml', login='admin', timeout=180)
 
         self.assertRecordValues(pickings.move_ids, [
-            {'picking_id': pickings[0].id, 'product_id': self.product1.id, 'state': 'done', 'quantity': 3, 'picked': True},
-            {'picking_id': pickings[0].id, 'product_id': self.product2.id, 'state': 'done', 'quantity': 70, 'picked': True},
-            {'picking_id': pickings[1].id, 'product_id': self.product1.id, 'state': 'done', 'quantity': 7, 'picked': True},
-            {'picking_id': pickings[1].id, 'product_id': self.product2.id, 'state': 'done', 'quantity': 30, 'picked': True},
+            {'picking_id': pickings[0].id, 'product_id': self.product1.id, 'state': 'done', 'quantity_done': 3},
+            {'picking_id': pickings[0].id, 'product_id': self.product2.id, 'state': 'done', 'quantity_done': 70},
+            {'picking_id': pickings[1].id, 'product_id': self.product1.id, 'state': 'done', 'quantity_done': 7},
+            {'picking_id': pickings[1].id, 'product_id': self.product2.id, 'state': 'done', 'quantity_done': 30},
         ])
 
     def test_delete_from_batch(self):
         action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
         url = "/web#action=" + str(action_id.id)
         self.start_tour(url, 'test_delete_from_batch', login='admin', timeout=180)
-
-    def test_split_line_on_exit_for_batch(self):
-        """ Ensures that exit an unfinished batch will split the uncompleted move lines to have one
-        move line with all picked quantity and one move line with the remaining quantity."""
-        self.clean_access_rights()
-
-        # Creates a new batch.
-        batch_receipts = self.env['stock.picking.batch'].create({
-            'name': 'batch_split_line_on_exit',
-            'picking_type_id': self.picking_type_in.id,
-        })
-
-        # Creates two receipts (one for 4x product1, one for 4x product2) and add them to the batch.
-        # Creates a receipt for 4x product1 and a second receipt for 4x product2.
-        receipt1 = self.env['stock.picking'].create({
-            'batch_id': batch_receipts.id,
-            'name': "receipt1",
-            'location_id': self.supplier_location.id,
-            'location_dest_id': self.stock_location.id,
-            'picking_type_id': self.picking_type_in.id,
-        })
-        self.env['stock.move'].create({
-            'location_dest_id': receipt1.location_dest_id.id,
-            'location_id': receipt1.location_id.id,
-            'name': "product1 x4",
-            'picking_id': receipt1.id,
-            'product_id': self.product1.id,
-            'product_uom_qty': 4,
-        })
-        receipt2 = self.env['stock.picking'].create({
-            'batch_id': batch_receipts.id,
-            'name': "receipt2",
-            'location_id': self.supplier_location.id,
-            'location_dest_id': self.stock_location.id,
-            'picking_type_id': self.picking_type_in.id,
-        })
-        self.env['stock.move'].create({
-            'location_dest_id': receipt2.location_dest_id.id,
-            'location_id': receipt2.location_id.id,
-            'name': "product2 x4",
-            'picking_id': receipt2.id,
-            'product_id': self.product2.id,
-            'product_uom_qty': 4,
-        })
-        batch_receipts.action_confirm()
-
-        action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
-        url = f"/web#action={action_id.id}"
-        self.start_tour(url, 'test_split_line_on_exit_for_batch', login='admin')
-        # Checks the receipts moves values.
-        self.assertRecordValues(receipt1.move_ids, [
-            {'product_id': self.product1.id, 'quantity': 2, 'picked': True},
-            {'product_id': self.product1.id, 'quantity': 2, 'picked': False},
-        ])
-        self.assertRecordValues(receipt2.move_ids, [
-            {'product_id': self.product2.id, 'quantity': 1, 'picked': True},
-            {'product_id': self.product2.id, 'quantity': 3, 'picked': False},
-        ])

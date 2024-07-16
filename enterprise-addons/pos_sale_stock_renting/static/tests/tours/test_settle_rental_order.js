@@ -1,43 +1,32 @@
-/** @odoo-module **/
+odoo.define('point_of_sale.tour.RentalTour', function (require) {
+    'use strict';
 
-import * as ProductScreenPos from "@point_of_sale/../tests/tours/helpers/ProductScreenTourMethods";
-import * as ProductScreenSale from "@pos_sale/../tests/helpers/ProductScreenTourMethods";
-const ProductScreen = { ...ProductScreenPos, ...ProductScreenSale };
-import * as PaymentScreen from "@point_of_sale/../tests/tours/helpers/PaymentScreenTourMethods";
-import * as ReceiptScreen from "@point_of_sale/../tests/tours/helpers/ReceiptScreenTourMethods";
-import { registry } from "@web/core/registry";
+    const { ProductScreen } = require('pos_sale_stock_renting.tour.ProductScreenTourMethods');
+    const { PaymentScreen } = require('point_of_sale.tour.PaymentScreenTourMethods');
+    const { ReceiptScreen } = require('point_of_sale.tour.ReceiptScreenTourMethods');
+    const { getSteps, startSteps } = require('point_of_sale.tour.utils');
+    var Tour = require('web_tour.tour');
 
-registry.category("web_tour.tours").add("OrderLotsRentalTour", {
-    test: true,
-    url: "/pos/ui",
-    steps: () =>
-        [
-            ProductScreen.clickQuotationButton(),
-            ProductScreen.selectFirstOrder(),
-            enterSerialNumber("123456789"),
-            ProductScreen.clickPayButton(),
-            PaymentScreen.clickPaymentMethod("Cash"),
-            PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-        ].flat(),
+    startSteps();
+
+    ProductScreen.do.clickQuotationButton();
+    ProductScreen.do.selectFirstOrder();
+    ProductScreen.do.enterSerialNumber('123456789');
+    ProductScreen.do.clickPayButton();
+    PaymentScreen.do.clickPaymentMethod('Cash');
+    PaymentScreen.do.clickValidate();
+    ReceiptScreen.check.isShown();
+
+    Tour.register('OrderLotsRentalTour', { test: true, url: '/pos/ui' }, getSteps());
+
+    startSteps();
+
+    ProductScreen.do.clickQuotationButton();
+    ProductScreen.do.selectFirstOrder();
+    ProductScreen.do.clickPayButton();
+    PaymentScreen.do.clickPaymentMethod('Bank');
+    PaymentScreen.do.clickValidate();
+    ReceiptScreen.check.isShown();
+
+    Tour.register('PosSettleRentalOrderWithImport', { test: true, url: '/pos/ui' }, getSteps());
 });
-
-export function enterSerialNumber(serialNumber) {
-    return [
-        {
-            content: `click serial number icon'`,
-            trigger: ".line-lot-icon",
-            run: "click",
-        },
-        {
-            content: `insert serial number '${serialNumber}'`,
-            trigger: ".popup-input.list-line-input",
-            run: "text " + serialNumber,
-        },
-        {
-            content: `click validate button'`,
-            trigger: ".button.confirm",
-            run: "click",
-        },
-    ];
-}

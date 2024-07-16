@@ -20,7 +20,7 @@
                 <field name="name"/>
                 <field name="account_ids" string="Related Account(s)" widget="many2many_tags" domain="[('internal_group', 'in', ('expense', 'income')), ('disallowed_expenses_category_id', '=', None)]" options="{'no_create': True}"/>
                 <field name="company_id" optional="hide"/>
-                <field name="current_rate" invisible="not current_rate"/>
+                <field name="current_rate" attrs="{'invisible': [('current_rate', '=', False)]}"/>
                 <button name="action_read_category" type="object" string="Set Rates" class="float-end btn-secondary"/>
             </tree>
         </field>
@@ -72,7 +72,7 @@
                     </group>
                     <notebook>
                         <page name="rates" string="Rates">
-                            <field name="rate_ids" nolabel="1">
+                            <field name="rate_ids" nolabel="1" editable="bottom">
                                 <tree order="date_from desc" editable="bottom">
                                     <field name="date_from" width="200px"/>
                                     <field name="rate" width="200px"/>

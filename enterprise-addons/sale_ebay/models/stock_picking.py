@@ -28,4 +28,4 @@ class StockPicking(models.Model):
                             'ShippingCarrierUsed': re.sub('[^A-Za-z0-9- ]', '', picking.carrier_id.name),
                         },
                     }
-                self.env['product.template']._ebay_execute("CompleteSale", call_data)
+                self.env['product.template'].ebay_execute("CompleteSale", call_data)

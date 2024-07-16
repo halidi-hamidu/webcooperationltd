@@ -16,28 +16,19 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'General Ledger Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'templates': {
-                'AccountReportLineName': 'account_reports.GeneralLedgerLineName',
-            },
-        }
-
     def _custom_options_initializer(self, report, options, previous_options=None):
         # Remove multi-currency columns if needed
         super()._custom_options_initializer(report, options, previous_options=previous_options)
-        if self.user_has_groups('base.group_multi_currency'):
-            options['multi_currency'] = True
-        else:
+        if not self.user_has_groups('base.group_multi_currency'):
             options['columns'] = [
                 column for column in options['columns']
                 if column['expression_label'] != 'amount_currency'
             ]
 
         # Automatically unfold the report when printing it, unless some specific lines have been unfolded
-        options['unfold_all'] = (options['export_mode'] == 'print' and not options.get('unfolded_lines')) or options['unfold_all']
+        options['unfold_all'] = (self._context.get('print_mode') and not options.get('unfolded_lines')) or options['unfold_all']
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         lines = []
         date_from = fields.Date.from_string(options['date']['date_from'])
         company_currency = self.env.company.currency_id
@@ -91,7 +82,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             if model == 'account.account':
                 account_ids_to_expand.append(model_id)
 
-        limit_to_load = report.load_more_limit if report.load_more_limit and not options.get('export_mode') else None
+        limit_to_load = report.load_more_limit if report.load_more_limit and not self._context.get('print_mode') else None
         has_more_per_account_id = {}
 
         unlimited_aml_results_per_account_id = self._get_aml_values(report, options, account_ids_to_expand)[0]
@@ -132,17 +123,17 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             'unfoldable': False,
             'unfolded': False,
         }, {
-            'id': report._get_generic_line_id(None, None, markup='tax_decl_header_2'),
+            'id': report._get_generic_line_id(None, None, markup='tax_decl_header_1'),
             'name': _('Name'),
             'columns': [{'name': labels_replacement.get(col['expression_label'], '')} for col in options['columns']],
-            'level': 3,
+            'level': 2,
             'unfoldable': False,
             'unfolded': False,
         }]
 
         # Call the generic tax report
         generic_tax_report = self.env.ref('account.generic_tax_report')
-        tax_report_options = generic_tax_report.get_options({**options, 'selected_variant_id': generic_tax_report.id, 'forced_domain': [('tax_line_id.type_tax_use', '=', tax_type)]})
+        tax_report_options = generic_tax_report._get_options({**options, 'report_id': generic_tax_report.id, 'forced_domain': [('tax_line_id.type_tax_use', '=', tax_type)]})
         tax_report_lines = generic_tax_report._get_lines(tax_report_options)
         tax_type_parent_line_id = generic_tax_report._get_generic_line_id(None, None, markup=tax_type)
 
@@ -205,8 +196,8 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         # a single search and then iterate it.
         if groupby_companies:
             candidates_account_ids = self.env['account.account']._name_search(options.get('filter_search_bar'), [
-                *self.env['account.account']._check_company_domain(list(groupby_companies.keys())),
                 ('account_type', '=', 'equity_unaffected'),
+                ('company_id', 'in', list(groupby_companies.keys())),
             ])
             for account in self.env['account.account'].browse(candidates_account_ids):
                 company_unaffected_earnings = groupby_companies.get(account.company_id.id)
@@ -246,7 +237,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
 
         # Create the currency table.
         # As the currency table is the same whatever the comparisons, create it only once.
-        ct_query = report._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
 
         # ============================================
         # 1) Get sums for all accounts.
@@ -261,7 +252,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
 
             query_domain = []
 
-            if options.get('export_mode') == 'print' and options.get('filter_search_bar'):
+            if options.get('filter_search_bar'):
                 query_domain.append(('account_id', 'ilike', options['filter_search_bar']))
 
             if options_group.get('include_current_year_in_unaff_earnings'):
@@ -407,7 +398,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             # Get sums for the account move lines.
             # period: [('date' <= options['date_to']), ('date', '>=', options['date_from'])]
             tables, where_clause, where_params = report._query_get(group_options, domain=additional_domain, date_scope='strict_range')
-            ct_query = report._get_query_currency_table(group_options)
+            ct_query = self.env['res.currency']._get_query_currency_table(group_options)
             query = f'''
                 (SELECT
                     account_move_line.id,
@@ -421,7 +412,6 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                     account_move_line.partner_id,
                     account_move_line.currency_id,
                     account_move_line.amount_currency,
-                    COALESCE(account_move_line.invoice_date, account_move_line.date)                 AS invoice_date,
                     ROUND(account_move_line.debit * currency_table.rate, currency_table.precision)   AS debit,
                     ROUND(account_move_line.credit * currency_table.rate, currency_table.precision)  AS credit,
                     ROUND(account_move_line.balance * currency_table.rate, currency_table.precision) AS balance,
@@ -433,7 +423,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                     {account_name}                          AS account_name,
                     journal.code                            AS journal_code,
                     {journal_name}                          AS journal_name,
-                    full_rec.id                             AS full_rec_name,
+                    full_rec.name                           AS full_rec_name,
                     %s                                      AS column_group_key
                 FROM {tables}
                 JOIN account_move move                      ON move.id = account_move_line.move_id
@@ -470,7 +460,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         params = []
         for column_group_key, options_group in report._split_options_per_column_group(options).items():
             new_options = self._get_options_initial_balance(options_group)
-            ct_query = report._get_query_currency_table(new_options)
+            ct_query = self.env['res.currency']._get_query_currency_table(new_options)
             domain = [('account_id', 'in', account_ids)]
             if new_options.get('include_current_year_in_unaff_earnings'):
                 domain += [('account_id.include_initial_balance', '=', True)]
@@ -522,7 +512,6 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         :param options: The report options.
         :return:        A copy of the options.
         """
-        #pylint: disable=sql-injection
         new_options = options.copy()
         date_to = new_options['comparison']['periods'][-1]['date_from'] if new_options.get('comparison', {}).get('periods') else new_options['date']['date_from']
         new_date_to = fields.Date.from_string(date_to) - timedelta(days=1)
@@ -583,15 +572,22 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             col_value = eval_dict[column['column_group_key']].get(column['expression_label'])
             col_expr_label = column['expression_label']
 
-            value = None if col_value is None or (col_expr_label == 'amount_currency' and not account.currency_id) else col_value
+            if col_value is None or (col_expr_label == 'amount_currency' and not account.currency_id):
+                line_columns.append({})
 
-            line_columns.append(report._build_column_dict(
-                value,
-                column,
-                options=options,
-                currency=account.currency_id if col_expr_label == 'amount_currency' else None,
-            ))
+            else:
+                if col_expr_label == 'amount_currency':
+                    formatted_value = report.format_value(col_value, currency=account.currency_id, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'])
+                else:
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'] if col_expr_label != 'balance' else False)
 
+                line_columns.append({
+                    'name': formatted_value,
+                    'no_format': col_value,
+                    'class': 'number',
+                })
+
+        unfold_all = options.get('unfold_all')
         line_id = report._get_generic_line_id('account.account', account.id)
         is_in_unfolded_lines = any(
             report._get_res_id_from_line_id(line_id, 'account.account') == account.id
@@ -600,11 +596,13 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         return {
             'id': line_id,
             'name': f'{account.code} {account.name}',
+            'search_key': account.code,
             'columns': line_columns,
             'level': 1,
             'unfoldable': has_lines,
-            'unfolded': has_lines and (is_in_unfolded_lines or options.get('unfold_all')),
+            'unfolded': has_lines and (is_in_unfolded_lines or unfold_all),
             'expand_function': '_report_expand_unfoldable_line_general_ledger',
+            'class': 'o_account_reports_totals_below_sections' if self.env.company.totals_below_sections else '',
         }
 
     def _get_aml_line(self, report, parent_line_id, options, eval_dict, init_bal_by_col_group):
@@ -612,21 +610,38 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         for column in options['columns']:
             col_expr_label = column['expression_label']
             col_value = eval_dict[column['column_group_key']].get(col_expr_label)
-            col_currency = None
 
-            if col_value is not None:
+            if col_value is None:
+                line_columns.append({})
+            else:
+                col_class = 'number'
+
                 if col_expr_label == 'amount_currency':
-                    col_currency = self.env['res.currency'].browse(eval_dict[column['column_group_key']]['currency_id'])
-                    col_value = None if col_currency == self.env.company.currency_id else col_value
-                elif col_expr_label == 'balance':
-                    col_value += (init_bal_by_col_group[column['column_group_key']] or 0)
+                    currency = self.env['res.currency'].browse(eval_dict[column['column_group_key']]['currency_id'])
 
-            line_columns.append(report._build_column_dict(
-                col_value,
-                column,
-                options=options,
-                currency=col_currency,
-            ))
+                    if currency != self.env.company.currency_id:
+                        formatted_value = report.format_value(col_value, currency=currency, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'])
+                    else:
+                        formatted_value = ''
+                elif col_expr_label == 'date':
+                    formatted_value = format_date(self.env, col_value)
+                    col_class = 'date'
+                elif col_expr_label == 'balance':
+                    col_value += init_bal_by_col_group[column['column_group_key']]
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'], blank_if_zero=False)
+                elif col_expr_label == 'communication' or col_expr_label == 'partner_name':
+                    col_class = 'o_account_report_line_ellipsis'
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'])
+                else:
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'])
+                    if col_expr_label not in ('debit', 'credit'):
+                        col_class = ''
+
+                line_columns.append({
+                    'name': formatted_value,
+                    'no_format': col_value,
+                    'class': col_class,
+                })
 
         aml_id = None
         move_name = None
@@ -639,16 +654,15 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                 else:
                     caret_type = 'account.move.line'
                 move_name = column_group_dict['move_name']
-                date = str(column_group_dict.get('date', ''))
                 break
 
         return {
-            'id': report._get_generic_line_id('account.move.line', aml_id, parent_line_id=parent_line_id, markup=date),
+            'id': report._get_generic_line_id('account.move.line', aml_id, parent_line_id=parent_line_id),
             'caret_options': caret_type,
             'parent_id': parent_line_id,
             'name': move_name,
             'columns': line_columns,
-            'level': 3,
+            'level': 2,
         }
 
     @api.model
@@ -656,13 +670,20 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         line_columns = []
         for column in options['columns']:
             col_value = eval_dict[column['column_group_key']].get(column['expression_label'])
-            col_value = None if col_value is None else col_value
-
-            line_columns.append(report._build_column_dict(col_value, column, options=options))
+            if col_value is None:
+                line_columns.append({})
+            else:
+                formatted_value = report.format_value(col_value, blank_if_zero=False, figure_type='monetary')
+                line_columns.append({
+                    'name': formatted_value,
+                    'no_format': col_value,
+                    'class': 'number',
+                })
 
         return {
             'id': report._get_generic_line_id(None, None, markup='total'),
             'name': _('Total'),
+            'class': 'total',
             'level': 1,
             'columns': line_columns,
         }
@@ -702,7 +723,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                 progress = init_load_more_progress(initial_balance_line)
 
         # Get move lines
-        limit_to_load = report.load_more_limit + 1 if report.load_more_limit and options['export_mode'] != 'print' else None
+        limit_to_load = report.load_more_limit + 1 if report.load_more_limit and not self._context.get('print_mode') else None
         if unfold_all_batch_data:
             aml_results = unfold_all_batch_data['aml_results'][model_id]
             has_more = unfold_all_batch_data['has_more'].get(model_id, False)
@@ -720,5 +741,5 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             'lines': lines,
             'offset_increment': report.load_more_limit,
             'has_more': has_more,
-            'progress': next_progress,
+            'progress': json.dumps(next_progress),
         }

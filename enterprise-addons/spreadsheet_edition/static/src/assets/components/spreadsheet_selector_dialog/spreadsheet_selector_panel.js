@@ -1,13 +1,12 @@
 /** @odoo-module */
 
-import { _t } from "@web/core/l10n/translation";
 import { browser } from "@web/core/browser/browser";
 import { KeepLast } from "@web/core/utils/concurrency";
 import { useService } from "@web/core/utils/hooks";
 import { Pager } from "@web/core/pager/pager";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 
-import { Component, onWillStart, useState, onWillUnmount } from "@odoo/owl";
+const { Component, onWillStart, useState, onWillUnmount } = owl;
 
 const DEFAULT_LIMIT = 9;
 
@@ -67,14 +66,6 @@ export class SpreadsheetSelectorPanel extends Component {
         throw new Error("Should be implemented by subclass.");
     }
 
-    async _getOpenSpreadsheetAction() {
-        throw new Error("Should be implemented by subclass.");
-    }
-
-    async _getCreateAndOpenSpreadsheetAction() {
-        throw new Error("Should be implemented by subclass.");
-    }
-
     async onSearchInput(ev) {
         const currentSearch = ev.target.value;
         this.domain = currentSearch !== "" ? [["name", "ilike", currentSearch]] : [];
@@ -122,15 +113,10 @@ export class SpreadsheetSelectorPanel extends Component {
         const spreadsheet =
             this.state.selectedSpreadsheetId &&
             this.state.spreadsheets.find((s) => s.id === this.state.selectedSpreadsheetId);
-        const notificationMessage = spreadsheet
-            ? _t("New sheet inserted in '%s'", spreadsheet.name)
-            : this.notificationMessage;
         this.props.onSpreadsheetSelected({
             spreadsheet,
-            notificationMessage,
-            getOpenSpreadsheetAction: spreadsheet
-                ? this._getOpenSpreadsheetAction.bind(this)
-                : this._getCreateAndOpenSpreadsheetAction.bind(this),
+            notificationMessage: this.notificationMessage,
+            actionTag: this.actionTag,
         });
     }
 }

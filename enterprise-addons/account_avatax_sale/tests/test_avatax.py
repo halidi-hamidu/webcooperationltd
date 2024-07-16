@@ -107,13 +107,13 @@ class TestSaleAvalara(TestAccountAvataxCommon):
         order = self._create_sale_order()
         mocked_response = generate_response(order.order_line)
         with self._capture_request(return_value=mocked_response):
-            order.button_external_tax_calculation()
+            order.button_update_avatax()
         self.assertOrder(order, mocked_response=mocked_response)
 
     def test_integration_01_odoo_sale_order(self):
         with self._skip_no_credentials():
             order = self._create_sale_order()
-            order.button_external_tax_calculation()
+            order.button_update_avatax()
             self.assertOrder(order)
 
     def test_tax_round_globally(self):
@@ -173,7 +173,7 @@ class TestAccountAvalaraSalesTaxItemsIntegration(TestAccountAvataxCommon):
                     }),
                 ]
             })
-            cls.sale_order.button_external_tax_calculation()
+            cls.sale_order.button_update_avatax()
         cls.captured_arguments = capture.val['json']['createTransactionModel']
         return res
 
@@ -266,7 +266,7 @@ class TestAccountAvalaraSalesTaxItemsIntegration(TestAccountAvataxCommon):
             self.sale_order.action_quotation_send()
             self.sale_order.action_confirm()
             invoice = self.sale_order._create_invoices()
-            invoice.button_external_tax_calculation()
+            invoice.button_update_avatax()
         self.assertEqual(capture.val['json']['createTransactionModel']['type'], 'SalesInvoice')
 
         with self._capture_request({'lines': [], 'summary': []}) as capture:

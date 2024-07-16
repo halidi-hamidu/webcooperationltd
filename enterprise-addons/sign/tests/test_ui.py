@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
-
 from .sign_request_common import SignRequestCommon
 import odoo.tests
 
-from odoo.tools.misc import mute_logger, file_open
+from odoo.tools.misc import mute_logger
 from odoo.tools.translate import WEB_TRANSLATION_COMMENT
 
 
@@ -58,31 +56,4 @@ class TestUi(odoo.tests.HttpCase, SignRequestCommon):
             'width': 0.200,
             'height': 0.050,
         })
-        with file_open('sign/static/demo/signature.png', "rb") as f:
-            img_content = base64.b64encode(f.read())
-
-        self.env.ref('base.user_admin').write({
-            'name': 'Mitchell Admin',
-            'sign_signature': img_content,
-        })
         self.start_tour("/web", 'test_sign_flow_tour', login='admin')
-
-    def test_template_edition(self):
-        blank_template = self.env['sign.template'].create({
-            'name': 'blank_template',
-            'attachment_id': self.attachment.id,
-        })
-
-        self.start_tour("/web", "sign_template_creation_tour", login="admin")
-
-        self.assertEqual(blank_template.name, 'filled_template', 'The tour should have changed the template name')
-        self.assertEqual(len(blank_template.sign_item_ids), 4)
-        self.assertEqual(blank_template.responsible_count, 2)
-        self.assertEqual(set(blank_template.sign_item_ids.mapped("type_id.item_type")), {"text", "signature", "selection"})
-        selection_sign_item = blank_template.sign_item_ids.filtered(lambda item: item.type_id.item_type == 'selection')
-        self.assertEqual(len(selection_sign_item.option_ids), 1)
-        self.assertEqual(selection_sign_item.option_ids[0].value, "option")
-        self.assertEqual(set(blank_template.sign_item_ids.mapped("name")), set(["Name", "Signature", "placeholder", "Selection"]))
-
-    def test_report_modal(self):
-        self.start_tour("/web", "sign_report_modal_tour", login="admin")

@@ -2,10 +2,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import models, wizard
+from odoo import SUPERUSER_ID, api
 
 
-def _post_install_hook_configure_ecuadorian_data(env):
+def _post_install_hook_configure_ecuadorian_data(cr, registry):
     # Force setup as l10n_ec_edi module was not installed at moment of creation of first company
+    env = api.Environment(cr, SUPERUSER_ID, {})
     companies = env['res.company'].search([('account_fiscal_country_id.code', '=', 'EC')])
 
     env['account.chart.template']._l10n_ec_configure_ecuadorian_journals(companies)

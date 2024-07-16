@@ -6,12 +6,6 @@ from odoo import models, api, fields, _
 class ResCompany(models.Model):
     _inherit = 'res.company'
 
-    l10n_es_reports_iae_group = fields.Char("IAE Group or Heading", size=7, default='A010000', help="""\
-        This field corresponds to the activity to which the entry refers in 7 alphanumeric characters.\n
-        For example, in the operations of a hardware store, 'A036533' will be entered, which indicates an operation\
-        carried out by a business activity of a commercial nature subject to the IAE for 'retail trade in household\
-        items, hardware, ornaments.'""")
-
     def _get_mod_boe_sequence(self, mod_version):
         """ Get or create mod BOE sequence for the current company
 

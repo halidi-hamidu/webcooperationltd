@@ -8,11 +8,8 @@ class HrWorkEntryAttendanceCommon(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.company.country_id = cls.env.ref('base.us')
-        cls.env.company.resource_calendar_id.tz = "Europe/Brussels"
         cls.employee = cls.env['hr.employee'].create({
-            'name': 'Billy Pointer',
-            'tz': 'UTC',
+            'name': 'Billy Pointer'
         })
         cls.contract = cls.env['hr.contract'].create({
             'name': 'Billy Pointer\'s contract',

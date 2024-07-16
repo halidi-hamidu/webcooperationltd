@@ -12,7 +12,7 @@ import {
     triggerEvent,
 } from "@web/../tests/helpers/utils";
 import { getBasicServerData } from "@spreadsheet/../tests/utils/data";
-import { prepareWebClientForSpreadsheet } from "@spreadsheet_edition/../tests/utils/webclient_helpers";
+import { prepareWebClientForSpreadsheet } from "../utils/webclient_helpers";
 import { notificationService } from "@web/core/notifications/notification_service";
 import { registry } from "@web/core/registry";
 import { actionService } from "@web/webclient/actions/action_service";
@@ -25,7 +25,7 @@ serverData.models["documents.document"].records = [
     {
         id: 1,
         name: "My spreadsheet",
-        spreadsheet_data: "{}",
+        raw: "{}",
         folder_id: 1,
         handler: "spreadsheet",
         is_favorited: false,
@@ -33,7 +33,7 @@ serverData.models["documents.document"].records = [
     {
         id: 2,
         name: "Untitled spreadsheet",
-        spreadsheet_data: "{}",
+        raw: "{}",
         folder_id: 1,
         handler: "spreadsheet",
         is_favorited: false,
@@ -41,7 +41,7 @@ serverData.models["documents.document"].records = [
     {
         id: 3,
         name: "My image",
-        spreadsheet_data: "{}",
+        raw: "{}",
         folder_id: 1,
         handler: "image",
         is_favorited: false,
@@ -253,7 +253,7 @@ QUnit.module("documents_spreadsheet > Spreadsheet Selector Dialog", { beforeEach
                 id: i,
                 handler: "spreadsheet",
                 name: `Spreadsheet_${i}`,
-                spreadsheet_data: "{}",
+                raw: "{}",
             });
         }
         const { target } = await mountSpreadsheetSelectorDialog({
@@ -279,28 +279,12 @@ QUnit.module("documents_spreadsheet > Spreadsheet Selector Dialog", { beforeEach
     });
 
     QUnit.test("Can select the empty spreadsheet", async (assert) => {
-        const { target, env } = await mountSpreadsheetSelectorDialog({
-            mockRPC: async function (route, args) {
-                if (
-                    args.model === "documents.document" &&
-                    args.method === "action_open_new_spreadsheet"
-                ) {
-                    assert.step("action_open_new_spreadsheet");
-                    return {
-                        type: "ir.actions.client",
-                        tag: "action_open_spreadsheet",
-                        params: {
-                            spreadsheet_id: 789,
-                        },
-                    };
-                }
-            },
-        });
-        mockActionService(env, (action) => assert.deepEqual(action.params.spreadsheet_id, 789));
+        assert.expect(1);
+        const { target, env } = await mountSpreadsheetSelectorDialog();
+        mockActionService(env, (action) => assert.deepEqual(action.params.spreadsheet_id, false));
         const blank = target.querySelector(".o-sp-dialog-item-blank img");
         await triggerEvent(blank, null, "focus");
         await click(document.querySelector(".modal-content > .modal-footer > .btn-primary"));
-        assert.verifySteps(["action_open_new_spreadsheet"]);
     });
 
     QUnit.test("Can select an existing spreadsheet", async (assert) => {
@@ -325,27 +309,84 @@ QUnit.module("documents_spreadsheet > Spreadsheet Selector Dialog", { beforeEach
     });
 
     QUnit.test("Can double click an existing spreadsheet", async (assert) => {
+        assert.expect(1);
         const { target, env } = await mountSpreadsheetSelectorDialog();
-        mockActionService(env, (action) => {
-            assert.step(action.tag);
-            assert.deepEqual(action.params.spreadsheet_id, 1);
-        });
+        mockActionService(env, (action) => assert.deepEqual(action.params.spreadsheet_id, 1));
         const spreadsheetItem = target.querySelector('.o-sp-dialog-item div[data-id="1"]');
         // In practice, the double click will also focus the item
         await triggerEvent(spreadsheetItem, null, "focus");
         await triggerEvent(spreadsheetItem, null, "dblclick");
-        assert.verifySteps(["action_open_spreadsheet"]);
     });
 
     QUnit.test("Can double click the empty spreadsheet", async (assert) => {
+        assert.expect(1);
         const { target, env } = await mountSpreadsheetSelectorDialog();
-        mockActionService(env, (action) => assert.step(action.tag));
+        mockActionService(env, (action) => assert.deepEqual(action.params.spreadsheet_id, false));
         const blank = target.querySelector(".o-sp-dialog-item-blank img");
         // In practice, the double click will also focus the item
         await triggerEvent(blank, null, "focus");
         await triggerEvent(blank, null, "dblclick");
-        assert.verifySteps(["action_open_spreadsheet"]);
     });
+
+    QUnit.test(
+        "Offset reset to zero after searching for spreadsheet in spreadsheet selector dialog",
+        async (assert) => {
+            let callback;
+            patchWithCleanup(browser, {
+                setTimeout: (later) => {
+                    callback = later;
+                },
+            });
+
+            const data = JSON.parse(JSON.stringify(serverData));
+            data.models["documents.document"].records = [];
+            // Insert 12 elements
+            for (let i = 1; i <= 12; i++) {
+                data.models["documents.document"].records.push({
+                    folder_id: 1,
+                    id: i,
+                    handler: "spreadsheet",
+                    name: `Spreadsheet_${i}`,
+                    raw: "{}",
+                });
+            }
+
+            const { target } = await mountSpreadsheetSelectorDialog({
+                serverData: data,
+                mockRPC: async function (route, args) {
+                    if (
+                        args.method === "get_spreadsheets_to_display" &&
+                        args.model === "documents.document"
+                    ) {
+                        assert.step(
+                            JSON.stringify({ offset: args.kwargs.offset, limit: args.kwargs.limit })
+                        );
+                    }
+                },
+            });
+
+            await click(target, ".o_pager_next");
+            assert.verifySteps([
+                JSON.stringify({ offset: 0, limit: 9 }),
+                JSON.stringify({ offset: 9, limit: 9 }),
+            ]);
+
+            /** @type {HTMLInputElement} */
+            const input = target.querySelector(".o-sp-searchview-input");
+            input.value = "1";
+            await triggerEvent(input, null, "input");
+            //@ts-ignore
+            callback();
+            await nextTick();
+
+            assert.verifySteps([JSON.stringify({ offset: 0, limit: 9 })]);
+            assert.strictEqual(
+                target.querySelector(".o_pager_value").textContent,
+                "1-4",
+                "Pager should be reset to 1-4 after searching for spreadsheet"
+            );
+        }
+    );
 
     QUnit.test("Can open blank spreadsheet with enter key", async (assert) => {
         const fakeActionService = {
@@ -386,64 +427,4 @@ QUnit.module("documents_spreadsheet > Spreadsheet Selector Dialog", { beforeEach
 
         assert.verifySteps(["action_open_spreadsheet"]);
     });
-
-    QUnit.test(
-        "Offset reset to zero after searching for spreadsheet in spreadsheet selector dialog",
-        async (assert) => {
-            let callback;
-            patchWithCleanup(browser, {
-                setTimeout: (later) => {
-                    callback = later;
-                },
-            });
-
-            const data = JSON.parse(JSON.stringify(serverData));
-            data.models["documents.document"].records = [];
-            // Insert 12 elements
-            for (let i = 1; i <= 12; i++) {
-                data.models["documents.document"].records.push({
-                    folder_id: 1,
-                    id: i,
-                    handler: "spreadsheet",
-                    name: `Spreadsheet_${i}`,
-                    spreadsheet_data: "{}",
-                });
-            }
-
-            const { target } = await mountSpreadsheetSelectorDialog({
-                serverData: data,
-                mockRPC: async function (route, args) {
-                    if (
-                        args.method === "get_spreadsheets_to_display" &&
-                        args.model === "documents.document"
-                    ) {
-                        assert.step(
-                            JSON.stringify({ offset: args.kwargs.offset, limit: args.kwargs.limit })
-                        );
-                    }
-                },
-            });
-
-            await click(target, ".o_pager_next");
-            assert.verifySteps([
-                JSON.stringify({ offset: 0, limit: 9 }),
-                JSON.stringify({ offset: 9, limit: 9 }),
-            ]);
-
-            /** @type {HTMLInputElement} */
-            const input = target.querySelector(".o-sp-searchview-input");
-            input.value = "1";
-            await triggerEvent(input, null, "input");
-            //@ts-ignore
-            callback();
-            await nextTick();
-
-            assert.verifySteps([JSON.stringify({ offset: 0, limit: 9 })]);
-            assert.strictEqual(
-                target.querySelector(".o_pager_value").textContent,
-                "1-4",
-                "Pager should be reset to 1-4 after searching for spreadsheet"
-            );
-        }
-    );
 });

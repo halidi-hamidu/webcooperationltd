@@ -3,20 +3,20 @@
 # 	* hr_payroll_account_sepa
 # 
 # Translators:
-# Svante Suominen <svante.suominen@web-veistamo.fi>, 2023
-# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2023
+# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
+# Kari Lindgren <kari.lindgren@emsystems.fi>, 2022
+# Veikko Väätäjä <veikko.vaataja@gmail.com>, 2022
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2023
-# Kari Lindgren <kari.lindgren@emsystems.fi>, 2023
-# Veikko Väätäjä <veikko.vaataja@gmail.com>, 2023
-# Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2024
+# Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
+# Konsta Aavaranta, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:21+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2024\n"
+"POT-Creation-Date: 2023-04-14 06:18+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
+"Last-Translator: Konsta Aavaranta, 2024\n"
 "Language-Team: Finnish (https://app.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,7 +28,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_run_sepa_wizard__journal_id
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_sepa_wizard__journal_id
 msgid "Bank Journal"
-msgstr "Päiväkirja, pankki"
+msgstr "Pankkipäiväkirja"
 
 #. module: hr_payroll_account_sepa
 #: model_terms:ir.ui.view,arch_db:hr_payroll_account_sepa.hr_payslip_run_sepa_view_form
@@ -77,13 +77,6 @@ msgstr "Työntekijä"
 #, python-format
 msgid "Employees With Invalid Bank Accounts"
 msgstr "Työntekijät, joiden pankkitilit eivät ole voimassa"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
-#, python-format
-msgid "Employees with untrusted Bank Account numbers"
-msgstr "Työntekijät, joiden pankkitilin numerot eivät ole luotettavia"
 
 #. module: hr_payroll_account_sepa
 #: model:ir.model.fields,help:hr_payroll_account_sepa.field_hr_payslip__sepa_export
@@ -151,6 +144,12 @@ msgstr ""
 "%s"
 
 #. module: hr_payroll_account_sepa
+#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_run_sepa_wizard____last_update
+#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_sepa_wizard____last_update
+msgid "Last Modified on"
+msgstr "Viimeksi muokattu"
+
+#. module: hr_payroll_account_sepa
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_run_sepa_wizard__write_uid
 #: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip_sepa_wizard__write_uid
 msgid "Last Updated by"
@@ -200,27 +199,17 @@ msgstr "Joillakin työntekijöillä (%s) ei ole pankkitiliä."
 #. odoo-python
 #: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
 #, python-format
-msgid "Some employees (%s) don't have a valid name on the work contact."
-msgstr ""
-"Joillakin työntekijöillä (%s) ei ole kelvollista nimeä työyhteystiedoissa."
+msgid "Some employees (%s) don't have a private address."
+msgstr "Joillakin työntekijöillä (%s) ei ole yksityistä osoitetta."
 
 #. module: hr_payroll_account_sepa
 #. odoo-python
 #: code:addons/hr_payroll_account_sepa/models/hr_payslip.py:0
 #, python-format
-msgid "Some employees (%s) don't have a work contact."
-msgstr "Joillakin työntekijöillä (%s) ei ole työyhteystietoja."
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_employee.py:0
-#, python-format
-msgid ""
-"The following employees have invalid bank accounts and could not be trusted:\n"
-"%s"
+msgid "Some employees (%s) don't have a valid name on the private address."
 msgstr ""
-"Seuraavilla työntekijöillä on virheelliset pankkitilit, eikä niihin voi luottaa:\n"
-"%s"
+"Joillakin työntekijöillä (%s) ei ole kelvollista nimeä yksityisessä "
+"osoitteessa."
 
 #. module: hr_payroll_account_sepa
 #. odoo-python
@@ -232,38 +221,3 @@ msgid ""
 msgstr ""
 "Päiväkirja '%s' edellyttää asianmukaista IBAN-tiliä SEPA-maksua varten. "
 "Määritä se ensin."
-
-#. module: hr_payroll_account_sepa
-#: model:ir.actions.server,name:hr_payroll_account_sepa.trust_employee_bank
-msgid "Trust Bank Account"
-msgstr "Luota pankkitiliin"
-
-#. module: hr_payroll_account_sepa
-#: model:ir.model.fields,field_description:hr_payroll_account_sepa.field_hr_payslip__sepa_uetr
-msgid "UETR"
-msgstr "UETR"
-
-#. module: hr_payroll_account_sepa
-#: model:ir.model.fields,help:hr_payroll_account_sepa.field_hr_payslip__sepa_uetr
-msgid "Unique end-to-end transaction reference"
-msgstr "Yksilöllinen alusta loppuun tapahtumaviite"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/wizard/hr_payroll_account_sepa_wizard.py:0
-#: code:addons/hr_payroll_account_sepa/wizard/hr_payroll_account_sepa_wizard.py:0
-#, python-format
-msgid ""
-"Untrusted bank account for the following employees:\n"
-"%s"
-msgstr ""
-"Ei-luotettu pankkitili seuraavilla työntekijöillä:\n"
-"%s"
-
-#. module: hr_payroll_account_sepa
-#. odoo-python
-#: code:addons/hr_payroll_account_sepa/models/hr_employee.py:0
-#, python-format
-msgid "You do not have the right to trust or un-trust a bank account."
-msgstr ""
-"Sinulla ei ole oikeutta luottaa pankkitiliin tai olla luottamatta siihen."

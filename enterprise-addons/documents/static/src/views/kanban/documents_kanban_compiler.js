@@ -27,10 +27,10 @@ export class DocumentsKanbanCompiler extends KanbanCompiler {
             const dummyElement = createElement("a");
             dummyElement.classList.add("o_hidden", "o_documents_dummy_action");
             card.prepend(dummyElement);
-            card.setAttribute("t-on-dragstart.stop", `(ev) => __comp__.props.record.onDragStart(ev)`);
+            card.setAttribute("t-on-dragstart.stop", `(ev) => props.record.onDragStart(ev)`);
             const fileInput = card.querySelector("input.o_kanban_replace_document");
             if (fileInput) {
-                fileInput.setAttribute("t-on-change.stop.prevent", `(ev) => __comp__.props.record.onReplaceDocument(ev)`);
+                fileInput.setAttribute("t-on-change.stop.prevent", `(ev) => props.record.onReplaceDocument(ev)`);
                 // Prevent double click issues
                 fileInput.setAttribute("t-on-click.stop", `() => {}`);
             }
@@ -47,13 +47,13 @@ export class DocumentsKanbanCompiler extends KanbanCompiler {
         // `o_record_selected` if the document is currently selected
         elem.setAttribute(
             "t-attf-class",
-            (elem.getAttribute("t-attf-class") || "") + " {{record.type.raw_value === 'empty' ? 'oe_file_request' : ''}} {{__comp__.props.record.selected ? 'o_record_selected' : ''}}"
+            (elem.getAttribute("t-attf-class") || "") + " {{record.type.raw_value === 'empty' ? 'oe_file_request' : ''}} {{props.record.selected ? 'o_record_selected' : ''}}"
         );
         // Selector and FileUploadProgressBar
         const content = new DOMParser().parseFromString(
             /*xml*/ `
             <t>
-                <t t-set="fileUpload" t-value="__comp__.getFileUpload()"/>
+                <t t-set="fileUpload" t-value="getFileUpload()"/>
                 <i t-if="!fileUpload" class="fa fa-circle-thin o_record_selector" title="Select document"/>
                 <t t-else="">
                     <FileUploadProgressBar fileUpload="fileUpload"/>
@@ -74,7 +74,7 @@ export class DocumentsKanbanCompiler extends KanbanCompiler {
         // `oe_kanban_previewer` if the file can be seen in the attachment viewer
         elem.setAttribute(
             "t-attf-class",
-            (elem.getAttribute("t-attf-class") || "") + " {{(hasThumbnail or __comp__.props.record.isViewable() or youtubeVideoToken) ? 'oe_kanban_previewer' : ''}}"
+            (elem.getAttribute("t-attf-class") || "") + " {{(hasThumbnail or props.record.isViewable() or youtubeVideoToken) ? 'oe_kanban_previewer' : ''}}"
         );
         return elem;
     }

@@ -4,12 +4,13 @@ import { Domain } from "@web/core/domain";
 import { DomainSelector } from "@web/core/domain_selector/domain_selector";
 import { DomainSelectorDialog } from "@web/core/domain_selector_dialog/domain_selector_dialog";
 import { useService } from "@web/core/utils/hooks";
-import { _t } from "@web/core/l10n/translation";
-import { EditableName } from "../../o_spreadsheet/editable_name/editable_name";
+import { _t } from "web.core";
+import { time_to_str } from "web.time";
+import EditableName from "../../o_spreadsheet/editable_name/editable_name";
 
-import { Component, onWillStart, onWillUpdateProps } from "@odoo/owl";
+const { Component, onWillStart, onWillUpdateProps } = owl;
 
-export class PivotDetailsSidePanel extends Component {
+export default class PivotDetailsSidePanel extends Component {
     setup() {
         this.dialog = useService("dialog");
         /** @type {import("@spreadsheet/pivot/pivot_data_source").default} */
@@ -32,7 +33,7 @@ export class PivotDetailsSidePanel extends Component {
                 this.dataSource.getFormattedGroupBy(fieldName)
             ),
             measures: definition.measures.map((measure) =>
-                this.dataSource.getMeasureDisplayName(measure)
+                this.dataSource.getGroupByDisplayLabel("measure", measure)
             ),
             sortedColumn: definition.sortedColumn,
         };
@@ -48,7 +49,10 @@ export class PivotDetailsSidePanel extends Component {
     formatSort() {
         const sortedColumn = this.pivotDefinition.sortedColumn;
         const order = sortedColumn.order === "asc" ? _t("ascending") : _t("descending");
-        const measureDisplayName = this.dataSource.getMeasureDisplayName(sortedColumn.measure);
+        const measureDisplayName = this.dataSource.getGroupByDisplayLabel(
+            "measure",
+            sortedColumn.measure
+        );
         return `${measureDisplayName} (${order})`;
     }
 
@@ -60,7 +64,7 @@ export class PivotDetailsSidePanel extends Component {
     getLastUpdate() {
         const lastUpdate = this.dataSource.lastUpdate;
         if (lastUpdate) {
-            return new Date(lastUpdate).toLocaleTimeString();
+            return time_to_str(new Date(lastUpdate));
         }
         return _t("never");
     }
@@ -77,12 +81,13 @@ export class PivotDetailsSidePanel extends Component {
         const definition = this.env.model.getters.getPivotDefinition(this.props.pivotId);
         this.dialog.add(DomainSelectorDialog, {
             resModel: definition.model,
-            domain: new Domain(definition.domain).toString(),
+            initialValue: new Domain(definition.domain).toString(),
+            readonly: false,
             isDebugMode: !!this.env.debug,
-            onConfirm: (domain) =>
+            onSelected: (domain) =>
                 this.env.model.dispatch("UPDATE_ODOO_PIVOT_DOMAIN", {
                     pivotId: this.props.pivotId,
-                    domain: new Domain(domain).toJson(),
+                    domain: new Domain(domain).toList(),
                 }),
         });
     }

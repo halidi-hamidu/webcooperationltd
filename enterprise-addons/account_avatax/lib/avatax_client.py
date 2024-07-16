@@ -84,7 +84,15 @@ class AvataxClient:
         return response
 
     def create_transaction(self, model, include=None):
-        return self.request('POST', 'transactions/createoradjust', params=include, json={'createTransactionModel': model})
+        endpoint = 'create'
+        if not self.is_production:
+            endpoint = 'createoradjust'
+            model = {'createTransactionModel': model}
+        return self.request('POST', 'transactions/{}'.format(endpoint), params=include, json=model)
+
+    def commit_transaction(self, companyCode, transactionCode, model, include=None):
+        return self.request('POST', 'companies/{}/transactions/{}/commit'.format(companyCode, transactionCode),
+                            params=include, json=model)
 
     def uncommit_transaction(self, companyCode, transactionCode, include=None):
         return self.request('POST', 'companies/{}/transactions/{}/uncommit'.format(companyCode, transactionCode),

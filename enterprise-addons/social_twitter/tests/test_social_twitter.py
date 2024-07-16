@@ -174,8 +174,6 @@ class SocialTwitterCase(SocialCase):
         self.assertEqual(len(tweets), 2)
 
     def test_remove_mentions(self):
-        self.env['ir.config_parameter'].set_param('social_twitter.disable_mentions', True)
-
         # without `ignore_mention` parameter
         assert_results = [
             ["@mister hello", "@ mister hello"],

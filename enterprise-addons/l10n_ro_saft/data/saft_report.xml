@@ -237,26 +237,26 @@
         <DebitAmount t-if="line_vals['debit']">
             <Amount t-out="format_float(line_vals['debit'])"/>
             <CurrencyCode t-out="line_vals['currency_code']"/>
-            <CurrencyAmount t-out="format_float(line_vals['amount_currency'])"/>
+            <CurrencyAmount t-out="format_float(abs(line_vals['amount_currency']) * (-1 if line_vals['debit'] &lt; 0 else 1))"/>
             <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
         </DebitAmount>
         <CreditAmount t-if="line_vals['credit']">
             <Amount t-out="format_float(line_vals['credit'])"/>
             <CurrencyCode t-out="line_vals['currency_code']"/>
-            <CurrencyAmount t-out="format_float(-line_vals['amount_currency'])"/>
+            <CurrencyAmount t-out="format_float(abs(line_vals['amount_currency']) * (-1 if line_vals['credit'] &lt; 0 else 1))"/>
             <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
         </CreditAmount>
         <!-- When both debit and credit are 0.0, we still need to display one or the other, depending on the move_type -->
         <DebitAmount t-if="not line_vals.get('debit') and not line_vals.get('credit') and line_vals.get('move_type', '') in ('in_invoice', 'out_refund')">
             <Amount t-out="format_float(line_vals['debit'])"/>
             <CurrencyCode t-out="line_vals['currency_code']"/>
-            <CurrencyAmount t-out="format_float(line_vals['amount_currency'])"/>
+            <CurrencyAmount t-out="format_float(abs(line_vals['amount_currency']) * (-1 if line_vals['debit'] &lt; 0 else 1))"/>
             <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
         </DebitAmount>
         <CreditAmount t-if="not line_vals.get('debit') and not line_vals.get('credit') and line_vals.get('move_type', '') in ('out_invoice', 'in_refund')">
             <Amount t-out="format_float(line_vals['credit'])"/>
             <CurrencyCode t-out="line_vals['currency_code']"/>
-            <CurrencyAmount t-out="format_float(-line_vals['amount_currency'])"/>
+            <CurrencyAmount t-out="format_float(abs(line_vals['amount_currency']) * (-1 if line_vals['credit'] &lt; 0 else 1))"/>
             <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
         </CreditAmount>
     </template>

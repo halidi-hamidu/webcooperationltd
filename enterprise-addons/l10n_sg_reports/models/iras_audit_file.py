@@ -28,7 +28,7 @@ class IrasAuditFileWizard(models.TransientModel):
 
     def generate_iras(self):
         general_ledger_report = self.env.ref('account_reports.general_ledger_report')
-        options = general_ledger_report.get_options(previous_options={'date': {
+        options = general_ledger_report._get_options(previous_options={'date': {
             'date_from': self.date_from,
             'date_to': self.date_to
         }
@@ -183,7 +183,8 @@ class IrasAuditFile(models.Model):
             ('date', '<=', date_to)
             ])
 
-        options = self.get_options(previous_options={
+        options = self._get_options(previous_options={
+            'multi_company': {'id': company.id, 'name': company.name},
             'unfold_all': True,
             'unfolded_lines': [],
             'date': {

@@ -1,11 +1,10 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { YoutubeUploadField } from '@social_youtube/js/social_youtube_upload_field';
 
-import { patch } from "@web/core/utils/patch";
+import { patch } from '@web/core/utils/patch';
 
-patch(YoutubeUploadField.prototype, {
+patch(YoutubeUploadField.prototype, 'social_demo.YoutubeUploadField', {
 
     /**
      * When the user selects a file, as we are in demo mode, the video will not be uploaded.
@@ -15,7 +14,7 @@ patch(YoutubeUploadField.prototype, {
      * @private
      */
     async _onFileChanged(e) {
-        this.notification.add(_t('You cannot upload videos in demo mode.'), {
+        this.notification.add(this.env._t('You cannot upload videos in demo mode.'), {
             type: 'info',
         });
     }

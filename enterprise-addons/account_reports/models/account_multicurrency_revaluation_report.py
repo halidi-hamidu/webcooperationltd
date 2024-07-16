@@ -23,16 +23,6 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'Multicurrency Revaluation Report Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'components': {
-                'AccountReportFilters': 'account_reports.MulticurrencyRevaluationReportFilters',
-            },
-            'templates': {
-                'AccountReportLineName': 'account_reports.MulticurrencyRevaluationReportLineName',
-            },
-        }
-
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         active_currencies = self.env['res.currency'].search([('active', '=', True)])
@@ -55,16 +45,21 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
             } for currency_id in active_currencies
         }
 
+        for currency_rates in options['currency_rates'].values():
+            if currency_rates['rate'] == 0:
+                raise UserError(_("The currency rate cannot be equal to zero"))
+
         options['company_currency'] = options['currency_rates'].pop(str(self.env.company.currency_id.id))
+
         options['custom_rate'] = any(
             not float_is_zero(cr['rate'] - rates[cr['currency_id']], 6)
             for cr in options['currency_rates'].values()
         )
 
-        options['multi_currency'] = True
-        options['buttons'].append({'name': _('Adjustment Entry'), 'sequence': 30, 'action': 'action_multi_currency_revaluation_open_revaluation_wizard', 'always_show': True})
+        options['warning_multicompany'] = len(self.env.companies) > 1
+        options['buttons'].append({'name': _('Adjustment Entry'), 'sequence': 30, 'action': 'action_multi_currency_revaluation_open_revaluation_wizard'})
 
-    def _custom_line_postprocessor(self, report, options, lines, warnings=None):
+    def _custom_line_postprocessor(self, report, options, lines):
         line_to_adjust_id = self.env.ref('account_reports.multicurrency_revaluation_to_adjust').id
         line_excluded_id = self.env.ref('account_reports.multicurrency_revaluation_excluded').id
 
@@ -78,7 +73,6 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
             ):
                 # 'To Adjust' and 'Excluded' lines need to be hidden if they have no child
                 continue
-
             elif res_model_name == 'res.currency':
                 # Include the rate in the currency_id group lines
                 line['name'] = '{for_cur} (1 {comp_cur} = {rate:.6} {for_cur})'.format(
@@ -87,21 +81,7 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
                     rate=float(options['currency_rates'][str(res_id)]['rate']),
                 )
 
-            elif res_model_name == 'account.account':
-                # Mark the included/excluded lines, so that the custom component templates knows what label to put on them
-                line['is_included_line'] = report._get_res_id_from_line_id(line['id'], 'account.account') == line_to_adjust_id
-
-            # Inject the related model into the line dict in order to use it on the custom component template on js side to display buttons
-            line['cur_revaluation_line_model'] = res_model_name
-
             rslt.append(line)
-
-        # Custom warnings
-        if warnings is not None:
-            if len(self.env.companies) > 1:
-                warnings['account_reports.multi_currency_revaluation_report_warning_multicompany'] = {'alert_type': 'warning'}
-            if options['custom_rate']:
-                warnings['account_reports.multi_currency_revaluation_report_warning_custom_rate'] = {'alert_type': 'warning'}
 
         return rslt
 
@@ -131,25 +111,22 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
 
     # ACTIONS
     def action_multi_currency_revaluation_open_general_ledger(self, options, params):
-        report = self.env['account.report'].browse(options['report_id'])
-        account_id = report._get_res_id_from_line_id(params['line_id'], 'account.account')
-        account_line_id = report._get_generic_line_id('account.account', account_id)
-        general_ledger_options = self.env.ref('account_reports.general_ledger_report').get_options(options)
+        account_line_id = self.env['account.report']._get_generic_line_id('account.account', params.get('id'))
+        general_ledger_options = self.env.ref('account_reports.general_ledger_report')._get_options(options)
         general_ledger_options['unfolded_lines'] = [account_line_id]
 
         general_ledger_action = self.env['ir.actions.actions']._for_xml_id('account_reports.action_account_report_general_ledger')
         general_ledger_action['params'] = {
             'options': general_ledger_options,
-            'ignore_session': True,
+            'ignore_session': 'read',
         }
 
         return general_ledger_action
 
     def action_multi_currency_revaluation_toggle_provision(self, options, params):
         """ Include/exclude an account from the provision. """
-        res_ids_map = self.env['account.report']._get_res_ids_from_line_id(params['line_id'], ['res.currency', 'account.account'])
-        account = self.env['account.account'].browse(res_ids_map['account.account'])
-        currency = self.env['res.currency'].browse(res_ids_map['res.currency'])
+        account = self.env['account.account'].browse(params.get('account_id'))
+        currency = self.env['res.currency'].browse(params.get('currency_id'))
         if currency in account.exclude_provision_currency_ids:
             account.exclude_provision_currency_ids -= currency
         else:
@@ -161,7 +138,7 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
 
     def action_multi_currency_revaluation_open_currency_rates(self, options, params=None):
         """ Open the currency rate list. """
-        currency_id = self.env['account.report']._get_res_id_from_line_id(params['line_id'], 'res.currency')
+        currency_id = params.get('id')
         return {
             'type': 'ir.actions.act_window',
             'name': _('Currency Rates (%s)', self.env['res.currency'].browse(currency_id).display_name),
@@ -171,17 +148,18 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
             'domain': [('currency_id', '=', currency_id)],
         }
 
-    def _report_custom_engine_multi_currency_revaluation_to_adjust(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_multi_currency_revaluation_to_adjust(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None):
         return self._multi_currency_revaluation_get_custom_lines(options, 'to_adjust', current_groupby, next_groupby, offset=offset, limit=limit)
 
-    def _report_custom_engine_multi_currency_revaluation_excluded(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None, warnings=None):
+    def _report_custom_engine_multi_currency_revaluation_excluded(self, expressions, options, date_scope, current_groupby, next_groupby, offset=0, limit=None):
         return self._multi_currency_revaluation_get_custom_lines(options, 'excluded', current_groupby, next_groupby, offset=offset, limit=limit)
 
     def _multi_currency_revaluation_get_custom_lines(self, options, line_code, current_groupby, next_groupby, offset=0, limit=None):
         def build_result_dict(report, query_res):
+            foreign_currency = self.env['res.currency'].browse(query_res['currency_id'][0]) if len(query_res['currency_id']) == 1 else None
+
             return {
-                'balance_currency': query_res['balance_currency'] if len(query_res['currency_id']) == 1 else None,
-                'currency_id': query_res['currency_id'][0] if len(query_res['currency_id']) == 1 else None,
+                'balance_currency': report.format_value(query_res['balance_currency'], currency=foreign_currency, figure_type='monetary'),
                 'balance_operation': query_res['balance_operation'],
                 'balance_current': query_res['balance_current'],
                 'adjustment': query_res['adjustment'],
@@ -195,7 +173,6 @@ class MulticurrencyRevaluationReportCustomHandler(models.AbstractModel):
         if not current_groupby:
             return {
                 'balance_currency': None,
-                'currency_id': None,
                 'balance_operation': None,
                 'balance_current': None,
                 'adjustment': None,

@@ -74,7 +74,7 @@ class AccountPayment(models.Model):
         associating them to the given company, with the specified
         collection date.
         """
-        version = self.journal_id.debit_sepa_pain_version
+        version = self.journal_id._get_debit_sepa_pain_version()
         if not version:
             raise UserError(_("Select a SEPA Direct Debit version before generating the XML."))
         document = etree.Element("Document", nsmap={None: f'urn:iso:std:iso:20022:tech:xsd:{version}', 'xsi': "http://www.w3.org/2001/XMLSchema-instance"})
@@ -135,7 +135,7 @@ class AccountPayment(models.Model):
             elif sdd_version == 'pain.008.001.08':
                 if partner.street:
                     street_name = partner.street if not partner.street2 else f'{partner.street}, {partner.street2}'
-                    create_xml_node(PstlAdr, 'StrtNm', self.split_node(street_name, 70)[0]) # Number and box in street
+                    create_xml_node(PstlAdr, 'StrtNm', self.split_node(street_name, 70)[0])  # Number and box in street
                 if partner.zip:
                     create_xml_node(PstlAdr, 'PstCd', partner.zip)
                 if partner.city:
@@ -154,7 +154,7 @@ class AccountPayment(models.Model):
     def _sdd_xml_gen_payment_group(self, company_id, required_collection_date, askBatchBooking, payment_info_counter, journal, CstmrDrctDbtInitn):
         """ Generates a group of payments in the same PmtInfo node, provided
         that they share the same journal."""
-        sdd_version = self.journal_id.debit_sepa_pain_version
+        sdd_version = self.journal_id._get_debit_sepa_pain_version()
         if not sdd_version:
             raise UserError(_('A SEPA direct debit version should be selected to generate the export file.'))
 
@@ -212,7 +212,7 @@ class AccountPayment(models.Model):
         if self.sdd_mandate_id.state == 'revoked':
             raise UserError(_("The SEPA Direct Debit mandate associated to the payment has been revoked and cannot be used anymore."))
 
-        sdd_version = self.journal_id.debit_sepa_pain_version
+        sdd_version = self.journal_id._get_debit_sepa_pain_version()
         if not sdd_version:
             raise UserError(_('A SEPA direct debit version should be selected to generate the export file.'))
 

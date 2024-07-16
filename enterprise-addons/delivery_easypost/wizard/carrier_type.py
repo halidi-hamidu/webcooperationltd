@@ -7,9 +7,14 @@ class CarrierType(models.TransientModel):
     _name = "delivery.carrier.easypost"
     _description = "Carrier Type"
 
-    # This selection field gets its values from a custom widget: CarrierTypeSelection
-    carrier_type = fields.Char()
+    carrier_type = fields.Selection(selection="_get_carrier_types")
     delivery_carrier_id = fields.Many2one('delivery.carrier')
+
+    def _get_carrier_types(self):
+        if self.env.context.get('carrier_types'):
+            return [(carrier, carrier) for carrier in self.env.context.get('carrier_types').keys()]
+        else:
+            return []
 
     def action_validate(self):
         if self.delivery_carrier_id.easypost_delivery_type != self.carrier_type:
@@ -63,4 +68,5 @@ class CarrierType(models.TransientModel):
         action = self.env["ir.actions.actions"]._for_xml_id("delivery.action_delivery_carrier_form")
         action['res_id'] = self.delivery_carrier_id.id
         action['views'] = [(self.env.ref('delivery.view_delivery_carrier_form').id, 'form')]
+        action['context'] = {'form_view_initial_mode': 'edit'}
         return action

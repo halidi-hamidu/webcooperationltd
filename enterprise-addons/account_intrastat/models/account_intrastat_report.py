@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from psycopg2.sql import SQL, Literal, Identifier
 
 from itertools import zip_longest
 
@@ -9,6 +8,8 @@ from odoo.tools import get_lang, OrderedSet
 from odoo.tools.float_utils import float_repr, float_round
 
 from odoo.tools.misc import format_date
+from datetime import datetime
+from collections import defaultdict
 
 _merchandise_export_code = {
     'BE': '29',
@@ -29,7 +30,16 @@ _unknown_country_code = {
 
 _qn_unknown_individual_vat_country_codes = ('FI', 'SE', 'SK', 'DE', 'AT')
 
-errors = ('expired_trans', 'premature_trans', 'missing_trans', 'expired_comm', 'premature_comm', 'missing_comm', 'missing_unit', 'missing_weight')
+errors = (
+    ('expired_trans', 'move_line_id'),
+    ('premature_trans', 'move_line_id'),
+    ('missing_trans', 'move_line_id'),
+    ('expired_comm', 'product_id'),
+    ('premature_comm', 'product_id'),
+    ('missing_comm', 'product_id'),
+    ('missing_unit', 'product_id'),
+    ('missing_weight', 'product_id'),
+)
 
 REPORT_LINE_ID_KEYS = ['type', 'transaction_code', 'commodity_code', 'intrastat_product_origin_country_code', 'partner_vat', 'country_code', 'incoterm_code', 'transport_code', 'invoice_currency_id', 'region_code']
 
@@ -38,14 +48,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'Intrastat Report Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'components': {
-                'AccountReportFilters': 'account_intrastat.IntrastatReportFilters',
-            },
-        }
-
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals=None, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals=None):
         if options.get('intrastat_grouped'):
             # dict of the form {move_id: {column_group_key: {expression_label: value}}}
             move_info_dict = {}
@@ -58,10 +61,10 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             full_query_params = []
             for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
                 query, params = self._build_query_group(column_group_options, column_group_key)
-                query_list.append(query)
+                query_list.append(f"({query})")
                 full_query_params += params
 
-            full_query = SQL(" UNION ALL ").join(query_list)
+            full_query = " UNION ALL ".join(query_list)
             self._cr.execute(full_query, full_query_params)
             results = self._cr.dictfetchall()
 
@@ -71,16 +74,21 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 column_group_key = res['column_group_key']
                 current_move_info[column_group_key] = res
                 current_move_info['name'] = self._get_move_info_name(res)
-                current_move_info['id'] = self._get_report_line_id(report, res)
+                current_move_info['id'] = self._get_report_line_id(res)
 
                 # We add the value to the total (for total line)
                 total_values_dict.setdefault(column_group_key, {'value': 0})
                 total_values_dict[column_group_key]['value'] += res['value']
 
+                for error, dummy in errors:
+                    if any(res.get(error, [])):
+                        options.setdefault('intrastat_warnings', defaultdict(list))
+                        options['intrastat_warnings'][error].extend(res[error])
+
             # Create lines
             lines = []
             for move_id, move_info in move_info_dict.items():
-                line = self._create_report_line(options, move_info, move_id, ['value'], warnings=warnings)
+                line = self._create_report_line(options, move_info, move_id, ['value'])
                 lines.append((0, line))
 
             # Create total line if only one type of invoice is selected
@@ -100,7 +108,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             name += f" - {move_info['region_code']}"
         return name
 
-    def _get_report_line_id(self, report, move_info):
+    def _get_report_line_id(self, move_info):
         move_values = []
         for key in REPORT_LINE_ID_KEYS:
             if key == 'intrastat_product_origin_country_code' and move_info.get(key) == 'XU':
@@ -110,7 +118,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             else:
                 move_values.append(str(move_info.get(key)))
 
-        return report._get_generic_line_id('account.move', None, markup=",".join(move_values))
+        return self.env['account.report']._get_generic_line_id('account.move', None, markup=",".join(move_values))
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -119,7 +127,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         # Filter only partners with VAT
         options['intrastat_with_vat'] = previous_options.get('intrastat_with_vat', False)
 
-        options['intrastat_grouped'] = previous_options.get('intrastat_grouped', False)
+        options['intrastat_grouped'] = False
 
         # Filter types of invoices
         default_type = [
@@ -195,7 +203,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
     def export_to_xlsx(self, options, response=None):
         # We need to regenerate the options to make sure we hide the country name columns as expected.
         report = self.env['account.report'].browse(options['report_id'])
-        new_options = report.get_options(previous_options={**options, 'country_format': 'code', 'commodity_flow': 'code'})
+        new_options = report._get_options(previous_options={**options, 'country_format': 'code', 'commodity_flow': 'code'})
         return report.export_to_xlsx(new_options, response=response)
 
     ####################################################
@@ -203,15 +211,18 @@ class IntrastatReportCustomHandler(models.AbstractModel):
     ####################################################
 
     @api.model
-    def _create_report_line(self, options, line_vals, line_id, number_values, warnings=None):
-        """ Create a standard (non-total) line for the report
-
+    def _create_report_line(self, options, line_vals, line_id, number_values):
+        """
+        This function is called when generating the report. It creates an aggregate report line
+        that has this format: Country Code - Currency - Commodity Code.
+        It also contains the country columns and the commodity code has well as the value and the system
+        if only one type of (Arrival or Dispatch) is selected.
         :param options: report options
         :param line_vals: values necessary for the line
         :param line_id: id of the line
         :param number_values: list of expression labels that need to have the 'number' class
         """
-        report = self.env['account.report'].browse(options['report_id'])
+        report = self.env['account.report']
         columns = []
         uom_precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for column in options['columns']:
@@ -223,17 +234,11 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             if column['expression_label'] == 'supplementary_units' and value:
                 value = float_repr(float_round(value, precision_digits=uom_precision), precision_digits=uom_precision)
 
-            columns.append(report._build_column_dict(value, column, options=options))
-
-        if warnings is not None:
-            for column_group in options['column_groups']:
-                for warning_code in errors:
-                    if line_vals.get(column_group) and any(line_vals[column_group].get(warning_code)):
-                        warning_params = warnings.setdefault(
-                            f'account_intrastat.intrastat_warning_{warning_code}',
-                            {'ids': [], 'alert_type': 'warning'}
-                        )
-                        warning_params['ids'].extend(aml_id for aml_id in line_vals[column_group][warning_code] if aml_id is not None)
+            columns.append({
+                'name': report.format_value(value, figure_type=column['figure_type']) if value else None,
+                'no_format': value,
+                'class': 'number' if expression_label in number_values else '',
+            })
 
         unfold_all = self._context.get('print_mode') or options.get('unfold_all')
         return {
@@ -263,6 +268,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         if parent_line:
             expanded_line_options = self._get_markup_info_from_intrastat_id(parent_line)
 
+        is_intrastat_warnings_added = not options.get('intrastat_warnings')  # Check if the intrastat warning aren't already added
         queries = []
         full_query_params = []
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
@@ -270,7 +276,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             queries.append(query)
             full_query_params += params
 
-        full_query = SQL(" UNION ALL ").join(queries)
+        full_query = " UNION ALL ".join(queries)
         self._cr.execute(full_query, full_query_params)
         raw_intrastat_lines = self._cr.dictfetchall()
         raw_intrastat_lines = self._fill_missing_values(raw_intrastat_lines)
@@ -281,6 +287,11 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 # Enough elements loaded. Only the one due to the +1 in the limit passed when computing aml_results is left.
                 # This element won't generate a line now, but we use it to know that we'll need to add a load_more line.
                 break
+
+            for error, val_key in errors:
+                if raw_intrastat_line.get(error) and is_intrastat_warnings_added:
+                    options.setdefault('intrastat_warnings', defaultdict(list))
+                    options['intrastat_warnings'][error].append(raw_intrastat_line[val_key])
 
             lines.append(self._get_aml_line(report, parent_line, options, raw_intrastat_line))
 
@@ -297,13 +308,31 @@ class IntrastatReportCustomHandler(models.AbstractModel):
             col_expr_label = column['expression_label']
             col_value = aml_data.get(col_expr_label)
 
-            if col_expr_label == 'system' and options.get('commodity_flow') != 'code':
-                col_value = f"{col_value} ({aml_data['type']})"
-            new_column = report._build_column_dict(col_value, column, options=options)
-            line_columns.append(new_column)
+            if col_value is None:
+                line_columns.append({
+                    'name': None,
+                    'no_format': None,
+                    'class': '',
+                })
+            else:
+                col_class = ''
+                formatted_value = col_value
+                if options.get('commodity_flow') != 'code' and column['expression_label'] == 'system':
+                    formatted_value = f"{col_value} ({aml_data.get('type', False)})"
+                elif col_expr_label == 'date':
+                    formatted_value = format_date(self.env, col_value)
+                    col_class = 'date'
+                elif col_expr_label == 'value':
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'], blank_if_zero=False)
+                    col_class = 'number'
+                line_columns.append({
+                    'name': formatted_value,
+                    'no_format': col_value,
+                    'class': col_class,
+                })
 
         return {
-            'id': report._get_generic_line_id('account.move.line', aml_data['id'], parent_line_id=parent_line_id),
+            'id': report._get_generic_line_id('account.move.line', aml_data['id']),
             'caret_options': 'account.move.line',
             'parent_id': parent_line_id,
             'name': aml_data['name'],
@@ -318,15 +347,21 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         :param options: report options
         :param total_vals: total values dict
         """
-        report = self.env['account.report'].browse(options['report_id'])
+        report = self.env['account.report']
         columns = []
         for column in options['columns']:
-            value = total_vals.get(column['column_group_key'], {}).get(column['expression_label'])
+            expression_label = column['expression_label']
+            value = total_vals.get(column['column_group_key'], {}).get(expression_label, False)
 
-            columns.append(report._build_column_dict(value, column, options=options))
+            columns.append({
+                'name': report.format_value(value, figure_type=column['figure_type']) if value else None,
+                'no_format': value,
+                'class': 'number',
+            })
         return {
             'id': report._get_generic_line_id(None, None, markup='total'),
             'name': _('Total'),
+            'class': 'total',
             'level': 1,
             'columns': columns,
         }
@@ -337,13 +372,12 @@ class IntrastatReportCustomHandler(models.AbstractModel):
 
     @api.model
     def _prepare_query(self, options, column_group_key=None, expanded_line_options=None):
-        query_blocks, where_params = self._build_query(options, column_group_key, expanded_line_options)  # pylint: disable=sql-injection
-        query = SQL("{select} {from} {where} {order}").format(**query_blocks)
+        query_blocks, where_params = self._build_query(options, column_group_key, expanded_line_options)
+        query = f"{query_blocks['select']} {query_blocks['from']} {query_blocks['where']} {query_blocks['order']}"
         return query, where_params
 
     @api.model
     def _build_query(self, options, column_group_key=None, expanded_line_options=None):
-        # pylint: disable=sql-injection
         def format_where_params(option_key, comparison_value=('None',)):
             if expanded_line_options[option_key] not in comparison_value:
                 return expanded_line_options[option_key]
@@ -359,8 +393,6 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         # invoices. Modifying or emptying it allow to alter the intrastat declaration
         # accordingly to specs (https://www.nbb.be/doc/dq/f_pdf_ex/intra2017fr.pdf (§ 4.x))
         tables, where_clause, where_params = self.env['account.report'].browse(options['report_id'])._query_get(options, 'strict_range', domain=domain)
-        tables = SQL(tables)
-        where_clause = SQL(where_clause)
 
         import_merchandise_code = _merchandise_import_code.get(self.env.company.country_id.code, '29')
         export_merchandise_code = _merchandise_export_code.get(self.env.company.country_id.code, '19')
@@ -368,13 +400,13 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         unknown_country_code = _unknown_country_code.get(self.env.company.country_id.code, 'QV')
         weight_category_id = self.env['ir.model.data']._xmlid_to_res_id('uom.product_uom_categ_kgm')
 
-        select = SQL("""
+        select = f"""
             SELECT
                 %s AS column_group_key,
                 row_number() over () AS sequence,
                 CASE WHEN account_move.move_type IN ('in_invoice', 'out_refund') THEN %s ELSE %s END AS system,
                 country.code AS country_code,
-                COALESCE(country.name->>{user_lang}, country.name->>'en_US') AS country_name,
+                COALESCE(country.name->>'{self.env.user.lang or get_lang(self.env).code}', country.name->>'en_US') AS country_name,
                 company_country.code AS comp_country_code,
                 transaction.code AS transaction_code,
                 company_region.code AS region_code,
@@ -421,7 +453,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 -- One for 10 items minus one for the free item
                 SIGN(account_move_line.quantity) * SIGN(account_move_line.price_unit) * ABS(account_move_line.balance) AS value,
                 CASE WHEN product_country.code = 'GB' THEN 'XU' ELSE COALESCE(product_country.code, %s) END AS intrastat_product_origin_country_code,
-                COALESCE(product_country.name->>{user_lang}, product_country.name->>'en_US') AS intrastat_product_origin_country_name,
+                COALESCE(product_country.name->>'{self.env.user.lang or get_lang(self.env).code}', product_country.name->>'en_US') AS intrastat_product_origin_country_name,
                 CASE WHEN partner.vat IS NOT NULL THEN partner.vat
                      WHEN partner.vat IS NULL AND partner.is_company IS FALSE THEN %s
                      ELSE 'QV999999999999'
@@ -437,8 +469,8 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 prod.id AS product_id,
                 prodt.categ_id AS template_categ,
                 prodt.description as goods_description
-        """).format(user_lang=Literal(self.env.user.lang or get_lang(self.env).code))
-        from_ = SQL("""
+        """
+        from_ = f"""
             FROM
                 {tables}
                 JOIN account_move ON account_move.id = account_move_line.move_id
@@ -461,8 +493,8 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 LEFT JOIN res_country product_country ON product_country.id = account_move_line.intrastat_product_origin_country_id
                 LEFT JOIN res_country partner_country ON partner.country_id = partner_country.id AND partner_country.intrastat IS TRUE
                 LEFT JOIN uom_uom ref_weight_uom on ref_weight_uom.category_id = %s and ref_weight_uom.uom_type = 'reference'
-        """).format(tables=tables)
-        where = SQL("""
+        """
+        where = f"""
             WHERE
                 {where_clause}
                 AND account_move_line.display_type = 'product'
@@ -470,7 +502,8 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 AND company_country.id != country.id
                 AND country.intrastat = TRUE AND (country.code != 'GB' OR account_move.date < '2021-01-01')
                 AND prodt.type != 'service'
-        """).format(where_clause=where_clause)
+                AND ref_weight_uom.active
+        """
 
         if expanded_line_options:
             # When expanding the grouped lines, we only want to add the ones that matches the parent country code, currency and commodity code
@@ -481,22 +514,18 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 'transaction.code': format_where_params('transaction_code'),
                 'company_region.code': format_where_params('region_code'),
                 'partner.vat': format_where_params('partner_vat', comparison_value=('QV999999999999', 'QN999999999999')),
+                'COALESCE(inv_incoterm.code, comp_incoterm.code)': format_where_params('incoterm_code'),
+                'COALESCE(inv_transport.code, comp_transport.code)': format_where_params('transport_code'),
                 'account_move.currency_id': format_where_params('invoice_currency_id'),
             }
-
             for key, value in where_values.items():
-                where += SQL(" AND {key} IS NOT DISTINCT FROM %s").format(key=Identifier(*key.split('.')))
+                where += f" AND {key} IS NOT DISTINCT FROM %s"
                 where_params.append(value)
 
-            where += SQL(" AND COALESCE(inv_incoterm.code, comp_incoterm.code) IS NOT DISTINCT FROM %s")
-            where_params.append(format_where_params('incoterm_code'))
-            where += SQL(" AND COALESCE(inv_transport.code, comp_transport.code) IS NOT DISTINCT FROM %s")
-            where_params.append(format_where_params('transport_code'))
+        order = " ORDER BY account_move.invoice_date DESC, account_move_line.id"
 
         if options['intrastat_with_vat']:
-            where += SQL(" AND partner.vat IS NOT NULL ")
-
-        order = SQL("ORDER BY account_move.invoice_date DESC, account_move_line.id")
+            where += " AND partner.vat IS NOT NULL "
 
         query = {
             'select': select,
@@ -522,7 +551,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
         """ This is the query to have the line grouped by country, currency and commodity code. """
         inner_query, params = self._prepare_query(options, column_group_key)
 
-        query = SQL("""
+        query = f"""
           SELECT %s AS column_group_key,
                  intrastat_lines.system as system,
                  intrastat_lines.type as type,
@@ -537,22 +566,22 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                  intrastat_lines.intrastat_product_origin_country_name as intrastat_product_origin_country_name,
                  intrastat_lines.intrastat_product_origin_country_code as intrastat_product_origin_country_code,
                  intrastat_lines.invoice_currency_id as invoice_currency_id,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.expired_trans IS TRUE THEN intrastat_lines.move_line_id END) as expired_trans,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.premature_trans IS TRUE THEN intrastat_lines.move_line_id END) as premature_trans,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_trans IS TRUE THEN intrastat_lines.move_line_id END) as missing_trans,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.expired_comm IS TRUE THEN intrastat_lines.product_id END) as expired_comm,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.premature_comm IS TRUE THEN intrastat_lines.product_id END) as premature_comm,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_comm IS TRUE THEN intrastat_lines.product_id END) as missing_comm,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_unit IS TRUE THEN intrastat_lines.product_id END) as missing_unit,
-                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_weight IS TRUE THEN intrastat_lines.product_id END) as missing_weight,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.expired_trans IS TRUE THEN intrastat_lines.move_line_id ELSE NULL END) as expired_trans,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.premature_trans IS TRUE THEN intrastat_lines.move_line_id ELSE NULL END) as premature_trans,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_trans IS TRUE THEN intrastat_lines.move_line_id ELSE NULL END) as missing_trans,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.expired_comm IS TRUE THEN intrastat_lines.product_id ELSE NULL END) as expired_comm,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.premature_comm IS TRUE THEN intrastat_lines.product_id ELSE NULL END) as premature_comm,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_comm IS TRUE THEN intrastat_lines.product_id ELSE NULL END) as missing_comm,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_unit IS TRUE THEN intrastat_lines.product_id ELSE NULL END) as missing_unit,
+                 ARRAY_AGG(CASE WHEN intrastat_lines.missing_weight IS TRUE THEN intrastat_lines.product_id ELSE NULL END) as missing_weight,
                  SUM(intrastat_lines.value) as value,
                  SUM(intrastat_lines.weight) as weight,
                  SUM(intrastat_lines.supplementary_units) as supplementary_units
-            FROM ({}) intrastat_lines
+            FROM ({inner_query}) intrastat_lines
       INNER JOIN account_move ON account_move.id = intrastat_lines.invoice_id
         GROUP BY system, type, country_code, transaction_code, transport_code, region_code, commodity_code, country_name, partner_vat,
                  incoterm_code,intrastat_product_origin_country_code, intrastat_product_origin_country_name, invoice_currency_id
-            """).format(inner_query)
+            """
 
         params = [
             column_group_key,
@@ -603,7 +632,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 self.env.ref('account_intrastat.account_move_line_tree_view_account_intrastat_transaction_codes').id,
                 'list',
             ), (False, 'form')],
-            'domain': [('id', 'in', params['ids'])],
+            'domain': [('id', 'in', options['intrastat_warnings'][params['option_key']])],
             'context': {
                 'create': False,
                 'delete': False,
@@ -620,7 +649,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 self.env.ref('account_intrastat.product_product_tree_view_account_intrastat').id,
                 'list',
             ), (False, 'form')],
-            'domain': [('id', 'in', params['ids'])],
+            'domain': [('id', 'in', options['intrastat_warnings'][params['option_key']])],
             'context': {
                 'create': False,
                 'delete': False,
@@ -637,7 +666,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 self.env.ref('account_intrastat.product_product_tree_view_account_intrastat_supplementary_unit').id,
                 'list',
             ), (False, 'form')],
-            'domain': [('id', 'in', params['ids'])],
+            'domain': [('id', 'in', options['intrastat_warnings'][params['option_key']])],
             'context': {
                 'create': False,
                 'delete': False,
@@ -654,7 +683,7 @@ class IntrastatReportCustomHandler(models.AbstractModel):
                 self.env.ref('account_intrastat.product_product_tree_view_account_intrastat_weight').id,
                 'list',
             ), (False, 'form')],
-            'domain': [('id', 'in', params['ids'])],
+            'domain': [('id', 'in', options['intrastat_warnings'][params['option_key']])],
             'context': {
                 'create': False,
                 'delete': False,

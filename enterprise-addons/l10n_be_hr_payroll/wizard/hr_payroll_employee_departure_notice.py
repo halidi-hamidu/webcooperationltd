@@ -90,9 +90,13 @@ class HrPayslipEmployeeDepartureNotice(models.TransientModel):
                     period_since_2014.months + period_since_2014.years*12, 'fired')
             elif notice.leaving_type_id.reason_code == departure_reasons['resigned']:
                 notice.salary_visibility = False
-                notice.notice_duration_month_before_2014 = 0
-                notice.notice_duration_week_after_2014 = notice._find_week(
-                    period_since_2014.months + period_since_2014.years*12, 'resigned')
+                if difference_in_years > 0:
+                    notice.notice_duration_month_before_2014 = 3
+                    notice.notice_duration_week_after_2014 = 0
+                else:
+                    notice.notice_duration_month_before_2014 = 0
+                    notice.notice_duration_week_after_2014 = notice._find_week(
+                        period_since_2014.months + period_since_2014.years*12, 'resigned')
             elif notice.leaving_type_id.reason_code == departure_reasons['retired']:
                 notice.salary_visibility = False
                 notice.notice_duration_month_before_2014 = 0
@@ -108,8 +112,8 @@ class HrPayslipEmployeeDepartureNotice(models.TransientModel):
     def _find_week(self, duration_worked_month, leaving_type_id):
         if leaving_type_id == 'resigned':
             duration_notice = [
-                (3, 1), (6, 2), (12, 3), (18, 4), (24, 5), (48, 6), (60, 7), (72, 9),
-                (84, 10), (96, 12), (1000, 13)]
+                (3, 1), (6, 2), (9, 3), (12, 4), (18, 5), (24, 6), (36, 7), (48, 8),
+                (60, 9), (72, 10), (84, 11), (96, 12), (108, 13)]
         else:
             duration_notice = [
                 (3, 1), (4, 3), (5, 4), (6, 5), (9, 6), (12, 7), (15, 8), (18, 9),
@@ -118,7 +122,7 @@ class HrPayslipEmployeeDepartureNotice(models.TransientModel):
                 (204, 51), (216, 54), (228, 57), (240, 60), (252, 62), (264, 63), (276, 64), (288, 65)]
         for duration in duration_notice:
             last_valid = duration[1]
-            if duration[0] > duration_worked_month:
+            if duration[0] >= duration_worked_month:
                 return last_valid
         return last_valid
 
@@ -167,8 +171,8 @@ class HrPayslipEmployeeDepartureNotice(models.TransientModel):
             'date_from': self.start_notice_period,
             'date_to': self.start_notice_period,
             'contract_id': last_contract.id,
-            'struct_id': struct_id.id,
         })
+        termination_payslip.struct_id = struct_id.id
         termination_payslip.worked_days_line_ids = [(5, 0, 0)]
 
         contract = termination_payslip.contract_id

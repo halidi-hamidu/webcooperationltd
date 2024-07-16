@@ -10,9 +10,9 @@ class QuantPackage(models.Model):
     _barcode_field = 'name'
 
     @api.model
-    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
-        domain = self.env.company.nomenclature_id._preprocess_gs1_search_args(domain, ['package'], 'name')
-        return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+        args = self.env.company.nomenclature_id._preprocess_gs1_search_args(args, ['package'], 'name')
+        return super()._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
 
     @api.model
     def action_create_from_barcode(self, vals_list):

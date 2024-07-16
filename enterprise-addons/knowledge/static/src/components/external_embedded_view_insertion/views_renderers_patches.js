@@ -1,12 +1,8 @@
 /** @odoo-module */
 
-import { _t } from "@web/core/l10n/translation";
-import { renderToElement } from "@web/core/utils/render";
+import { _t } from "web.core";
 import { CalendarRenderer } from "@web/views/calendar/calendar_renderer";
-import { CohortRenderer } from "@web_cohort/cohort_renderer";
-import { GanttRenderer } from "@web_gantt/gantt_renderer";
 import { GraphRenderer } from "@web/views/graph/graph_renderer";
-import { HierarchyRenderer } from "@web_hierarchy/hierarchy_renderer";
 import { KanbanRenderer } from "@web/views/kanban/kanban_renderer";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { MapRenderer } from "@web_map/map_view/map_renderer";
@@ -18,91 +14,28 @@ import {
     useOwnedDialogs,
     useService } from "@web/core/utils/hooks";
 import { omit } from "@web/core/utils/objects";
-import { encodeDataBehaviorProps } from "@knowledge/js/knowledge_utils";
 
 /**
  * The following patch will add two new entries to the 'Favorites' dropdown menu
  * of the control panel namely: 'Insert view in article' and 'Insert link in article'.
  */
-const EmbeddedViewRendererPatch = () => ({
+const EmbeddedViewRendererPatch = {
     setup() {
-        super.setup(...arguments);
+        this._super(...arguments);
         if (this.env.searchModel) {
-            useBus(this.env.searchModel, 'insert-embedded-view', this._insertCurrentViewInKnowledge.bind(this, 'knowledge.EmbeddedViewBehaviorBlueprint'));
-            useBus(this.env.searchModel, 'insert-view-link', this._insertCurrentViewInKnowledge.bind(this, 'knowledge.EmbeddedViewLinkBehaviorBlueprint'));
+            useBus(this.env.searchModel, 'insert-embedded-view', this._insertEmbeddedView.bind(this));
+            useBus(this.env.searchModel, 'insert-view-link', this._insertViewLink.bind(this));
             this.orm = useService('orm');
             this.actionService = useService('action');
             this.addDialog = useOwnedDialogs();
             this.userService = useService('user');
-            this.knowledgeCommandsService = useService('knowledgeCommandsService');
         }
-    },
-    /**
-     * @param {string} isView TODO remove with upgrade, future improvements
-     *                 will use 'display_name' everywhere, currently we have to
-     *                 fetch the right name prop depending on embed type.
-     *                 view_link_behavior uses "name" and embedded_view_behavior
-     *                 uses "display_name".
-     * @returns {Object|null} Template props necessary to render an embedded
-     *                        view in Knowledge, or null if it is not possible
-     *                        to store this view as an embedded view.
-     */
-    _extractCurrentViewEmbedTemplateProps(isView=true) {
-        const config = this.env.config;
-        const xmlId = this.actionService.currentController?.action?.xml_id;
-        const context = this._getViewContext();
-        const display_name = config.getDisplayName();
-        const nameProp = isView ? {
-            // used by embedded view behavior
-            display_name: display_name,
-        } : {
-            // used by view link behavior TODO: remove with upgrade
-            name: display_name,
-        };
-        if (xmlId) {
-            return {
-                behaviorProps: encodeDataBehaviorProps({
-                    action_xml_id: xmlId,
-                    context,
-                    view_type: config.viewType,
-                    ...nameProp,
-                }),
-            };
-        }
-        /**
-         * Recover the original action (before the service pre-processing). The
-         * raw action is needed because it will be pre-processed again as a
-         * "different" action, after being stripped of its id, in Knowledge.
-         * If there is no original action, it means that the action is not
-         * serializable, therefore it cannot be stored in the body of an
-         * article.
-         */
-        const originalAction = this.actionService.currentController?.action?._originalAction;
-        if (originalAction) {
-            const action = JSON.parse(originalAction);
-            // Don't keep the non-markup help (to not store it in
-            // `data-behavior-props`)
-            delete action.help;
-            // Recover the markup version of the act_window help field.
-            const help = this.actionService.currentController.action.help;
-            action.display_name = display_name;
-            return {
-                behaviorProps: encodeDataBehaviorProps({
-                    act_window: action,
-                    context,
-                    view_type: config.viewType,
-                    ...nameProp,
-                }),
-                action_help: help,
-            };
-        }
-        return null;
     },
     /**
      * Returns the full context that will be passed to the embedded view.
      * @returns {Object}
      */
-    _getViewContext() {
+    _getViewContext: function () {
         const context = {};
         if (this.env.searchModel) {
             // Store the context of the search model:
@@ -116,33 +49,50 @@ const EmbeddedViewRendererPatch = () => ({
         const fns = this.env.__getContext__.callbacks;
         const localContext = Object.assign({}, ...fns.map(fn => fn()));
         Object.assign(context, localContext);
+        Object.assign(context, {
+            knowledge_embedded_view_framework: 'owl'
+        });
         return context;
     },
-    /**
-     * Prepare a Behavior rendered in backend to be inserted in an article by
-     * the KnowledgeCommandsService.
-     * Allow to choose an article in a modal, redirect to that article and
-     * append the rendered template "blueprint" needed for the desired Behavior
-     *
-     * @param {string} template template name of the Behavior's blueprint to
-     *                 render.
-     */
-    _insertCurrentViewInKnowledge(template) {
+    _insertEmbeddedView: function () {
         const config = this.env.config;
-        const templateProps = this._extractCurrentViewEmbedTemplateProps(template === "knowledge.EmbeddedViewBehaviorBlueprint");
-        if (config.actionType !== 'ir.actions.act_window' || !templateProps) {
-            throw new Error('This view can not be embedded in an article: the action is not an "ir.actions.act_window" or is not serializable.');
+        if (config.actionType !== 'ir.actions.act_window') {
+            return;
         }
         this._openArticleSelector(async id => {
-            this.knowledgeCommandsService.setPendingBehaviorBlueprint({
-                behaviorBlueprint: renderToElement(
-                    template,
-                    templateProps,
-                ),
-                model: 'knowledge.article',
-                field: 'body',
-                resId: id,
+            const context = this._getViewContext();
+            context['keyOptionalFields'] = this.keyOptionalFields;
+            await this.orm.call('knowledge.article', 'append_embedded_view',
+                [[id],
+                config.actionId,
+                config.viewType,
+                config.getDisplayName(),
+                context]
+            );
+            this.actionService.doAction('knowledge.ir_actions_server_knowledge_home_page', {
+                additionalContext: {
+                    res_id: id
+                }
             });
+        });
+    },
+    /**
+     * Inserts a new link in the article redirecting the user to the current view.
+     */
+    _insertViewLink: function () {
+        const config = this.env.config;
+        if (config.actionType !== 'ir.actions.act_window') {
+            return;
+        }
+        this._openArticleSelector(async id => {
+            const context = this._getViewContext();
+            await this.orm.call('knowledge.article', 'append_view_link',
+                [[id],
+                config.actionId,
+                config.viewType,
+                config.getDisplayName(),
+                context]
+            );
             this.actionService.doAction('knowledge.ir_actions_server_knowledge_home_page', {
                 additionalContext: {
                     res_id: id
@@ -153,7 +103,7 @@ const EmbeddedViewRendererPatch = () => ({
     /**
      * @param {Function} onSelectCallback
      */
-    _openArticleSelector(onSelectCallback) {
+    _openArticleSelector: function (onSelectCallback) {
         this.addDialog(SelectCreateDialog, {
             title: _t('Select an article'),
             noCreate: false,
@@ -161,8 +111,7 @@ const EmbeddedViewRendererPatch = () => ({
             resModel: 'knowledge.article',
             context: {},
             domain: [
-                ['user_has_write_access', '=', true],
-                ['is_template', '=', false]
+                ['user_has_write_access', '=', true]
             ],
             onSelected: resIds => {
                 onSelectCallback(resIds[0]);
@@ -175,18 +124,18 @@ const EmbeddedViewRendererPatch = () => ({
             },
         });
     },
-});
+};
 
-const EmbeddedViewListRendererPatch = () => ({
+const EmbeddedViewListRendererPatch = {
+    ...EmbeddedViewRendererPatch,
     /**
      * @override
      * @returns {Object}
      */
-    _getViewContext() {
-        const context = super._getViewContext();
+    _getViewContext: function () {
+        const context = EmbeddedViewRendererPatch._getViewContext.call(this);
         Object.assign(context, {
-            orderBy: JSON.stringify(this.props.list.orderBy),
-            keyOptionalFields: this.keyOptionalFields,
+            orderBy: JSON.stringify(this.props.list.orderBy)
         });
         return context;
     },
@@ -217,32 +166,33 @@ const EmbeddedViewListRendererPatch = () => ({
                 ? searchModelKeyOptionalFields
                 : searchModelKeyOptionalFields + (embeddedViewId ? `,${embeddedViewId}` : "");
         }
-        return super.createKeyOptionalFields(...arguments) + (embeddedViewId ? "," + embeddedViewId : "");
+        return this._super(...arguments) + (embeddedViewId ? "," + embeddedViewId : "");
     },
-});
+};
 
-patch(CalendarRenderer.prototype, EmbeddedViewRendererPatch());
-patch(CohortRenderer.prototype, EmbeddedViewRendererPatch());
-patch(GanttRenderer.prototype, EmbeddedViewRendererPatch());
-patch(GraphRenderer.prototype, EmbeddedViewRendererPatch());
-patch(HierarchyRenderer.prototype, EmbeddedViewRendererPatch());
-patch(KanbanRenderer.prototype, EmbeddedViewRendererPatch());
-patch(ListRenderer.prototype, EmbeddedViewRendererPatch());
-patch(ListRenderer.prototype, EmbeddedViewListRendererPatch());
-patch(MapRenderer.prototype, EmbeddedViewRendererPatch());
-patch(PivotRenderer.prototype, EmbeddedViewRendererPatch());
+patch(CalendarRenderer.prototype, 'knowledge_calendar_embeddable', EmbeddedViewRendererPatch);
+patch(GraphRenderer.prototype, 'knowledge_graph_embeddable', EmbeddedViewRendererPatch);
+patch(KanbanRenderer.prototype, 'knowledge_kanban_embeddable', EmbeddedViewRendererPatch);
+patch(ListRenderer.prototype, 'knowledge_list_embeddable', EmbeddedViewListRendererPatch);
+patch(MapRenderer.prototype, 'knowledge_map_embeddable', EmbeddedViewRendererPatch);
+patch(PivotRenderer.prototype, 'knowledge_pivot_embeddable', EmbeddedViewRendererPatch);
 
 const supportedEmbeddedViews = new Set([
     'calendar',
-    'cohort',
-    'gantt',
     'graph',
-    'hierarchy',
     'kanban',
     'list',
     'map',
     'pivot',
 ]);
+
+odoo.ready("web.assets_backend").then(async () => {
+    try {
+        const { CohortRenderer } = await odoo.runtimeImport("@web_cohort/cohort_renderer");
+        patch(CohortRenderer.prototype, "knowledge_cohort_embeddable", EmbeddedViewRendererPatch);
+        supportedEmbeddedViews.add("cohort");
+    } catch {}
+});
 
 export {
     supportedEmbeddedViews,

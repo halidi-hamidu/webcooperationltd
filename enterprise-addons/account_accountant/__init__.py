@@ -6,41 +6,35 @@ from . import wizard
 
 import logging
 
+from odoo import api, SUPERUSER_ID
+
 _logger = logging.getLogger(__name__)
 
 
-def _account_accountant_post_init(env):
-    countries_code = env['res.company'].search([]).mapped('country_id.code')
-    if countries_code:
+def _account_accountant_post_init(cr, registry):
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    country_code = env.company.country_id.code
+    if country_code:
         module_list = []
 
         # SEPA zone countries will be using SEPA
         sepa_zone = env.ref('base.sepa_zone', raise_if_not_found=False)
         sepa_zone_country_codes = sepa_zone and sepa_zone.mapped('country_ids.code') or []
-        if any(code in sepa_zone_country_codes for code in countries_code):
+
+        if country_code in sepa_zone_country_codes:
             module_list.append('account_sepa')
             module_list.append('account_bank_statement_import_camt')
-        if any(code in ('AU', 'CA', 'US') for code in countries_code):
+        if country_code in ('AU', 'CA', 'US'):
             module_list.append('account_reports_cash_basis')
-        # The customer statement is customary in Australia, India and New Zealand.
-        if any(code in ('AU', 'IN', 'NZ') for code in countries_code):
-            module_list.append('l10n_account_customer_statements')
-        # Auto install Bacs in case of new United kingdom databases.
-        if any(code == 'GB' for code in countries_code):
-            module_list.append('account_bacs')
 
         module_ids = env['ir.module.module'].search([('name', 'in', module_list), ('state', '=', 'uninstalled')])
         if module_ids:
             module_ids.sudo().button_install()
 
-    for company in env['res.company'].search([('chart_template', '!=', False)]):
-        ChartTemplate = env['account.chart.template'].with_company(company)
-        ChartTemplate._load_data({
-            'res.company': ChartTemplate._get_account_accountant_res_company(company.chart_template),
-        })
 
+def uninstall_hook(cr, registry):
+    env = api.Environment(cr, SUPERUSER_ID, {})
 
-def uninstall_hook(env):
     try:
         group_user = env.ref("account.group_account_user")
         group_user.write({

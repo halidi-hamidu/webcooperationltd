@@ -23,7 +23,7 @@ class EventSocialCase(EventCase):
     @users('user_eventmanager')
     def test_event_mail_after_sub(self):
         """Check that we can not set "after each registration" with social event mail."""
-        social_template = self.env['social.post.template'].create({'message': 'Join the Python side of the force!'})
+        social_template = self.env['social.post.template'].create({'message': 'Join the Python side of the force !'})
         with self.assertRaises(UserError):
             self.env['event.type'].create({
                 'name': 'Super category',
@@ -45,7 +45,7 @@ class EventSocialCase(EventCase):
     @users('user_eventmanager')
     def test_event_mail_before_event(self):
         """Check that the social template is automatically set, when changing the category of the event."""
-        social_template = self.env['social.post.template'].create({'message': 'Join the Python side of the force!'})
+        social_template = self.env['social.post.template'].create({'message': 'Join the Python side of the force !'})
         category = self.env['event.type'].create({
             'name': 'Super category',
             'event_type_mail_ids': [(0, 0, {'notification_type': 'social_post', 'template_ref': 'social.post.template,%i' % social_template.id})],

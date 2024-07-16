@@ -12,15 +12,15 @@ appropriate views and selling choices.
     """,
     'depends': ['website_sale', 'sale_subscription'],
     'data': [
+        'security/ir.model.access.csv',
         'views/templates.xml',
-        'views/sale_order_views.xml',
     ],
     'demo': [
         'data/demo.xml',
     ],
     'assets': {
         'web.assets_frontend': [
-            ('before', 'website_sale/static/src/js/website_sale.js', 'website_sale_subscription/static/src/js/variant_mixin.js'),
+            'website_sale_subscription/static/src/js/*.js',
         ],
         'web.assets_tests': [
             'website_sale_subscription/static/tests/tours/**/*',

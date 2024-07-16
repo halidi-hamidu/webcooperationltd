@@ -7,6 +7,7 @@ from odoo import fields, models
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    country_code = fields.Char(related='company_id.account_fiscal_country_id.code', readonly=True)
     l10n_mx_edi_material_type = fields.Selection(
         selection=[
             ('01', 'Materia prima'),

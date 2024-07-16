@@ -37,10 +37,10 @@ class TestReports(TestAccountReportsCommon):
 
     @classmethod
     def _get_tax_from_xml_id(cls, trailing_xmlid):
-        return cls.env.ref('account.%s_%s' % (cls.company_data['company'].id, trailing_xmlid))
+        return cls.env.ref('l10n_in.%s_%s' % (cls.company_data['company'].id, trailing_xmlid))
 
     @classmethod
-    def setUpClass(cls, chart_template_ref="in"):
+    def setUpClass(cls, chart_template_ref="l10n_in.indian_chart_template_standard"):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.company_data["company"].write({
             "vat": "24AAGCC7144L6ZE",

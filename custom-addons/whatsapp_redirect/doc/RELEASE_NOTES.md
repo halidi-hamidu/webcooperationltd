@@ -1,6 +1,6 @@
 ## Module <whatsapp_redirect>
 
-#### 17.11.2023
-#### Version 17.0.1.0.0
+#### 20.08.2022
+#### Version 16.0.1.0.0
 ##### ADD
-- Initial commit for Send Whatsapp Message 
+- Initial commit for Send Whatsapp Message Module

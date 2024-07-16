@@ -8,14 +8,17 @@ from lxml import etree
 from odoo import fields
 from odoo.tests import Form, tagged
 from odoo.tools import misc
+
 from .common import TestL10nClEdiCommon, _check_with_xsd_patch
 
 
 @tagged('post_install_l10n', 'post_install', '-at_install')
 @patch('odoo.tools.xml_utils._check_with_xsd', _check_with_xsd_patch)
+@tagged('post_install', '-at_install')
 class TestFetchmailServer(TestL10nClEdiCommon):
     @classmethod
-    def setUpClass(cls, chart_template_ref='cl'):
+    def setUpClass(cls, chart_template_ref='l10n_cl.cl_chart_template'):
+
         super().setUpClass(chart_template_ref=chart_template_ref)
         purchase_journal = cls.env['account.journal'].search([
             ('type', '=', 'purchase'),
@@ -292,7 +295,7 @@ class TestFetchmailServer(TestL10nClEdiCommon):
             ('code', '=', '34'),
             ('country_id.code', '=', 'CL')
         ])
-        with patch('logging.Logger.warning') as logger:
+        with patch('logging.Logger.error') as logger:
             self.env['fetchmail.server']._process_incoming_customer_claim(
                 self.company_data['company'].id, att_content, att_name, origin_type='incoming_acknowledge')
             logger.assert_called_with(

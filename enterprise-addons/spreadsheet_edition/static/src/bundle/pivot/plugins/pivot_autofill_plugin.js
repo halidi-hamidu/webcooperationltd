@@ -1,13 +1,20 @@
 /** @odoo-module */
 
 import { _t } from "@web/core/l10n/translation";
-import { UIPlugin, tokenize } from "@odoo/o-spreadsheet";
-import { getNumberOfPivotFormulas, makePivotFormula } from "@spreadsheet/pivot/pivot_helpers";
-import { pivotTimeAdapter } from "@spreadsheet/pivot/pivot_time_adapters";
+import { sprintf } from "@web/core/utils/strings";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
+import { FORMATS } from "@spreadsheet/helpers/constants";
+import {
+    getFirstPivotFunction,
+    getNumberOfPivotFormulas,
+    makePivotFormula,
+} from "@spreadsheet/pivot/pivot_helpers";
 
 /**
  * @typedef {import("@spreadsheet/pivot/pivot_table").SpreadsheetPivotTable} SpreadsheetPivotTable
  */
+
+const { astToFormula } = spreadsheet;
 
 /**
  * @typedef CurrentElement
@@ -22,7 +29,7 @@ import { pivotTimeAdapter } from "@spreadsheet/pivot/pivot_time_adapters";
  * @property {string|undefined} group
  */
 
-export class PivotAutofillPlugin extends UIPlugin {
+export default class PivotAutofillPlugin extends spreadsheet.UIPlugin {
     // ---------------------------------------------------------------------
     // Getters
     // ---------------------------------------------------------------------
@@ -37,12 +44,13 @@ export class PivotAutofillPlugin extends UIPlugin {
      * @returns {string}
      */
     getPivotNextAutofillValue(formula, isColumn, increment) {
-        const tokens = tokenize(formula);
-        if (getNumberOfPivotFormulas(tokens) !== 1) {
+        if (getNumberOfPivotFormulas(formula) !== 1) {
             return formula;
         }
-        const { functionName, args } = this.getters.getFirstPivotFunction(tokens);
-        const evaluatedArgs = args.map((arg) => arg.toString());
+        const { functionName, args } = getFirstPivotFunction(formula);
+        const evaluatedArgs = args
+            .map(astToFormula)
+            .map((arg) => this.getters.evaluateFormula(arg).toString());
         const pivotId = evaluatedArgs[0];
         if (!this.getters.isExistingPivot(pivotId)) {
             return formula;
@@ -104,19 +112,23 @@ export class PivotAutofillPlugin extends UIPlugin {
      * @returns {Array<TooltipFormula>}
      */
     getTooltipFormula(formula, isColumn) {
-        const tokens = tokenize(formula);
-        if (getNumberOfPivotFormulas(tokens) !== 1) {
+        if (getNumberOfPivotFormulas(formula) !== 1) {
             return [];
         }
-        const { functionName, args } = this.getters.getFirstPivotFunction(tokens);
-        const pivotId = args[0];
+        const { functionName, args } = getFirstPivotFunction(formula);
+        const evaluatedArgs = args
+            .map(astToFormula)
+            .map((arg) => this.getters.evaluateFormula(arg));
+        const pivotId = evaluatedArgs[0];
         if (!this.getters.isExistingPivot(pivotId)) {
-            return [{ title: _t("Missing pivot"), value: _t("Missing pivot #%s", pivotId) }];
+            return [
+                { title: _t("Missing pivot"), value: sprintf(_t("Missing pivot #%s"), pivotId) },
+            ];
         }
         if (functionName === "ODOO.PIVOT") {
-            return this._tooltipFormatPivot(pivotId, args, isColumn);
+            return this._tooltipFormatPivot(pivotId, evaluatedArgs, isColumn);
         } else if (functionName === "ODOO.PIVOT.HEADER") {
-            return this._tooltipFormatPivotHeader(pivotId, args);
+            return this._tooltipFormatPivotHeader(pivotId, evaluatedArgs);
         }
         return [];
     }
@@ -187,7 +199,7 @@ export class PivotAutofillPlugin extends UIPlugin {
                     // Targeting row-header
                     return this._autofillRowFromValue(pivotId, currentElement);
                 }
-                if (nextColIndex < -1 || nextColIndex >= table.getNumberOfDataColumns()) {
+                if (nextColIndex < -1 || nextColIndex >= table.getColWidth()) {
                     // Outside the pivot
                     return "";
                 }
@@ -217,7 +229,7 @@ export class PivotAutofillPlugin extends UIPlugin {
                     // Targeting col-header
                     return this._autofillColFromValue(pivotId, nextRowIndex, currentElement);
                 }
-                if (nextRowIndex >= table.getNumberOfDataRows()) {
+                if (nextRowIndex >= table.getRowHeight()) {
                     // Outside the pivot
                     return "";
                 }
@@ -284,7 +296,7 @@ export class PivotAutofillPlugin extends UIPlugin {
                 if (
                     currentColIndex === -1 ||
                     nextColIndex < 0 ||
-                    nextColIndex >= table.getNumberOfDataColumns() ||
+                    nextColIndex >= table.getColWidth() ||
                     !nextGroup
                 ) {
                     // Outside the pivot
@@ -300,12 +312,12 @@ export class PivotAutofillPlugin extends UIPlugin {
         } else {
             // UP-DOWN
             const rowIndex =
-                currentColIndex === table.getNumberOfDataColumns() - 1
-                    ? table.getNumberOfHeaderRows() - 2 + currentElement.cols.length
+                currentColIndex === table.getColWidth() - 1
+                    ? table.getColHeight() - 2 + currentElement.cols.length
                     : currentElement.cols.length - 1;
             const nextRowIndex = rowIndex + increment;
             const groupLevels = dataSource.getNumberOfColGroupBys();
-            if (nextRowIndex < 0 || nextRowIndex >= groupLevels + 1 + table.getNumberOfDataRows()) {
+            if (nextRowIndex < 0 || nextRowIndex >= groupLevels + 1 + table.getRowHeight()) {
                 // Outside the pivot
                 return "";
             }
@@ -368,7 +380,7 @@ export class PivotAutofillPlugin extends UIPlugin {
         if (isColumn) {
             const colIndex = increment - 1;
             // LEFT-RIGHT
-            if (colIndex < 0 || colIndex >= table.getNumberOfDataColumns()) {
+            if (colIndex < 0 || colIndex >= table.getColWidth()) {
                 // Outside the pivot
                 return "";
             }
@@ -389,11 +401,7 @@ export class PivotAutofillPlugin extends UIPlugin {
                 rows[0] = this._incrementDate(rows[0], group, increment);
             } else {
                 const nextIndex = currentIndex + increment;
-                if (
-                    currentIndex === -1 ||
-                    nextIndex < 0 ||
-                    nextIndex >= table.getNumberOfDataRows()
-                ) {
+                if (currentIndex === -1 || nextIndex < 0 || nextIndex >= table.getRowHeight()) {
                     return "";
                 }
                 rows = [...table.getCellsFromRowAtIndex(nextIndex).values];
@@ -517,9 +525,10 @@ export class PivotAutofillPlugin extends UIPlugin {
      * @returns {string}
      */
     _incrementDate(date, group, increment) {
-        const adapter = pivotTimeAdapter(group);
-        const value = adapter.normalizeFunctionValue(date);
-        return adapter.increment(value, increment);
+        const format = FORMATS[group].out;
+        const interval = FORMATS[group].interval;
+        const dateMoment = moment(date, format);
+        return dateMoment.isValid() ? dateMoment.add(increment, interval).format(format) : date;
     }
     /**
      * Create a structure { field: value } from the arguments of a pivot
@@ -564,17 +573,15 @@ export class PivotAutofillPlugin extends UIPlugin {
                 (isColumn && dataSource.isColumnGroupBy(fieldName)) ||
                 (!isColumn && dataSource.isRowGroupBy(fieldName))
             ) {
-                const formattedValue = this.getters.getPivotHeaderFormattedValue(
-                    pivotId,
-                    domain.slice(0, i)
-                );
-                tooltips.push({ value: formattedValue });
+                tooltips.push({
+                    value: dataSource.getDisplayedPivotHeaderValue(domain.slice(0, i)),
+                });
             }
         }
         if (definition.measures.length !== 1 && isColumn) {
             const measure = args[1];
             tooltips.push({
-                value: dataSource.getMeasureDisplayName(measure),
+                value: dataSource.getGroupByDisplayLabel("measure", measure),
             });
         }
         if (!tooltips.length) {
@@ -597,15 +604,12 @@ export class PivotAutofillPlugin extends UIPlugin {
     _tooltipFormatPivotHeader(pivotId, args) {
         const tooltips = [];
         const domain = args.slice(1); // e.g. ["create_date:month", "04/2022", "user_id", 3]
+        const dataSource = this.getters.getPivotDataSource(pivotId);
         if (domain.length === 0) {
             return [{ value: _t("Total") }];
         }
         for (let i = 2; i <= domain.length; i += 2) {
-            const formattedValue = this.getters.getPivotHeaderFormattedValue(
-                pivotId,
-                domain.slice(0, i)
-            );
-            tooltips.push({ value: formattedValue });
+            tooltips.push({ value: dataSource.getDisplayedPivotHeaderValue(domain.slice(0, i)) });
         }
         return tooltips;
     }

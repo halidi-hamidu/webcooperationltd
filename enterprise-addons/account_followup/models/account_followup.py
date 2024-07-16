@@ -9,7 +9,6 @@ class FollowupLine(models.Model):
     _name = 'account_followup.followup.line'
     _description = 'Follow-up Criteria'
     _order = 'delay asc'
-    _check_company_auto = True
 
     name = fields.Char('Description', required=True, translate=True)
     delay = fields.Integer('Due Days', required=True,
@@ -58,30 +57,14 @@ class FollowupLine(models.Model):
             self.create_activity = False
 
     def _get_next_date(self):
-        """ Computes the next date used to set a next_followup_action_date for a partner
-
-        The next date will be typically set in (next level delay - current level delay) days
-        There are 3 exceptions to this:
-        - no next level -> next date set in (current level delay - previous level delay) days
-        - no next level AND only 1 level -> next date set in (current level delay) days
-        - no level at all -> next date not set (handled by partner, this method won't be called)
-        """
         self.ensure_one()
         next_followup = self._get_next_followup()
         if next_followup:
             delay = next_followup.delay - self.delay
         else:
-            previous_followup = self._get_previous_followup()
-            if previous_followup:
-                delay = self.delay - previous_followup.delay
-            else:
-                delay = self.delay
-        return fields.Date.context_today(self) + timedelta(days=delay)
+            delay = 14
+        return fields.Date.today() + timedelta(days=delay)
 
     def _get_next_followup(self):
         self.ensure_one()
         return self.env['account_followup.followup.line'].search([('delay', '>', self.delay), ('company_id', '=', self.env.company.id)], order="delay asc", limit=1)
-
-    def _get_previous_followup(self):
-        self.ensure_one()
-        return self.env['account_followup.followup.line'].search([('delay', '<', self.delay), ('company_id', '=', self.env.company.id)], order="delay desc", limit=1)

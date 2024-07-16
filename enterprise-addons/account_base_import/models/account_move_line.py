@@ -48,7 +48,7 @@ class AccountMoveLine(models.Model):
             # but we need to pass ids to prevent creation if they already exist
             journal_codes_ids = {}
             journal_codes = self.env["account.journal"].search_read(
-                domain=self.env['account.journal']._check_company_domain(self.env.company),
+                domain=[("company_id", "=", self.env.company.id)],
                 fields=["code"]
             )
             for journal in journal_codes:
@@ -60,10 +60,5 @@ class AccountMoveLine(models.Model):
 
             # override back to the default after all moves are created
             _sequence_override(journal_ids)
-
-            if 'matching_number' in fields:
-                matching_index = fields.index('matching_number')
-                for row in data:
-                    row[matching_index] = row[matching_index] and f"I{row[matching_index]}"
 
         return super().load(fields, data)

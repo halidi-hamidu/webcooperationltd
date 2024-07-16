@@ -1,11 +1,12 @@
 # coding: utf-8
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import tools
+from odoo import api, tools, SUPERUSER_ID
 import csv
 
 
-def post_init_hook(env):
+def post_init_hook(cr, registry):
+    env = api.Environment(cr, SUPERUSER_ID, {})
     mx_country = env["res.country"].search([("code", "=", "MX")])
     # Load cities
     res_city_vals_list = []
@@ -26,7 +27,7 @@ def post_init_hook(env):
     if res_city_vals_list:
         cities = env['res.city'].create(res_city_vals_list)
 
-        env.cr.execute('''
+        cr.execute('''
            INSERT INTO ir_model_data (name, res_id, module, model, noupdate)
                SELECT
                     'res_city_mx_' || lower(res_country_state.code) || '_' || res_city.l10n_mx_edi_code,
@@ -56,7 +57,7 @@ def post_init_hook(env):
         localities = env['l10n_mx_edi.res.locality'].create(tariff_fraction_vals_list)
 
         if localities:
-            env.cr.execute('''
+            cr.execute('''
                INSERT INTO ir_model_data (name, res_id, module, model, noupdate)
                    SELECT 
                         'res_locality_mx_' || lower(res_country_state.code) || '_' || l10n_mx_edi_res_locality.code,
@@ -80,7 +81,7 @@ def post_init_hook(env):
         tariff_fractions = env['l10n_mx_edi.tariff.fraction'].create(tariff_fraction_vals_list)
 
         if tariff_fractions:
-            env.cr.execute('''
+            cr.execute('''
                INSERT INTO ir_model_data (name, res_id, module, model, noupdate)
                    SELECT 
                         'tariff_fraction_' || l10n_mx_edi_tariff_fraction.code,
@@ -93,5 +94,5 @@ def post_init_hook(env):
             ''', [tuple(tariff_fractions.ids)])
 
 
-def uninstall_hook(env):
-    env.cr.execute("DELETE FROM ir_model_data WHERE model='l10n_mx_edi.tariff.fraction';")
+def uninstall_hook(cr, registry):
+    cr.execute("DELETE FROM ir_model_data WHERE model='l10n_mx_edi.tariff.fraction';")

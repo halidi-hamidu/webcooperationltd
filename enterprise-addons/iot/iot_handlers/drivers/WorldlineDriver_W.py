@@ -42,7 +42,6 @@ TERMINAL_ERRORS = {
     '1802': 'Terminal is busy',
     '1803': 'Timeout expired',
     '2629': 'User cancellation',
-    '2631': 'Host cancellation',
 }
 
 # Manually cancelled by cashier, do not show these errors
@@ -69,7 +68,6 @@ class WorldlineDriver(CtypesTerminalDriver):
         self.send_status(stage='WaitingForCard', request_data=transaction)
 
         # Transaction
-        # Transaction
         merchant_receipt = create_ctypes_string_buffer()
         customer_receipt = create_ctypes_string_buffer()
         card = create_ctypes_string_buffer()
@@ -79,42 +77,50 @@ class WorldlineDriver(CtypesTerminalDriver):
         transaction_action_identifier = transaction['actionIdentifier']
         _logger.info('start transaction #%d amount: %f action_identifier: %d', transaction_id, transaction_amount, transaction_action_identifier)
 
-        result = easyCTEP.startTransaction(
-            ctypes.cast(self.dev, ctypes.c_void_p), # CTEPManager* manager
-            ctypes.c_char_p(str(transaction_amount).encode('utf-8')), # char const* amount
-            ctypes.c_char_p(str(transaction_id).encode('utf-8')), # char const* reference
-            ctypes.c_ulong(transaction_action_identifier), # unsigned long action_identifier
-            merchant_receipt, # char* merchant_receipt
-            customer_receipt, # char* customer_receipt
-            card, # char* card
-            error_code, # char* error
-        )
-        _logger.debug('finished transaction #%d with result %d', transaction_id, result)
+        try:
+            result = easyCTEP.startTransaction(
+                ctypes.cast(self.dev, ctypes.c_void_p),  # CTEPManager* manager
+                ctypes.c_char_p(str(transaction_amount).encode('utf-8')),  # char const* amount
+                ctypes.c_char_p(str(transaction_id).encode('utf-8')),  # char const* reference
+                ctypes.c_ulong(transaction_action_identifier),  # unsigned long action_identifier
+                merchant_receipt,  # char* merchant_receipt
+                customer_receipt,  # char* customer_receipt
+                card,  # char* card
+                error_code,  # char* error
+            )
+            _logger.debug('finished transaction #%d with result %d', transaction_id, result)
 
-        self.next_transaction_min_dt = datetime.datetime.now() + datetime.timedelta(seconds=self.DELAY_TIME_BETWEEN_TRANSACTIONS)
+            self.next_transaction_min_dt = datetime.datetime.now() + datetime.timedelta(seconds=self.DELAY_TIME_BETWEEN_TRANSACTIONS)
 
-        if result == 1:
-            # Transaction successful
+            if result == 1:
+                # Transaction successful
+                self.send_status(
+                    response='Approved',
+                    ticket=customer_receipt.value,
+                    ticket_merchant=merchant_receipt.value,
+                    card=card.value,
+                    transaction_id=transaction['actionIdentifier'],
+                    request_data=transaction,
+                )
+            elif result == 0:
+                # Transaction failed
+                error_code = error_code.value.decode('utf-8')
+                if error_code not in IGNORE_ERRORS:
+                    error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Transaction was not processed correctly'), error_code)
+                    self.send_status(error=error_msg, request_data=transaction)
+                # Transaction was cancelled
+                else:
+                    self.send_status(stage='Cancel', request_data=transaction)
+            elif result == -1:
+                # Terminal disconnection, check status manually
+                self.send_status(disconnected=True, request_data=transaction)
+
+        except OSError:
+            _logger.exception("Failed to perform Worldline transaction. Check for potential segmentation faults")
             self.send_status(
-                response='Approved',
-                ticket=customer_receipt.value,
-                ticket_merchant=merchant_receipt.value,
-                card=card.value,
-                transaction_id=transaction['actionIdentifier'],
+                error="An error has occured. Check the transaction result manually with the payment provider",
                 request_data=transaction,
             )
-        elif result == 0:
-            # Transaction failed
-            error_code = error_code.value.decode('utf-8')
-            if error_code not in IGNORE_ERRORS:
-                error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Transaction was not processed correctly'), error_code)
-                self.send_status(error=error_msg, request_data=transaction)
-            # Transaction was cancelled
-            else:
-                self.send_status(stage='Cancel', request_data=transaction)
-        elif result == -1:
-            # Terminal disconnection, check status manually
-            self.send_status(disconnected=True, request_data=transaction)
 
     def cancelTransaction(self, transaction):
         # Force to wait before starting the transaction if necessary
@@ -123,14 +129,21 @@ class WorldlineDriver(CtypesTerminalDriver):
 
         error_code = create_ctypes_string_buffer()
         _logger.info("cancel transaction request")
-        result = easyCTEP.abortTransaction(ctypes.cast(self.dev, ctypes.c_void_p), error_code)
-        _logger.debug("end cancel transaction request")
-
-        if not result:
-            error_code = error_code.value.decode('utf-8')
-            error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Transaction could not be cancelled'), error_code)
-            _logger.info(error_msg)
-            self.send_status(stage='Cancel', error=error_msg, request_data=transaction)
+        try:
+            result = easyCTEP.abortTransaction(ctypes.cast(self.dev, ctypes.c_void_p), error_code)
+            _logger.debug("end cancel transaction request")
+            if not result:
+                error_code = error_code.value.decode('utf-8')
+                error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Transaction could not be cancelled'), error_code)
+                _logger.info(error_msg)
+                self.send_status(stage='Cancel', error=error_msg, request_data=transaction)
+        except OSError:
+            _logger.exception("Failed to cancel Worldline transaction. Check for potential segmentation faults.")
+            self.send_status(
+                stage='Cancel',
+                error="An error has occured when cancelling Worldline transaction. Check the transaction result manually with the payment provider",
+                request_data=transaction,
+            )
 
     def lastTransactionStatus(self, request_data):
         action_identifier = ctypes.c_ulong()
@@ -138,23 +151,25 @@ class WorldlineDriver(CtypesTerminalDriver):
         time = create_ctypes_string_buffer()
         error_code = create_ctypes_string_buffer()
         _logger.info("last transaction status request")
-        result = easyCTEP.lastTransactionStatus(ctypes.cast(self.dev, ctypes.c_void_p), ctypes.byref(action_identifier), ctypes.byref(amount), time, error_code)
-        _logger.debug("end last transaction status request")
-
-        if result:
-            self.send_status(value={
+        try:
+            result = easyCTEP.lastTransactionStatus(ctypes.cast(self.dev, ctypes.c_void_p), ctypes.byref(action_identifier), ctypes.byref(amount), time, error_code)
+            if result:
+                self.send_status(value={
                     'action_identifier': action_identifier.value,
                     'amount': amount.value,
                     'time': time.value,
                 },
                 request_data=request_data,
-            )
-        else:
-            error_code = error_code.value.decode('utf-8')
-            error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Last Transaction was not processed correctly'), error_code)
+                )
+            else:
+                error_code = error_code.value.decode('utf-8')
+                error_msg = '%s (Error code: %s)' % (TERMINAL_ERRORS.get(error_code, 'Transaction was not processed correctly'), error_code)
+                self.send_status(error=error_msg, request_data=request_data)
+
+        except OSError:
+            _logger.exception("Failed to get last transaction status. Check for potential segmentation faults")
             self.send_status(
-                value={
-                    'error' : error_msg,
-                },
+                error="An error has occured when getting last Worldline transaction status. Check the transaction result manually with the payment provider",
                 request_data=request_data,
             )
+        _logger.debug("end last transaction status request")

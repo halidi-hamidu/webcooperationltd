@@ -10,12 +10,7 @@ appropriate views and selling choices.
     'depends': ['website_sale_renting', 'website_sale_stock', 'sale_stock_renting'],
     'assets': {
         'web.assets_frontend': [
-            'website_sale_stock_renting/static/src/xml/*.xml',
-            ('after',
-                'website_sale_renting/static/src/js/renting_mixin.js',
-                'website_sale_stock_renting/static/src/js/renting_mixin.js'
-            ),
-            'website_sale_stock_renting/static/src/js/*.js',
+            'website_sale_stock_renting/static/src/**/*',
         ],
         'web.assets_tests': [
             'website_sale_stock_renting/static/tests/tours/**/*',

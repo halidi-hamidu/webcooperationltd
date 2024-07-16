@@ -3,15 +3,20 @@
 # 	* payment_sepa_direct_debit
 # 
 # Translators:
+# Vasiliy Korobatov <korobatov@gmail.com>, 2022
+# Martin Trigaux, 2022
+# Ivan Kropotkin <yelizariev@itpp.dev>, 2022
+# Сергей Шебанин <sergey@shebanin.ru>, 2022
 # ILMIR <karamov@it-projects.info>, 2023
+# alenafairy, 2023
 # Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:22+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2023-05-23 08:38+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
 "Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Russian (https://app.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
@@ -21,9 +26,31 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #. module: payment_sepa_direct_debit
-#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sepa_transaction_status
-msgid "<strong>Amount: </strong>"
-msgstr "<strong>Сумма: </strong>"
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "+32123456789"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Authenticated by SMS by:</strong>"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Date and place of signature:</strong>"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid ""
+"<strong>Name of the reference party:</strong>\n"
+"                            ......................................"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Signature:</strong>"
+msgstr "<strong>подпись:</strong>"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,body_html:payment_sepa_direct_debit.mail_template_sepa_notify_debit
@@ -40,7 +67,7 @@ msgid ""
 "                    <span style=\"font-size: 10px;\">Your SEPA Direct Debit Transaction</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.reference or ''\"></span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -114,91 +141,6 @@ msgid ""
 "</table>\n"
 "            "
 msgstr ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <t t-set=\"company\" t-value=\"object.company_id\"></t>\n"
-"                    <span style=\"font-size: 10px;\">Ваша операция прямого дебетования SEPA</span><br>\n"
-"                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.reference or ''\"></span>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
-"                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                    Здравствуйте, <t t-out=\"object.partner_id.name or ''\">Брэндон Фриман</t>,<br><br>\n"
-"\n"
-"                    В ваш банк будет отправлен запрос на платеж SEPA Direct Debit на сумму <t t-out=\"format_amount(object.amount, object.currency_id) or ''\">$10.00</t>.<br>\n"
-"\n"
-"                    Ваш счет, заканчивающийся на <t t-out=\"ctx.get('iban_last_4') or ''\">1234</t>, будет списан в течение двух календарных дней или вскоре после этого, пожалуйста, убедитесь, что у вас есть требуемые средства.<br><br>\n"
-"\n"
-"                   <t t-if=\"ctx.get('creditor_identifier') or ctx.get('mandate_ref')\">\n"
-"                        Данные продавца:<br>\n"
-"                       <ul>\n"
-"                           <t t-if=\"ctx.get('creditor_identifier')\">\n"
-"                               <li>ИБАН: <t t-out=\"ctx['creditor_identifier'] or ''\">№ 93 8601 1117947</t></li>\n"
-"                           </t>\n"
-"                           <t t-if=\"ctx.get('mandate_ref')\">\n"
-"                               <li>ССЫЛКА НА МАНДАТ ПРЯМОГО ДЕБЕТОВАНИЯ SEPA</li>: </t> </ul> </t> <t t-out=\"ctx['mandate_ref'] or ''\"></t> \n"
-" <t t-if=\"ctx.get('creditor_identifier') or ctx.get('mandate_ref')\"> <ul> <t t-if=\"ctx.get('mandate_ref')\">                          </t>\n"
-"                       </ul>\n"
-"                   </t>\n"
-"                    Не стесняйтесь обращаться к нам, если у вас возникнут вопросы.\n"
-"                </td></tr>\n"
-"                <tr><td style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\" align=\"left\">\n"
-"                    <t t-out=\"company.name or ''\">YourCompany</t>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                    <t t-if=\"company.phone\">\n"
-"                       <t t-out=\"company.phone or ''\">+1 650-123-4567</t> |\n"
-"                    </t>\n"
-"                    <t t-if=\"company.email\">\n"
-"                       <a t-attf-href=\"'mailto:%s' % {{ company.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"company.email or ''\">info@yourcompany.com</a> |\n"
-"                    </t>\n"
-"                    <t t-if=\"company.website\">\n"
-"                        <a t-attf-href=\"'%s' % {{ company.website }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"company.website or ''\">http://www.example.com</a>\n"
-"                    </t>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
-"</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"        Работает на <a target=\"_blank\" href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=mail\" style=\"color: #875A7B;\">Odoo</a>\n"
-"      </td></tr>\n"
-"    </table>\n"
-"</td></tr>\n"
-"</table>\n"
-"            "
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,body_html:payment_sepa_direct_debit.mail_template_sepa_notify_validation
@@ -215,7 +157,7 @@ msgid ""
 "                    <span style=\"font-size: 10px;\">Your SEPA Direct Debit Manddate</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.partner_bank_id.acc_number or ''\">BE15001559627230</span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -278,105 +220,57 @@ msgid ""
 "</table>\n"
 "            "
 msgstr ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <t t-set=\"company\" t-value=\"object.payment_journal_id.company_id\"></t>\n"
-"                    <span style=\"font-size: 10px;\">Ваша дата прямого дебетования SEPA</span><br>\n"
-"                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.partner_bank_id.acc_number or ''\">BE15001559627230</span>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
-"                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                    Здравствуйте, <t t-out=\"object.partner_id.name or ''\">Брэндон Фриман</t>,<br><br>\n"
-"\n"
-"                   <p>Только что была подтверждена авторизация SEPA Direct Debit Mandate для использования в <t t-out=\"company.name or ''\">YourCompany</t>.</p>\n"
-"\n"
-"                   <p>Копию подтверждения мандата вы найдете в приложении к этому письму.</p>\n"
-"\n"
-"                   <p>Не стесняйтесь обращаться к нам, если у вас возникнут какие-либо вопросы.</p>\n"
-"                </td></tr>\n"
-"                <tr><td style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\" align=\"left\">\n"
-"                    <t t-out=\"company.name or ''\">Ваша компания</t>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                    <t t-if=\"company.phone\">\n"
-"                       <t t-out=\"company.phone or ''\">+1 650-123-4567</t> |\n"
-"                    </t>\n"
-"                    <t t-if=\"company.email\">\n"
-"                       <a t-attf-href=\"'mailto:%s' % {{ company.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"company.email or ''\">info@yourcompany.com</a> |\n"
-"                    </t>\n"
-"                    <t t-if=\"company.website\">\n"
-"                        <a t-attf-href=\"'%s' % {{ company.website }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"company.website or ''\">http://www.example.com</a>\n"
-"                    </t>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
-"</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"        Работает на <a target=\"_blank\" href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=mail\" style=\"color: #875A7B;\">Odoo</a>\n"
-"      </td></tr>\n"
-"    </table>\n"
-"</td></tr>\n"
-"</table>\n"
-"            "
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model,name:payment_sepa_direct_debit.model_account_bank_statement_line
-msgid "Bank Statement Line"
-msgstr "Строка банковской выписки"
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "A copy of the mandate will be sent by email to"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "Both the phone number and the verification code are required."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.payment_provider_form
+msgid "Buy credits"
+msgstr "Купить подписку"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__code
+msgid "Code"
+msgstr "Код"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_res_partner
 msgid "Contact"
-msgstr "Контакты"
+msgstr "Контакт"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__custom_mode
-msgid "Custom Mode"
-msgstr "Пользовательский режим"
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "Could not send the verification code."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_mandate_form
+msgid "Electronic Signature"
+msgstr ""
 
 #. module: payment_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
 msgid "IBAN"
-msgstr "IBAN"
+msgstr "Код IBAN"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_transaction__mandate_id
-msgid "Mandate"
-msgstr "Мандат"
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "Incorrect phone number."
+msgstr ""
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -393,31 +287,47 @@ msgid "No transaction found matching reference %s."
 msgstr "Не найдено ни одной транзакции, соответствующей ссылке %s."
 
 #. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_signature_required
+msgid "Online Signature"
+msgstr "Онлайн-подпись"
+
+#. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_account_payment_method
 msgid "Payment Methods"
-msgstr "Способы оплаты"
+msgstr "Методы Оплаты"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_payment_provider
 msgid "Payment Provider"
-msgstr "Поставщик платежей"
+msgstr "Платежный агент"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_payment_token
 msgid "Payment Token"
-msgstr "Платежный токен"
+msgstr "Токен оплаты"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_payment_transaction
 msgid "Payment Transaction"
-msgstr "платеж"
+msgstr "Операция Оплаты"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__phone_number
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Phone Number"
+msgstr "Номер телефона"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_sms_verification_required
+msgid "Phone Verification"
+msgstr ""
 
 #. module: payment_sepa_direct_debit
 #. odoo-javascript
 #: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
 #, python-format
-msgid "Payment processing failed"
-msgstr "Обработка платежа не удалась"
+msgid "Re-send SMS"
+msgstr "Повторная отправка SMS"
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -429,12 +339,12 @@ msgstr "Ограничено для стран, входящих в зону SEP
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_sdd_mandate
 msgid "SDD Mandate"
-msgstr "Мандат СДД"
+msgstr "мандат SDD"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields.selection,name:payment_sepa_direct_debit.selection__payment_provider__custom_mode__sepa_direct_debit
+#: model:ir.model.fields.selection,name:payment_sepa_direct_debit.selection__payment_provider__code__sepa_direct_debit
 msgid "SEPA Direct Debit"
-msgstr "Собирайте платежи от ваших клиентов через прямой дебет"
+msgstr "Прямой дебет SEPA"
 
 #. module: payment_sepa_direct_debit
 #: model:account.payment.method,name:payment_sepa_direct_debit.payment_method_sepa_direct_debit
@@ -444,7 +354,7 @@ msgstr "Прямое дебетование SEPA (поставщик)"
 #. module: payment_sepa_direct_debit
 #: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_token__sdd_mandate_id
 msgid "SEPA Direct Debit Mandate"
-msgstr "Прямой дебетовый мандат SEPA"
+msgstr "Мандат прямого дебета SEPA"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,name:payment_sepa_direct_debit.mail_template_sepa_notify_debit
@@ -453,14 +363,40 @@ msgid "SEPA Direct Debit: Charge Notification"
 msgstr "Прямое дебетование SEPA: Уведомление о списании"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.actions.server,name:payment_sepa_direct_debit.cron_auto_confirm_paid_sepa_txs_ir_actions_server
-msgid "SEPA Direct Debit: Confirm paid transactions"
-msgstr "Прямое дебетование SEPA: Подтверждение оплаченных транзакций"
-
-#. module: payment_sepa_direct_debit
 #: model:mail.template,name:payment_sepa_direct_debit.mail_template_sepa_notify_validation
 msgid "SEPA Direct Debit: Validation Notification"
 msgstr "Прямой дебет SEPA: Уведомление о проверке"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_sms_credits
+msgid "SMS Credits"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "SMS Sent"
+msgstr "Сообщение отправлено"
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "SMS could not be sent due to insufficient credit."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "SMS verification is disabled."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Send SMS"
+msgstr "Отправить SMS"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,description:payment_sepa_direct_debit.mail_template_sepa_notify_validation
@@ -476,11 +412,45 @@ msgstr ""
 "Отправляется клиенту, чтобы сообщить, что с его счета будет списана сумма"
 
 #. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "Server Error"
+msgstr "Ошибка сервера"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signature
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Signature"
+msgstr "Подпись"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signed_by
+msgid "Signed By"
+msgstr "Подпись"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signed_on
+msgid "Signed On"
+msgstr "Подписано"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "Signed online on"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
 #. odoo-python
 #: code:addons/payment_sepa_direct_debit/models/payment_provider.py:0
 #, python-format
 msgid "The bank account of the journal is not a valid IBAN."
 msgstr "Банковский счет журнала не является действительным IBAN."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__signed_on
+msgid "The date of the signature"
+msgstr ""
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -498,6 +468,64 @@ msgstr "Мандат владельца и клиента не совпадаю�
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The mandate was signed by %s."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The mandate was verified with phone number %s."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "The name and signature must be provided."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__signed_by
+msgid "The name of the signer"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The phone number does not match."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "The phone number must be provided and verified."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The phone number should be in international format."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__phone_number
+msgid "The phone number used for verification by SMS code"
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__code
+msgid "The technical code of this payment provider."
+msgstr "Технический код этого платежного провайдера."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
 #: code:addons/payment_sepa_direct_debit/models/payment_transaction.py:0
 #, python-format
 msgid "The token is not linked to a mandate."
@@ -508,7 +536,63 @@ msgstr "Токен не связан с мандатом."
 #: code:addons/payment_sepa_direct_debit/models/payment_transaction.py:0
 #, python-format
 msgid "The transaction is not linked to a token."
-msgstr "Транзакция не привязана к токену."
+msgstr "Транзакция не привязана к токену. "
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The verification code does not match."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "This mandate has already been verified."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "Unknown mandate ID."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__verification_code
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Verification Code"
+msgstr "Проверочный код"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__verified
+msgid "Verified"
+msgstr "подтверждено"
+
+#. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "We are not able to process your payment."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__sdd_signature_required
+msgid "Whether a signature is required to create a new mandate."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__sdd_sms_verification_required
+msgid "Whether phone numbers must be verified by an SMS code."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.payment_provider_form
+msgid ""
+"You don't have enough credit to send SMS. You can buy new credits here:"
+msgstr ""
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,subject:payment_sepa_direct_debit.mail_template_sepa_notify_validation
@@ -530,3 +614,20 @@ msgstr ""
 "Чтобы отправить запрос на платеж по прямому дебету SEPA, у вашей компании "
 "должен быть идентификатор кредитора. Его можно установить в настройках "
 "бухгалтерского учета."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "Your confirmation code is %s"
+msgstr "Ваш код подтверждения %s"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "upon validation."
+msgstr ""
+
+#. module: payment_sepa_direct_debit
+#: model:mail.template,report_name:payment_sepa_direct_debit.mail_template_sepa_notify_validation
+msgid "{{ (object.name or '').replace('/','_') }}"
+msgstr "{{ (object.name or '').replace('/','_') }}"

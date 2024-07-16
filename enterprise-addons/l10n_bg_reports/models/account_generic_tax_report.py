@@ -8,7 +8,7 @@ class BulgarianTaxReportCustomHandler(models.AbstractModel):
     _inherit = 'account.generic.tax.report.handler'
     _description = 'Bulgarian Tax Report Custom Handler'
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         # Overridden to prevent having unnecessary lines from the generic tax report.
         return []
 

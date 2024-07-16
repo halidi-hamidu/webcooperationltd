@@ -24,8 +24,7 @@ class TestAbstractBuilder(AccountConsolidationTestCase):
     def test_get_lines(self, patched_get_plain, patched_get_hierarchy):
         patched_get_plain.return_value = [{'id': 1}]
         patched_get_hierarchy.return_value = [{'id': 2}]
-        options = self.report.get_options()
-        self.assertListEqual([], self.builder._get_lines([], options))
+        self.assertListEqual([], self.builder.get_lines([], {}))
         patched_get_plain.assert_not_called()
         patched_get_hierarchy.assert_not_called()
 
@@ -38,28 +37,30 @@ class TestAbstractBuilder(AccountConsolidationTestCase):
             'include_percentage': True
         }
         # EMPTY OPTIONS
+        options = self.report._get_options()
         self.assertListEqual(patched_get_hierarchy.return_value,
-                             self.builder._get_lines(period_ids, options, None))
+                             self.builder.get_lines(period_ids, options, None))
         patched_get_hierarchy.assert_called_once_with(options, None, **kwargs)
         patched_get_hierarchy.reset_mock()
         patched_get_plain.assert_not_called()
 
         # WITH HIERARCHY
-        options = self.report.get_options({'consolidation_hierarchy': True})
-        self.assertListEqual(patched_get_hierarchy.return_value, self.builder._get_lines(period_ids, options, None))
+        options = self.report._get_options({'consolidation_hierarchy': True})
+        self.assertListEqual(patched_get_hierarchy.return_value, self.builder.get_lines(period_ids, options, None))
         patched_get_hierarchy.assert_called_once_with(options, None, **kwargs)
         patched_get_hierarchy.reset_mock()
         patched_get_plain.assert_not_called()
 
         # WITH HIERARCHY AND LINE ID
-        self.assertListEqual(patched_get_hierarchy.return_value, self.builder._get_lines(period_ids, options, 1))
+        options = self.report._get_options({'consolidation_hierarchy': True})
+        self.assertListEqual(patched_get_hierarchy.return_value, self.builder.get_lines(period_ids, options, 1))
         patched_get_hierarchy.assert_called_once_with(options, 1, **kwargs)
         patched_get_hierarchy.reset_mock()
         patched_get_plain.assert_not_called()
 
         # WITHOUT HIERARCHY
-        options = self.report.get_options({'consolidation_hierarchy': False})
-        self.assertListEqual(patched_get_plain.return_value, self.builder._get_lines(period_ids, options, None))
+        options = self.report._get_options({'consolidation_hierarchy': False})
+        self.assertListEqual(patched_get_plain.return_value, self.builder.get_lines(period_ids, options, None))
         patched_get_plain.assert_called_once_with(options, **kwargs)
         patched_get_plain.reset_mock()
         patched_get_hierarchy.assert_not_called()
@@ -282,6 +283,7 @@ class TestComparisonBuilder(AccountConsolidationTestCase):
     def test__build_section_line_and_format_account_line(self, patched_account_totals, patched_account_added,
                                                          patched_section_added):
         patched_account_totals.return_value = [1000.0, -2000.0]
+        level = 1
         section = self.env['consolidation.group'].create({
             'name': 'BLUH',
             'chart_id': self.chart.id,
@@ -294,110 +296,89 @@ class TestComparisonBuilder(AccountConsolidationTestCase):
                 'chart_id': self.chart.id,
             })]
         })
-        options = self.report.get_options({'unfold_all': True})
-
-        section_1_id = self.report._get_generic_line_id(None, None, 'section_%s' % section.id)
-        section_2_id = self.report._get_generic_line_id(None, None, 'section_%s' % section.child_ids[0].id, parent_line_id=section_1_id)
-        account_line_id = self.report._get_generic_line_id(None, None, section.child_ids[0].account_ids[0].id, parent_line_id=section_2_id)
-
+        options = {'unfold_all': True}
         expected = [
             {
-                'id': section_1_id,
+                'id': self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.id),
                 'name': section.name,
-                'level': 0,
+                'level': level,
                 'unfoldable': True,
                 'unfolded': True,
                 'columns': [
                     {
                         'name': f'1,000.00{NON_BREAKING_SPACE}€',
-                        'no_format': 1000.0,
-                        'figure_type': 'monetary',
-                        'is_zero': False,
-                        'class': 'number',
+                        'no_format': 1000.0
                     },
                     {
                         'name': f'-2,000.00{NON_BREAKING_SPACE}€',
-                        'no_format': -2000.0,
-                        'figure_type': 'monetary',
-                        'is_zero': False,
-                        'class': 'number',
+                        'no_format': -2000.0
                     }
                 ]
             },
             {
-                'id': section_2_id,
+                'id': self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.child_ids[0].id),
                 'name': section.child_ids[0].name,
-                'level': 3,
+                'level': level + 1,
                 'unfoldable': True,
                 'unfolded': True,
-                'parent_id': section_1_id,
+                'parent_id': self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.id),
                 'columns': [
                     {
                         'name': f'1,000.00{NON_BREAKING_SPACE}€',
-                        'no_format': 1000.0,
-                        'figure_type': 'monetary',
-                        'is_zero': False,
-                        'class': 'number',
+                        'no_format': 1000.0
                     },
                     {
                         'name': f'-2,000.00{NON_BREAKING_SPACE}€',
-                        'no_format': -2000.0,
-                        'figure_type': 'monetary',
-                        'is_zero': False,
-                        'class': 'number',
+                        'no_format': -2000.0
                     }
                 ]
             },
             {
-                'id': account_line_id,
-                'name': '%s' % section.child_ids[0].account_ids[0].display_name,
+                'id': self.env['account.report']._get_generic_line_id(None, None, section.child_ids[0].account_ids[0].id),
+                'name': '%s' % section.child_ids[0].account_ids[0].name_get()[0][1],
                 'title_hover': '%s (Closing Rate Currency Conversion Method)' %
-                               section.child_ids[0].account_ids[0].display_name,
+                               section.child_ids[0].account_ids[0].name_get()[0][1],
                 'columns': [
                     {
                         'name': f'1,000.00{NON_BREAKING_SPACE}€',
                         'no_format': 1000.0,
-                        'figure_type': 'monetary',
-                        'class': 'number',
-                        'is_zero': False,
-                        'auditable': True,
+                        'class': 'number'
                     },
                     {
                         'name': f'-2,000.00{NON_BREAKING_SPACE}€',
                         'no_format': -2000.0,
-                        'figure_type': 'monetary',
-                        'class': 'number',
-                        'is_zero': False,
-                        'auditable': False,
+                        'class': 'number'
                     }
                 ],
-                'level': 5,
-                'parent_id': section_2_id,
+                'level': level + 2,
+                'parent_id': self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.child_ids[0].id),
+                'unfolded': True
             }
         ]
-        section_totals, section_line = self.builder._build_section_line(section, 0, options, include_percentage=False)
+        section_totals, section_line = self.builder._build_section_line(section, level, options, include_percentage=False)
         self.assertListEqual(section_line, expected)
 
     def test__build_section_line_no_children_no_accounts(self):
-        level = 0
+        level = 1
         section = self.env['consolidation.group'].create({
             'name': 'BLUH',
             'chart_id': self.chart.id,
         })
-        options = self.report.get_options({'unfold_all': False})
+        options = {}
         section_totals, section_line = self.builder._build_section_line(section, level, options, cols_amount=2, include_percentage=False)
         expected = [{
-            'id': self.report._get_generic_line_id(None, None, 'section_%s' % section.id),
+            'id': self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.id),
             'name': 'BLUH',
             'level': level,
             'unfoldable': True,
             'unfolded': False,
             'columns': [
-                {'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0, 'figure_type': 'monetary', 'is_zero': True, 'class': 'number muted'},
-                {'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0, 'figure_type': 'monetary', 'is_zero': True, 'class': 'number muted'},
+                {'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0},
+                {'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0}
             ]
         }]
         self.assertListEqual(expected, section_line)
+        options['unfold_all'] = False
         section_totals, section_line = self.builder._build_section_line(section, level, options, cols_amount=2,
                                                                         include_percentage=False)
         self.assertListEqual(expected, section_line)
@@ -411,7 +392,7 @@ class TestComparisonBuilder(AccountConsolidationTestCase):
         self.assertListEqual(expected, section_line)
 
         options['unfold_all'] = False
-        options['unfolded_lines'] = [self.report._get_generic_line_id(None, None, 'section_%s' % section.id)]
+        options['unfolded_lines'] = [self.env['account.report']._get_generic_line_id(None, None, 'section_%s' % section.id)]
         section_totals, section_line = self.builder._build_section_line(section, level, options, cols_amount=2,
                                                                         include_percentage=False)
         self.assertListEqual(expected, section_line)
@@ -456,33 +437,32 @@ class TestComparisonBuilder(AccountConsolidationTestCase):
         totals = [0.0, 1500000.0, -2000.0]
         # NO PERCENTAGE
         # €
-        euro_exp = {'id': self.report._get_generic_line_id(None, None, 'grouped_accounts_total'),
-                    'name': 'Total', 'class': 'total', 'level': 0,
-                    'columns': [{'name': f'0.00{NON_BREAKING_SPACE}€', 'figure_type': 'monetary', 'no_format': 0.0, 'class': 'number'},
-                                {'name': f'1,500,000.00{NON_BREAKING_SPACE}€', 'figure_type': 'monetary', 'no_format': 1500000.0, 'class': 'number text-danger'},
-                                {'name': f'-2,000.00{NON_BREAKING_SPACE}€', 'figure_type': 'monetary', 'no_format': -2000.0, 'class': 'number text-danger'}]}
-        options = self.report.get_options()
-        euro_total_line = self.builder._build_total_line(totals, options, include_percentage=False)
+        euro_exp = {'id': self.env['account.report']._get_generic_line_id(None, None, 'grouped_accounts_total'),
+                    'name': 'Total', 'class': 'total', 'level': 1,
+                    'columns': [{'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0, 'class': 'number'},
+                                {'name': f'1,500,000.00{NON_BREAKING_SPACE}€', 'no_format': 1500000.0, 'class': 'number text-danger'},
+                                {'name': f'-2,000.00{NON_BREAKING_SPACE}€', 'no_format': -2000.0, 'class': 'number text-danger'}]}
+        euro_total_line = self.builder._build_total_line(totals, {}, include_percentage=False)
         self.assertDictEqual(euro_total_line, euro_exp)
         # $
         ap_usd = self._create_analysis_period(chart=other_chart)
         us_builder = ComparisonBuilder(self.env, ap_usd._format_value)
-        usd_total_line = us_builder._build_total_line(totals, options, include_percentage=False)
+        usd_total_line = us_builder._build_total_line(totals, [ap_usd], include_percentage=False)
 
-        usd_exp = {'id': self.report._get_generic_line_id(None, None, 'grouped_accounts_total'),
-                   'name': 'Total', 'class': 'total', 'level': 0,
-                   'columns': [{'name': f'${NON_BREAKING_SPACE}0.00', 'figure_type': 'monetary', 'no_format': 0.0, 'class': 'number'},
-                               {'name': f'${NON_BREAKING_SPACE}1,500,000.00', 'figure_type': 'monetary', 'no_format': 1500000.0, 'class': 'number text-danger'},
-                               {'name': f'${NON_BREAKING_SPACE}-2,000.00', 'figure_type': 'monetary', 'no_format': -2000.0, 'class': 'number text-danger'}]}
+        usd_exp = {'id': self.env['account.report']._get_generic_line_id(None, None, 'grouped_accounts_total'),
+                   'name': 'Total', 'class': 'total', 'level': 1,
+                   'columns': [{'name': f'${NON_BREAKING_SPACE}0.00', 'no_format': 0.0, 'class': 'number'},
+                               {'name': f'${NON_BREAKING_SPACE}1,500,000.00', 'no_format': 1500000.0, 'class': 'number text-danger'},
+                               {'name': f'${NON_BREAKING_SPACE}-2,000.00', 'no_format': -2000.0, 'class': 'number text-danger'}]}
         self.assertDictEqual(usd_total_line, usd_exp)
         patched_bpc.assert_not_called()
         # WITH PERCENTAGE
         totals = [0.0, -2000.0]
-        euro_prct_total_line = self.builder._build_total_line(totals, options, include_percentage=True)
-        euro_exp_prct = {'id': self.report._get_generic_line_id(None, None, 'grouped_accounts_total'),
-                         'name': 'Total', 'class': 'total', 'level': 0,
-                         'columns': [{'name': f'0.00{NON_BREAKING_SPACE}€', 'figure_type': 'monetary', 'no_format': 0.0, 'class': 'number'},
-                                     {'name': f'-2,000.00{NON_BREAKING_SPACE}€', 'figure_type': 'monetary', 'no_format': -2000.0, 'class': 'number text-danger'},
+        euro_prct_total_line = self.builder._build_total_line(totals, {}, include_percentage=True)
+        euro_exp_prct = {'id': self.env['account.report']._get_generic_line_id(None, None, 'grouped_accounts_total'),
+                         'name': 'Total', 'class': 'total', 'level': 1,
+                         'columns': [{'name': f'0.00{NON_BREAKING_SPACE}€', 'no_format': 0.0, 'class': 'number'},
+                                     {'name': f'-2,000.00{NON_BREAKING_SPACE}€', 'no_format': -2000.0, 'class': 'number text-danger'},
                                      patched_bpc.return_value]}
         self.assertDictEqual(euro_prct_total_line, euro_exp_prct)
 
@@ -513,7 +493,7 @@ class TestDefaultBuilder(AccountConsolidationTestCase):
 
         Journal = self.env['consolidation.journal']
         self.ap = self._create_analysis_period(start_date="2019-02-01", end_date="2019-02-28")
-        self.consolidation_account = self._create_consolidation_account(name='n' * 45)  # Using a long name
+        self.consolidation_account = self._create_consolidation_account()
         journals = create_journal(42, 4200.40), create_journal(1989.0, 1912.0)
         self.journals = Journal.browse((j.id for j in journals))
         self.builder = DefaultBuilder(self.env, self.ap._format_value, self.journals)
@@ -536,25 +516,21 @@ class TestDefaultBuilder(AccountConsolidationTestCase):
     def test__format_account_line(self):
         level = 2
         totals = [12.0, 13.14]
-        line = self.builder._format_account_line(self.consolidation_account, None, level, totals, self.report.get_options())
+        line = self.builder._format_account_line(self.consolidation_account, level, totals, {})
         account_name = self.consolidation_account.name
         account_currency_name = self.consolidation_account.get_display_currency_mode()
         expected = {
-            'id': self.report._get_generic_line_id(None, None, self.consolidation_account.id),
-            'name': account_name[:40] + '...',  # Long names should be shortened
+            'id': self.env['account.report']._get_generic_line_id(None, None, self.consolidation_account.id),
+            'level': level,
+            'name': account_name,
             'title_hover': "%s (%s Currency Conversion Method)" % (account_name, account_currency_name),
             'columns': [{
                 'name': self.builder.value_formatter(t),
                 'no_format': t,
-                'figure_type': 'monetary',
                 'class': 'number',
-                'is_zero': False,
-                'auditable': True,
                 'journal_id': False  # False as no company period id is set on journals
-            } for t in totals],
-            'level': 2,
+            } for t in totals]
         }
-        expected['columns'][-1]['auditable'] = False
 
         self.assertDictEqual(expected, line)
 

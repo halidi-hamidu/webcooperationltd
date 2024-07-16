@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { PivotRenderer } from "@web/views/pivot/pivot_renderer";
+import { PivotController } from "@web/views/pivot/pivot_controller";
 import { intersection, unique } from "@web/core/utils/arrays";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
@@ -11,11 +11,11 @@ import { omit } from "@web/core/utils/objects";
 import { _t } from "@web/core/l10n/translation";
 import { SpreadsheetSelectorDialog } from "@spreadsheet_edition/assets/components/spreadsheet_selector_dialog/spreadsheet_selector_dialog";
 
-import { onWillStart } from "@odoo/owl";
+const { onWillStart } = owl;
 
-patch(PivotRenderer.prototype, {
+patch(PivotController.prototype, "pivot_spreadsheet", {
     setup() {
-        super.setup(...arguments);
+        this._super.apply(this, arguments);
         this.userService = useService("user");
         this.notification = useService("notification");
         this.actionService = useService("action");
@@ -35,18 +35,10 @@ patch(PivotRenderer.prototype, {
         if (groupBy) {
             let [field, period] = groupBy.split(":");
             period = PERIODS[period];
-            if (period) {
-                name = _t("%(name)s by %(field)s (%(period)s)", {
-                    name,
-                    field: this.model.metaData.fields[field].string,
-                    period,
-                });
-            } else {
-                name = _t("%(name)s by %(field)s", {
-                    name,
-                    field: this.model.metaData.fields[field].string,
-                });
-            }
+            name +=
+                ` ${_t("by")} ` +
+                this.model.metaData.fields[field].string +
+                (period ? ` (${period})` : "");
         }
         const actionOptions = {
             preProcessingAsyncAction: "insertPivot",
@@ -55,7 +47,6 @@ patch(PivotRenderer.prototype, {
                 metaData: this.model.metaData,
                 searchParams: {
                     ...this.model.searchParams,
-                    domain: this.env.searchModel.domainString,
                     context: omit(
                         this.model.searchParams.context,
                         ...Object.keys(this.userService.context),

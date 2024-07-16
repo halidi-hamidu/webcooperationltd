@@ -66,6 +66,10 @@ class TestAvataxCommon(TransactionCase):
                     'summary': create_transaction_details,
                 }
 
+        if kwargs.get('commit_transaction') is None:
+            def commit_transaction(self, companyCode, transactionCode, model, include=None):
+                return {}
+
         if kwargs.get('uncommit_transaction') is None:
             def uncommit_transaction(self, companyCode, transactionCode, include=None):
                 return {}
@@ -120,6 +124,7 @@ class TestAccountAvataxCommon(TestAvataxCommon, AccountTestInvoicingCommon):
             'list_price': 15.00,
             'standard_price': 15.00,
             'supplier_taxes_id': None,
+            'invoice_policy': 'order',
             'avatax_category_id': cls.env.ref('account_avatax.DC010000').id,
         })
         cls.product_user = cls.env["product.product"].create({

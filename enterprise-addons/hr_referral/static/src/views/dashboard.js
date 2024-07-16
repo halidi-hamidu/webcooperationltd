@@ -1,9 +1,9 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { registry } from '@web/core/registry';
 import { useService } from "@web/core/utils/hooks";
-import { Component, onWillStart, useEffect, useState, useRef } from "@odoo/owl";
+
+const { Component, onWillStart, useEffect, useState, useRef } = owl;
 
 export class HrReferralWelcome extends Component {
     setup() {
@@ -11,7 +11,6 @@ export class HrReferralWelcome extends Component {
 
         this.actionService = useService("action");
         this.orm = useService('orm');
-        this.company = useService("company");
 
         this.dashboardData = useState({});
 
@@ -27,12 +26,15 @@ export class HrReferralWelcome extends Component {
             }
         }, () => [this.carouselRef.el]);
 
+        const context = Component.env.session.user_context;
+
         onWillStart(async () => {
             Object.assign(this.dashboardData, await this.orm.call(
                 'hr.applicant',
-                'retrieve_referral_welcome_screen'
-            ));
-            this.dashboardData.company_id = this.company.activeCompanyIds[0];
+                'retrieve_referral_welcome_screen',
+                [],
+                {'context': context}));
+            this.dashboardData.company_id = context.allowed_company_ids[0];
         });
     }
 
@@ -71,7 +73,7 @@ export class HrReferralWelcome extends Component {
         this.actionService.doAction({
             type: 'ir.actions.client',
             tag: 'hr_referral_welcome',
-            name: _t('Dashboard'),
+            name: this.env._t('Dashboard'),
             target: 'main'
         });
     }
@@ -87,7 +89,7 @@ export class HrReferralWelcome extends Component {
         this.actionService.doAction({
             type: 'ir.actions.client',
             tag: 'hr_referral_welcome',
-            name: _t('Dashboard'),
+            name: this.env._t('Dashboard'),
             target: 'main'
         });
     }
@@ -103,7 +105,7 @@ export class HrReferralWelcome extends Component {
         this.actionService.doAction({
             type: 'ir.actions.client',
             tag: 'hr_referral_welcome',
-            name: _t('Dashboard'),
+            name: this.env._t('Dashboard'),
             target: 'main'
         });
     }

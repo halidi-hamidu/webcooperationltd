@@ -3,17 +3,201 @@
 
 from odoo import api, fields, models, _
 from odoo.tools import pycompat, float_repr
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
+from odoo.tools.sql import column_exists, create_column
 
 from datetime import datetime
 from collections import namedtuple
 import tempfile
 import zipfile
+import uuid
 import io
 import re
 import os
 
 BalanceKey = namedtuple('BalanceKey', ['from_code', 'to_code', 'partner_id', 'tax_id'])
+
+
+class AccountDatevCompany(models.Model):
+    _inherit = 'res.company'
+
+    # Adding the fields as company_dependent does not break stable policy
+    l10n_de_datev_consultant_number = fields.Char(company_dependent=True)
+    l10n_de_datev_client_number = fields.Char(company_dependent=True)
+
+
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    l10n_de_datev_identifier = fields.Integer(
+        string='Datev Identifier',
+        copy=False,
+        tracking=True,
+        index='btree_not_null',
+        help="The Datev identifier is a unique identifier for exchange with the government. "
+             "If you had previous exports with another identifier, you can put it here. "
+             "If it is 0, then it will take the database id + the value in the system parameter "
+             "l10n_de.datev_start_count. "
+    )
+
+    @api.constrains('l10n_de_datev_identifier')
+    def _check_datev_identifier(self):
+        self.flush_model(['l10n_de_datev_identifier'])
+        self.env.cr.execute("""
+            SELECT 1 FROM res_partner
+            WHERE l10n_de_datev_identifier != 0
+            GROUP BY l10n_de_datev_identifier
+            HAVING COUNT(*) > 1
+        """)
+
+        if self.env.cr.dictfetchone():
+            raise ValidationError(_('You have already defined a partner with the same Datev identifier. '))
+
+
+class AccountMoveL10NDe(models.Model):
+    _inherit = 'account.move'
+
+    l10n_de_datev_main_account_id = fields.Many2one('account.account', compute='_get_datev_account', store=True)
+
+    def _auto_init(self):
+        if column_exists(self.env.cr, "account_move", "l10n_de_datev_main_account_id"):
+            return super()._auto_init()
+
+        cr = self.env.cr
+        create_column(cr, "account_move", "l10n_de_datev_main_account_id", "int4")
+        # If move has an invoice, return invoice's account_id
+        cr.execute(
+            """
+                UPDATE account_move
+                   SET l10n_de_datev_main_account_id = r.aid
+                  FROM (
+                          SELECT l.move_id mid,
+                                 FIRST_VALUE(l.account_id) OVER(PARTITION BY l.move_id ORDER BY l.id DESC) aid
+                            FROM account_move_line l
+                            JOIN account_move m
+                              ON m.id = l.move_id
+                            JOIN account_account a
+                              ON a.id = l.account_id
+                           WHERE m.move_type in ('out_invoice', 'out_refund', 'in_refund', 'in_invoice', 'out_receipt', 'in_receipt')
+                             AND a.account_type in ('asset_receivable', 'liability_payable')
+                       ) r
+                WHERE id = r.mid
+            """)
+
+        # If move belongs to a bank journal, return the journal's account (debit/credit should normally be the same)
+        cr.execute(
+            """
+            UPDATE account_move
+               SET l10n_de_datev_main_account_id = r.aid
+              FROM (
+                    SELECT m.id mid,
+                           j.default_account_id aid
+                     FROM account_move m
+                     JOIN account_journal j
+                       ON m.journal_id = j.id
+                    WHERE j.type = 'bank'
+                      AND j.default_account_id IS NOT NULL
+                   ) r
+             WHERE id = r.mid
+               AND l10n_de_datev_main_account_id IS NULL
+            """)
+
+        # If the move is an automatic exchange rate entry, take the gain/loss account set on the exchange journal
+        cr.execute("""
+            UPDATE account_move m
+               SET l10n_de_datev_main_account_id = r.aid
+              FROM (
+                    SELECT l.move_id AS mid,
+                           l.account_id AS aid
+                      FROM account_move_line l
+                      JOIN account_move m
+                        ON l.move_id = m.id
+                      JOIN account_journal j
+                        ON m.journal_id = j.id
+                      JOIN res_company c
+                        ON c.currency_exchange_journal_id = j.id
+                     WHERE j.type='general'
+                       AND l.account_id = j.default_account_id
+                     GROUP BY l.move_id,
+                              l.account_id
+                    HAVING count(*)=1
+                   ) r
+             WHERE id = r.mid
+               AND l10n_de_datev_main_account_id IS NULL
+            """)
+
+        # Look for an account used a single time in the move, that has no originator tax
+        query = """
+            UPDATE account_move m
+               SET l10n_de_datev_main_account_id = r.aid
+              FROM (
+                    SELECT l.move_id AS mid,
+                           min(l.account_id) AS aid
+                      FROM account_move_line l
+                     WHERE {}
+                     GROUP BY move_id
+                    HAVING count(*)=1
+                   ) r
+             WHERE id = r.mid
+               AND m.l10n_de_datev_main_account_id IS NULL
+            """
+        cr.execute(query.format("l.debit > 0"))
+        cr.execute(query.format("l.credit > 0"))
+        cr.execute(query.format("l.debit > 0 AND l.tax_line_id IS NULL"))
+        cr.execute(query.format("l.credit > 0 AND l.tax_line_id IS NULL"))
+
+        return super()._auto_init()
+
+    @api.depends('journal_id', 'line_ids', 'journal_id.default_account_id')
+    def _get_datev_account(self):
+        for move in self:
+            move.l10n_de_datev_main_account_id = value = False
+            # If move has an invoice, return invoice's account_id
+            if move.is_invoice(include_receipts=True):
+                payment_term_lines = move.line_ids.filtered(
+                    lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
+                if payment_term_lines:
+                    move.l10n_de_datev_main_account_id = payment_term_lines[0].account_id
+                continue
+            # If move belongs to a bank journal, return the journal's account (debit/credit should normally be the same)
+            if move.journal_id.type == 'bank' and move.journal_id.default_account_id:
+                move.l10n_de_datev_main_account_id = move.journal_id.default_account_id
+                continue
+            # If the move is an automatic exchange rate entry, take the gain/loss account set on the exchange journal
+            elif move.journal_id.type == 'general' and move.journal_id == self.env.company.currency_exchange_journal_id:
+                lines = move.line_ids.filtered(lambda r: r.account_id == move.journal_id.default_account_id)
+
+                if len(lines) == 1:
+                    move.l10n_de_datev_main_account_id = lines.account_id
+                    continue
+
+            # Look for an account used a single time in the move, that has no originator tax
+            aml_debit = self.env['account.move.line']
+            aml_credit = self.env['account.move.line']
+            for aml in move.line_ids:
+                if aml.debit > 0:
+                    aml_debit += aml
+                if aml.credit > 0:
+                    aml_credit += aml
+            if len(aml_debit.account_id) == 1:
+                value = aml_debit.account_id
+            elif len(aml_credit.account_id) == 1:
+                value = aml_credit.account_id
+            else:
+                aml_debit_wo_tax_accounts = [a.account_id for a in aml_debit if not a.tax_line_id]
+                aml_credit_wo_tax_accounts = [a.account_id for a in aml_credit if not a.tax_line_id]
+                if len(aml_debit_wo_tax_accounts) == 1:
+                    value = aml_debit_wo_tax_accounts[0]
+                elif len(aml_credit_wo_tax_accounts) == 1:
+                    value = aml_credit_wo_tax_accounts[0]
+            move.l10n_de_datev_main_account_id = value
+
+    def _l10n_de_datev_get_guid(self):
+        """ Get the unique identifier for the move based on the db UUID and the move id """
+        self.ensure_one()
+        dbuuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        guid = uuid.uuid5(namespace=uuid.UUID(dbuuid), name=str(self.id))
+        return str(guid)
 
 
 class GeneralLedgerCustomHandler(models.AbstractModel):
@@ -60,7 +244,7 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as buf:
             with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED, allowZip64=False) as zf:
                 move_line_ids = []
-                for line in report._get_lines({**options, 'export_mode': 'print', 'unfold_all': True}):
+                for line in report.with_context(print_mode=True)._get_lines({**options, 'unfold_all': True}):
                     model, model_id = report._get_model_info_from_id(line['id'])
                     if model == 'account.move.line':
                         move_line_ids.append(model_id)
@@ -90,13 +274,11 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                         # rename files by move name + sequence number (if more than 1 file)
                         # '\' is not allowed in file name, replace by '-'
                         base_name = slash_re.sub('-', move.name)
-                        # retrieve all chatter attachments
-                        attachments = move._get_mail_thread_data_attachments()
-                        if len(attachments) > 1:
-                            name_pattern = f'%(base)s-%(index)0.{len(str(len(attachments)))}d%(extension)s'
+                        if len(move.attachment_ids) > 1:
+                            name_pattern = f'%(base)s-%(index)0.{len(str(len(move.attachment_ids)))}d%(extension)s'
                         else:
                             name_pattern = '%(base)s%(extension)s'
-                        for i, attachment in enumerate(attachments.sorted('id'), 1):
+                        for i, attachment in enumerate(move.attachment_ids.sorted('id'), 1):
                             extension = os.path.splitext(attachment.name)[1]
                             name = name_pattern % {'base': base_name, 'index': i, 'extension': extension}
                             zf.writestr(name, attachment.raw)
@@ -110,14 +292,14 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                             'l10n_de_reports.datev_export_metadata',
                             values={
                                 'documents': documents,
-                                'date': fields.Date.today(),
+                                'date': fields.Datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                             },
                         )
                         zf.writestr('document.xml', "<?xml version='1.0' encoding='UTF-8'?>" + str(metadata_document))
             buf.seek(0)
             content = buf.read()
         return {
-            'file_name': report.get_default_report_filename(options, 'ZIP'),
+            'file_name': report.get_default_report_filename('ZIP'),
             'file_content': content,
             'file_type': 'zip'
         }
@@ -187,7 +369,11 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
         return output.getvalue()
 
     def _l10n_de_datev_get_account_length(self):
-        return self.env.company.l10n_de_datev_account_length
+        param_start = self.env['ir.config_parameter'].sudo().get_param('l10n_de.datev_start_count', "100000000")[:9]
+        param_start_vendors = self.env['ir.config_parameter'].sudo().get_param('l10n_de.datev_start_count_vendors', "700000000")[:9]
+
+        # The gegenkonto should be 1 length higher than the account length, so we have to substract 1 to the params length
+        return max(param_start.isdigit() and len(param_start) or 9, param_start_vendors.isdigit() and len(param_start_vendors) or 9, 5) - 1
 
     def _l10n_de_datev_find_partner_account(self, account, partner):
         len_param = self._l10n_de_datev_get_account_length() + 1
@@ -211,11 +397,13 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
     def _l10n_de_datev_get_account_identifier(self, account, partner):
         len_param = self._l10n_de_datev_get_account_length() + 1
         if account.account_type == 'asset_receivable':
-            # for customers
-            return partner.l10n_de_datev_identifier_customer or int('1'.ljust(len_param, '0')) + partner.id
+            param_start = self.env['ir.config_parameter'].sudo().get_param('l10n_de.datev_start_count', "100000000")[:9]
+            start_count = param_start.isdigit() and int(param_start) or 100000000
         else:
-            # for vendors
-            return partner.l10n_de_datev_identifier or int('7'.ljust(len_param, '0')) + partner.id
+            param_start_vendors = self.env['ir.config_parameter'].sudo().get_param('l10n_de.datev_start_count_vendors', "700000000")[:9]
+            start_count = param_start_vendors.isdigit() and int(param_start_vendors) or 700000000
+        start_count = int(str(start_count).ljust(len_param, '0'))
+        return partner.l10n_de_datev_identifier or start_count + partner.id
 
     # Source: http://www.datev.de/dnlexom/client/app/index.html#/document/1036228/D103622800029
     def _l10n_de_datev_get_csv(self, options, moves):
@@ -265,13 +453,15 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
                 if aml.payment_id:
                     if payment_account == 0:
                         payment_account = account_code
-                        counterpart_amount = aml.balance
+                        counterpart_amount += aml.balance
                         continue
                     else:
                         to_account_code = payment_account
 
                 # If both account and counteraccount are the same, ignore the line
                 if aml.account_id == aml.move_id.l10n_de_datev_main_account_id:
+                    if aml.statement_line_id and not aml.payment_id:
+                        counterpart_amount += aml.balance
                     continue
                 # If line is a tax ignore it as datev requires single line with gross amount and deduct tax itself based
                 # on account or on the control key code
@@ -331,10 +521,10 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             # Since here we have to recompute the tax values for each line with tax, we need
             # to replicate the rounding fix logic adding the difference on the last tax line
             # to avoid creating a difference with the source payment move
-            if m.payment_id and move_balance and counterpart_amount and last_tax_line_index:
+            if (m.payment_id or m.statement_line_id) and move_balance and counterpart_amount and last_tax_line_index:
                 delta_balance = move_balance + counterpart_amount
                 if delta_balance:
-                    lines[last_tax_line_index][0] = float_repr(last_tax_line_amount - delta_balance, aml.company_id.currency_id.decimal_places).replace('.', ',')
+                    lines[last_tax_line_index][0] = float_repr(abs(last_tax_line_amount - delta_balance), m.company_id.currency_id.decimal_places).replace('.', ',')
 
         writer.writerows(lines)
         return output.getvalue()

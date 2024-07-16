@@ -45,21 +45,18 @@ class ResCompany(models.Model):
     )
     l10n_ec_withhold_goods_tax_id = fields.Many2one(
         comodel_name='account.tax',
-        check_company=True,
         string="Withhold Consumables",
         help="When no profit withhold is found in partner or product, if product is a stockable or consumable"
              "the withhold fallbacks to this tax code"
     )
     l10n_ec_withhold_services_tax_id = fields.Many2one(
         comodel_name='account.tax',
-        check_company=True,
         string="Withhold Services",
         help="When no profit withhold is found in partner or product, if product is a service or not set'"
              "the withhold fallbacks to this tax code"
     )
     l10n_ec_withhold_credit_card_tax_id = fields.Many2one(
         comodel_name='account.tax',
-        check_company=True,
         string="Withhold Credit Card",
         help="When payment method will be credit card apply this withhold",
     )
@@ -70,9 +67,9 @@ class ResCompany(models.Model):
     def _l10n_ec_set_taxpayer_type_for_demo(self):
         """Used for EC demo company to configure the default withhold taxes on common taxpayer types."""
         type01 = self.env.ref('l10n_ec_edi.l10n_ec_taxpayer_type_01').with_company(self)
-        type01.profit_withhold_tax_id = self.env.ref(f'account.{self.id}_tax_withhold_profit_303')
-        type01.vat_goods_withhold_tax_id = self.env.ref(f'account.{self.id}_tax_withhold_vat_10')
-        type01.vat_services_withhold_tax_id = self.env.ref(f'account.{self.id}_tax_withhold_vat_20')
+        type01.profit_withhold_tax_id = self.env.ref(f'l10n_ec.{self.id}_tax_withhold_profit_303')
+        type01.vat_goods_withhold_tax_id = self.env.ref(f'l10n_ec.{self.id}_tax_withhold_vat_10')
+        type01.vat_services_withhold_tax_id = self.env.ref(f'l10n_ec.{self.id}_tax_withhold_vat_20')
 
         type06 = self.env.ref('l10n_ec_edi.l10n_ec_taxpayer_type_06').with_company(self)
-        type06.profit_withhold_tax_id = self.env.ref(f'account.{self.id}_tax_withhold_profit_303')
+        type06.profit_withhold_tax_id = self.env.ref(f'l10n_ec.{self.id}_tax_withhold_profit_303')

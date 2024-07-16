@@ -14,10 +14,12 @@
                         <field name="tax_consultant_number"/>
                         <field name='password' password="True"/>
                         <field name="is_test" groups="base.group_no_one"/>
+                        <field name="date_from" invisible="1"/>
+                        <field name="date_to" invisible="1"/>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="send_xbrl" string="Send" type="object" class="btn-primary" data-hotkey="q" invisible="not can_report_be_sent"/>
+                    <button name="send_xbrl" string="Send" type="object" class="btn-primary" data-hotkey="q" attrs="{'invisible':[('can_report_be_sent', '=', False)]}"/>
                     <button name="action_download_xbrl_file" string="Download" type="object" class="btn-secondary" data-hotkey="l"/>
                     <button string="Close" class="btn-secondary" special="cancel" data-hotkey="z"/>
                     <field name="can_report_be_sent" invisible="1"/>

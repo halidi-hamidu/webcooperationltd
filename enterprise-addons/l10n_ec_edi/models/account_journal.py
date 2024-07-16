@@ -13,11 +13,10 @@ class AccountJournal(models.Model):
             ('out_withhold', "Sales Withhold"),
             ('in_withhold', "Purchase Withhold")],
         string="Withhold Type",
-        help="Ecuador: Select if you want to use this Journal to create Purchase or Sales withholdings.",
     )
     l10n_ec_is_purchase_liquidation = fields.Boolean(
         string="Purchase Liquidations",
-        help="Ecuador: Check if this journal is dedicated to purchase liquidations")
+        help="Check if this journal is dedicated to purchase liquidations")
 
     @api.depends('l10n_ec_withhold_type', 'l10n_ec_is_purchase_liquidation', 'l10n_latam_use_documents')
     def _compute_edi_format_ids(self):
@@ -55,8 +54,8 @@ class AccountJournal(models.Model):
             if not journal.country_code == 'EC' or not journal.l10n_ec_entity or not journal.l10n_ec_emission:
                 continue
             duplicated_journals = self.search([
-                *self._check_company_domain(journal.company_id),
                 ('id', '!=', journal.id),  # other journals
+                ('company_id', '=', journal.company_id.id),
                 ('type', '=', journal.type),
                 ('l10n_ec_withhold_type', '=', journal.l10n_ec_withhold_type),
                 ('l10n_ec_is_purchase_liquidation', '=', journal.l10n_ec_is_purchase_liquidation),

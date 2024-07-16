@@ -97,22 +97,6 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
             'employee_id': self.empl_approver2.id
         })
 
-        self.user_employee4 = new_test_user(self.env, 'user_employee4', groups='hr_timesheet.group_hr_timesheet_user')
-
-        self.empl_employee4 = self.env['hr.employee'].create({
-            'name': 'User Empl Employee 4',
-            'user_id': self.user_employee4.id,
-        })
-
-        self.timesheet5 = self.env['account.analytic.line'].with_user(self.user_approver).create({
-            'name': 'My timesheet 5',
-            'project_id': self.project_customer.id,
-            'task_id': self.task1.id,
-            'date': today - timedelta(days=1),
-            'unit_amount': 2,
-            'employee_id': self.empl_employee4.id
-        })
-
     def test_access_rights_for_employee(self):
         """ Check the operations of employee with the lowest access
 
@@ -312,6 +296,7 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
             delete a timesheet with date <= last_validated_timesheet_date
         """
         self.assertFalse(self.empl_employee3.last_validated_timesheet_date)
+        self.assertFalse(self.empl_employee3.company_id.prevent_old_timesheets_encoding)
         timesheet = self.env['account.analytic.line'].with_user(self.user_employee3).create({
             'name': 'timesheet',
             'project_id': self.project_customer.id,
@@ -321,7 +306,13 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
             'employee_id': self.empl_employee3.id,
         })
         timesheet.with_user(self.user_approver).action_validate_timesheet()
+        self.assertFalse(self.empl_employee3.last_validated_timesheet_date)
 
+        # Set the settings accordingly
+        timesheet_settings = self.env["res.config.settings"].create({
+            'prevent_old_timesheets_encoding': True,
+        })
+        timesheet_settings.execute()
         self.assertEqual(self.empl_employee3.last_validated_timesheet_date, timesheet.date)
         timesheet.with_user(self.user_approver).action_invalidate_timesheet()
         self.assertFalse(self.empl_employee3.last_validated_timesheet_date)
@@ -384,12 +375,14 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
         """ Check that an employee cannot start a timesheet with date <= last_validated_timesheet_date
             and that validating a timesheet interrupts the potential running older timesheet
         """
+        self.empl_employee3.company_id.prevent_old_timesheets_encoding = True
         today = fields.Date.today()
         timesheet1, timesheet2, timesheet3, timesheet4 = self.env['account.analytic.line'].with_user(self.user_employee3).create([
             {
                 'name': 'Timesheet1',
                 'project_id': self.project_customer.id,
                 'task_id': self.task1.id,
+                'date': today - timedelta(days=3),
                 'unit_amount': 2,
                 'employee_id': self.empl_employee3.id,
             }, {
@@ -418,7 +411,6 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
 
         # The validation of a timesheet interrupts the timer of the running older timesheet
         timesheet1.with_user(self.user_employee3).action_timer_start()
-        timesheet1.write({'date': today - timedelta(days=3)})  # simulate the user forgot to stop his timer.
         self.assertTrue(timesheet1.is_timer_running)
         timesheet2.with_user(self.user_approver).action_validate_timesheet()
         self.assertFalse(timesheet1.is_timer_running)
@@ -427,8 +419,7 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
         # the timesheet timer but creates a new timesheet for the same task at the current date
         timesheet1.with_user(self.user_employee3).action_timer_start()
         self.assertFalse(timesheet1.is_timer_running)
-        timesheet5 = self.env['account.analytic.line'].search(
-            [('employee_id', '=', self.empl_employee3.id), ('is_timer_running', '=', True)])
+        timesheet5 = self.env['account.analytic.line'].search([('employee_id', '=', self.empl_employee3.id), ('is_timer_running', '=', True)])
         self.assertEqual(len(timesheet5), 1)
         self.assertEqual(timesheet5.project_id, self.project_customer)
         self.assertEqual(timesheet5.task_id, self.task1)
@@ -444,15 +435,6 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
         timesheet3.with_user(self.user_approver).action_validate_timesheet()
         self.assertTrue(timesheet4.is_timer_running)
 
-    def test_approve_user_without_approver_and_parents(self):
-        """
-            Check that a user with group_hr_timesheet_user can approve timesheets
-            of user that don't have a timesheet approver and a parent.
-        """
-        timesheet_to_validate = self.timesheet5
-        timesheet_to_validate.with_user(self.user_approver).action_validate_timesheet()
-        self.assertEqual(timesheet_to_validate.validated, True)
-
     def test_update_timesheet_from_archived_employee(self):
         """
             Check the approver can alter a timesheet of an archived employee.
@@ -464,6 +446,11 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
                 - Approve the timesheet
                 - Update the timesheet
         """
+        self.timesheet2.date = fields.Datetime.today() - timedelta(days=2)
+        timesheet_settings = self.env["res.config.settings"].create({
+            'prevent_old_timesheets_encoding': True,
+        })
+        timesheet_settings.execute()
         self.empl_employee3.active = False
         self.assertEqual(self.timesheet2.employee_id, self.empl_employee3, "The timesheet should be for the archived employee")
         self.assertEqual(self.timesheet2.unit_amount, 2, "The timesheet should have 2 hours")
@@ -478,6 +465,11 @@ class TestAccessRightsTimesheetGrid(TestCommonTimesheet):
 
     def test_recursive_approver_validation(self):
         """Check that a timesheet of an employee can be validated and then edited by its n+2 approver"""
+
+        timesheet_settings = self.env["res.config.settings"].create({
+            'prevent_old_timesheets_encoding': True,
+        })
+        timesheet_settings.execute()
 
         # Check that both approver and approver 2 are team approvers and not full managers
         # If the n+2 approver would be full manager, he would be allowed in any case to validate

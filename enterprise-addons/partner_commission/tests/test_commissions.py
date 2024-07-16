@@ -123,9 +123,10 @@ class TestCommissions(TestCommissionsSetup):
         move_reversal = self.env['account.move.reversal'].with_user(self.salesman).with_context(ctx).create({
             'date': fields.Date.today(),
             'reason': '...',
+            'refund_method': 'refund',
             'journal_id': inv.journal_id.id,
         })
-        reversal = move_reversal.refund_moves()
+        reversal = move_reversal.reverse_moves()
         reverse_move = self.env['account.move'].browse(reversal['res_id'])
         reverse_move.action_post()
         self._pay_invoice(reverse_move)

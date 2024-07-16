@@ -18,9 +18,8 @@ class QualityCheck(models.Model):
             ('state', 'in', ('confirmed', 'progress')),
         ], limit=1)
         if not eco:
-            wo_name = f'{self.workorder_id.name}/{self.workorder_id.production_id.name}'
-            name = _("Instruction Suggestions (%(wo_name)s)", wo_name=wo_name)
-            eco_type = self.env.ref('mrp_plm.ecotype_bom_update', raise_if_not_found=False)
+            name = self.workorder_id.name + "/" + self.workorder_id.production_id.name
+            eco_type = self.env.ref('mrp_workorder_plm.ecotype_workorder', raise_if_not_found=False)
             if not eco_type:
                 eco_type = self.env['mrp.eco.type'].sudo().search([], limit=1)
             stage = self.env['mrp.eco.stage'].sudo().search([

@@ -120,13 +120,12 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Debit           Credit          Debit           Credit
             [   0,                                      1,              2,              3,              4,              5,              6],
             [
-                ('211000 Account Payable',              2000.0,         0.0,            100.0,          0.0,            2100.0,         0.0),
-                ('400000 Product Sales',                0.0,            3000.0,         0.0,            300.0,          0.0,            3300.0),
-                ('600000 Expenses',                     2000.0,         0.0,            200.0,          0.0,            2200.0,         0.0),
-                ('999999 Undistributed Profits/Losses', 0.0,            1000.0,         0.0,            0.0,            0.0,            1000.0),
+                ('211000 Account Payable',              2000.0,         '',             100.0,          '',             2100.0,         ''),
+                ('400000 Product Sales',                '',             3000.0,         '',             300.0,          '',             3300.0),
+                ('600000 Expenses',                     2000.0,         '',             200.0,          '',             2200.0,         ''),
+                ('999999 Undistributed Profits/Losses', '',             1000.0,         '',             '',             '',             1000.0),
                 ('Total',                               4000.0,         4000.0,         300.0,          300.0,          4300.0,         4300.0),
             ],
-            options,
         )
 
     def test_trial_balance_unaffected_earnings_previous_fiscal_year(self):
@@ -171,13 +170,12 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Debit           Credit          Debit           Credit
             [   0,                                      1,              2,              3,              4,              5,              6],
             [
-                ('211000 Account Payable',              1000.0,         0.0,            1100.0,         0.0,            2100.0,         0.0),
-                ('400000 Product Sales',                0.0,            0.0,            0.0,            3300.0,         0.0,            3300.0),
-                ('600000 Expenses',                     0.0,            0.0,            2200.0,         0.0,            2200.0,         0.0),
-                ('999999 Undistributed Profits/Losses', 0.0,            1000.0,         0.0,            0.0,            0.0,            1000.0),
+                ('211000 Account Payable',              1000.0,         '',             1100.0,         '',             2100.0,         ''),
+                ('400000 Product Sales',                '',             '',             '',             3300.0,         '',             3300.0),
+                ('600000 Expenses',                     '',             '',             2200.0,         '',             2200.0,         ''),
+                ('999999 Undistributed Profits/Losses', '',             1000.0,         '',             '',             '',             1000.0),
                 ('Total',                               1000.0,         1000.0,         3300.0,         3300.0,         4300.0,         4300.0),
             ],
-            options,
         )
 
     def test_trial_balance_whole_report(self):
@@ -189,18 +187,17 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Debit           Credit          Debit           Credit
             [   0,                                      1,              2,              3,              4,              5,              6],
             [
-                ('121000 Account Receivable',           0.0,            0.0,            1000.0,         0.0,            1000.0,         0.0),
-                ('211000 Account Payable',              100.0,          0.0,            0.0,            0.0,            100.0,          0.0),
-                ('211000 Account Payable',              50.0,           0.0,            0.0,            0.0,            50.0,           0.0),
-                ('400000 Product Sales',                0.0,            0.0,            20000.0,        0.0,            20000.0,        0.0),
-                ('400000 Product Sales',                0.0,            0.0,            0.0,            200.0,          0.0,            200.0),
-                ('600000 Expenses',                     0.0,            0.0,            0.0,            21000.0,        0.0,            21000.0),
-                ('600000 Expenses',                     0.0,            0.0,            200.0,          0.0,            200.0,          0.0),
-                ('999999 Undistributed Profits/Losses', 0.0,            100.0,          0.0,            0.0,            0.0,            100.0),
-                ('999999 Undistributed Profits/Losses', 0.0,             50.0,          0.0,            0.0,            0.0,            50.0),
+                ('121000 Account Receivable',           '',             '',             1000.0,         '',             1000.0,         ''),
+                ('211000 Account Payable',              100.0,          '',             '',             '',             100.0,          ''),
+                ('211000 Account Payable',              50.0,           '',             '',             '',             50.0,           ''),
+                ('400000 Product Sales',                '',             '',          20000.0,        '',             20000.0,        ''),
+                ('400000 Product Sales',                '',             '',           '',             200.0,          '',             200.0),
+                ('600000 Expenses',                     '',             '',             '',             21000.0,        '',             21000.0),
+                ('600000 Expenses',                     '',             '',             200.0,          '',             200.0,          ''),
+                ('999999 Undistributed Profits/Losses', '',             100.0,             '',             '',             '',             100.0),
+                ('999999 Undistributed Profits/Losses', '',              50.0,             '',             '',             '',             50.0),
                 ('Total',                               150.0,          150.0,          21200.0,        21200.0,        21350.0,        21350.0),
             ],
-            options,
         )
 
     def test_trial_balance_filter_journals(self):
@@ -215,12 +212,11 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Debit           Credit          Debit           Credit
             [   0,                                      1,              2,              3,              4,              5,              6],
             [
-                ('121000 Account Receivable',          0.0,            0.0,             1000.0,         0.0,            1000.0,         0.0),
-                ('400000 Product Sales',               0.0,            0.0,             20000.0,        0.0,            20000.0,        0.0),
-                ('600000 Expenses',                    0.0,            0.0,             0.0,            21000.0,        0.0,             21000.0),
-                ('Total',                              0.0,            0.0,             21000.0,        21000.0,        21000.0,         21000.0),
+                ('121000 Account Receivable',           '',             '',             1000.0,         '',             1000.0,         ''),
+                ('400000 Product Sales',                '',             '',             20000.0,        '',             20000.0,        ''),
+                ('600000 Expenses',                     '',             '',             '',             21000.0,        '',             21000.0),
+                ('Total',                              0.0,            0.0,             21000.0,        21000.0,        21000.0,        21000.0),
             ],
-            options,
         )
 
     def test_trial_balance_comparisons(self):
@@ -233,16 +229,15 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             #   Name                                    Debit           Credit          Debit           Credit          Debit           Credit          Debit           Credit
             [   0,                                      1,              2,              3,              4,              5,              6,              7,              8],
             [
-                ('121000 Account Receivable',          0.0,            0.0,             0.0,            0.0,            1000.0,         0.0,            1000.0,         0.0),
-                ('211000 Account Payable',             0.0,            0.0,             100.0,          0.0,            0.0,            0.0,            100.0,          0.0),
-                ('211000 Account Payable',             0.0,            0.0,             50.0,           0.0,            0.0,            0.0,            50.0,           0.0),
-                ('400000 Product Sales',               0.0,            0.0,             0.0,            300.0,          20000.0,        0.0,            19700.0,        0.0),
-                ('400000 Product Sales',               0.0,            0.0,             0.0,            50.0,           0.0,            200.0,          0.0,            250.0),
-                ('600000 Expenses',                    0.0,            0.0,             200.0,          0.0,            0.0,            21000.0,        0.0,            20800.0),
-                ('600000 Expenses',                    0.0,            0.0,             0.0,            0.0,            200.0,          0.0,            200.0,          0.0),
+                ('121000 Account Receivable',           '',             '',             '',             '',             1000.0,         '',             1000.0,         ''),
+                ('211000 Account Payable',              '',             '',             100.0,          '',             '',             '',             100.0,          ''),
+                ('211000 Account Payable',              '',             '',             50.0,           '',             '',             '',             50.0,           ''),
+                ('400000 Product Sales',                '',             '',             '',             300.0,          20000.0,        '',             19700.0,        ''),
+                ('400000 Product Sales',                '',             '',             '',             50.0,           '',             200.0,          '',             250.0),
+                ('600000 Expenses',                     '',             '',             200.0,          '',             '',             21000.0,        '',             20800.0),
+                ('600000 Expenses',                     '',             '',             '',             '',             200.0,          '',             200.0,          ''),
                 ('Total',                              0.0,            0.0,             350.0,          350.0,          21200.0,        21200.0,        21050.0,        21050.0),
             ],
-            options,
         )
 
     def test_trial_balance_account_group_with_hole(self):
@@ -296,12 +291,11 @@ class TestTrialBalanceReport(TestAccountReportsCommon):
             self.report._get_lines(options),
             [   0,                                     1,              2,               3,              4,              5,              6],
             [
-                ['10 Group_10',                        0.0,            0.0,             300.0,          300.0,          0.0,            0.0],
-                ['100000 Account A',                   0.0,            0.0,             100.0,          100.0,          0.0,            0.0],
-                ['101 Group_101',                      0.0,            0.0,             200.0,          200.0,          0.0,            0.0],
-                ['1012 Group_1012',                    0.0,            0.0,             200.0,          200.0,          0.0,            0.0],
-                ['101200 Account A1',                  0.0,            0.0,             200.0,          200.0,          0.0,            0.0],
+                ['10 Group_10',                        '',             '',              300.0,          300.0,          '',             ''],
+                ['100000 Account A',                   '',             '',              100.0,          100.0,          '',             ''],
+                ['101 Group_101',                      '',             '',              200.0,          200.0,          '',             ''],
+                ['1012 Group_1012',                    '',             '',              200.0,          200.0,          '',             ''],
+                ['101200 Account A1',                  '',             '',              200.0,          200.0,          '',             ''],
                 ['Total',                              0.0,            0.0,             300.0,          300.0,          0.0,            0.0]
             ],
-            options,
         )

@@ -46,7 +46,7 @@ class WebsiteTwitterWall(models.Model):
                 wall.website_url = "%s/twitter_wall/view/%s" % (wall.get_base_url(), slug(wall))
 
     def toggle_live_mode(self):
-        self.env.registry.clear_cache()  # not sure this is really useful
+        self.env['website.twitter.wall'].clear_caches()
         self.is_live = not self.is_live
 
     def fetch_tweets(self):

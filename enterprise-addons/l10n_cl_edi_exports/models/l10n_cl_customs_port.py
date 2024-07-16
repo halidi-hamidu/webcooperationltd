@@ -1,5 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class CustomsPort(models.Model):
@@ -10,7 +10,9 @@ class CustomsPort(models.Model):
     code = fields.Integer(required=True)
     country_id = fields.Many2one(comodel_name='res.country', required=True)
 
-    @api.depends('code')
-    def _compute_display_name(self):
+    def name_get(self):
+        res = []
         for port in self:
-            port.display_name = f'({port.code}) {port.name}'
+            name = '(%s) %s' % (port.code, port.name)
+            res.append((port.id, name))
+        return res

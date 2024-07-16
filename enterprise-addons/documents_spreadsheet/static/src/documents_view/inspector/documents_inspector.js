@@ -1,24 +1,22 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
-import { loadBundle } from "@web/core/assets";
 import { useService } from "@web/core/utils/hooks";
 import {
     inspectorFields,
     DocumentsInspector,
 } from "@documents/views/inspector/documents_inspector";
 
-import { XLSX_MIME_TYPE } from "@documents_spreadsheet/helpers";
+import { XLSX_MIME_TYPES } from "@documents_spreadsheet/helpers";
 
 inspectorFields.push("handler");
 
-patch(DocumentsInspector.prototype, {
+patch(DocumentsInspector.prototype, "documents_spreadsheet_documents_inspector", {
     /**
      * @override
      */
     setup() {
-        super.setup(...arguments);
+        this._super(...arguments);
         this.orm = useService("orm");
         this.notification = useService("notification");
     },
@@ -27,9 +25,9 @@ patch(DocumentsInspector.prototype, {
      * @override
      */
     getRecordAdditionalData(record) {
-        const result = super.getRecordAdditionalData(...arguments);
+        const result = this._super(...arguments);
         result.isSheet = record.data.handler === "spreadsheet";
-        result.isXlsx = record.data.mimetype === XLSX_MIME_TYPE;
+        result.isXlsx = XLSX_MIME_TYPES.includes(record.data.mimetype);
         return result;
     },
 
@@ -37,7 +35,7 @@ patch(DocumentsInspector.prototype, {
      * @override
      */
     getPreviewClasses(record, additionalData) {
-        let result = super.getPreviewClasses(...arguments);
+        let result = this._super(...arguments);
         if (additionalData.isSheet) {
             return result.replace("o_documents_preview_mimetype", "o_documents_preview_image");
         }
@@ -53,6 +51,7 @@ patch(DocumentsInspector.prototype, {
             isPdfSplit: false,
             rules: [],
             hasPdfSplit: false,
+            selection: [record],
         });
     },
 
@@ -60,7 +59,7 @@ patch(DocumentsInspector.prototype, {
      * @override
      */
     async onDownload() {
-        const selection = this.props.documents || [];
+        const selection = this.props.selection;
         if (selection.some((record) => record.data.handler === "spreadsheet")) {
             if (selection.length === 1) {
                 const record = await this.orm.call(
@@ -74,13 +73,13 @@ patch(DocumentsInspector.prototype, {
                     params: {
                         orm: this.orm,
                         name: record.name,
-                        data: record.data,
+                        data: JSON.parse(record.raw),
                         stateUpdateMessages: record.revisions,
                     },
                 });
             } else {
                 this.notification.add(
-                    _t(
+                    this.env._t(
                         "Spreadsheets mass download not yet supported.\n Download spreadsheets individually instead."
                     ),
                     {
@@ -96,37 +95,23 @@ patch(DocumentsInspector.prototype, {
                 }
             }
         } else {
-            super.onDownload(...arguments);
+            this._super(...arguments);
         }
     },
 
     /**
      * @override
+     * @param {Object} mainDocument
+     * @param {boolean} isPdfSplit
      */
-    async createShareVals() {
-        const selection = this.props.documents;
-        const vals = await super.createShareVals();
-        if (selection.every((doc) => doc.data.handler !== "spreadsheet")) {
-            return vals;
+    openPreview(mainDocument = false, isPdfSplit = false) {
+        if (mainDocument && mainDocument.data.mimetype === "application/vnd.ms-excel") {
+            this.notification.add(
+                this.env._t("Only XLSX files can be opened with Odoo Spreadsheet"),
+                { type: "warning" }
+            );
+            return;
         }
-        await loadBundle("spreadsheet.o_spreadsheet");
-        const spreadsheetShares = [];
-        for (const document of selection) {
-            if (document.data.handler === "spreadsheet") {
-                const resId = document.resId;
-                const { fetchSpreadsheetModel, freezeOdooData } = odoo.loader.modules.get("@spreadsheet/helpers/model");
-                const model = await fetchSpreadsheetModel(this.env, "documents.document", resId);
-                const data = await freezeOdooData(model);
-                spreadsheetShares.push({
-                    spreadsheet_data: JSON.stringify(data),
-                    excel_files: model.exportXLSX().files,
-                    document_id: resId,
-                });
-            }
-        }
-        return {
-            ...vals,
-            spreadsheet_shares: spreadsheetShares,
-        };
+        this._super(...arguments);
     },
 });

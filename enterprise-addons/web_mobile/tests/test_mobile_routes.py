@@ -77,6 +77,7 @@ class MobileRoutesTest(HttpCaseWithUserDemo):
             "db": get_db_name(),
             "login": "demo",
             "password": "demo",
+            "context": {},
         })
         response = self.url_open("/web/session/authenticate", data=json.dumps(payload), headers=self.headers)
         self.assertEqual(response.status_code, 200)
@@ -100,6 +101,7 @@ class MobileRoutesTest(HttpCaseWithUserDemo):
             "db": self.env.cr.dbname,
             "login": "demo",
             "password": "admin",
+            "context": {},
         })
         response = self.url_open("/web/session/authenticate", data=json.dumps(payload), headers=self.headers)
         self.assertEqual(response.status_code, 200)
@@ -121,6 +123,7 @@ class MobileRoutesTest(HttpCaseWithUserDemo):
             "db": db_name,
             "login": "demo",
             "password": "admin",
+            "context": {},
         })
         response = self.url_open("/web/session/authenticate", data=json.dumps(payload), headers=self.headers)
         self.assertEqual(response.status_code, 200)

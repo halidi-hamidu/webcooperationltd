@@ -108,9 +108,7 @@ class ConsolidationChart(models.Model):
         return action
 
     def action_save_onboarding_consolidation_step(self):
-        self.env['onboarding.onboarding.step'].action_validate_step(
-            'account_consolidation.onboarding_onboarding_step_setup_consolidation'
-        )
+        self.env.company.sudo().set_onboarding_step_done('consolidation_setup_consolidation_state')
 
     @api.model
     def setting_consolidated_chart_of_accounts_action(self):
@@ -127,9 +125,7 @@ class ConsolidationChart(models.Model):
                 (False, 'form')
             ]
         })
-        self.env['onboarding.onboarding.step'].action_validate_step(
-            'account_consolidation.onboarding_onboarding_step_setup_ccoa'
-        )
+        self.env.company.sudo().set_onboarding_step_done('consolidation_setup_ccoa_state')
         return action
 
     @api.model
@@ -211,7 +207,7 @@ class ConsolidationAccount(models.Model):
     def _compute_full_name(self):
         for record in self:
             if record.group_id:
-                record.full_name = f'{record.group_id.display_name} / {record.name}'
+                record.full_name = '%s / %s' % (record.group_id.name_get()[0][1], record.name)
             else:
                 record.full_name = record.name
 
@@ -249,7 +245,8 @@ class ConsolidationAccount(models.Model):
             if chart_id:
                 domain = expression.AND([domain, [('used_in_ids.chart_id', '=', chart_id)]])
             if operator == '=':
-                domain = [('id', 'not in', self._search(domain))]
+                result = self.search_read(domain, ['id'])
+                domain = [('id', 'not in', [r['id'] for r in result])]
             return domain
         else:
             return [('used_in_ids', operator, operand)]
@@ -261,10 +258,15 @@ class ConsolidationAccount(models.Model):
 
     # ORM OVERRIDES
 
-    @api.depends('code')
-    def _compute_display_name(self):
+    def name_get(self):
+        ret_list = []
         for record in self:
-            record.display_name = f'{record.code} {record.name}' if record.code else record.name
+            if record.code:
+                name = '%s %s' % (record.code, record.name)
+            else:
+                name = record.name
+            ret_list.append((record.id, name))
+        return ret_list
 
     # HELPERS
 
@@ -278,14 +280,14 @@ class ConsolidationAccount(models.Model):
         return dict(self._fields['currency_mode'].selection).get(self.currency_mode)
 
     @api.model
-    def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
-        domain = domain or []
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
+        args = args or []
+        domain = []
         if name:
-            name_domain = ['|', ('code', '=ilike', name.split(' ')[0] + '%'), ('name', operator, name)]
+            domain = ['|', ('code', '=ilike', name.split(' ')[0] + '%'), ('name', operator, name)]
             if operator in expression.NEGATIVE_TERM_OPERATORS:
-                name_domain = ['&', '!'] + name_domain[1:]
-            domain = expression.AND([name_domain, domain])
-        return self._search(domain, limit=limit, order=order)
+                domain = ['&', '!'] + domain[1:]
+        return self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
 
 class ConsolidationGroup(models.Model):
     _name = "consolidation.group"
@@ -325,18 +327,18 @@ class ConsolidationGroup(models.Model):
         """
         for record in self:
             if record.child_ids and len(record.child_ids) > 0 and record.account_ids and len(record.account_ids) > 0:
-                raise ValidationError(_("An account group can only have accounts or other groups children but not both!"))
+                raise ValidationError(_("An account group can only have accounts or other groups children but not both !"))
 
-    @api.depends('parent_id')
-    def _compute_display_name(self):
+    def name_get(self):
+        ret_list = []
         for section in self:
             orig_section = section
             name = section.name
             while section.parent_id:
                 section = section.parent_id
                 name = section.name + " / " + name
-            orig_section.display_name = name
-
+            ret_list.append((orig_section.id, name))
+        return ret_list
 
     @api.depends('parent_id.sign', 'invert_sign', 'chart_id.sign')
     def _compute_sign(self):

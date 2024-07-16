@@ -57,7 +57,7 @@ class ApprovalProductLine(models.Model):
         if product_lines_without_seller:
             product_names = product_lines_without_seller.product_id.mapped('display_name')
             raise UserError(
-                _('Please set a vendor on product(s) %s.', ', '.join(product_names))
+                _('Please set a vendor on product(s) %s.') % ', '.join(product_names)
             )
 
     def _get_purchase_orders_domain(self, vendor):

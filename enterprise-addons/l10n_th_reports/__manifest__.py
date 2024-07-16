@@ -3,7 +3,6 @@
 
 {
     "name": "Thailand - Accounting Reports",
-    'countries': ['th'],
     "author": "Odoo PS",
     "version": "1.0",
     'category': 'Accounting',
@@ -18,6 +17,7 @@ Accounting reports for Thailand
     "data": [
         "data/account_tax_report_data.xml",
     ],
+    "icon": "/l10n_th/static/description/icon.png",
     'auto_install': True,
     'installable': True,
     'license': 'OEEL-1',

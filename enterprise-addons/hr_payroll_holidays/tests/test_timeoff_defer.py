@@ -10,8 +10,7 @@ from odoo.addons.hr_payroll_holidays.tests.common import TestPayrollHolidaysBase
 
 from dateutil.relativedelta import relativedelta
 
-
-@tagged('post_install', '-at_install')
+@tagged('payroll_holidays_defer')
 class TestTimeoffDefer(TestPayrollHolidaysBase):
 
     def test_no_defer(self):
@@ -29,8 +28,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Golf time',
             'holiday_status_id': self.leave_type.id,
             'employee_id': self.emp.id,
-            'request_date_from': (date.today() + relativedelta(day=13)),
-            'request_date_to': (date.today() + relativedelta(day=16)),
+            'date_from': (Datetime.today() + relativedelta(day=13)),
+            'date_to': (Datetime.today() + relativedelta(day=16)),
+            'number_of_days': 3,
         })
         leave.action_approve()
 
@@ -52,8 +52,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Golf time',
             'holiday_status_id': self.leave_type.id,
             'employee_id': self.emp.id,
-            'request_date_from': (date.today() + relativedelta(day=13)),
-            'request_date_to': (date.today() + relativedelta(day=16)),
+            'date_from': (Datetime.today() + relativedelta(day=13)),
+            'date_to': (Datetime.today() + relativedelta(day=16)),
+            'number_of_days': 3,
         })
         leave.action_approve()
         self.assertEqual(leave.payslip_state, 'blocked', 'Leave should be to defer')
@@ -84,8 +85,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Golf time',
             'holiday_status_id': self.leave_type.id,
             'employee_id': self.emp.id,
-            'request_date_from': (date.today() + relativedelta(day=13)),
-            'request_date_to': (date.today() + relativedelta(day=16)),
+            'date_from': (Datetime.today() + relativedelta(day=13)),
+            'date_to': (Datetime.today() + relativedelta(day=16)),
+            'number_of_days': 3,
         })
         leave.action_approve()
 
@@ -106,8 +108,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Tennis',
             'holiday_status_id': self.leave_type.id,
             'employee_id': self.emp.id,
-            'request_date_from': '2022-01-12',
-            'request_date_to': '2022-01-12',
+            'date_from': '2022-01-12',
+            'date_to': '2022-01-12',
+            'number_of_days': 1,
         })
         payslip.action_payslip_done()
 
@@ -117,8 +120,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
                 'name': 'Tennis',
                 'holiday_status_id': self.leave_type.id,
                 'employee_id': self.emp.id,
-                'request_date_from': '2022-01-19',
-                'request_date_to': '2022-01-19',
+                'date_from': '2022-01-19',
+                'date_to': '2022-01-19',
+                'number_of_days': 1,
             })
 
         # Check overlapping periods with no payslip
@@ -127,8 +131,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
                 'name': 'Tennis',
                 'holiday_status_id': self.leave_type.id,
                 'employee_id': self.emp.id,
-                'request_date_from': '2022-01-31',
-                'request_date_to': '2022-02-01',
+                'date_from': '2022-01-31',
+                'date_to': '2022-02-01',
+                'number_of_days': 2,
             })
 
         with self.assertRaises(ValidationError):
@@ -136,8 +141,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
                 'name': 'Tennis',
                 'holiday_status_id': self.leave_type.id,
                 'employee_id': self.emp.id,
-                'request_date_from': '2021-01-31',
-                'request_date_to': '2022-01-03',
+                'date_from': '2021-01-31',
+                'date_to': '2022-01-03',
+                'number_of_days': 2,
             })
 
         # But a time off officer can
@@ -145,8 +151,9 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Tennis',
             'holiday_status_id': self.leave_type.id,
             'employee_id': self.emp.id,
-            'request_date_from': '2022-01-19',
-            'request_date_to': '2022-01-19',
+            'date_from': '2022-01-19',
+            'date_to': '2022-01-19',
+            'number_of_days': 1,
         })
 
     def test_report_to_next_month(self):
@@ -169,6 +176,7 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'request_date_to': date(2022, 1, 31),
             'request_hour_from': '7',
             'request_hour_to': '18',
+            'number_of_days': 1,
         })
         leave._compute_date_from_to()
         leave = self.env['hr.leave'].create(leave._convert_to_write(leave._cache))
@@ -213,6 +221,7 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'request_date_to': date(2022, 2, 2),
             'request_hour_from': '7',
             'request_hour_to': '18',
+            'number_of_days': 3,
         })
         leave._compute_date_from_to()
         leave = self.env['hr.leave'].create(leave._convert_to_write(leave._cache))
@@ -256,6 +265,7 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'request_date_to': date(2022, 1, 31),
             'request_hour_from': '7',
             'request_hour_to': '18',
+            'number_of_days': 21, # February only contains 20 open days
         })
         leave._compute_date_from_to()
         leave = self.env['hr.leave'].create(leave._convert_to_write(leave._cache))
@@ -286,6 +296,7 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'request_date_to': date(2022, 3, 10),
             'request_hour_from': '7',
             'request_hour_to': '18',
+            'number_of_days': 21,
         })
         leave._compute_date_from_to()
         leave = self.env['hr.leave'].create(leave._convert_to_write(leave._cache))
@@ -316,6 +327,7 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'request_date_to': date(2022, 1, 31),
             'request_unit_half': True,
             'request_date_from_period': 'am',
+            'number_of_days': 0.5,
         })
         leave._compute_date_from_to()
         leave = self.env['hr.leave'].create(leave._convert_to_write(leave._cache))
@@ -356,14 +368,14 @@ class TestTimeoffDefer(TestPayrollHolidaysBase):
             'name': 'Paid Time Off',
             'employee_id': self.emp.id,
             'holiday_status_id': self.leave_type.id,
-            'request_date_from': '2023-06-26 00:00:00',
-            'request_date_to': '2023-06-30 23:59:59',
+            'date_from': '2023-06-26 00:00:00',
+            'date_to': '2023-06-30 23:59:59',
             }, {
             'name': 'Paid Time Off',
             'employee_id': self.emp.id,
             'holiday_status_id': self.leave_type.id,
-            'request_date_from': '2023-07-03 00:00:00',
-            'request_date_to': '2023-07-05 23:59:59',
+            'date_from': '2023-07-03 00:00:00',
+            'date_to': '2023-07-05 23:59:59',
             }]
         leaves = self.env['hr.leave'].create(leave_data)
         leaves.action_validate()

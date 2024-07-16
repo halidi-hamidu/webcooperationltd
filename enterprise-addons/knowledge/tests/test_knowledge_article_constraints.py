@@ -467,12 +467,37 @@ class TestKnowledgeArticleConstraints(KnowledgeCommon):
              'name': 'Article'}
         )
         self.assertFalse(article.is_user_favorite)
-        article.action_toggle_favorite()
+        article.write({'favorite_ids': [(0, 0, {'user_id': self.env.user.id})]})
         self.assertTrue(article.is_user_favorite)
         with self.assertRaises(IntegrityError,
                                msg='Multiple favorite entries are not accepted'):
             article.write({'favorite_ids': [(0, 0, {'user_id': self.env.user.id})]})
         self.assertTrue(article.is_user_favorite)
+
+    @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.tests')
+    @users('employee')
+    def test_member_share_restrictions(self):
+        """Checking that the external partner can not have 'write' access."""
+        article = self._create_private_article('MyPrivate')
+        self.assertEqual(article.category, 'private')
+
+        customer = self.customer.with_env(self.env)
+        self.assertTrue(customer.partner_share)
+
+        # check that an external partner can not have "write" permission
+        with self.assertRaises(exceptions.ValidationError,
+                               msg='An external partner can not have "write" permission on an article'):
+            article.sudo().write({
+                'article_member_ids': [(0, 0, {
+                    'partner_id': customer.id,
+                    'permission': 'write'
+                })]
+            })
+        article.invite_members(customer, 'write')
+        self.assertMembers(article, 'none',
+                           {self.env.user.partner_id: 'write',
+                            customer: 'read'},
+                           msg='Invite: share should not gain write access')
 
     @mute_logger('odoo.sql_db')
     @users('employee')

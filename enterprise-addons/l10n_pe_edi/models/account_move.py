@@ -66,7 +66,7 @@ class AccountMove(models.Model):
     l10n_pe_edi_cancel_reason = fields.Char(
         string="Cancel Reason",
         copy=False,
-        help="Peru: Reason given by the user for cancelling this move, structure of voided summary: sac:VoidReasonDescription.")
+        help="Reason given by the user to cancel this move, structure of voided summary: sac:VoidReasonDescription")
     l10n_pe_edi_operation_type = fields.Selection(
         selection=[
             ('0101', '[0101] Internal sale'),
@@ -93,17 +93,17 @@ class AccountMove(models.Model):
         string="Operation Type (PE)",
         store=True, readonly=False,
         compute='_compute_l10n_pe_edi_operation_type',
-        help="Peru: Defines the operation type, all the options can be used for all the document types, except "
+        help="Defines the operation type, all the options can be used for all the document types, except "
              "'[0113] Internal Sale-NRUS' that is for document type 'Boleta' and '[0112] Internal Sale - Sustains "
              "Natural Person Deductible Expenses' exclusive for document type 'Factura'"
-             "It can't be changed after validation. This is an optional feature added to avoid a warning. Catalog No. 51.")
+             "It can't be changed after validation. This is an optional feature added to avoid a warning. Catalog No. 51")
     l10n_pe_edi_legend = fields.Selection(
         selection=CATALOG52,
-        string="Legend Code", help="Peru: Specific operation type code.")
+        string="Legend Code")
     l10n_pe_edi_legend_value = fields.Char(
         string="Legend",
         store=True, readonly=False, compute='_compute_l10n_pe_edi_legend_value',
-        help="Peru: Specific operation type value.")
+        help="Text to indicate the legend or the amount in letters.")
 
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
@@ -128,24 +128,6 @@ class AccountMove(models.Model):
                 move.l10n_pe_edi_legend_value = matched_elements[0][1]
             else:
                 move.l10n_pe_edi_legend_value = False
-
-    @api.depends('journal_id', 'partner_id', 'company_id', 'move_type', 'debit_origin_id', 'l10n_pe_edi_operation_type')
-    def _compute_l10n_latam_available_document_types(self):
-        # EXTENDS 'l10n_latam_invoice_document'
-        pe02_moves = self.filtered(
-            lambda move: (
-                move.state == 'draft'
-                and move.country_code == 'PE'
-                and move.partner_id.l10n_latam_identification_type_id.l10n_pe_vat_code != '6'
-                and move.l10n_pe_edi_operation_type in ('0200', '0201', '0202', '0203', '0204', '0205', '0206', '0207', '0208')
-                and move.journal_id.type == 'sale'
-            )
-        )
-        for rec in pe02_moves.filtered(lambda move: move.move_type == 'out_invoice'):
-            rec.l10n_latam_available_document_type_ids = self.env.ref('l10n_pe.document_type01') | self.env.ref('l10n_pe.document_type08')
-        for rec in pe02_moves.filtered(lambda move: move.move_type == 'out_refund'):
-            rec.l10n_latam_available_document_type_ids = self.env.ref('l10n_pe.document_type02')
-        return super(AccountMove, self - pe02_moves)._compute_l10n_latam_available_document_types()
 
     # -------------------------------------------------------------------------
     # SEQUENCE HACK
@@ -186,19 +168,22 @@ class AccountMove(models.Model):
         if not max_percent or not self.l10n_pe_edi_operation_type in ['1001', '1002', '1003', '1004'] or self.move_type == 'out_refund':
             return {}
         line = self.invoice_line_ids.filtered(lambda r: r.product_id.l10n_pe_withhold_percentage == max_percent)[0]
-        national_bank = self.env.ref('l10n_pe.peruvian_national_bank')
-        national_bank_account = self.company_id.bank_ids.filtered(lambda b: b.bank_id == national_bank)
-        # just take the first one (but not meant to have multiple)
-        national_bank_account_number = national_bank_account[0].acc_number if national_bank_account else False
+        national_bank = self.env.ref('l10n_pe_edi.peruvian_national_bank', raise_if_not_found=False)
+        national_bank_account_number = False
+        if national_bank:
+            national_bank_account = self.company_id.bank_ids.filtered(lambda b: b.bank_id == national_bank)
+            if national_bank_account:
+                # just take the first one (but not meant to have multiple)
+                national_bank_account_number = national_bank_account[0].acc_number
 
         return {
-            'id': 'Detraccion',
-            'payment_means_id': line.product_id.l10n_pe_withhold_code,
-            'payee_financial_account': national_bank_account_number,
-            'payment_means_code': '999',
-            'spot_amount': float_round(self.amount_total * (max_percent / 100.0), precision_rounding=0.01),
-            'amount': float_round(self.amount_total_signed * (max_percent / 100.0), precision_rounding=1),
-            'payment_percent': max_percent,
+            'ID': 'Detraccion',
+            'PaymentMeansID': line.product_id.l10n_pe_withhold_code,
+            'PayeeFinancialAccount': national_bank_account_number,
+            'PaymentMeansCode': '999',
+            'spot_amount': float_round(self.amount_total * (max_percent/100.0), precision_rounding=2),
+            'Amount': float_repr(float_round(self.amount_total_signed * (max_percent/100.0), precision_rounding=2), precision_digits=2),
+            'PaymentPercent': max_percent,
             'spot_message': "Operación sujeta al sistema de Pago de Obligaciones Tributarias-SPOT, Banco de la Nacion %s%% Cod Serv. %s" % (
                 line.product_id.l10n_pe_withhold_percentage, line.product_id.l10n_pe_withhold_code)
         }
@@ -296,8 +281,8 @@ class AccountMove(models.Model):
 
     def button_cancel_posted_moves(self):
         # OVERRIDE
-        pe_edi_format = self.env.ref('l10n_pe_edi.edi_pe_ubl_2_1', raise_if_not_found=False)
-        pe_invoices = pe_edi_format and self.filtered(pe_edi_format._get_move_applicability)
+        pe_edi_format = self.env.ref('l10n_pe_edi.edi_pe_ubl_2_1')
+        pe_invoices = self.filtered(pe_edi_format._get_move_applicability)
         if pe_invoices:
             credit_notes_needed = pe_invoices.filtered(lambda move: move.l10n_latam_document_type_id.code == '03')
             if credit_notes_needed:

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import base64
@@ -184,7 +183,6 @@ class WinbooksImportWizard(models.TransientModel):
             "Set account to being a central account"
             property_name = None
             account_central[centralid] = account.id
-            tax_group_name = None
             if centralid == 'S1':
                 property_name = 'property_account_payable_id'
                 model_name = 'res.partner'
@@ -192,13 +190,13 @@ class WinbooksImportWizard(models.TransientModel):
                 property_name = 'property_account_receivable_id'
                 model_name = 'res.partner'
             if centralid == 'V01':
-                tax_group_name = 'tax_receivable_account_id'
+                property_name = 'property_tax_receivable_account_id'
+                model_name = 'account.tax.group'
             if centralid == 'V03':
-                tax_group_name = 'tax_payable_account_id'
+                property_name = 'property_tax_payable_account_id'
+                model_name = 'account.tax.group'
             if property_name:
                 self.env['ir.property']._set_default(property_name, model_name, account, self.env.company)
-            if tax_group_name:
-                self.env['account.tax.group'].search(self.env['account.tax.group']._check_company_domain(self.env.company))[tax_group_name] = account
 
         _logger.info("Import Accounts")
         account_data = {}
@@ -236,10 +234,8 @@ class WinbooksImportWizard(models.TransientModel):
         for key, val in grouped.items():
             if key == '3':  # 3=general account, 9=title account
                 for rec in val:
-                    account = AccountAccount.search([
-                        *AccountAccount._check_company_domain(self.env.company),
-                        ('code', '=', rec.get('NUMBER')),
-                    ], limit=1)
+                    account = AccountAccount.search(
+                        [('code', '=', rec.get('NUMBER')), ('company_id', '=', self.env.company.id)], limit=1)
                     if account:
                         account_data[rec.get('NUMBER')] = account.id
                         rec['CENTRALID'] and manage_centralid(account, rec['CENTRALID'])
@@ -311,10 +307,8 @@ class WinbooksImportWizard(models.TransientModel):
         for rec in dbf_records:
             if not rec.get('DBKID'):
                 continue
-            journal = AccountJournal.search([
-                *AccountJournal._check_company_domain(self.env.company),
-                ('code', '=', rec.get('DBKID')),
-            ], limit=1)
+            journal = AccountJournal.search(
+                [('code', '=', rec.get('DBKID')), ('company_id', '=', self.env.company.id)], limit=1)
             if not journal:
                 if rec.get('DBKTYPE') == '4':
                     journal_type = 'bank' if 'IBAN' in rec.get('DBKOPT') else 'cash'
@@ -368,6 +362,7 @@ class WinbooksImportWizard(models.TransientModel):
 
         move_data_list = []
         pdf_file_list = []
+        reconcile_number_set = set()
         for key, val in grouped.items():
             journal_id = self.env['account.journal'].browse(journal_data.get(key[1]))
             bookyear = int(key[3], 36)
@@ -400,7 +395,7 @@ class WinbooksImportWizard(models.TransientModel):
             tmp_val = []
             for rec in val:
                 tmp_val += [rec]
-                if rec['AMOUNTEUR'] * (rec['CURRAMOUNT'] or 0) < 0:
+                if (rec['AMOUNTEUR'] or 0) * (rec['CURRAMOUNT'] or 0) < 0:
                     tmp_val[-1]['CURRAMOUNT'] = 0
                     tmp_val += [rec.copy()]
                     tmp_val[-1]['AMOUNTEUR'] = 0
@@ -423,8 +418,7 @@ class WinbooksImportWizard(models.TransientModel):
                     'balance': balance,
                     'amount_currency': amount_currency,
                     'amount_residual_currency': amount_currency,
-                    'matching_number': balance != 0.0 and matching_number and f"I{matching_number}",
-                    'winbooks_line_id': rec['DOCORDER'],
+                    'winbooks_matching_number': matching_number,
                 }
                 if currency:
                     line_data['currency_id'] = currency.id
@@ -439,6 +433,8 @@ class WinbooksImportWizard(models.TransientModel):
                     elif rec.get('DBKTYPE') in (PURCHASE_CODE, CREDIT_NOTE_SALE_CODE):
                         line_data['price_unit'] = amount_currency
 
+                if matching_number:
+                    reconcile_number_set.add(matching_number)
                 if rec.get('AMOUNTEUR'):
                     move_amount_total = round(move_amount_total, 2) + round(rec.get('AMOUNTEUR'), 2)
                 move_line_data_list.append((0, 0, line_data))
@@ -517,7 +513,7 @@ class WinbooksImportWizard(models.TransientModel):
             if (
                 move_data_dict['move_type'] != 'entry'
                 and len(move_line_data_list) == 1
-                and move_line_data_list[0][2]['display_type'] == 'payment_term'
+                and move_line_data_list[0][2].get('display_type') == 'payment_term'
                 and move_line_data_list[0][2]['balance'] == 0
             ):
                 # add a line so that the payment terms are not deleted during sync
@@ -540,10 +536,11 @@ class WinbooksImportWizard(models.TransientModel):
 
         _logger.info("Creating moves")
         move_ids = self.env['account.move'].with_context(skip_invoice_sync=True).create(move_data_list)
+        move_ids._post()
         _logger.info("Creating attachments")
-        attachment_data_list = []
         for move, pdf_files in zip(move_ids, pdf_file_list):
             if pdf_files:
+                attachment_ids = []
                 for name, fd in pdf_files.items():
                     attachment_data = {
                         'name': name.split('/')[-1],
@@ -553,9 +550,32 @@ class WinbooksImportWizard(models.TransientModel):
                         'res_id': move.id,
                         'res_name': move.name
                     }
-                    attachment_data_list.append(attachment_data)
-        self.env['ir.attachment'].create(attachment_data_list)
-        return {f"{m.date.year}_{m.ref}" : m for m in move_ids}
+                    attachment_ids.append(IrAttachment.create(attachment_data))
+                move.message_post(attachments=attachment_ids)
+        _logger.info("Reconcile")
+        for matching_number in reconcile_number_set:
+            lines = self.env['account.move.line'].search([('winbooks_matching_number', '=', matching_number), ('reconciled', '=', False)])
+            try:
+                lines.with_context(no_exchange_difference=True).reconcile()
+            except UserError as ue:
+                if len(lines.account_id) > 1:
+                    _logger.warning(
+                        'Winbooks matching number %s uses multiple accounts: %s. '
+                        'Lines with that number have not been reconciled in Odoo.',
+                        matching_number,
+                        ', '.join(lines.mapped('account_id.display_name')),
+                    )
+                elif not lines.account_id.reconcile:
+                    _logger.info(
+                        "%s %s has reconciled lines, changing the config",
+                        lines.account_id.code,
+                        lines.account_id.name,
+                    )
+                    lines.account_id.reconcile = True
+                    lines.with_context(no_exchange_difference=True).reconcile()
+                else:
+                    raise ue
+        return True
 
     def _import_analytic_account(self, dbf_records):
         """Import the analytic accounts from *_anf*.dbf files.
@@ -586,7 +606,7 @@ class WinbooksImportWizard(models.TransientModel):
             analytic_account_data[rec.get('NUMBER')] = analytic_account.id
         return analytic_account_data
 
-    def _import_analytic_account_line(self, dbf_records, analytic_account_data, account_data, move_data, param_data):
+    def _import_analytic_account_line(self, dbf_records, analytic_account_data, account_data, param_data):
         """Import the analytic lines from the *_ant*.dbf files.
         """
         _logger.info("Import Analytic Account Lines")
@@ -598,28 +618,11 @@ class WinbooksImportWizard(models.TransientModel):
                 # These columns contain the analytic account number associated to that plan.
                 # We thus need to create an analytic line for each of these accounts.
                 analytic_list = [k for k in rec.keys() if 'ZONANA' in k]
-            bookyear_first_year = param_data['period_date'][int(rec['BOOKYEAR'], 36)][0].year
-            bookyear_last_year = param_data['period_date'][int(rec['BOOKYEAR'], 36)][-1].year
-            journal_code, move_number = rec['DBKCODE'], rec['DOCNUMBER']
-            move_line_id = False
-            move = move_data.get(f"{bookyear_first_year}_{journal_code}_{move_number}") or move_data.get(f"{bookyear_last_year}_{journal_code}_{move_number}")
-            if move:
-                if rec['DOCORDER'] == 'VAT':
-                    # A move can have multiple VAT lines. If that's the case, we will just take any tax with a corresponding account and amount,
-                    # as the docorder just says "VAT".
-                    tax_lines = move.line_ids.filtered(lambda l:
-                        l.display_type == 'tax'
-                        and l.account_id.id == account_data.get(rec.get('ACCOUNTGL'))
-                        and round(l.balance, 1) == round(rec.get('AMOUNTGL'), 1))
-                    move_line_id = tax_lines[0].id if tax_lines else False
-                else:
-                    move_line_id = move.line_ids.filtered(lambda l: l.winbooks_line_id == rec['DOCORDER']).id
             data = {
                 'date': rec.get('DATE', False),
                 'name': rec.get('COMMENT'),
                 'amount': -rec.get('AMOUNTEUR'),
-                'general_account_id': account_data.get(rec.get('ACCOUNTGL')),
-                'move_line_id': move_line_id,
+                'general_account_id': account_data.get(rec.get('ACCOUNTGL'))
             }
             for analytic in analytic_list:
                 if rec.get(analytic):
@@ -738,7 +741,7 @@ class WinbooksImportWizard(models.TransientModel):
         if not self.env.company.country_id:
             action = self.env.ref('base.action_res_company_form')
             raise RedirectWarning(_('Please define the country on your company.'), action.id, _('Company Settings'))
-        if not self.env.company.chart_template:
+        if not self.env.company.chart_template_id:
             action = self.env.ref('account.action_account_config')
             raise RedirectWarning(_('You should install a Fiscal Localization first.'), action.id,  _('Accounting Settings'))
         self = self.with_context(active_test=False)
@@ -808,17 +811,18 @@ class WinbooksImportWizard(models.TransientModel):
                 partner_data = self._import_partner(csf_recs, civility_data, category_data, account_data)
 
                 act_recs = get_dbfrecords(lambda file: file.lower().endswith("_act.dbf"))
-                move_data = self._import_move(act_recs, pdffiles, account_data, account_central, journal_data, partner_data, vatcode_data, param_data)
+                self._import_move(act_recs, pdffiles, account_data, account_central, journal_data, partner_data, vatcode_data, param_data)
 
                 anf_recs = get_dbfrecords(lambda file: file.lower().endswith("_anf.dbf"))
                 analytic_account_data = self._import_analytic_account(anf_recs)
 
                 ant_recs = get_dbfrecords(lambda file: file.lower().endswith("_ant.dbf"))
-                self._import_analytic_account_line(ant_recs, analytic_account_data, account_data, move_data, param_data)
+                self._import_analytic_account_line(ant_recs, analytic_account_data, account_data, param_data)
 
                 self._post_import(account_deprecated_ids)
                 _logger.info("Completed")
-                self.env['onboarding.onboarding.step'].sudo().action_validate_step('account.onboarding_onboarding_step_chart_of_accounts')
+                self.env.company.sudo().set_onboarding_step_done('account_onboarding_winbooks_state')
+                self.env.company.sudo().set_onboarding_step_done('account_setup_coa_state')
             finally:
                 for fd in pdffiles.values():
                     fd.close()

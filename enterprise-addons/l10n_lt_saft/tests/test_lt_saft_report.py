@@ -11,7 +11,7 @@ from odoo.tests import tagged
 class TestLtSaftReport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='lt'):
+    def setUpClass(cls, chart_template_ref='l10n_lt.account_chart_template_lithuania'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         (cls.partner_a + cls.partner_b).write({
@@ -112,9 +112,3 @@ class TestLtSaftReport(TestAccountReportsCommon):
                 self.get_xml_tree_from_string(self.env[report.custom_handler_model_name].with_context(skip_xsd=True).l10n_lt_export_saft_to_xml(options)['file_content']),
                 self.get_xml_tree_from_string(expected_xml.read()),
             )
-
-    def test_l10n_lt_saft_ensure_all_account_type_are_handled(self):
-        report = self.env.ref('account_reports.general_ledger_report')
-        account_selection = [selection[0] for selection in self.env["account.account"]._fields["account_type"].selection]
-        for account_type in account_selection:
-            self.env[report.custom_handler_model_name]._saft_get_account_type(account_type)

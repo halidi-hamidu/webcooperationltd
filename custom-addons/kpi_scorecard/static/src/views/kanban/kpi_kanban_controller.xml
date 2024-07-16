@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    
+    <t t-name="kpi_scorecard.KpiKanbanView" t-inherit="web.KanbanView" t-inherit-mode="primary" owl="1">
+        <xpath expr="//Layout" position="attributes">
+            <attribute name="className">'kpi-content'</attribute>
+        </xpath>
+    </t>
+    <t t-name="kpi_scorecard.KpiKanbanViewButtons" owl="1">
+        <div t-if="props.showButtons and kpiPeriod" class="o_cp_buttons d-flex align-items-baseline" role="toolbar" aria-label="Main actions">
+            <t t-if="canCreate and kpiPeriod.state == 'open'">
+                <button type="button" class="btn btn-primary o-kanban-button-new" accesskey="c" t-on-click="() => this.createRecord()" data-bounce-button="">
+                    <i class="fa fa-crosshairs"></i> Set Target
+                </button>
+                <button t-if="kpiAdmin" type="button" class="btn btn-secondary" accesskey="c" t-on-click="() => this.onSubstituteTargets()" data-bounce-button="">
+                    <i class="fa fa-exchange"></i> Substitute Targets
+                </button>
+            </t>
+            <button type="button" class="btn btn-secondary" accesskey="c" t-on-click="() => this.onExportScorecard()" data-bounce-button="">
+                <i class="fa fa-download"></i> Export Scorecard
+            </button>
+        </div>
+    </t>
+
+</templates>

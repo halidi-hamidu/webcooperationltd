@@ -13,10 +13,7 @@ from odoo.addons.website.controllers import form
 class WebsiteHelpdesk(http.Controller):
 
     def get_helpdesk_team_data(self, team, search=None):
-        return {
-            'team': team,
-            'main_object': team,
-        }
+        return {'team': team}
 
     @http.route(['/helpdesk', '/helpdesk/<model("helpdesk.team"):team>'], type='http', auth="public", website=True, sitemap=True)
     def website_helpdesk_teams(self, team=None, **kwargs):
@@ -40,10 +37,7 @@ class WebsiteHelpdesk(http.Controller):
         return request.render("website_helpdesk.team", result)
 
     def _get_knowledge_base_values(self, team):
-        return {
-            'team': team,
-            'main_object': team,
-        }
+        return {'team': team}
 
     @http.route(['/helpdesk/<model("helpdesk.team"):team>/knowledgebase'], type='http', auth="public", website=True, sitemap=True)
     def website_helpdesk_knowledge_base(self, team, **kwargs):
@@ -140,18 +134,3 @@ class WebsiteForm(form.WebsiteForm):
             request.params['partner_id'] = partner.id
 
         return super(WebsiteForm, self)._handle_website_form(model_name, **kwargs)
-
-    def insert_attachment(self, model, id_record, files):
-        super().insert_attachment(model, id_record, files)
-        # If the helpdesk ticket form is submit with attachments,
-        # Give access token to these attachments and make the message
-        # accessible to the portal user
-        # (which will be able to view and download its own documents).
-        model_name = model.model
-        if model_name == "helpdesk.ticket":
-            ticket = model.env[model_name].browse(id_record)
-            attachments = request.env['ir.attachment'].sudo().search([('res_model', '=', model_name), ('res_id', '=', ticket.id), ('access_token', '=', False)])
-            attachments.generate_access_token()
-            message = ticket.message_ids.filtered(lambda m: m.attachment_ids == attachments)
-            message.is_internal = False
-            message.subtype_id = request.env.ref('mail.mt_comment')

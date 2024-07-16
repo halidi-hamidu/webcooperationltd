@@ -12,7 +12,7 @@ from odoo.tests import tagged
 class TestNlXafExport(TestAccountReportsCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='nl'):
+    def setUpClass(cls, chart_template_ref='l10n_nl.l10nnl_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
         cls.env.company.write({
@@ -21,6 +21,10 @@ class TestNlXafExport(TestAccountReportsCommon):
         })
 
         products = [cls.product_a, cls.product_b]
+
+        # Verify if the country code validation when generating a XAF report at the very least allows
+        # the Netherlands itself on a partner when no XSD is downloaded
+        cls.partner_a.write({'country_id': cls.env.ref('base.nl').id})
 
         # Create three invoices, one refund and one bill in 2019
         partner_a_invoice1 = cls.init_invoice('out_invoice', products=products)
@@ -99,7 +103,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                     </customersSuppliers>
                     <generalLedger>
                         <ledgerAccount>
-                            <accID>103001</accID>
+                            <accID>103004</accID>
                             <accDesc>Bank</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
@@ -109,7 +113,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>110000</accID>
-                            <accDesc>Debtors</accDesc>
+                            <accDesc>Debiteuren</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -118,7 +122,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>110010</accID>
-                            <accDesc>Debtors (copy)</accDesc>
+                            <accDesc>Debiteuren (copy)</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -127,7 +131,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>130010</accID>
-                            <accDesc>Creditors (copy)</accDesc>
+                            <accDesc>Crediteuren (copy)</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -136,7 +140,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>150000</accID>
-                            <accDesc>Deferred VAT high rate</accDesc>
+                            <accDesc>Af te dragen BTW hoog tarief</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -145,7 +149,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>152000</accID>
-                            <accDesc>Pre-tax high</accDesc>
+                            <accDesc>Voorbelasting hoog</accDesc>
                             <accTp>B</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -154,7 +158,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>400100.1</accID>
-                            <accDesc>Gross wages</accDesc>
+                            <accDesc>Bruto lonen</accDesc>
                             <accTp>P</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -163,7 +167,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>800100</accID>
-                            <accDesc>Turnover NL trade goods 1</accDesc>
+                            <accDesc>Omzet NL handelsgoederen 1</accDesc>
                             <accTp>P</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -172,7 +176,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             </changeInfo>
                         </ledgerAccount><ledgerAccount>
                             <accID>800100.1</accID>
-                            <accDesc>Turnover NL trade goods 1</accDesc>
+                            <accDesc>Omzet NL handelsgoederen 1</accDesc>
                             <accTp>P</accTp>
                             <changeInfo>
                                 <userID>___ignore___</userID>
@@ -184,13 +188,13 @@ class TestNlXafExport(TestAccountReportsCommon):
                     <vatCodes>
                         <vatCode>
                             <vatID>___ignore___</vatID>
-                            <vatDesc>21% (Copy)</vatDesc>
+                            <vatDesc>BTW te vorderen hoog (inkopen) (Copy)</vatDesc>
                         </vatCode><vatCode>
                             <vatID>___ignore___</vatID>
-                            <vatDesc>21% ST</vatDesc>
+                            <vatDesc>Verkopen/omzet hoog</vatDesc>
                         </vatCode><vatCode>
                             <vatID>___ignore___</vatID>
-                            <vatDesc>21% ST (Copy)</vatDesc>
+                            <vatDesc>Verkopen/omzet hoog (Copy)</vatDesc>
                         </vatCode>
                     </vatCodes>
                     <periods>
@@ -273,7 +277,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                             <amntTp>C</amntTp>
                         </obLine><obLine>
                             <nr>___ignore___</nr>
-                            <accID>103001</accID>
+                            <accID>103004</accID>
                             <amnt>100.0</amnt>
                             <amntTp>C</amntTp>
                         </obLine><obLine>
@@ -330,7 +334,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST</desc>
+                                    <desc>Verkopen/omzet hoog</desc>
                                     <amnt>252.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -344,7 +348,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST (Copy)</desc>
+                                    <desc>Verkopen/omzet hoog (Copy)</desc>
                                     <amnt>42.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -407,7 +411,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST</desc>
+                                    <desc>Verkopen/omzet hoog</desc>
                                     <amnt>252.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -421,7 +425,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST (Copy)</desc>
+                                    <desc>Verkopen/omzet hoog (Copy)</desc>
                                     <amnt>42.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -484,7 +488,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST</desc>
+                                    <desc>Verkopen/omzet hoog</desc>
                                     <amnt>252.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -498,7 +502,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST (Copy)</desc>
+                                    <desc>Verkopen/omzet hoog (Copy)</desc>
                                     <amnt>42.0</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -561,7 +565,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST</desc>
+                                    <desc>Verkopen/omzet hoog</desc>
                                     <amnt>252.0</amnt>
                                     <amntTp>D</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -575,7 +579,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>150000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% ST (Copy)</desc>
+                                    <desc>Verkopen/omzet hoog (Copy)</desc>
                                     <amnt>42.0</amnt>
                                     <amntTp>D</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -643,7 +647,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>152000</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>21% (Copy)</desc>
+                                    <desc>BTW te vorderen hoog (inkopen) (Copy)</desc>
                                     <amnt>201.6</amnt>
                                     <amntTp>D</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -657,7 +661,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>130010</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>installment #1</desc>
+                                    <desc></desc>
                                     <amnt>348.48</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>
@@ -671,7 +675,7 @@ class TestNlXafExport(TestAccountReportsCommon):
                                     <accID>130010</accID>
                                     <docRef>/</docRef>
                                     <effDate>2019-01-01</effDate>
-                                    <desc>installment #2</desc>
+                                    <desc></desc>
                                     <amnt>813.12</amnt>
                                     <amntTp>C</amntTp>
                                     <custSupID>___ignore___</custSupID>

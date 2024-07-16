@@ -25,8 +25,7 @@ class ResPartner(models.Model):
     @api.depends('account_represented_company_ids.account_fiscal_country_id.code')
     def _compute_l10n_lu_is_representative(self):
         for record in self:
-            record.l10n_lu_is_representative = 'LU' in record.mapped(
-                'account_represented_company_ids.account_fiscal_country_id.code')
+            record.l10n_lu_is_representative = 'LU' in record.mapped('account_represented_company_ids.account_enabled_tax_country_ids.code')
 
     @api.constrains('l10n_lu_agent_matr_number')
     def _check_agent_matr_number(self):

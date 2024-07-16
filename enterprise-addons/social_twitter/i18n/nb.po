@@ -1,25 +1,25 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* social_twitter
-#
+# 
 # Translators:
 # Mads Søndergaard, 2022
 # Marius Stedjan <marius@stedjan.com>, 2022
-# Martin Trigaux, 2022
 # Jorunn D. Newth, 2022
-#
+# Martin Trigaux, 2024
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-17 10:16+0000\n"
+"POT-Creation-Date: 2024-02-06 13:25+0000\n"
 "PO-Revision-Date: 2022-09-22 05:49+0000\n"
-"Last-Translator: Jorunn D. Newth, 2022\n"
+"Last-Translator: Martin Trigaux, 2024\n"
 "Language-Team: Norwegian Bokmål (https://app.transifex.com/odoo/teams/41243/nb/)\n"
-"Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
+"Language: nb\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: social_twitter
@@ -80,9 +80,9 @@ msgstr ""
 
 #. module: social_twitter
 #. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
+#: code:addons/social_twitter/controllers/main.py:0
 #, python-format
-msgid "An error occurred (%s)"
+msgid "Authentication failed. Please enter valid credentials."
 msgstr ""
 
 #. module: social_twitter
@@ -94,6 +94,15 @@ msgid "Author Image"
 msgstr ""
 
 #. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid ""
+"Can not like / unlike the tweet\n"
+"%s."
+msgstr ""
+
+#. module: social_twitter
 #. odoo-javascript
 #: code:addons/social_twitter/static/src/xml/social_twitter_templates.xml:0
 #, python-format
@@ -102,14 +111,9 @@ msgstr "Kanseller"
 
 #. module: social_twitter
 #: model:ir.model.fields,help:social_twitter.field_res_config_settings__twitter_use_own_account
-msgid "Check this if you want to use your personal Twitter Developer Account instead of the provided one."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "Code %i"
+msgid ""
+"Check this if you want to use your personal Twitter Developer Account "
+"instead of the provided one."
 msgstr ""
 
 #. module: social_twitter
@@ -168,6 +172,37 @@ msgid "Error while sending the data to the server."
 msgstr ""
 
 #. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid ""
+"Failed to delete the Tweet\n"
+"%s."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Failed to fetch the conversation id: '%s' using the account %s."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid ""
+"Failed to fetch the tweets in the same thread: '%s' using the account %s."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Failed to post comment: %s with the account %s."
+msgstr ""
+
+#. module: social_twitter
 #: model:social.stream.type,name:social_twitter.stream_type_twitter_likes
 msgid "Favorites of"
 msgstr ""
@@ -194,6 +229,11 @@ msgid "Keyword"
 msgstr "Nøkkelord"
 
 #. module: social_twitter
+#: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account____last_update
+msgid "Last Modified on"
+msgstr "Sist endret"
+
+#. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__write_uid
 msgid "Last Updated by"
 msgstr "Sist oppdatert av"
@@ -212,16 +252,11 @@ msgstr "Liker"
 
 #. module: social_twitter
 #. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "Looks like this Tweet is a duplicate. Edit its content and try posting again."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-python
 #: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
-msgid "Looks like you've made too many requests. Please wait a few minutes before giving it another try."
+msgid ""
+"Looks like you've made too many requests. Please wait a few minutes before "
+"giving it another try."
 msgstr ""
 
 #. module: social_twitter
@@ -238,6 +273,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:social_twitter.field_social_twitter_account__name
 msgid "Name"
 msgstr "Navn"
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Oops! Couldn't find this tweet on Twitter.com"
+msgstr ""
 
 #. module: social_twitter
 #. odoo-python
@@ -293,6 +335,13 @@ msgstr ""
 #. module: social_twitter
 #: model:ir.model.fields,field_description:social_twitter.field_social_stream_post__twitter_retweet_count
 msgid "Re-tweets"
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
+#, python-format
+msgid "Replies from Tweets older than 7 days must be accessed on Twitter.com"
 msgstr ""
 
 #. module: social_twitter
@@ -371,21 +420,27 @@ msgstr ""
 #. odoo-python
 #: code:addons/social_twitter/models/social_stream.py:0
 #, python-format
-msgid "The keyword you've typed in does not look valid. Please try again with other words."
-msgstr ""
-
-#. module: social_twitter
-#. odoo-python
-#: code:addons/social_twitter/models/social_stream_post.py:0
-#, python-format
-msgid "The tweet is empty. Add a message and try posting again."
+msgid ""
+"The keyword you've typed in does not look valid. Please try again with other"
+" words."
 msgstr ""
 
 #. module: social_twitter
 #. odoo-python
 #: code:addons/social_twitter/models/social_media.py:0
 #, python-format
-msgid "The url that this service requested returned an error. Please contact the author of the app."
+msgid ""
+"The url that this service requested returned an error. Please contact the "
+"author of the app."
+msgstr ""
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/controllers/main.py:0
+#: code:addons/social_twitter/controllers/main.py:0
+#: code:addons/social_twitter/controllers/main.py:0
+#, python-format
+msgid "This Tweet has been deleted."
 msgstr ""
 
 #. module: social_twitter
@@ -544,6 +599,14 @@ msgstr ""
 
 #. module: social_twitter
 #. odoo-python
+#: code:addons/social_twitter/models/social_stream.py:0
+#, python-format
+msgid "Unknown"
+msgstr "Ukjent"
+
+#. module: social_twitter
+#. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
 msgid "Unknown error"
@@ -556,18 +619,23 @@ msgstr ""
 
 #. module: social_twitter
 #: model:ir.model.fields,help:social_twitter.field_social_media__media_type
-msgid "Used to make comparisons when we need to restrict some features to a specific media ('facebook', 'twitter', ...)."
+msgid ""
+"Used to make comparisons when we need to restrict some features to a "
+"specific media ('facebook', 'twitter', ...)."
 msgstr ""
 
 #. module: social_twitter
 #. odoo-python
 #: code:addons/social_twitter/models/social_account.py:0
 #, python-format
-msgid "We could not upload your image, try reducing its size and posting it again (error: %s)."
+msgid ""
+"We could not upload your image, it may be corrupted, it may exceed size "
+"limit or API may have send improper response (error: %s)."
 msgstr ""
 
 #. module: social_twitter
 #. odoo-python
+#: code:addons/social_twitter/models/social_stream_post.py:0
 #: code:addons/social_twitter/models/social_stream_post.py:0
 #, python-format
 msgid "You are not authenticated"
@@ -577,7 +645,9 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/social_twitter/static/src/js/stream_post_comments.js:0
 #, python-format
-msgid "You can comment only three times a tweet as it may be considered as spamming by Twitter"
+msgid ""
+"You can comment only three times a tweet as it may be considered as spamming"
+" by Twitter"
 msgstr ""
 
 #. module: social_twitter
@@ -605,7 +675,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/social_twitter/models/social_media.py:0
 #, python-format
-msgid "You need to add the following callback URL to your twitter application settings: %s"
+msgid ""
+"You need to add the following callback URL to your twitter application "
+"settings: %s"
 msgstr ""
 
 #. module: social_twitter

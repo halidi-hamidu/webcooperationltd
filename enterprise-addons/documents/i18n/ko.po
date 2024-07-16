@@ -3,17 +3,18 @@
 # 	* documents
 # 
 # Translators:
-# Wil Odoo, 2023
-# Daye Jeong, 2023
+# JH CHOI <hwangtog@gmail.com>, 2022
+# Martin Trigaux, 2022
 # Sarah Park, 2024
+# Daye Jeong, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:45+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Sarah Park, 2024\n"
+"POT-Creation-Date: 2024-02-06 13:23+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
+"Last-Translator: Daye Jeong, 2024\n"
 "Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,6 +28,11 @@ msgstr ""
 #, python-format
 msgid " + Add a tag"
 msgstr " + 태그 추가"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_page
+msgid "#{document_is_url and 'Link to ' or 'Download '}#{document.name}"
+msgstr "#{document_is_url and 'Link to ' or 'Download '}#{document.name}"
 
 #. module: documents
 #. odoo-javascript
@@ -50,27 +56,6 @@ msgid "%s file(s) not moved because they are locked by another user"
 msgstr "다른 사용자에 의해 잠겨있기 때문에 %s 파일을 이동할 수 없습니다."
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "%s new document(s) created"
-msgstr "새 문서 %s가 생성되었습니다"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "%s page(s) deleted"
-msgstr "%s페이지가 삭제되었습니다"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "(Remaining pages"
-msgstr "(남은 페이지"
-
-#. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.public_page_layout
 msgid ", expired on"
 msgstr ", 만료된"
@@ -82,8 +67,8 @@ msgid ""
 "your documents in bulk with the split tool: launch user defined actions, "
 "request a signature, convert to vendor bills with AI, etc."
 msgstr ""
-". 스캔한 파일은 작업 공간에 자동으로 나타납니다. 이후, 분할 도구를 통해 문서를 일괄 처리합니다. 사용자 지정 작업을 시작하거나 서명"
-" 요청 혹은 AI를 사용하여 공급업체 청구서로 변환하는 등의 작업이 가능합니다. "
+". 스캔한 파일은 작업 공간에 자동으로 나타납니다. 이후, 분할 도구를 통해 문서를 일괄 처리하게 됩니다. 사용자 지정 작업을 시작하거나"
+" 서명 요청 혹은 AI를 사용하여 공급업체 청구서로 변환하는 등의 작업이 가능합니다. "
 
 #. module: documents
 #: model:documents.tag,name:documents.documents_finance_fiscal_year_2017
@@ -98,7 +83,31 @@ msgstr "2024"
 #. module: documents
 #: model_terms:digest.tip,tip_description:documents.digest_tip_documents_0
 msgid "<b class=\"tip_title\">Tip: Become a paperless company</b>"
-msgstr "<b class=\"tip_title\">팁: 종이 없는 회사를 만듭니다.</b>"
+msgstr "<b class=\"tip_title\">도움말: 종이 없는 회사 만들기</b>"
+
+#. module: documents
+#. odoo-python
+#: code:addons/documents/controllers/main.py:0
+#, python-format
+msgid ""
+"<b> File uploaded by: </b> %s <br/>\n"
+"                               <b> Link created by: </b> %s <br/>\n"
+"                               <a class=\"btn btn-primary\" href=\"/web#id=%s&model=documents.share&view_type=form\" target=\"_blank\">\n"
+"                                  <b>%s</b>\n"
+"                               </a>\n"
+"                             "
+msgstr ""
+"<b> 파일 업로드 : </b> %s <br/>\n"
+"                               <b> 링크 작성 : </b> %s <br/>\n"
+"                               <a class=\"btn btn-primary\" href=\"/web#id=%s&model=documents.share&view_type=form\" target=\"_blank\">\n"
+"                                  <b>%s</b>\n"
+"                               </a>\n"
+"                             "
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.format_file_size
+msgid "<b>Bytes</b>"
+msgstr "<b>Bytes</b>"
 
 #. module: documents
 #. odoo-javascript
@@ -108,20 +117,19 @@ msgid "<b>Deselect this page</b> as we plan to process all bills first."
 msgstr "먼저 업체 청구서를 모두 처리할 예정이오니 <b>페이지를 선택 해제하세요</b>."
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-msgid ""
-"<br/>\n"
-"                    is sharing content with you"
-msgstr ""
-"<br/>\n"
-"                    콘텐츠를 공유하고 있습니다."
+#: model_terms:ir.ui.view,arch_db:documents.format_file_size
+msgid "<b>Gb</b>"
+msgstr "<b>Gb</b>"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/js/tours/documents.js:0
-#, python-format
-msgid "<b>Select</b> this page to continue."
-msgstr ""
+#: model_terms:ir.ui.view,arch_db:documents.format_file_size
+msgid "<b>Kb</b>"
+msgstr "<b>Kb</b>"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.format_file_size
+msgid "<b>Mb</b>"
+msgstr "<b>Mb</b>"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.public_page_layout
@@ -130,30 +138,58 @@ msgstr "<br/>제공"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
-msgid "<i class=\"fa fa fa-folder text-primary me-2\" title=\"Workspace\"/>"
-msgstr "<i class=\"fa fa fa-folder text-primary me-2\" title=\"Workspace\"/>"
+msgid "<i class=\"fa fa fa-folder text-odoo me-2\" title=\"Workspace\"/>"
+msgstr "<i class=\"fa fa fa-folder text-odoo me-2\" title=\"Workspace\"/>"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
+#: model_terms:ir.ui.view,arch_db:documents.share_single
+msgid ""
+"<i class=\"fa fa-circle-o-notch fa-spin text-white fa-3x mb8\" role=\"img\" "
+"aria-label=\"Loading\" title=\"Loading\"/>"
+msgstr ""
+"<i class=\"fa fa-circle-o-notch fa-spin text-white fa-3x mb8\" role=\"img\" "
+"aria-label=\"Loading\" title=\"Loading\"/>"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_page
 msgid "<i class=\"fa fa-download fa-fw\"/>  Download All"
-msgstr "<i class=\"fa fa-download fa-fw\"/> 전체 다운로드"
+msgstr "<i class=\"fa fa-download fa-fw\"/> 모두 내려받기"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_single
+msgid "<i class=\"fa fa-download fa-fw\"/> Download"
+msgstr "<i class=\"fa fa-download fa-fw\"/> 내려받기"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.document_view_kanban
+msgid "<i class=\"fa fa-globe\" title=\"Document url\"/>"
+msgstr "<i class=\"fa fa-globe\" title=\"Document url\"/>"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_single
+msgid "<i class=\"fa fa-link\"/> Go to URL"
+msgstr "<i class=\"fa fa-link\"/> URL로 가기"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
-msgid "<i class=\"fa fa-lock oe_inline\" title=\"Locked\" invisible=\"not lock_uid\"/>"
-msgstr "<i class=\"fa fa-lock oe_inline\" title=\"Locked\" invisible=\"not lock_uid\"/>"
+msgid ""
+"<i class=\"fa fa-lock oe_inline\" title=\"Locked\" attrs=\"{'invisible': "
+"[('lock_uid', '=', False)]}\"/>"
+msgstr ""
+"<i class=\"fa fa-lock oe_inline\" title=\"Locked\" attrs=\"{'invisible': "
+"[('lock_uid', '=', False)]}\"/>"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
 msgid ""
-"<i class=\"fa fa-tag o_documents_tag_color ms-2\" invisible=\"not tag_ids\" "
-"title=\"Tags\"/>"
+"<i class=\"fa fa-tag o_documents_tag_color ms-2\" attrs=\"{'invisible': "
+"[('tag_ids', '=', [])]}\" title=\"Tags\"/>"
 msgstr ""
-"<i class=\"fa fa-tag o_documents_tag_color ms-2\" invisible=\"not tag_ids\" "
-"title=\"Tags\"/>"
+"<i class=\"fa fa-tag o_documents_tag_color ms-2\" attrs=\"{'invisible': "
+"[('tag_ids', '=', [])]}\" title=\"Tags\"/>"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
+#: model_terms:ir.ui.view,arch_db:documents.share_page
 msgid "<i class=\"fa fa-upload\"/>  Upload"
 msgstr "<i class=\"fa fa-upload\"/> 업로드"
 
@@ -174,14 +210,14 @@ msgid "<span class=\"o_stat_text\">Related <br/> Record</span>"
 msgstr "<span class=\"o_stat_text\">관련된 <br/> 레코드</span>"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
-msgid "<span title=\"Requested Document\">Requested Document</span>"
-msgstr "<span title=\"Requested Document\">요청된 문서</span>"
+#: model_terms:ir.ui.view,arch_db:documents.public_page_layout
+msgid "<span style=\"color:white;\">&amp;nbsp;Documents.</span>"
+msgstr "<span style=\"color:white;\">&amp;nbsp;문서.</span>"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.public_page_layout
-msgid "<span>&amp;nbsp;Documents.</span>"
-msgstr "<span>&amp;nbsp;문서.</span>"
+#: model_terms:ir.ui.view,arch_db:documents.share_page
+msgid "<span title=\"Requested Document\">Requested Document</span>"
+msgstr "<span title=\"Requested Document\">요청된 문서</span>"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_kanban
@@ -192,215 +228,6 @@ msgstr "<span><b> 요청</b></span>"
 #: model_terms:ir.ui.view,arch_db:documents.document_view_kanban
 msgid "<span><b>Requested Document</b></span>"
 msgstr "<span><b>요청된 문서</b></span>"
-
-#. module: documents
-#: model:mail.template,body_html:documents.mail_template_document_request_reminder
-msgid ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"                    <tbody>\n"
-"                        <!-- HEADER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\">\n"
-"                                        <span style=\"font-size: 10px;\">\n"
-"                                            Document Request: <br>\n"
-"                                            <t t-if=\"object.create_share_id.name\">\n"
-"                                                <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.create_share_id.name or ''\">Inbox Financial</span>\n"
-"                                            </t>\n"
-"                                        </span><br>\n"
-"                                    </td><td valign=\"middle\" align=\"right\">\n"
-"                                        <img t-attf-src=\"/logo.png?company={{ object.create_uid.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.create_uid.company_id.name\">\n"
-"                                    </td></tr>\n"
-"                                    <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- CONTENT -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                                        <div>\n"
-"                                            Hello <t t-out=\"object.create_share_id.owner_id.name or ''\">OdooBot</t>,\n"
-"                                            <br><br>\n"
-"                                            This is a friendly reminder to upload your requested document:\n"
-"                                            <br><br>\n"
-"                                            <center>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.create_share_id.name\">\n"
-"                                                        <b t-out=\"object.create_share_id.name or ''\">Inbox Financial</b>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.create_share_id.activity_note\">\n"
-"                                                        <i t-out=\"object.create_share_id.activity_note or ''\">Example of a note.</i>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <br>\n"
-"                                                <div style=\"margin: 16px 0px 16px 0px;\">\n"
-"                                                    <a t-att-href=\"object.create_share_id.full_url\" style=\"background-color: #875A7B; padding: 20px 30px 20px 30px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
-"                                                        Upload the requested document\n"
-"                                                    </a>\n"
-"                                                </div>\n"
-"                                            </center><br>\n"
-"                                            Please provide us with the missing document before the link expires (planned on <t t-out=\"object.create_share_id.date_deadline or ''\">2021-05-17</t>).\n"
-"                                            <br><br>\n"
-"                                            Thank you,\n"
-"                                            <t t-if=\"user and user.signature\">\n"
-"                                                <br>\n"
-"                                                <t t-out=\"user.signature\">--<br>Mitchell Admin</t>\n"
-"                                                <br>\n"
-"                                            </t>\n"
-"                                        </div>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- FOOTER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\" align=\"left\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.name or ''\">YourCompany</t>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.phone or ''\">+1 650-123-4567</t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.email\">\n"
-"                                            | <a t-attf-href=\"'mailto:%s' % {{ object.create_uid.company_id.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.email\">info@yourcompany.com</a>\n"
-"                                        </t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.website\">\n"
-"                                            | <a t-att-href=\"object.create_uid.company_id.website\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.website\">http://www.example.com</a>\n"
-"                                        </t>\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                    </tbody>\n"
-"                    </table>\n"
-"                    </td></tr>\n"
-"                    <!-- POWERED BY -->\n"
-"                    <tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"                          <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"                            <t t-if=\"object.create_share_id.date_deadline\">\n"
-"                                This link expires on <b t-out=\"object.create_share_id.date_deadline\">2021-05-17</b>.<br>\n"
-"                            </t>\n"
-"                            Powered by <a target=\"_blank\" href=\"https://www.odoo.com/app/documents\" style=\"color: #875A7B;\">Odoo Documents</a>\n"
-"                          </td></tr>\n"
-"                        </table>\n"
-"                    </td></tr>\n"
-"                </table>\n"
-"            "
-msgstr ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"                    <tbody>\n"
-"                        <!-- HEADER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\">\n"
-"                                        <span style=\"font-size: 10px;\">\n"
-"                                            문서 요청: <br>\n"
-"                                            <t t-if=\"object.create_share_id.name\">\n"
-"                                                <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.create_share_id.name or ''\">Inbox Financial</span>\n"
-"                                            </t>\n"
-"                                        </span><br>\n"
-"                                    </td><td valign=\"middle\" align=\"right\">\n"
-"                                        <img t-attf-src=\"/logo.png?company={{ object.create_uid.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.create_uid.company_id.name\">\n"
-"                                    </td></tr>\n"
-"                                    <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- CONTENT -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                                        <div>\n"
-"                                            안녕하세요 <t t-out=\"object.create_share_id.owner_id.name or ''\">OdooBot</t>님,\n"
-"                                            <br><br>\n"
-"                                            업로드하도록 요청받으신 문서에 대한 안내 메일을 드립니다.\n"
-"                                            <br><br>\n"
-"                                            <center>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.create_share_id.name\">\n"
-"                                                        <b t-out=\"object.create_share_id.name or ''\">Inbox Financial</b>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.create_share_id.activity_note\">\n"
-"                                                        <i t-out=\"object.create_share_id.activity_note or ''\">Example of a note.</i>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <br>\n"
-"                                                <div style=\"margin: 16px 0px 16px 0px;\">\n"
-"                                                    <a t-att-href=\"object.create_share_id.full_url\" style=\"background-color: #875A7B; padding: 20px 30px 20px 30px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
-"                                                        요청받은 문서 업로드하기\n"
-"                                                    </a>\n"
-"                                                </div>\n"
-"                                            </center><br>\n"
-"                                            링크 만료일 전까지 누락된 문서를 업로드해 주시기 바랍니다 (예정일 <t t-out=\"object.create_share_id.date_deadline or ''\">2021-05-17</t>).\n"
-"                                            <br><br>\n"
-"                                            감사합니다.\n"
-"                                            <t t-if=\"user and user.signature\">\n"
-"                                                <br>\n"
-"                                                <t t-out=\"user.signature\">--<br>Mitchell Admin</t>\n"
-"                                                <br>\n"
-"                                            </t>\n"
-"                                        </div>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- FOOTER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\" align=\"left\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.name or ''\">YourCompany</t>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.phone or ''\">+1 650-123-4567</t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.email\">\n"
-"                                            | <a t-attf-href=\"'mailto:%s' % {{ object.create_uid.company_id.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.email\">info@yourcompany.com</a>\n"
-"                                        </t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.website\">\n"
-"                                            | <a t-att-href=\"object.create_uid.company_id.website\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.website\">http://www.example.com</a>\n"
-"                                        </t>\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                    </tbody>\n"
-"                    </table>\n"
-"                    </td></tr>\n"
-"                    <!-- POWERED BY -->\n"
-"                    <tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"                          <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"                            <t t-if=\"object.create_share_id.date_deadline\">\n"
-"                                본 링크 만료 예정일: <b t-out=\"object.create_share_id.date_deadline\">2021-05-17</b>.<br>\n"
-"                            </t>\n"
-"                            Powered by <a target=\"_blank\" href=\"https://www.odoo.com/app/documents\" style=\"color: #875A7B;\">Odoo Documents</a>\n"
-"                          </td></tr>\n"
-"                        </table>\n"
-"                    </td></tr>\n"
-"                </table>\n"
-"            "
 
 #. module: documents
 #: model:mail.template,body_html:documents.mail_template_document_request
@@ -419,7 +246,7 @@ msgid ""
 "                                                <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.name or ''\">Inbox Financial</span>\n"
 "                                            </t>\n"
 "                                        </span><br>\n"
-"                                    </td><td valign=\"middle\" align=\"right\" t-if=\"not object.create_uid.company_id.uses_default_logo\">\n"
+"                                    </td><td valign=\"middle\" align=\"right\">\n"
 "                                        <img t-attf-src=\"/logo.png?company={{ object.create_uid.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.create_uid.company_id.name\">\n"
 "                                    </td></tr>\n"
 "                                    <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -506,106 +333,6 @@ msgid ""
 "                </table>\n"
 "            "
 msgstr ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"                    <tbody>\n"
-"                        <!-- HEADER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\">\n"
-"                                        <span style=\"font-size: 10px;\">\n"
-"                                            문서 요청: <br>\n"
-"                                            <t t-if=\"object.name\">\n"
-"                                                <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.name or ''\">Inbox Financial</span>\n"
-"                                            </t>\n"
-"                                        </span><br>\n"
-"                                    </td><td valign=\"middle\" align=\"right\" t-if=\"not object.create_uid.company_id.uses_default_logo\">\n"
-"                                        <img t-attf-src=\"/logo.png?company={{ object.create_uid.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.create_uid.company_id.name\">\n"
-"                                    </td></tr>\n"
-"                                    <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- CONTENT -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                                        <div>\n"
-"                                            안녕하세요 <t t-out=\"object.owner_id.name or ''\">OdooBot</t>님,\n"
-"                                            <br><br>\n"
-"                                            <t t-out=\"object.create_uid.name or ''\">OdooBot</t> (<t t-out=\"object.create_uid.email or ''\">odoobot@example.com</t>) 님이 다음과 같은 문서를 요청하고 있습니다.\n"
-"                                            <br><br>\n"
-"                                            <center>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.name\">\n"
-"                                                        <b t-out=\"object.name or ''\">Inbox Financial</b>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <div>\n"
-"                                                    <t t-if=\"object.activity_note\">\n"
-"                                                        <i t-out=\"object.activity_note or ''\">Example of a note.</i>\n"
-"                                                    </t>\n"
-"                                                </div>\n"
-"                                                <br>\n"
-"                                                <div style=\"margin: 16px 0px 16px 0px;\">\n"
-"                                                    <a t-att-href=\"object.full_url\" style=\"background-color: #875A7B; padding: 20px 30px 20px 30px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
-"                                                        요청받은 문서 업로드하기\n"
-"                                                    </a>\n"
-"                                                </div>\n"
-"                                            </center><br>\n"
-"                                            누락된 문서는<t t-if=\"object.date_deadline\"> 링크 만료일 전 (예정일 <t t-out=\"object.date_deadline\">2021-05-17</t>)까지 업로드 해주시기 바랍니다</t>.\n"
-"                                            <t t-if=\"user and user.signature\">\n"
-"                                                <br>\n"
-"                                                <t t-out=\"user.signature or ''\">--<br>Mitchell Admin</t>\n"
-"                                                <br>\n"
-"                                            </t>\n"
-"                                        </div>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td style=\"text-align:center;\">\n"
-"                                      <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                        <!-- FOOTER -->\n"
-"                        <tr>\n"
-"                            <td align=\"center\" style=\"min-width: 590px;\">\n"
-"                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                                    <tr><td valign=\"middle\" align=\"left\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.name or ''\">YourCompany</t>\n"
-"                                    </td></tr>\n"
-"                                    <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                        <t t-out=\"object.create_uid.company_id.phone or ''\">+1 650-123-4567</t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.email\">\n"
-"                                            | <a t-attf-href=\"'mailto:%s' % {{ object.create_uid.company_id.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.email or ''\">info@yourcompany.com</a>\n"
-"                                        </t>\n"
-"                                        <t t-if=\"object.create_uid.company_id.website\">\n"
-"                                            | <a t-attf-href=\"'%s' % {{ object.create_uid.company_id.website }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.create_uid.company_id.website or ''\">http://www.example.com</a>\n"
-"                                        </t>\n"
-"                                    </td></tr>\n"
-"                                </table>\n"
-"                            </td>\n"
-"                        </tr>\n"
-"                    </tbody>\n"
-"                    </table>\n"
-"                    </td></tr>\n"
-"                    <!-- POWERED BY -->\n"
-"                    <tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"                          <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"                            <t t-if=\"object.date_deadline\">\n"
-"                                본 링크 만료 예정일: <b t-out=\"object.date_deadline or ''\">2021-05-17</b>.<br>\n"
-"                            </t>\n"
-"                            Powered by <a target=\"_blank\" href=\"https://www.odoo.com/app/documents\" style=\"color: #875A7B;\">Odoo Documents</a>\n"
-"                          </td></tr>\n"
-"                        </table>\n"
-"                    </td></tr>\n"
-"                </table>\n"
-"            "
 
 #. module: documents
 #: model:ir.model.fields,help:documents.field_documents_share__alias_defaults
@@ -622,16 +349,8 @@ msgid ""
 msgstr "조건과 일치하는 모든 첨부 파일에서 사용할 수 있는 일련의 조건 및 작업"
 
 #. module: documents
-#. odoo-python
-#: code:addons/documents/models/documents_folder.py:0
-#, python-format
-msgid ""
-"A workspace cannot have one of his child defined as Parent Workspace in "
-"order to avoid a recursion issue."
-msgstr "순환 오류를 피하기 위해 작업 공간에서는 하위 항목을 상위 작업 공간으로 설정할 수 없습니다. "
-
-#. module: documents
 #: model:ir.model.fields,help:documents.field_documents_folder__parent_folder_id
+#: model:ir.model.fields,help:documents.field_documents_folder_deletion_wizard__parent_folder_id
 msgid "A workspace will inherit the tags of its parent workspace"
 msgstr "해당 저장공간은 상위 저장공간의 태그를 상속합니다."
 
@@ -655,7 +374,7 @@ msgstr "사용 가능 그룹"
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.folder_view_form
 msgid "Access Rights"
-msgstr "액세스 권한"
+msgstr "사용 권한"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__access_token
@@ -665,6 +384,7 @@ msgstr "사용 권한 토큰"
 #. module: documents
 #. odoo-javascript
 #: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
+#: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_action__action
 #, python-format
 msgid "Action"
@@ -694,21 +414,18 @@ msgstr "조치 필요"
 #. module: documents
 #. odoo-javascript
 #. odoo-python
-#: code:addons/documents/models/documents_folder.py:0
+#: code:addons/documents/models/folder.py:0
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: model:ir.ui.menu,name:documents.workflow_rules_menu
 #: model_terms:ir.ui.view,arch_db:documents.workflow_rule_form_view
 #, python-format
 msgid "Actions"
-msgstr "활동"
+msgstr "추가 작업"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__active
-#: model:ir.model.fields,field_description:documents.field_documents_folder__active
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_form
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_tree
 msgid "Active"
-msgstr "활성화"
+msgstr "활성"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__activity_ids
@@ -734,11 +451,6 @@ msgid "Activity Note"
 msgstr "활동 노트"
 
 #. module: documents
-#: model:ir.ui.menu,name:documents.mail_activity_plan_menu
-msgid "Activity Plans"
-msgstr "활동 계획"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__activity_state
 msgid "Activity State"
 msgstr "활동 상태"
@@ -746,18 +458,12 @@ msgstr "활동 상태"
 #. module: documents
 #: model:ir.model,name:documents.model_mail_activity_type
 msgid "Activity Type"
-msgstr "활동 유형"
+msgstr "업무 유형"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__activity_type_icon
 msgid "Activity Type Icon"
 msgstr "활동 유형 아이콘"
-
-#. module: documents
-#: model:ir.actions.act_window,name:documents.mail_activity_type_action_document
-#: model:ir.ui.menu,name:documents.mail_activity_type_menu
-msgid "Activity Types"
-msgstr "활동 유형"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__activity_type_id
@@ -774,6 +480,7 @@ msgstr "추가"
 
 #. module: documents
 #. odoo-javascript
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
 #: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
 #, python-format
 msgid "Add File"
@@ -792,12 +499,10 @@ msgid "Add a Link"
 msgstr "링크 추가"
 
 #. module: documents
-#: model_terms:ir.actions.act_window,help:documents.mail_activity_plan_action_document
-msgid "Add a new plan"
-msgstr "신규 계획 추가"
-
-#. module: documents
 #. odoo-javascript
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
 #: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
 #, python-format
 msgid "Add new file"
@@ -824,34 +529,14 @@ msgid "Alias Contact Security"
 msgstr "별칭 연락처 보안"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_domain_id
-msgid "Alias Domain"
-msgstr "별칭 도메인"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_domain
-msgid "Alias Domain Name"
-msgstr "별칭 도메인 이름"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_full_name
-msgid "Alias Email"
-msgstr "이메일 별칭"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__alias_name
 msgid "Alias Name"
 msgstr "별칭 이름"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_status
-msgid "Alias Status"
-msgstr "별칭 상태"
-
-#. module: documents
-#: model:ir.model.fields,help:documents.field_documents_share__alias_status
-msgid "Alias status assessed on the last message received."
-msgstr "최근 받은메일에서 확인한 별칭 상태입니다."
+#: model:ir.model.fields,field_description:documents.field_documents_share__alias_domain
+msgid "Alias domain"
+msgstr "별칭 도메인"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__alias_model_id
@@ -860,7 +545,7 @@ msgstr "별칭 모델"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/controllers/documents.py:0
+#: code:addons/documents/controllers/main.py:0
 #, python-format
 msgid "All files uploaded"
 msgstr "모든 파일을 업로드 했습니다"
@@ -877,7 +562,7 @@ msgstr "문서를 관리할 수 있습니다."
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_workflow_rule.py:0
+#: code:addons/documents/models/workflow.py:0
 #, python-format
 msgid "Already linked Documents"
 msgstr "이미 연결되어 있는 문서임"
@@ -887,7 +572,7 @@ msgstr "이미 연결되어 있는 문서임"
 msgid ""
 "An easy way to process incoming mails is to configure your scanner to send "
 "PDFs to"
-msgstr "다음의 이메일로 PDF 파일을 받도록 스캐너 설정을 해 두시면 수신 메일을 쉽게 처리할 수 있습니다:"
+msgstr "받은 메일을 쉽게 처리하려면 다음으로 PDF 파일을 전송하도록 스캐너 설정을 해놓으시면 됩니다."
 
 #. module: documents
 #: model_terms:digest.tip,tip_description:documents.digest_tip_documents_0
@@ -910,7 +595,12 @@ msgid "An error occured while uploading."
 msgstr "업로드 중에 오류가 발생했습니다."
 
 #. module: documents
+#. odoo-javascript
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
+#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
+#, python-format
 msgid "Archive"
 msgstr "보관"
 
@@ -923,48 +613,16 @@ msgstr "원본 파일 보관"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
+#: model_terms:ir.ui.view,arch_db:documents.document_view_search
 msgid "Archived"
 msgstr "보관됨"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_search
-msgid "Archived Workspace"
-msgstr "보관된 작업 공간"
-
-#. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
+#: code:addons/documents/static/src/views/search/documents_search_panel.js:0
 #, python-format
-msgid "Are you sure that you want to delete the focused page ?"
-msgstr "포커스가 맞춰진 페이지를 삭제하시겠습니까?"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Are you sure that you want to delete the selected page(s)"
-msgstr "선택한 페이지를 정말로 삭제하시겠습니까?"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Are you sure that you want to delete this page ?"
-msgstr "이 페이지를 정말로 삭제하시겠습니까?"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#, python-format
-msgid "Are you sure you want to permanently erase the document?"
-msgstr "이 문서를 완전히 삭제할까요?"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#, python-format
-msgid "Are you sure you want to permanently erase the documents?"
-msgstr "이 문서를 완전히 삭제할까요?"
+msgid "Are you sure you want to delete this record?"
+msgstr "이 내용을 삭제하시겠습니까?"
 
 #. module: documents
 #. odoo-javascript
@@ -1025,7 +683,7 @@ msgid ""
 msgstr ""
 "받은 편지함을 자동화하여 스캔한 문서나 이메일이 <span "
 "class=\"o_folder_description_alias\"><strong>받은 편지함-금융</strong> 별칭 이메일로 "
-"수신되도록 합니다</span>."
+"수신되도록 합니다."
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__available_rule_ids
@@ -1058,35 +716,17 @@ msgid "By defining a folder, the upload activities will generate a document"
 msgstr "폴더를 정의하면 업로드 활동이 문서를 생성합니다"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.format_file_size
-msgid "Bytes"
-msgstr "바이트"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__can_upload
 msgid "Can Upload"
 msgstr "업로드 가능"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/hooks.js:0
-#, python-format
-msgid "Can't share documents of different workspaces."
-msgstr "다른 작업 공간의 문서는 공유할 수 없습니다."
-
-#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.documents_folder_deletion_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:documents.documents_link_to_record_form_view
+#: model_terms:ir.ui.view,arch_db:documents.documents_request_form_view
+#: model_terms:ir.ui.view,arch_db:documents.documents_upload_url_view
 msgid "Cancel"
 msgstr "취소"
-
-#. module: documents
-#. odoo-python
-#: code:addons/documents/models/documents_folder.py:0
-#, python-format
-msgid ""
-"Cannot move folder under the given parent as this would create a recursive "
-"hierarchy"
-msgstr "해당 상위 폴더 아래로 폴더를 이동할 수 없습니다. 순환 구조가 생성됩니다."
 
 #. module: documents
 #: model_terms:documents.folder,description:documents.documents_internal_folder
@@ -1110,23 +750,17 @@ msgstr "체크섬/SHA1"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_workflow_rule.py:0
+#: code:addons/documents/models/workflow.py:0
 #, python-format
 msgid "Choose a record to link"
 msgstr "연결할 레코드 선택"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_view_form
-#: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
-msgid "Choose or Configure Email Servers"
-msgstr "이메일 서버를 선택 또는 설정하세요."
 
 #. module: documents
 #. odoo-javascript
 #: code:addons/documents/static/src/js/tours/documents.js:0
 #, python-format
 msgid "Click on a card to <b>select the document</b>."
-msgstr "<b>문서를 선택</b>하려면 카드를 클릭하세요."
+msgstr "카드를 클릭하여 <b>문서를 선택</b>하세요."
 
 #. module: documents
 #. odoo-javascript
@@ -1142,7 +776,14 @@ msgstr "<b>문서 미리보기</b>를 하려면 썸네일을 클릭하세요."
 msgid ""
 "Click on the <b>page separator</b>: we don't want to split these two pages "
 "as they belong to the same document."
-msgstr "<b>페이지 구분 기호</b>를 선택하세요. 같은 문서에 있는 두 페이지이므로 분할하지 않습니다."
+msgstr "<b>페이지 구분 기호</b>를 선택하세요. 해당 페이지는 같은 문서에 있는 두 페이지이므로 분할하지 않습니다."
+
+#. module: documents
+#. odoo-javascript
+#: code:addons/documents/static/src/js/tours/documents.js:0
+#, python-format
+msgid "Click the cross to <b>exit preview</b>."
+msgstr "X 표시를 클릭하여 <b>미리보기를 종료</b>합니다."
 
 #. module: documents
 #. odoo-javascript
@@ -1150,20 +791,6 @@ msgstr "<b>페이지 구분 기호</b>를 선택하세요. 같은 문서에 있�
 #, python-format
 msgid "Close"
 msgstr "닫기"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#, python-format
-msgid "Close split tools"
-msgstr "분할 도구 닫기"
-
-#. module: documents
-#. openerp-web
-#: code:addons/documents/static/src/js/tours/documents.js:0
-#, python-format
-msgid "Click the cross to <b>exit preview</b>."
-msgstr ""
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__company_id
@@ -1182,14 +809,15 @@ msgid "Conditions"
 msgstr "조건"
 
 #. module: documents
-#: model:ir.model,name:documents.model_res_config_settings
-msgid "Config Settings"
-msgstr "환경설정"
-
-#. module: documents
 #: model:ir.ui.menu,name:documents.Config
 msgid "Configuration"
-msgstr "설정"
+msgstr "구성"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_view_form
+#: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
+msgid "Configure Email Servers"
+msgstr "이메일 서버 설정"
 
 #. module: documents
 #: model:ir.model,name:documents.model_res_partner
@@ -1215,6 +843,7 @@ msgstr "계약"
 #. module: documents
 #. odoo-javascript
 #: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
+#: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
 #, python-format
 msgid "Control panel buttons"
 msgstr "제어판 버튼 "
@@ -1225,14 +854,14 @@ msgid "Create"
 msgstr "작성"
 
 #. module: documents
+#: model:documents.workflow.rule,name:documents.documents_rule_internal_mark
+msgid "Create Bill"
+msgstr "청구서 만들기"
+
+#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__create_share_id
 msgid "Create Share"
 msgstr "공유 만들기"
-
-#. module: documents
-#: model:documents.workflow.rule,name:documents.documents_rule_internal_mark
-msgid "Create Vendor Bill"
-msgstr "공급업체 청구서 생성"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__activity_option
@@ -1243,6 +872,7 @@ msgstr "새로운 활동 만들기"
 #: model:ir.model.fields,field_description:documents.field_documents_document__create_uid
 #: model:ir.model.fields,field_description:documents.field_documents_facet__create_uid
 #: model:ir.model.fields,field_description:documents.field_documents_folder__create_uid
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__create_uid
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__create_uid
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__create_uid
 #: model:ir.model.fields,field_description:documents.field_documents_share__create_uid
@@ -1257,6 +887,7 @@ msgstr "작성자"
 #: model:ir.model.fields,field_description:documents.field_documents_document__create_date
 #: model:ir.model.fields,field_description:documents.field_documents_facet__create_date
 #: model:ir.model.fields,field_description:documents.field_documents_folder__create_date
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__create_date
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__create_date
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__create_date
 #: model:ir.model.fields,field_description:documents.field_documents_share__create_date
@@ -1300,54 +931,19 @@ msgid "Default values for uploaded documents"
 msgstr "업로드한 문서의 기본값"
 
 #. module: documents
-#: model:ir.model.fields,help:documents.field_documents_folder__deletion_delay
-#: model:ir.model.fields,help:documents.field_res_config_settings__deletion_delay
-msgid "Delay after permanent deletion of the document in the trash (days)"
-msgstr "휴지통에 있는 문서를 완전히 삭제하기까지의 기간 (날짜 수)"
-
-#. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
-#: code:addons/documents/static/src/views/list/documents_list_controller.js:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_form
+#: code:addons/documents/static/src/views/search/documents_search_panel.xml:0
+#: model_terms:ir.ui.view,arch_db:documents.documents_folder_deletion_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:documents.share_view_tree
 #, python-format
 msgid "Delete"
 msgstr "삭제"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Delete focused or selected pages"
-msgstr "포커스 또는 선택된 페이지 삭제"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#, python-format
-msgid "Delete permanently"
-msgstr "완전히 삭제하기"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_res_config_settings__deletion_delay
-msgid "Deletion Delay"
-msgstr "삭제 대기"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_folder__deletion_delay
-msgid "Deletion delay"
-msgstr "삭제 대기"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.res_config_settings_view_form
-msgid "Deletion delay (days)"
-msgstr "삭제 대기 (날짜 수)"
+#: model:ir.actions.act_window,name:documents.documents_folder_deletion_wizard_action
+msgid "Delete Confirmation"
+msgstr "확인서 삭제"
 
 #. module: documents
 #: model:documents.workflow.rule,name:documents.documents_rule_internal_deprecate
@@ -1366,22 +962,16 @@ msgid "Description"
 msgstr "설명"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#: model_terms:ir.ui.view,arch_db:documents.documents_request_form_view
-#: model_terms:ir.ui.view,arch_db:documents.documents_upload_url_view
-#: model_terms:ir.ui.view,arch_db:documents.folder_deletion_form
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_form
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
 #: model_terms:ir.ui.view,arch_db:documents.tag_view_form
-#, python-format
 msgid "Discard"
-msgstr "취소"
+msgstr "작성 취소"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__display_name
 #: model:ir.model.fields,field_description:documents.field_documents_facet__display_name
 #: model:ir.model.fields,field_description:documents.field_documents_folder__display_name
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__display_name
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__display_name
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__display_name
 #: model:ir.model.fields,field_description:documents.field_documents_share__display_name
@@ -1397,13 +987,6 @@ msgstr "표시명"
 #, python-format
 msgid "Do you really want to unlink this record?"
 msgstr "이 레코드를 연결 해제하시겠습니까?"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#, python-format
-msgid "Do you want to exit without saving or gather pages into one document ?"
-msgstr "저장하지 않고 종료하거나 페이지를 하나의 문서로 모으시겠습니까?"
 
 #. module: documents
 #: model:ir.model,name:documents.model_documents_document
@@ -1431,11 +1014,6 @@ msgid "Document Owner"
 msgstr "문서 소유자"
 
 #. module: documents
-#: model:ir.actions.act_window,name:documents.mail_activity_plan_action_document
-msgid "Document Plans"
-msgstr "문서 계획"
-
-#. module: documents
 #: model:ir.model,name:documents.model_documents_request_wizard
 msgid "Document Request"
 msgstr "문서 요청"
@@ -1448,17 +1026,12 @@ msgstr "문서 요청 {{ object.name != False and ': '+ object.name or '' }}"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_document.py:0
-#: code:addons/documents/models/documents_document.py:0
+#: code:addons/documents/models/document.py:0
+#: code:addons/documents/models/document.py:0
 #: code:addons/documents/models/mail_activity.py:0
 #, python-format
 msgid "Document Request: %s Uploaded by: %s"
 msgstr "문서 요청 : %s 업로드한 사람 : %s"
-
-#. module: documents
-#: model:mail.template,name:documents.mail_template_document_request_reminder
-msgid "Document Request: Reminder"
-msgstr "문서 요청: 알림"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_folder__has_write_access
@@ -1476,11 +1049,6 @@ msgid "Document list"
 msgstr "문서 목록"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.document_view_kanban
-msgid "Document preview"
-msgstr "문서 미리보기"
-
-#. module: documents
 #: model:mail.template,name:documents.mail_template_document_request
 msgid "Document: Document Request"
 msgstr "문서: 문서 요청"
@@ -1488,7 +1056,7 @@ msgstr "문서: 문서 요청"
 #. module: documents
 #. odoo-javascript
 #. odoo-python
-#: code:addons/documents/models/documents_folder.py:0
+#: code:addons/documents/models/folder.py:0
 #: code:addons/documents/models/res_partner.py:0
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: model:documents.facet,name:documents.documents_finance_documents
@@ -1501,11 +1069,15 @@ msgstr "문서: 문서 요청"
 #: model:ir.ui.menu,name:documents.menu_root
 #: model_terms:ir.ui.view,arch_db:documents.action_view_search
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
-#: model_terms:ir.ui.view,arch_db:documents.documents_view_activity
 #: model_terms:ir.ui.view,arch_db:documents.res_config_settings_view_form
 #, python-format
 msgid "Documents"
 msgstr "문서"
+
+#. module: documents
+#: model:ir.model,name:documents.model_documents_folder_deletion_wizard
+msgid "Documents Folder Deletion Wizard"
+msgstr "문서 폴더 삭제 마법사"
 
 #. module: documents
 #: model:ir.model,name:documents.model_documents_link_to_record_wizard
@@ -1530,7 +1102,7 @@ msgstr "문서 작성 혼합물"
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.workflow_rule_form_view
 msgid "Does not contain"
-msgstr "포함하지 않음"
+msgstr "포함하지 않습니다."
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__domain
@@ -1546,19 +1118,12 @@ msgstr "도메인"
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: model:ir.model.fields.selection,name:documents.selection__documents_share__action__download
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
 #, python-format
 msgid "Download"
 msgstr "다운로드"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
-msgid "Download #{document.name}"
-msgstr "다운로드됨 #{document.name}"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
+#: model_terms:ir.ui.view,arch_db:documents.share_page
 msgid "Download all files"
 msgstr "전체 파일 다운로드"
 
@@ -1566,11 +1131,6 @@ msgstr "전체 파일 다운로드"
 #: model:ir.model.fields.selection,name:documents.selection__documents_share__action__downloadupload
 msgid "Download and Upload"
 msgstr "다운로드 및 업로드"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-msgid "Download file"
-msgstr "파일 다운로드"
 
 #. module: documents
 #. odoo-javascript
@@ -1595,18 +1155,11 @@ msgstr "만기 유형"
 
 #. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
-#, python-format
-msgid "Duplicate"
-msgstr "복사"
-
-#. module: documents
-#. odoo-javascript
 #: code:addons/documents/static/src/views/search/documents_search_panel.js:0
 #: code:addons/documents/static/src/views/search/documents_search_panel.xml:0
 #, python-format
 msgid "Edit"
-msgstr "편집"
+msgstr "편집하기"
 
 #. module: documents
 #. odoo-javascript
@@ -1616,7 +1169,6 @@ msgid "Edit the linked record"
 msgstr "연결된 레코드 편집"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_email
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
 msgid "Email Alias"
 msgstr "이메일 별칭"
@@ -1636,30 +1188,9 @@ msgid "Error"
 msgstr "오류"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Escape Preview/Deselect/Exit"
-msgstr "미리보기 나가기/선택 해제/종료"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__excluded_tag_ids
 msgid "Excluded Tags"
 msgstr "제외된 태그"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.js:0
-#, python-format
-msgid "Exit Split Tools"
-msgstr "분할 도구 종료"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#, python-format
-msgid "Exit without saving"
-msgstr "저장하지 않고 종료"
 
 #. module: documents
 #: model:documents.tag,name:documents.documents_finance_documents_expense
@@ -1670,14 +1201,6 @@ msgstr "경비"
 #: model:ir.model.fields.selection,name:documents.selection__documents_share__state__expired
 msgid "Expired"
 msgstr "만료됨"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/list/documents_list_controller.js:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
-#, python-format
-msgid "Export"
-msgstr "내보내기"
 
 #. module: documents
 #: model:ir.model.constraint,message:documents.constraint_documents_facet_name_unique
@@ -1706,15 +1229,16 @@ msgid "File Content (raw)"
 msgstr "파일 컨텐츠(raw)"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_document__file_extension
-#: model_terms:ir.ui.view,arch_db:documents.document_view_search
-msgid "File Extension"
-msgstr "파일 확장자"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__file_size
 msgid "File Size"
 msgstr "파일 크기"
+
+#. module: documents
+#. odoo-javascript
+#: code:addons/documents/static/src/views/hooks.js:0
+#, python-format
+msgid "File is too large."
+msgstr ""
 
 #. module: documents
 #: model:ir.model,name:documents.model_ir_binary
@@ -1722,29 +1246,9 @@ msgid "File streaming helper model for controllers"
 msgstr "컨트롤러용 파일 스트리밍 헬퍼 모델"
 
 #. module: documents
-#. odoo-python
-#: code:addons/documents/controllers/documents.py:0
-#, python-format
-msgid "File uploaded by:"
-msgstr "파일 업로드:"
-
-#. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.res_config_settings_view_form
 msgid "Files Centralization"
 msgstr "파일 중앙화"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.folder_deletion_form
-msgid "Files will be sent to trash and deleted forever after"
-msgstr "파일을 휴지통으로 이동하여 다음 날짜 이후 완전히 삭제합니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
-#, python-format
-msgid "Files will be sent to trash and deleted forever after %s days."
-msgstr "파일을 휴지통으로 이동하여 %s일 이후 완전히 삭제합니다."
 
 #. module: documents
 #: model:documents.folder,name:documents.documents_finance_folder
@@ -1767,34 +1271,7 @@ msgid "Fiscal years"
 msgstr "회계연도"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Focus first page of next group"
-msgstr "다음 그룹의 첫 페이지에 포커스 맞추기"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Focus first page of previous group"
-msgstr "이전 그룹의 첫 페이지에 포커스 맞추기"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Focus next page"
-msgstr "다음 페이지에 포커스"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Focus previous page"
-msgstr "이전 페이지에 포커스"
-
-#. module: documents
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__folder_id
 #: model:ir.model.fields,field_description:documents.field_mail_activity_type__folder_id
 msgid "Folder"
 msgstr "폴더"
@@ -1809,29 +1286,17 @@ msgstr "팔로워"
 #: model:ir.model.fields,field_description:documents.field_documents_document__message_partner_ids
 #: model:ir.model.fields,field_description:documents.field_documents_share__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "팔로워 (협력사)"
+msgstr "팔로워 (파트너)"
 
 #. module: documents
 #: model:ir.model.fields,help:documents.field_documents_document__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "멋진 아이콘 폰트 예: fa-tasks"
+msgstr "멋진 아이콘 폰트 예 : fa-tasks"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
 msgid "Future Activities"
 msgstr "향후 활동"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#, python-format
-msgid "Gather in one document"
-msgstr "하나의 문서로 모으기"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.format_file_size
-msgid "Gb"
-msgstr "Gb"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
@@ -1874,6 +1339,7 @@ msgstr "기록"
 #: model:ir.model.fields,field_description:documents.field_documents_document__id
 #: model:ir.model.fields,field_description:documents.field_documents_facet__id
 #: model:ir.model.fields,field_description:documents.field_documents_folder__id
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__id
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__id
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__id
 #: model:ir.model.fields,field_description:documents.field_documents_share__id
@@ -1888,7 +1354,7 @@ msgstr "ID"
 msgid ""
 "ID of the parent record holding the alias (example: project holding the task"
 " creation alias)"
-msgstr "별칭을 담고 있는 상위 레코드의 ID (예: 별칭을 생성한 작업을 담고 있는 프로젝트)"
+msgstr "별칭을 담고 있는 상위 레코드의 ID (예 : 별칭을 생성한 작업을 담고 있는 프로젝트)"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__activity_exception_icon
@@ -1919,7 +1385,7 @@ msgstr "이 옵션을 선택하면 일부 정보가 전달 오류를 생성합�
 msgid ""
 "If set, this content will automatically be sent out to unauthorized users "
 "instead of the default message."
-msgstr "설정할 경우, 권한이 없는 사용자에게 기본 메시지 대신 이 내용을 전송합니다. "
+msgstr "설정하면, 권한이 없는 사용자에게 기본 메시지 대신 이 내용을 전송합니다. "
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
@@ -1984,38 +1450,29 @@ msgid "Is Shared"
 msgstr "공유되었습니다."
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_document__is_multipage
-msgid "Is considered multipage"
-msgstr "페이지가 여러 장 있는 것으로 간주합니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/search/documents_search_model.js:0
-#, python-format
-msgid "Items in trash will be deleted forever after %s days."
-msgstr "휴지통에 있는 항목은 %s일 후 완전히 삭제됩니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#, python-format
-msgid "Items moved to the trash will be deleted forever after %s days."
-msgstr "휴지통으로 이동된 항목은 %s일 후 완전히 삭제됩니다."
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.format_file_size
-msgid "Kb"
-msgstr "Kb"
-
-#. module: documents
 #: model:documents.facet,name:documents.documents_internal_knowledge
 msgid "Knowledge"
-msgstr "지식센터"
+msgstr "지식 센터"
+
+#. module: documents
+#: model:ir.model.fields,field_description:documents.field_documents_document____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_facet____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_folder____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_request_wizard____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_share____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_tag____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_workflow_action____last_update
+#: model:ir.model.fields,field_description:documents.field_documents_workflow_rule____last_update
+msgid "Last Modified on"
+msgstr "최근 수정일"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__write_uid
 #: model:ir.model.fields,field_description:documents.field_documents_facet__write_uid
 #: model:ir.model.fields,field_description:documents.field_documents_folder__write_uid
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__write_uid
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__write_uid
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__write_uid
 #: model:ir.model.fields,field_description:documents.field_documents_share__write_uid
@@ -2029,6 +1486,7 @@ msgstr "최근 갱신한 사람"
 #: model:ir.model.fields,field_description:documents.field_documents_document__write_date
 #: model:ir.model.fields,field_description:documents.field_documents_facet__write_date
 #: model:ir.model.fields,field_description:documents.field_documents_folder__write_date
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__write_date
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__write_date
 #: model:ir.model.fields,field_description:documents.field_documents_request_wizard__write_date
 #: model:ir.model.fields,field_description:documents.field_documents_share__write_date
@@ -2055,7 +1513,7 @@ msgstr "합법"
 msgid ""
 "Let's process documents in your Inbox.<br/><i>Tip: Use Tags to filter "
 "documents and structure your process.</i>"
-msgstr "받은 메일함에서 문서를 처리해봅시다.<br/><i>도움말: 문서 필터와 작업 구축에 태그를 활용하세요.</i>"
+msgstr "받은 메일함에서 문서를 처리해봅시다.<br/><i>도움말: 문서 필터와 작업 구축에 필터를 활용하세요.</i>"
 
 #. module: documents
 #. odoo-javascript
@@ -2092,16 +1550,12 @@ msgid "Limit Write Groups to the documents of which they are owner."
 msgstr "문서 소유자가 쓰기 그룹인 경우로 제한합니다."
 
 #. module: documents
+#. odoo-javascript
+#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: model_terms:ir.ui.view,arch_db:documents.documents_link_to_record_form_view
+#, python-format
 msgid "Link"
 msgstr "링크"
-
-#. module: documents
-#. odoo-python
-#: code:addons/documents/controllers/documents.py:0
-#, python-format
-msgid "Link created by:"
-msgstr "링크 생성:"
 
 #. module: documents
 #: model:ir.model.fields.selection,name:documents.selection__documents_workflow_rule__create_model__link_to_record
@@ -2109,19 +1563,14 @@ msgid "Link to record"
 msgstr "기록용 링크"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
-msgid "Links cannot be shared and therefore will be excluded."
-msgstr "링크는 공유할 수 없으므로 제외됩니다."
-
-#. module: documents
 #: model:ir.model.fields.selection,name:documents.selection__documents_share__state__live
 msgid "Live"
 msgstr "실시간"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__alias_incoming_local
-msgid "Local-part based incoming detection"
-msgstr "로컬 부품 기반 입고 감지"
+#: model_terms:ir.ui.view,arch_db:documents.share_single
+msgid "Loading"
+msgstr "불러오는 중"
 
 #. module: documents
 #. odoo-javascript
@@ -2146,7 +1595,7 @@ msgstr "잠근 사람"
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form
 #: model_terms:ir.ui.view,arch_db:documents.workflow_rule_form_view
 msgid "Log a note..."
-msgstr "메모 기록"
+msgstr "로그 기록..."
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.public_page_layout
@@ -2159,9 +1608,15 @@ msgid "Logout"
 msgstr "로그아웃"
 
 #. module: documents
+#: model:ir.model.fields,field_description:documents.field_documents_document__message_main_attachment_id
+#: model:ir.model.fields,field_description:documents.field_documents_share__message_main_attachment_id
+msgid "Main Attachment"
+msgstr "주요 첨부 파일"
+
+#. module: documents
 #: model:documents.workflow.rule,name:documents.documents_rule_internal_mad
 msgid "Mark As Draft"
-msgstr "미결로 표시"
+msgstr "초안으로 표시"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__remove_activities
@@ -2172,16 +1627,6 @@ msgstr "모두 완료로 표시"
 #: model:documents.folder,name:documents.documents_marketing_folder
 msgid "Marketing"
 msgstr "마케팅"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.format_file_size
-msgid "Mb"
-msgstr "Mb"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_request_wizard__activity_note
-msgid "Message"
-msgstr "메시지"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__message_has_error
@@ -2226,14 +1671,7 @@ msgstr "월"
 #. module: documents
 #: model:documents.workflow.rule,name:documents.documents_rule_finance_mti
 msgid "Move To Inbox"
-msgstr "받은편지함으로 이동"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#, python-format
-msgid "Move this page to trash"
-msgstr "이 페이지를 휴지통으로 이동"
+msgstr "받은 편지함으로 이동"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__folder_id
@@ -2241,28 +1679,9 @@ msgid "Move to Workspace"
 msgstr "저장공간으로 이동"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#: code:addons/documents/static/src/views/documents_model_mixin.js:0
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
-#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
-#: model_terms:ir.ui.view,arch_db:documents.folder_deletion_form
-#, python-format
-msgid "Move to trash"
-msgstr "휴지통으로 이동"
-
-#. module: documents
-#. odoo-javascript
-#. odoo-python
-#: code:addons/documents/models/documents_folder.py:0
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
-#, python-format
-msgid "Move to trash?"
-msgstr "휴지통으로 이동할까요?"
+#: model_terms:ir.ui.view,arch_db:documents.documents_folder_deletion_wizard_view_form
+msgid "Move to parent workspace"
+msgstr "상위 작업 공간으로 이동"
 
 #. module: documents
 #. odoo-javascript
@@ -2270,11 +1689,6 @@ msgstr "휴지통으로 이동할까요?"
 #, python-format
 msgid "Multiple values"
 msgstr "다중 값"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.document_view_search
-msgid "My Activities"
-msgstr "내 활동"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__my_activity_date_deadline
@@ -2320,7 +1734,7 @@ msgstr "신규"
 #: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
 #, python-format
 msgid "New File"
-msgstr "새 파일"
+msgstr "새로운 파일"
 
 #. module: documents
 #. odoo-javascript
@@ -2364,20 +1778,7 @@ msgid "Next Activity Type"
 msgstr "다음 활동 유형"
 
 #. module: documents
-#: model_terms:ir.actions.act_window,help:documents.mail_activity_type_action_document
-msgid "No activity types found. Let's create one!"
-msgstr "활동 유형이 없습니다. 지금 생성해 주세요."
-
-#. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/views/helper/documents_action_helper.xml:0
-#, python-format
-msgid "No alias configured"
-msgstr "별칭이 구성되어 있지 않음"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
 #: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
 #, python-format
 msgid "No document has been selected"
@@ -2395,19 +1796,20 @@ msgstr "공유된 링크가 없습니다."
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_document.py:0
+#: code:addons/documents/models/document.py:0
 #, python-format
 msgid "Not a file"
 msgstr "파일이 아닙니다"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_document.py:0
+#: code:addons/documents/models/document.py:0
 #, python-format
 msgid "Not attached"
 msgstr "첨부되지 않았습니다"
 
 #. module: documents
+#: model:ir.model.fields,field_description:documents.field_documents_request_wizard__activity_note
 #: model:ir.model.fields,field_description:documents.field_documents_share__activity_note
 msgid "Note"
 msgstr "노트"
@@ -2417,11 +1819,6 @@ msgstr "노트"
 #: model:ir.model.fields,field_description:documents.field_documents_share__message_needaction_counter
 msgid "Number of Actions"
 msgstr "작업 수"
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_share__links_count
-msgid "Number of Links"
-msgstr "링크 수"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__message_has_error_counter
@@ -2439,7 +1836,7 @@ msgstr "조치가 필요한 메시지 수"
 #: model:ir.model.fields,help:documents.field_documents_document__message_has_error_counter
 #: model:ir.model.fields,help:documents.field_documents_share__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "전송 오류가 발생한 메시지 수입니다."
+msgstr "전송 오류 메시지 수"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.public_page_layout
@@ -2458,6 +1855,7 @@ msgstr "한 개의 레코드 한도"
 
 #. module: documents
 #. odoo-javascript
+#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #, python-format
 msgid "Open chatter"
@@ -2500,18 +1898,19 @@ msgstr "내 문서만 (쓰기)"
 msgid ""
 "Own Documents Only may not be enabled for write groups if it is not enabled "
 "for read groups."
-msgstr "내 문서만 기능을 읽기 그룹에서 사용할 수 없도록 한 경우 쓰기 그룹에서도 사용하지 못 할 수 있습니다."
+msgstr "내 문서만 기능을 읽기 그룹에서 사용할 수 없도록 한 경우 쓰기 그룹에서도 사용하지 못할 수 있습니다."
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__owner_id
-#: model:ir.model.fields,field_description:documents.field_documents_request_wizard__requestee_id
+#: model:ir.model.fields,field_description:documents.field_documents_request_wizard__owner_id
+#: model:ir.model.fields,field_description:documents.field_documents_share__alias_user_id
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__criteria_owner_id
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
 msgid "Owner"
 msgstr "소유자"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
+#: model_terms:ir.ui.view,arch_db:documents.share_page
 msgid "Owner: #{document.owner_id.name}"
 msgstr "소유자: #{document.owner_id.name}"
 
@@ -2519,6 +1918,11 @@ msgstr "소유자: #{document.owner_id.name}"
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
 msgid "PDF/Document"
 msgstr "PDF/문서"
+
+#. module: documents
+#: model:ir.model.fields,field_description:documents.field_documents_folder_deletion_wizard__parent_folder_id
+msgid "Parent Folder"
+msgstr "상위 폴더"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_share__alias_parent_model_id
@@ -2548,8 +1952,8 @@ msgid ""
 " necessarily the model given by alias_model_id (example: project "
 "(parent_model) and task (model))"
 msgstr ""
-"별칭이 있는 상위 모델입니다. 별칭 참조를 포함하는 모델은 반드시 alias_model_id(예: 프로젝트(parent_model) 및 "
-"태스크(model)에서 제공하는 모델일 필요는 없습니다.)"
+"별칭이 있는 상위 모델입니다. 별칭 참조를 포함하는 모델은 반드시 alias_model_id(예 : 프로젝트(parent_model) 및"
+" 태스크(model)에서 제공하는 모델일 필요는 없습니다.)"
 
 #. module: documents
 #. odoo-javascript
@@ -2557,11 +1961,6 @@ msgstr ""
 #, python-format
 msgid "Partial transfer"
 msgstr "부분 이전"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.not_available
-msgid "Please contact the person that shared this link for more information."
-msgstr "자세한 내용은 링크를 공유한 사람에게 연락하시기 바랍니다."
 
 #. module: documents
 #: model:ir.model.fields,help:documents.field_documents_share__alias_contact
@@ -2572,9 +1971,9 @@ msgid ""
 "- followers: only followers of the related document or members of following channels\n"
 msgstr ""
 "Mailgateway를 사용하여 문서에 메시지를 게시하는 정책.\n"
-"- 모든 사용자: 모든 사용자가 게시할 수 있습니다\n"
-"- 협력사: 인증된 협력사만 게시할 수 있습니다\n"
-"- 팔로워: 관련 문서의 팔로워 또는 팔로잉 중인 채널의 사용자만 게시할 수 있습니다\n"
+"- 모두 : 모든 사용자가 게시할 수 있습니다\n"
+"- 파트너 : 인증 된 파트너만 게시할 수 있습니다\n"
+"- 팔로워 : 관련 문서의 팔로워 또는 관련 채널의 참여자 만 게시할 수 있습니다\n"
 
 #. module: documents
 #: model:ir.model.fields.selection,name:documents.selection__documents_document__thumbnail_status__present
@@ -2592,15 +1991,9 @@ msgid "Project"
 msgstr "프로젝트"
 
 #. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_document__rating_ids
-#: model:ir.model.fields,field_description:documents.field_documents_share__rating_ids
-msgid "Ratings"
-msgstr "평가"
-
-#. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.folder_view_form
 msgid "Read Access"
-msgstr "읽기 권한"
+msgstr "읽기 사용"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_folder__read_group_ids
@@ -2628,20 +2021,6 @@ msgstr "관련 작업 공간"
 #, python-format
 msgid "Remaining Pages"
 msgstr "잔여 페이지"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/activity/documents_activity_controller.js:0
-#, python-format
-msgid "Reminder emails have been sent."
-msgstr "이메일 알림이 전송되었습니다."
-
-#. module: documents
-#: model:mail.template,subject:documents.mail_template_document_request_reminder
-msgid ""
-"Reminder to upload your document{{ object.name and ' : ' + object.name or ''"
-" }}"
-msgstr "문서를 업로드하도록 알림 {{ object.name and ' : ' + object.name or '' }}"
 
 #. module: documents
 #: model:ir.model.fields.selection,name:documents.selection__documents_workflow_action__action__remove
@@ -2681,7 +2060,7 @@ msgstr "요청 대상"
 
 #. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/web/activity/activity_menu_patch.xml:0
+#: code:addons/documents/static/src/components/activity_menu_view/activity_menu_view.xml:0
 #, python-format
 msgid "Request a Document"
 msgstr "문서 요청"
@@ -2693,17 +2072,9 @@ msgstr "파일 요청"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
+#: model_terms:ir.ui.view,arch_db:documents.share_single
 msgid "Requested"
 msgstr "요청함"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.document_request_page
-msgid ""
-"Requested\n"
-"                                ∙"
-msgstr ""
-"요청됨\n"
-"                                ∙"
 
 #. module: documents
 #: model:mail.activity.type,name:documents.mail_documents_activity_data_md
@@ -2749,14 +2120,15 @@ msgid "Responsible User"
 msgstr "담당 사용자"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/form/folder_form_controller.js:0
-#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
-#: code:addons/documents/static/src/views/list/folder_list_controller.js:0
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
-#, python-format
 msgid "Restore"
 msgstr "복원"
+
+#. module: documents
+#: code:addons/documents/models/folder.py:0
+#, python-format
+msgid "Restricted Folder"
+msgstr "제한 폴더"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__message_has_sms_error
@@ -2770,7 +2142,6 @@ msgid "Sales"
 msgstr "판매"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_form
 #: model_terms:ir.ui.view,arch_db:documents.tag_view_form
 msgid "Save"
 msgstr "저장"
@@ -2782,53 +2153,10 @@ msgstr "활동 계획표"
 
 #. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/views/kanban/documents_kanban_renderer.js:0
-#: code:addons/documents/static/src/views/list/documents_list_renderer.js:0
+#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
 #, python-format
-msgid "Select all"
-msgstr "전체 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select focused page"
-msgstr "포커스된 페이지 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select next page"
-msgstr "다음 페이지 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select next pages of the group"
-msgstr "그룹의 다음 페이지 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select previous page"
-msgstr "이전 페이지 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select previous pages of the group"
-msgstr "그룹의 이전 페이지 선택"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#, python-format
-msgid "Select/Deselect all pages"
-msgstr "모든 페이지 선택/선택 해제"
+msgid "Select All: Shift + A"
+msgstr ""
 
 #. module: documents
 #. odoo-javascript
@@ -2858,7 +2186,7 @@ msgstr "순서"
 #. module: documents
 #: model:documents.workflow.rule,name:documents.documents_rule_finance_2018contracts
 msgid "Set As 2024 Contracts"
-msgstr ""
+msgstr "2024년 계약으로 설정"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__partner_id
@@ -2874,18 +2202,6 @@ msgstr "소유자 설정"
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__tag_action_ids
 msgid "Set Tags"
 msgstr "태그 설정"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.res_config_settings_view_form
-msgid "Set deletion delay for documents in the Trash"
-msgstr "휴지통에 있는 문서에 대한 삭제 대기 설정"
-
-#. module: documents
-#: model:mail.template,description:documents.mail_template_document_request_reminder
-msgid ""
-"Set reminders in activities to notify users who didn't upload their "
-"requested document"
-msgstr "요청한 문서 업로드를 하지 않은 사용자에게 안내하기 위해 활동 알림을 설정"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__has_owner_activity
@@ -2915,7 +2231,7 @@ msgstr "공유 링크"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/controllers/documents.py:0
+#: code:addons/documents/controllers/main.py:0
 #, python-format
 msgid "Share link"
 msgstr "링크 공유"
@@ -2927,14 +2243,14 @@ msgstr "링크 공유"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_share.py:0
+#: code:addons/documents/models/share.py:0
 #, python-format
 msgid "Share selected files"
 msgstr "선택한 파일 공유"
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_share.py:0
+#: code:addons/documents/models/share.py:0
 #, python-format
 msgid "Share selected workspace"
 msgstr "선택한 작업 공간 공유"
@@ -2996,23 +2312,6 @@ msgid "Size"
 msgstr "사이즈"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-msgid "Size:"
-msgstr "크기 :"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/hooks.js:0
-#, python-format
-msgid "Some files could not be uploaded (max size: %s)."
-msgstr "일부 파일을 업로드할 수 없습니다 (최대 크기: %s)"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.not_available
-msgid "Sorry, this link is no longer valid."
-msgstr "죄송합니다. 더 이상 유효하지 않은 링크입니다."
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__link_model
 msgid "Specific Model Linked"
 msgstr "연결된 특정 모델"
@@ -3028,19 +2327,11 @@ msgstr "분할"
 
 #. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/attachments/document_file_viewer.xml:0
-#: code:addons/documents/static/src/attachments/document_file_viewer.xml:0
+#: code:addons/documents/static/src/components/attachment_viewer/attachment_viewer.xml:0
+#: code:addons/documents/static/src/components/attachment_viewer/attachment_viewer.xml:0
 #, python-format
 msgid "Split PDF"
 msgstr "PDF 분할"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.js:0
-#: code:addons/documents/static/src/owl/components/pdf_manager/pdf_manager.xml:0
-#, python-format
-msgid "Split selected pages"
-msgstr "선택한 페이지 분할"
 
 #. module: documents
 #: model:documents.facet,name:documents.documents_finance_status
@@ -3057,17 +2348,10 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"활동 기준 상태\n"
-"기한 초과: 기한이 이미 지났습니다.\n"
-"오늘: 활동 날짜가 오늘입니다.\n"
-"예정: 향후 계획된 활동입니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#, python-format
-msgid "Stay here"
-msgstr "현재 페이지 유지"
+"활동에 기조한 상태입니다\n"
+"기한초과: 이미 기한이 지났습니다\n"
+"오늘: 활동 날짜가 오늘입니다\n"
+"계획: 향후 활동입니다."
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_folder__children_folder_ids
@@ -3146,18 +2430,6 @@ msgid "Text shown when hovering on this tag category or its tags"
 msgstr "이 태그 범주 또는 해당 태그를 가리킬 때 표시되는 문자"
 
 #. module: documents
-#: model:ir.model.constraint,message:documents.constraint_res_config_settings_check_deletion_delay
-msgid "The deletion delay should be positive."
-msgstr "삭제 대기 항목은 양수여야 합니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/hooks.js:0
-#, python-format
-msgid "The links and requested documents are not shareable."
-msgstr "링크 및 요청 문서는 공유할 수 없습니다."
-
-#. module: documents
 #: model:ir.model.fields,help:documents.field_documents_share__alias_model_id
 msgid ""
 "The model (Odoo Document Kind) to which this alias corresponds. Any incoming"
@@ -3172,8 +2444,18 @@ msgstr ""
 msgid ""
 "The name of the email alias, e.g. 'jobs' if you want to catch emails for "
 "<jobs@example.odoo.com>"
+msgstr "이메일 별칭 이름. <jobs@example.odoo.com>에 대한 이메일을 수신하도록 하려면 'jobs'라고 적습니다."
+
+#. module: documents
+#: model:ir.model.fields,help:documents.field_documents_share__alias_user_id
+msgid ""
+"The owner of records created upon receiving emails on this alias. If this "
+"field is not set the system will attempt to find the right owner based on "
+"the sender (From) address, or will use the Administrator account if no "
+"system user is found for that address."
 msgstr ""
-"<jobs@example.odoo.com>에 대한 이메일을 수신하도록 하려면 이메일의 별칭 이름을 적어주세요. 예: 'jobs'"
+"이 별칭으로 이메일을 받을 때 생성되는 레코드의 소유자. 이 필드를 시스템에 설정하지 않으면 보낸 사람 주소를 기준으로 올바른 소유자를 "
+"찾기 위해 시도하거나 주소에서 해당하는 사용자를 찾지 못한 경우 관리자 계정을 사용합니다."
 
 #. module: documents
 #. odoo-javascript
@@ -3182,13 +2464,6 @@ msgstr ""
 #, python-format
 msgid "The share url has been copied to your clipboard."
 msgstr "공유 URL이 클립보드에 복사되었습니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/inspector/documents_inspector.js:0
-#, python-format
-msgid "The share url has been copied to your clipboard. Links were excluded."
-msgstr "공유 URL이 클립보드에 복사되었습니다. 링크는 제외되었습니다."
 
 #. module: documents
 #: model:ir.model.constraint,message:documents.constraint_documents_share_share_unique
@@ -3206,41 +2481,24 @@ msgid "This attachment will only be available for the selected user groups"
 msgstr "이 첨부 파일은 선택한 사용자 그룹에게만 제공됩니다."
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.document_request_page
+#: model_terms:ir.ui.view,arch_db:documents.share_single
 msgid ""
 "This document has been requested.\n"
-"                <b onclick=\"document.querySelector('.o_request_upload').click()\" style=\"cursor:pointer;\">Upload it</b>."
+"                <b onclick=\"$('.o_request_upload').trigger('click')\" style=\"cursor:pointer;\">Upload it</b>."
 msgstr ""
-"이 문서를 요청받았습니다.\n"
-"                <b onclick=\"document.querySelector('.o_request_upload').click()\" style=\"cursor:pointer;\">업로드하세요</b>."
+"이 문서는 요청되었습니다.\n"
+"                <b onclick=\"$('.o_request_upload').trigger('click')\" style=\"cursor:pointer;\">업로드 하십시오</b>."
 
 #. module: documents
-#. odoo-python
-#: code:addons/documents/models/documents_document.py:0
-#, python-format
-msgid "This file has been restored"
-msgstr "파일 복원이 완료되었습니다."
-
-#. module: documents
-#. odoo-python
-#: code:addons/documents/models/documents_document.py:0
-#, python-format
-msgid ""
-"This file has been sent to the trash and will be deleted forever on the %s"
-msgstr "해당 파일을 휴지통으로 이동하여 %s 항목에서 완전히 삭제합니다."
+#: model_terms:ir.ui.view,arch_db:documents.not_available
+msgid "This link has expired"
+msgstr "이 링크가 만료되었습니다."
 
 #. module: documents
 #: model:ir.model.fields,help:documents.field_documents_document__company_id
 #: model:ir.model.fields,help:documents.field_documents_folder__company_id
 msgid "This workspace will only be available to the selected company"
 msgstr "이 저장공간은 선택한 회사에서만 사용할 수 있습니다"
-
-#. module: documents
-#: model_terms:ir.actions.act_window,help:documents.mail_activity_type_action_document
-msgid ""
-"Those represent the different categories of things you have to do (e.g. "
-"\"Call\" or \"Send email\")."
-msgstr "이는 수행해야 하는 작업에 대한 다양한 카테고리를 나타냅니다 (예: \"전화\" 또는 \"이메일 전송\")."
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_document__thumbnail
@@ -3281,32 +2539,11 @@ msgid "Today Activities"
 msgstr "오늘 활동"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
-#, python-format
-msgid "Toggle Dropdown"
-msgstr "토글 드롭다운"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/kanban/documents_kanban_renderer.js:0
-#, python-format
-msgid "Toggle favorite"
-msgstr "즐겨찾기 토글"
-
-#. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_facet__tooltip
 #: model:ir.model.fields,field_description:documents.field_documents_workflow_rule__note
 #: model_terms:ir.ui.view,arch_db:documents.facet_view_form
 msgid "Tooltip"
 msgstr "툴팁"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/search/documents_search_model.js:0
-#, python-format
-msgid "Trash"
-msgstr "휴지통"
 
 #. module: documents
 #: model:ir.model.fields,help:documents.field_documents_document__is_editable_attachment
@@ -3330,22 +2567,17 @@ msgstr "레코드에 있는 예외 활동의 유형입니다."
 #: model:ir.model.fields.selection,name:documents.selection__documents_document__type__url
 #: model_terms:ir.ui.view,arch_db:documents.document_view_search
 #: model_terms:ir.ui.view,arch_db:documents.documents_upload_url_view
+#: model_terms:ir.ui.view,arch_db:documents.share_page
+#: model_terms:ir.ui.view,arch_db:documents.share_single
 msgid "URL"
 msgstr "URL"
 
 #. module: documents
-#. odoo-python
-#: code:addons/documents/models/documents_document.py:0
+#. odoo-javascript
+#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #, python-format
-msgid ""
-"URL %s does not seem complete, as it does not begin with http(s):// or "
-"ftp://"
-msgstr "URL %s이 http(s):// 또는 ftp:// 으로 시작하지 않습니다."
-
-#. module: documents
-#: model:ir.model.fields,field_description:documents.field_documents_document__url_preview_image
-msgid "URL Preview Image"
-msgstr "URL 미리보기 이미지"
+msgid "Un-archive"
+msgstr "보관 해제"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.document_view_form
@@ -3362,7 +2594,7 @@ msgstr "이름 없음"
 #. module: documents
 #. odoo-javascript
 #: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
+#: model_terms:ir.ui.view,arch_db:documents.share_page
 #, python-format
 msgid "Upload"
 msgstr "업로드"
@@ -3428,11 +2660,6 @@ msgid "Validated"
 msgstr "승인됨"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-msgid "Validity date:"
-msgstr "유효 기간:"
-
-#. module: documents
 #: model:documents.tag,name:documents.documents_marketing_assets_Videos
 msgid "Videos"
 msgstr "동영상"
@@ -3465,11 +2692,9 @@ msgid "Weeks"
 msgstr "주"
 
 #. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/owl/components/pdf_exit_dialog/pdf_exit_dialog.xml:0
-#, python-format
-msgid "What do you want to do with the remaining pages ?"
-msgstr "남은 페이지로 무엇을 하시겠습니까?"
+#: model_terms:ir.ui.view,arch_db:documents.documents_folder_deletion_wizard_view_form
+msgid "What do you want to do with the files in the workspace?"
+msgstr "작업 공간의 파일로 어떤 업무를 진행하시겠습니까?"
 
 #. module: documents
 #: model:ir.actions.act_window,name:documents.workflow_rule_action
@@ -3495,7 +2720,6 @@ msgstr "저장공간"
 #. module: documents
 #: model:ir.actions.act_window,name:documents.folder_action
 #: model:ir.ui.menu,name:documents.folder_menu
-#: model_terms:ir.ui.view,arch_db:documents.folder_view_tree
 msgid "Workspaces"
 msgstr "저장공간"
 
@@ -3529,18 +2753,18 @@ msgstr "여기에 작업에 대한 툴팁을 작성합니다."
 msgid ""
 "You can either upload a file from your computer or copy/paste an internet "
 "link to your file."
-msgstr "컴퓨터에서 파일을 업로드하거나 인터넷 링크를 복사하여 파일에 붙여넣기 할 수 있습니다."
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/documents_controller_mixin.xml:0
-#, python-format
-msgid "You cannot upload content in this workspace"
-msgstr "이 작업 공간에서는 콘텐츠를 업로드할 수 없습니다."
+msgstr "컴퓨터에서 파일을 업로드하거나 인터넷 링크를 복사하여 파일에 붙여 넣을 수 있습니다."
 
 #. module: documents
 #. odoo-python
-#: code:addons/documents/models/documents_document.py:0
+#: code:addons/documents/models/folder.py:0
+#, python-format
+msgid "You cannot create recursive folders."
+msgstr "재귀 폴더는 만들 수 없습니다."
+
+#. module: documents
+#. odoo-python
+#: code:addons/documents/models/document.py:0
 #, python-format
 msgid "You don't have the right to move documents to that workspace."
 msgstr "해당 작업 공간으로 문서를 이동할 권한이 없습니다."
@@ -3554,22 +2778,10 @@ msgstr "해당 작업 공간으로 문서를 이동할 권한이 없습니다."
 
 #. module: documents
 #. odoo-javascript
-#: code:addons/documents/static/src/views/helper/documents_drop_zone.xml:0
-#, python-format
-msgid "You must be in a specific workspace to upload files"
-msgstr "파일을 업로드하려면 특정 작업 공간에 있어야만 합니다."
-
-#. module: documents
-#. odoo-javascript
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
 #, python-format
 msgid "Youtube Video"
 msgstr "유튜브 동영상"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.folder_deletion_form
-msgid "days."
-msgstr "일."
 
 #. module: documents
 #. odoo-javascript
@@ -3589,7 +2801,6 @@ msgstr "문서"
 #. module: documents
 #. odoo-javascript
 #: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
 #, python-format
 msgid "documents"
 msgstr "문서"
@@ -3600,6 +2811,11 @@ msgstr "문서"
 #, python-format
 msgid "documents selected"
 msgstr "선택한 문서"
+
+#. module: documents
+#: model_terms:ir.ui.view,arch_db:documents.share_page
+msgid "documents shared by"
+msgstr "다음에 의해 공유된 문서"
 
 #. module: documents
 #. odoo-javascript
@@ -3614,7 +2830,7 @@ msgstr "다운로드"
 #: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
 #: model_terms:ir.ui.view,arch_db:documents.workflow_rule_form_view
 msgid "e.g. Discuss proposal"
-msgstr "예: 업무 협의 제안"
+msgstr "예 : 업무 협의 제안"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.folder_view_form
@@ -3634,7 +2850,7 @@ msgstr "예: 상태"
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.tag_view_form
 msgid "e.g. To Validate"
-msgstr "예: 승인하기"
+msgstr "예: 문서 승인"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.workflow_rule_form_view
@@ -3642,27 +2858,9 @@ msgid "e.g. Validate document"
 msgstr "예: 문서 승인"
 
 #. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_view_form
-#: model_terms:ir.ui.view,arch_db:documents.share_view_form_popup
-msgid "e.g. domain.com"
-msgstr "예: domain.com"
-
-#. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.documents_upload_url_view
 msgid "e.g. https://www.youtube.com/watch?v=CP96yVnXNrY"
 msgstr "예: https://www.youtube.com/watch?v=CP96yVnXNrY"
-
-#. module: documents
-#. odoo-javascript
-#: code:addons/documents/static/src/views/inspector/documents_inspector.xml:0
-#, python-format
-msgid "file_extension"
-msgstr "file_extension"
-
-#. module: documents
-#: model_terms:ir.ui.view,arch_db:documents.share_files_page
-msgid "files"
-msgstr "파일"
 
 #. module: documents
 #: model:ir.model.fields,field_description:documents.field_documents_link_to_record_wizard__is_readonly_model
@@ -3694,7 +2892,6 @@ msgstr "선택됨"
 
 #. module: documents
 #: model_terms:ir.ui.view,arch_db:documents.public_page_layout
-#: model_terms:ir.ui.view,arch_db:documents.share_workspace_page
 msgid "shared by"
 msgstr "다음에 의해 공유됨"
 

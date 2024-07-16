@@ -85,12 +85,13 @@ class AccountJournal(models.Model):
         formatted_expiration_date = expiry_date.strftime(" %y%j")
         uhl_date = ' ' * 6 if bacs_multi_mode else formatted_processing_date
         uhl_work_code = '4 MULTI  ' if bacs_multi_mode else '1 DAILY  '
+        sun_or_whitespaces = bacs_sun if bacs_sun != 'HSBC' else ' ' * 6
 
         header = ''
-        header += f"VOL1{serial_number} {' ' * 30}{bacs_sun}{' ' * 4}{' ' * 28}1\n"
-        header += f"HDR1A{bacs_sun}S  1{bacs_sun}{serial_number}00010001{' ' * 6}{formatted_creation_date}{formatted_expiration_date}{' ' * 27}\n"
+        header += f"VOL1{serial_number} {' ' * 20}{'HSBC  ' if bacs_sun == 'HSBC' else ' ' * 6}{' ' * 4}{sun_or_whitespaces}{' ' * 4}{' ' * 28}1\n"
+        header += f"HDR1A{sun_or_whitespaces}S  1{sun_or_whitespaces}{serial_number}00010001{' ' * 6}{formatted_creation_date}{formatted_expiration_date}{' ' * 27}\n"
         header += f"HDR2F0200000100{' ' * 65}\n"
-        header += f"UHL1{uhl_date}{bacs_sun}    00{'0' * 6}{uhl_work_code}{' ' * 43}\n"
+        header += f"UHL1{uhl_date}{bacs_sun if bacs_sun != 'HSBC' else '999999'}    00{'0' * 6}{uhl_work_code}{' ' * 43}\n"
 
         return header
 
@@ -282,9 +283,10 @@ class AccountJournal(models.Model):
             raise UserError(_('Credit total for batch is greater than 99,999,999,999.99.'))
         debit_count = payments_details['debit_count']
         credit_count = payments_details['credit_count']
+        sun_or_whitespaces = bacs_sun if bacs_sun != 'HSBC' else ' ' * 6
 
         footer = ''
-        footer += f"EOF1A{bacs_sun}S  1{bacs_sun}{serial_number}00010001{' ' * 6}{formatted_creation_date}{formatted_expiration_date}{' ' * 27}\n"
+        footer += f"EOF1A{sun_or_whitespaces}S  1{sun_or_whitespaces}{serial_number}00010001{' ' * 6}{formatted_creation_date}{formatted_expiration_date}{' ' * 27}\n"
         footer += f"EOF2F0200000100{' ' * 65}\n"
         footer += f"UTL1{debit_total:013}{credit_total:013}{debit_count:07}{credit_count:07}{' ' * 36}\n"
         return footer

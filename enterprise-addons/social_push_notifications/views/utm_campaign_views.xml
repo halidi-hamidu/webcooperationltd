@@ -11,14 +11,14 @@
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button name="action_redirect_to_push_notifications"
                     type="object" class="oe_stat_button order-11 border-end" icon="fa-bell"
-                    invisible="social_push_notifications_count == 0" groups="social.group_social_user">
+                    attrs="{'invisible': [('social_push_notifications_count', '=', 0)]}" groups="social.group_social_user">
                     <field name="social_push_notifications_count" widget="statinfo" string="Notifications"/>
                 </button>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Push Notifications" name="push_notifications" class="order-3"
-                    invisible="social_push_notifications_count == 0" groups="social.group_social_user">
-                    <field name="social_push_notification_ids" widget="one2many" mode="kanban" nolabel="1" context="{'default_campaign_id': id}"/>
+                    attrs="{'invisible': [('social_push_notifications_count', '=', 0)]}" groups="social.group_social_user">
+                    <field name="social_push_notification_ids" widget="one2many" mode="kanban" nolabel="1" context="{'default_campaign_id': active_id}"/>
                 </page>
             </xpath>
         </field>

@@ -103,12 +103,9 @@ class SocialStreamLinkedIn(models.Model):
             images = post.get('content', {}).get('multiImage', {}).get('images', [])
             all_image_urns |= {quote(image['id']) for image in images}
             # single image post
-            if image_urn := post.get('content', {}).get('media', {}).get('id'):
-                all_image_urns.add(quote(image_urn))
-            # article thumbnail
-            if thumbnail_urn := post.get('content', {}).get('article', {}).get('thumbnail'):
-                all_image_urns.add(quote(thumbnail_urn))
-
+            image = post.get('content', {}).get('media', {}).get('id')
+            if image:
+                all_image_urns.add(quote(image))
         if not all_image_urns:
             return
 
@@ -139,12 +136,9 @@ class SocialStreamLinkedIn(models.Model):
                 image["downloadUrl"] = url_by_urn.get(image.get("id"))
 
             # single image post
-            if image_urn := post.get("content", {}).get("media", {}).get("id"):
-                post["content"]["media"]["downloadUrl"] = url_by_urn.get(image_urn)
-
-            # article thumbnail
-            if thumbnail_urn := post.get("content", {}).get("article", {}).get("thumbnail"):
-                post["content"]["article"]["~thumbnail"] = {"downloadUrl": url_by_urn.get(thumbnail_urn)}
+            image = post.get("content", {}).get("media", {}).get("id")
+            if image:
+                post["content"]["media"]["downloadUrl"] = url_by_urn.get(image)
 
     def _prepare_linkedin_stream_post_values(self, post_data):
         article = post_data.get('content', {}).get('article', {})
@@ -168,17 +162,11 @@ class SocialStreamLinkedIn(models.Model):
             return [{'image_url': self._enforce_url_scheme(single_image)}]
 
         # multi-images post
-        if images := post_data.get('content', {}).get('multiImage', {}).get('images', []):
-            return [
-                {'image_url': self._enforce_url_scheme(image.get('downloadUrl'))}
-                for image in images if image.get('downloadUrl')
-            ]
-
-        # article with thumbnail
-        if thumbnail_url := post_data.get('content', {}).get('article', {}).get('~thumbnail', {}).get('downloadUrl'):
-            return [{'image_url': self._enforce_url_scheme(thumbnail_url)}]
-
-        return []
+        images = post_data.get('content', {}).get('multiImage', {}).get('images', [])
+        return [
+            {'image_url': self._enforce_url_scheme(image.get('downloadUrl'))}
+            for image in images if image.get('downloadUrl')
+        ]
 
     def _extract_linkedin_article(self, article):
         if not article:

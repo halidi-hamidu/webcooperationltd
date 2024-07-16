@@ -631,20 +631,12 @@ class CAMT:
                     return float(value), currency_name
             return None, None
 
-        def get_rate(*entries, target_currency, amount_currency):
+        def get_rate(*entries, target_currency):
             for entry in entries:
-                source_rate = get_value_and_currency_name(entry, CAMT._source_rate_getters, target_currency=target_currency)[0]
-                target_rate = get_value_and_currency_name(entry, CAMT._target_rate_getters, target_currency=target_currency)[0]
-
-                rate = source_rate or target_rate
-                # According to the camt.053 Swiss Payment Standards, the exchange rate should be divided by 100 if the
-                # currency is in YEN, SEK, DKK or NOK.
-                if amount_currency in ['SEK', 'DKK', 'YEN', 'NOK'] and target_currency == 'CHF':
-                    rate = rate and rate / 100
-                else:
-                    if not source_rate and target_rate:
-                        rate = 1 / rate
-
+                rate = get_value_and_currency_name(entry, CAMT._source_rate_getters, target_currency=target_currency)[0]
+                if not rate:
+                    rate = get_value_and_currency_name(entry, CAMT._target_rate_getters, target_currency=target_currency)[0]
+                    rate = rate and 1 / rate
                 if rate:
                     return rate
             return None
@@ -675,7 +667,7 @@ class CAMT:
         if not journal_currency or amount_currency_name == journal_currency_name:
             rate = 1.0
         else:
-            rate = get_rate(entry_details, entry, target_currency=journal_currency_name, amount_currency=amount_currency_name)
+            rate = get_rate(entry_details, entry, target_currency=journal_currency_name)
             entry_amount = entry_details_amount or entry_amount
             if entry_details_amount:
                 entry_amount_in_currency = entry_details_amount_in_currency
@@ -728,14 +720,18 @@ class CAMT:
                 break
 
     @staticmethod
-    def _get_transaction_name(node, namespaces):
+    def _get_transaction_name(node, namespaces, entry=None):
         xpaths = (
-            './/ns:RmtInf/ns:Strd/ns:AddtlRmtInf/text()',
             './/ns:RmtInf/ns:Ustrd/text()',
             './/ns:RmtInf/ns:Strd/ns:CdtrRefInf/ns:Ref/text()',
-            'ns:AddtlNtryInf/text()')
+            './/ns:AddtlNtryInf/text()',
+            './/ns:RmtInf/ns:Strd/ns:AddtlRmtInf/text()',
+        )
         for xpath in xpaths:
-            transaction_name = node.xpath(xpath, namespaces=namespaces)
+            if entry is not None and 'AddtlNtryInf' in xpath:
+                transaction_name = entry.xpath(xpath, namespaces=namespaces)
+            else:
+                transaction_name = node.xpath(xpath, namespaces=namespaces)
             if transaction_name:
                 return ' '.join(transaction_name)
         return '/'
@@ -768,9 +764,9 @@ class CAMT:
         subfamily = node.xpath('ns:Domn/ns:Fmly/ns:SubFmlyCd/text()', namespaces=namespaces)
         if code:
             return {'transaction_type': "{code}: {family} ({subfamily})".format(
-                code=codes[code[0]],
-                family=family and codes[family[0]] or '',
-                subfamily=subfamily and codes[subfamily[0]] or '',
+                code=codes[code[0].upper()],
+                family=family and codes[family[0].upper()] or '',
+                subfamily=subfamily and codes[subfamily[0].upper()] or '',
             )}
         return {}
 

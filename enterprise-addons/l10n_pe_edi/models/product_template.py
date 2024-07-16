@@ -50,9 +50,9 @@ class ProductTemplate(models.Model):
             ('099', 'Ley 30737'),
         ],
         string="Withhold code",
-        help="Peru: Catalog No. 54 SUNAT, used functionally to show in the printed document on invoices that need to "
-             "have the proper SPOT text.")
+        help="Catalog No. 54 SUNAT, used functionally to document in the printed document on invoices that need to "
+             "have the proper SPOT text")
     l10n_pe_withhold_percentage = fields.Float(
         string="Withhold Percentage",
-        help="Peru: Percentages of detraction informed in the Annex I Resolution 183-2004/SUNAT, it depends on the "
-             "withhold code but you need to read the resolution.")
+        help="Percentages of detraction informed in the Annexed I Resolution 183-2004/SUNAT, it depends on the "
+             "Withhold code but you need to read the resolution")

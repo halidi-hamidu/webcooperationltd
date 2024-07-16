@@ -10,14 +10,6 @@ from odoo.tests import tagged
 class TestInvoices(AccountTestInvoicingCommon):
 
     def test_suspense_statement_line_id(self):
-        reconcile_activity_type = self.env['mail.activity.type'].create({
-            "name": "Reconciliation request",
-            "category": "upload_file",
-            "folder_id": self.env.ref("documents.documents_finance_folder").id,
-            "res_model": "account.move",
-            "tag_ids": [(6, 0, [self.env.ref('documents.documents_finance_status_tc').id])],
-        })
-
         st = self.env['account.bank.statement'].create({
             'line_ids': [Command.create({
                 'amount': -1000.0,
@@ -30,9 +22,16 @@ class TestInvoices(AccountTestInvoicingCommon):
         st_line = st.line_ids
         move = st_line.move_id
 
+        activity_type = self.env['mail.activity.type'].create({
+            "name": 'Reconciliation request',
+            "category": 'upload_file',
+            "folder_id": self.env.ref("documents.documents_finance_folder").id,
+            "res_model": 'account.move',
+        })
+
         # Log an activity on the move using the "Reconciliation Request".
         activity = self.env['mail.activity'].create({
-            'activity_type_id': reconcile_activity_type.id,
+            'activity_type_id': activity_type.id,
             'note': "test_suspense_statement_line_id",
             'res_id': move.id,
             'res_model_id': self.env.ref('account.model_account_move').id,

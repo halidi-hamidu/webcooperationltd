@@ -13,10 +13,11 @@ class ProductTicCategory(models.Model):
     code = fields.Integer(string="TIC Category Code", required=True)
     description = fields.Char(string='TIC Description', required=True)
 
-    @api.depends('code', 'description')
-    def _compute_display_name(self):
+    def name_get(self):
+        res = []
         for category in self:
-            category.display_name = _('[%s] %s', category.code, (category.description or '')[:50])
+            res.append((category.id, _('[%s] %s') % (category.code, category.description[0:50])))
+        return res
 
     @api.model
     def name_create(self, name):

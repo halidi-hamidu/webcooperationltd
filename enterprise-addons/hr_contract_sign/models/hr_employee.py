@@ -21,7 +21,8 @@ class HrEmployee(models.Model):
             sign_from_contract = contracts.mapped('sign_request_ids')
 
             sign_from_role = self.env['sign.request'].browse([])
-            partner_ids = employee.user_id.partner_id | employee.work_contact_id
+
+            partner_ids = employee.user_id.partner_id | employee.address_home_id
             if partner_ids:
                 sign_from_role = self.env['sign.request.item'].search([
                     ('partner_id', 'in', partner_ids.ids),
@@ -33,8 +34,8 @@ class HrEmployee(models.Model):
         self.ensure_one()
         contracts = self.env['hr.contract'].sudo().search([('employee_id', '=', self.id)])
         sign_from_contract = contracts.mapped('sign_request_ids')
-        sign_from_role = self.env['sign.request']
-        partner_ids = self.user_id.partner_id | self.work_contact_id
+        sign_from_role = self.env['sign.request'].browse([])
+        partner_ids = self.user_id.partner_id | self.address_home_id
         if partner_ids:
             sign_from_role = self.env['sign.request.item'].search([
                 ('partner_id', 'in', partner_ids.ids),

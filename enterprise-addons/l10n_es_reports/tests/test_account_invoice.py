@@ -7,7 +7,7 @@ from freezegun import freeze_time
 @tagged('post_install_l10n', 'post_install', '-at_install')
 class TestAccountInvoice(TestAccountReportsCommon):
     @classmethod
-    def setUpClass(cls, chart_template_ref="es_pymes"):
+    def setUpClass(cls, chart_template_ref="l10n_es.account_chart_template_pymes"):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
     def setUp(self):
@@ -44,55 +44,61 @@ class TestAccountInvoice(TestAccountReportsCommon):
         invoice = self.create_invoice(self.partner_eu)
         self.assertFalse(invoice.l10n_es_reports_mod347_invoice_type)
 
-    @freeze_time('2019-12-31')
+    @freeze_time("2019-12-31")
     def test_mod347_include_receipts(self):
         self.init_invoice(
-            'out_receipt',
+            "out_receipt",
             partner=self.partner_es,
             amounts=[5000],
-            invoice_date='2019-12-31',
+            invoice_date="2019-12-31",
             post=True,
         )
 
-        report = self.env.ref('l10n_es_reports.mod_347')
-        options = self._generate_options(
-            report, "2019-12-31", "2019-12-31", default_options={"unfold_all": True}
-        )
-
+        report = self.env.ref("l10n_es_reports.mod_347")
+        options = report._get_options({
+            "date": {
+                "date_from": "2019-12-31",
+                "date_to": "2019-12-31",
+            },
+            "unfold_all": True,
+        })
         lines = report._get_lines(options)
         lines = lines[1:3] + lines[-2:]
         self.assertLinesValues(
             lines,
             [0, 1],
             [
-                ["Total number of persons and entities",                         1],
-                ["España",                                                       1],
-                ["B - Sales of goods and services greater than 3.005,06 €", 5000.0],
-                ["España",                                                  5000.0],
+                ["Número total de personas y entitades",                                            1],
+                ["España",                                                                          1],
+                ["B - Entregas de bienes y prestaciones de servicios superiores a 3.005,06 €", 6050.0],
+                ["España",                                                                     6050.0],
             ],
-            options,
         )
 
-    @freeze_time('2019-12-31')
+    @freeze_time("2019-12-31")
     def test_mod347_not_affected_by_payments(self):
         invoice = self.init_invoice(
-            'out_invoice',
+            "out_invoice",
             partner=self.partner_es,
             amounts=[5000],
-            invoice_date='2019-12-31',
+            invoice_date="2019-12-31",
             post=True,
         )
 
-        report = self.env.ref('l10n_es_reports.mod_347')
-        options = self._generate_options(
-            report, "2019-12-31", "2019-12-31", default_options={"unfold_all": True}
-        )
+        report = self.env.ref("l10n_es_reports.mod_347")
+        options = report._get_options({
+            "date": {
+                "date_from": "2019-12-31",
+                "date_to": "2019-12-31",
+            },
+            "unfold_all": True,
+        })
 
         expected_lines = [
-            ["Total number of persons and entities",                         1],
-            ["España",                                                       1],
-            ["B - Sales of goods and services greater than 3.005,06 €", 5000.0],
-            ["España",                                                  5000.0],
+            ["Número total de personas y entitades",                                            1],
+            ["España",                                                                          1],
+            ["B - Entregas de bienes y prestaciones de servicios superiores a 3.005,06 €", 6050.0],
+            ["España",                                                                     6050.0],
         ]
 
         lines = report._get_lines(options)
@@ -101,11 +107,10 @@ class TestAccountInvoice(TestAccountReportsCommon):
             lines,
             [0, 1],
             expected_lines,
-            options,
         )
 
-        self.env['account.payment.register'].with_context(
-            active_ids=invoice.ids, active_model='account.move'
+        self.env["account.payment.register"].with_context(
+            active_ids=invoice.ids, active_model="account.move"
         ).create({})._create_payments()
 
         lines = report._get_lines(options)
@@ -114,5 +119,4 @@ class TestAccountInvoice(TestAccountReportsCommon):
             lines,
             [0, 1],
             expected_lines,
-            options,
         )

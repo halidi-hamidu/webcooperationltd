@@ -5,17 +5,23 @@ import { browser } from "@web/core/browser/browser";
 import { registry } from "@web/core/registry";
 import { makeTestEnv } from "@web/../tests/helpers/mock_env";
 import { registerCleanup } from "@web/../tests/helpers/cleanup";
-import { click, getFixture, mount, nextTick, patchWithCleanup } from "@web/../tests/helpers/utils";
+import {
+    click,
+    getFixture,
+    mount,
+    nextTick,
+    patchWithCleanup,
+    legacyExtraNextTick,
+} from "@web/../tests/helpers/utils";
 import { menuService } from "@web/webclient/menus/menu_service";
 import { actionService } from "@web/webclient/actions/action_service";
-import { makeFakeDialogService } from "@web/../tests/helpers/mock_services";
+import { makeFakeDialogService, fakeCookieService } from "@web/../tests/helpers/mock_services";
 import { hotkeyService } from "@web/core/hotkeys/hotkey_service";
 import { registerStudioDependencies, openStudio, leaveStudio } from "./helpers";
 import { createEnterpriseWebClient } from "@web_enterprise/../tests/helpers";
 import { getActionManagerServerData, loadState } from "@web/../tests/webclient/helpers";
 import { companyService } from "@web/webclient/company_service";
-import { AppMenuEditor } from "@web_studio/client_action/editor/app_menu_editor/app_menu_editor";
-import { NewModelItem } from "@web_studio/client_action/editor/new_model_item/new_model_item";
+import { viewService } from "@web/views/view_service";
 
 const serviceRegistry = registry.category("services");
 let target;
@@ -25,10 +31,11 @@ QUnit.module("Studio > Navbar", (hooks) => {
     hooks.beforeEach(() => {
         target = getFixture();
         registerStudioDependencies();
-        serviceRegistry.add("action", actionService);
+        serviceRegistry.add("action", actionService).add("view", viewService); // #action-serv-leg-compat-js-class
         serviceRegistry.add("dialog", makeFakeDialogService());
         serviceRegistry.add("menu", menuService);
         serviceRegistry.add("hotkey", hotkeyService);
+        serviceRegistry.add("cookie", fakeCookieService);
         patchWithCleanup(browser, {
             setTimeout: (handler, delay, ...args) => handler(...args),
             clearTimeout: () => {},
@@ -50,13 +57,6 @@ QUnit.module("Studio > Navbar", (hooks) => {
     QUnit.test("menu buttons will not be placed under 'more' menu", async (assert) => {
         assert.expect(12);
 
-        const menuButtonsRegistry = registry.category("studio_navbar_menubuttons");
-        // Force Navbar to contain those elements
-        registerCleanup(() => {
-            menuButtonsRegistry.remove("app_menu_editor");
-            menuButtonsRegistry.remove("new_model_item");
-        });
-
         class MyStudioNavbar extends StudioNavbar {
             async adapt() {
                 const prom = super.adapt();
@@ -74,15 +74,6 @@ QUnit.module("Studio > Navbar", (hooks) => {
                 return "editor";
             },
         });
-        menuButtonsRegistry.add(
-            "app_menu_editor",
-            {
-                Component: AppMenuEditor,
-                props: { env },
-            },
-            { force: true }
-        );
-        menuButtonsRegistry.add("new_model_item", { Component: NewModelItem, props: { env } }, { force: true });
         // Force the parent width, to make this test independent of screen size
         target.style.width = "100%";
 
@@ -207,14 +198,14 @@ QUnit.module("Studio > navbar coordination", (hooks) => {
             setTimeout: (handler, delay, ...args) => handler(...args),
             clearTimeout: () => {},
         });
-        target.style.width = "1120px";
+        target.style.width = "1080px";
 
         serverData.menus[1].actionID = 1;
         serverData.actions[1].xml_id = "action_xml_id";
 
         const webClient = await createEnterpriseWebClient({ serverData });
         const width = document.body.style.width;
-        document.body.style.width = "1120px";
+        document.body.style.width = "1080px";
         registerCleanup(() => {
             document.body.style.width = width;
         });
@@ -223,11 +214,13 @@ QUnit.module("Studio > navbar coordination", (hooks) => {
         await nextTick();
         await nextTick();
         await click(target.querySelector(".o_app[data-menu-xmlid=menu_1]"));
+        await legacyExtraNextTick();
         await nextTick();
         await nextTick();
         assert.containsNone(target, ".o_menu_sections .o_menu_sections_more");
 
         await openStudio(target);
+        await legacyExtraNextTick();
         await nextTick();
         await nextTick();
         await nextTick();
@@ -288,6 +281,7 @@ QUnit.module("Studio > navbar coordination", (hooks) => {
         assert.containsOnce(target, ".o_studio .o_menu_sections .o_menu_sections_more");
 
         await leaveStudio(target);
+        await legacyExtraNextTick();
         // two more ticks to allow the navbar to adapt
         await nextTick();
         await nextTick();
@@ -302,12 +296,12 @@ QUnit.module("Studio > navbar coordination", (hooks) => {
     QUnit.test("adapt navbar when refreshing studio (loadState)", async (assert) => {
         assert.expect(7);
 
-        target.style.width = "800px";
+        target.style.width = "1080px";
 
         const adapted = [];
         patchWithCleanup(StudioNavbar.prototype, {
             async adapt() {
-                const prom = super.adapt();
+                const prom = this._super();
                 adapted.push(prom);
                 return prom;
             },
@@ -366,33 +360,37 @@ QUnit.module("Studio > navbar coordination", (hooks) => {
         window.dispatchEvent(new Event("resize"));
         await Promise.all(adapted);
         await click(target.querySelector(".o_app[data-menu-xmlid=menu_1]"));
+        await legacyExtraNextTick();
         await Promise.all(adapted);
         await nextTick();
         await nextTick();
         assert.containsNone(target, ".o_studio");
         assert.strictEqual(
             target.querySelectorAll("header .o_menu_sections > *:not(.d-none)").length,
-            3
+            4
         );
         assert.containsOnce(target, ".o_menu_sections .o_menu_sections_more");
 
         await openStudio(target);
+        // Because the kanban is converted, this legacyNextTick ensures we wait through the two
+        // compatibility layers
+        await legacyExtraNextTick();
         await Promise.all(adapted);
-        await nextTick();
         assert.strictEqual(
             target.querySelectorAll(".o_studio header .o_menu_sections > *:not(.d-none)").length,
-            2
+            3
         );
         assert.containsOnce(target, ".o_studio .o_menu_sections .o_menu_sections_more");
 
-        await nextTick();
         const state = webClient.env.services.router.current.hash;
         await loadState(webClient, state);
+        // Because the kanban is converted, this legacyNextTick ensures we wait through the two
+        // compatibility layers
+        await legacyExtraNextTick();
         await Promise.all(adapted);
-        await nextTick();
         assert.strictEqual(
             target.querySelectorAll(".o_studio header .o_menu_sections > *:not(.d-none)").length,
-            2
+            3
         );
         assert.containsOnce(target, ".o_studio .o_menu_sections .o_menu_sections_more");
     });

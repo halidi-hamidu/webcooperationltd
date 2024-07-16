@@ -23,18 +23,13 @@ class CrmLead(models.Model):
         for lead in self:
             total = 0.0
             company_currency = lead.company_currency or self.env.company.currency_id
-            sale_orders = lead.rental_order_ids.filtered(lambda l: l.state == 'sale')
+            sale_orders = lead.rental_order_ids.filtered(lambda l: l.state in ['sale', 'done'])
             for order in sale_orders:
                 total += order.currency_id._convert(
                     order.amount_untaxed, company_currency, order.company_id, order.date_order or fields.Date.today())
             lead.rental_quotation_count = len(lead.rental_order_ids.filtered(lambda l: l.state in ["draft", "sent"]))
             lead.rental_order_count = len(sale_orders)
             lead.rental_amount_total = total
-
-    def _get_action_view_sale_quotation_domain(self):
-        # over-ride to exclude rental quotations linked to lead
-        action_lead_quotation_domain = super()._get_action_view_sale_quotation_domain()
-        return expression.AND([action_lead_quotation_domain, [("is_rental_order", "=", False)]])
 
     def _get_lead_quotation_domain(self):
         # over-ride to exclude rental quotations linked to lead
@@ -52,8 +47,7 @@ class CrmLead(models.Model):
         return self.action_new_rental_quotation()
 
     def _get_action_rental_context(self):
-        self.ensure_one()
-        rental_quotation_context = {
+        return {
             "search_default_opportunity_id": self.id,
             "default_opportunity_id": self.id,
             "default_partner_id": self.partner_id.id,
@@ -63,11 +57,8 @@ class CrmLead(models.Model):
             "default_origin": self.name,
             "default_source_id": self.source_id.id,
             "default_company_id": self.company_id.id or self.env.company.id,
-            "in_rental_app": True,
+            "default_is_rental_order": True,
         }
-        if self.user_id:
-            rental_quotation_context['default_user_id'] = self.user_id.id
-        return rental_quotation_context
 
     def action_new_rental_quotation(self):
         return {
@@ -90,8 +81,8 @@ class CrmLead(models.Model):
             action['domain'].append(("state", "in", ["draft", "sent"]))
             orders = self.rental_order_ids.filtered(lambda l: l.state in ("draft", "sent"))
         else:
-            action['domain'].append(("state", "=", "sale"))
-            orders = self.rental_order_ids.filtered(lambda l: l.state == "sale")
+            action['domain'].append(("state", "in", ["sale", "done"]))
+            orders = self.rental_order_ids.filtered(lambda l: l.state in ("sale", "done"))
 
         if len(orders) == 1:
             action.update({

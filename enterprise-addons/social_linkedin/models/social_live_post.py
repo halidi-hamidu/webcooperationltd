@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import contextlib
 import logging
 import requests
 from urllib.parse import quote, urlparse
@@ -9,7 +8,6 @@ from werkzeug.urls import url_join
 import re
 
 from odoo import models, fields, tools, _
-from odoo.addons.mail.tools import link_preview
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -92,7 +90,7 @@ class SocialLivePostLinkedin(models.Model):
                 except UserError as e:
                     live_post.write({
                         'state': 'failed',
-                        'failure_reason': str(e)
+                        'failure_reason': e.name
                     })
                     continue
 
@@ -116,15 +114,9 @@ class SocialLivePostLinkedin(models.Model):
                     'article': {
                         'source': url_in_message,
                         'title': link_tracker.title or original_url,
+                        'description': original_url,
                     },
                 }
-
-                preview = link_preview.get_link_preview_from_url(original_url) or {}
-                if image_url := preview.get('og_image'):
-                    with contextlib.suppress(Exception):
-                        if (image_response := requests.get(image_url, timeout=3)).ok:
-                            image_urn = self._linkedin_upload_image(live_post.account_id, image_response.content)
-                            data['content']['article']['thumbnail'] = image_urn
 
             response = requests.post(
                 url_join(self.env['social.media']._LINKEDIN_ENDPOINT, 'posts'),
@@ -155,11 +147,6 @@ class SocialLivePostLinkedin(models.Model):
             live_post.write(values)
 
     def _linkedin_upload_image(self, account_id, image_id):
-        """Upload an image on LinkedIn.
-
-        :param account_id: The social.account to use to upload the image
-        :param image_id: The attachment or the raw bytes of the image
-        """
         # 1 - Register your image to be uploaded
         data = {
             "initializeUploadRequest": {
@@ -182,11 +169,7 @@ class SocialLivePostLinkedin(models.Model):
         upload_url = response['value']['uploadUrl']
         image_urn = response['value']['image']
 
-        if isinstance(image_id, bytes):
-            data = image_id
-        else:
-            # TODO: clean in master (always give the raw bytes)
-            data = image_id.with_context(bin_size=False).raw
+        data = image_id.with_context(bin_size=False).raw
 
         headers = account_id._linkedin_bearer_headers()
         headers['Content-Type'] = 'application/octet-stream'

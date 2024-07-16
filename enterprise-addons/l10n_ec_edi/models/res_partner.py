@@ -12,13 +12,13 @@ class ResPartner(models.Model):
     l10n_ec_taxpayer_type_id = fields.Many2one(
         comodel_name='l10n_ec.taxpayer.type',
         string="SRI Taxpayer Type",
-        help="Ecuador: Select the partner position in the tax pyramid, to automate the computation of VAT withholdings."
+        help="Select the partner position in the tax pyramid, to automate the computation of VAT withholds"
     )
     l10n_ec_related_party = fields.Boolean(
-        string="Related Party",
-        help="Ecuador: Select the option if the partner is a related party. Related parties are other companies or "
-             "persons that participate directly or indirectly in the management, administration, control or capital "
-             "of your company. An example of a related part might be a shareholder of the company."
+        string="SRI Related Part",
+        help="Select the option if the partner is a related party. Related parties are other companies or persons that "
+             "participate directly or indirectly in the management, administration, control or capital of "
+             "your company. Example of related party may be a shareholder of our company."
     )
 
     @api.model

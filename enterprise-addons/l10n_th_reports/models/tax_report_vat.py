@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import io
+from math import copysign
 from odoo import _, models
 from odoo.tools.misc import xlsxwriter
 from odoo import fields
@@ -14,25 +15,24 @@ class AccountGenericTaxReport(models.AbstractModel):
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
-        if self.env.company.account_fiscal_country_id.code == 'TH':
-            options.setdefault('buttons', []).extend((
-                {
-                    'name': _('Sales Tax Report (xlsx)'),
-                    'action': 'export_file',
-                    'action_param': 'l10n_th_print_sale_tax_report',
-                    'sequence': 82,
-                    'file_export_type': _('Sales Tax Report (xlsx)')
-                },
-                {
-                    'name': _('Purchase Tax Report (xlsx)'),
-                    'action': 'export_file',
-                    'action_param': 'l10n_th_print_purchase_tax_report',
-                    'sequence': 83,
-                    'file_export_type': _('Purchase Tax Report (xlsx)')
-                }
-            ))
+        options.setdefault('buttons', []).extend((
+            {
+                'name': _('Sales Tax Report (xlsx)'),
+                'action': 'export_file',
+                'action_param': 'l10n_th_print_sale_tax_report',
+                'sequence': 82,
+                'file_export_type': _('Sales Tax Report (xlsx)')
+            },
+            {
+                'name': _('Purchase Tax Report (xlsx)'),
+                'action': 'export_file',
+                'action_param': 'l10n_th_print_purchase_tax_report',
+                'sequence': 83,
+                'file_export_type': _('Purchase Tax Report (xlsx)')
+            }
+        ))
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         return []
 
     def l10n_th_print_sale_tax_report(self, options):
@@ -120,17 +120,18 @@ class AccountGenericTaxReport(models.AbstractModel):
         accumulate_untaxed_signed = 0
         accumulate_tax = 0
 
-        tax_group_vat_7 = self.env.ref(f'account.{self.env.company.id}_tax_group_vat_7')
+        tax_group_vat_7 = self.env.ref('l10n_th.tax_group_vat_7')
         for index, move in enumerate(moves):
             sign = move.reversed_entry_id.payment_state == 'partial' and -1 or 1
-            amount_total = sign * move.amount_total
+            amount_total = sign * copysign(move.amount_total_signed, move.amount_total)
             amount_untaxed_signed = sign * abs(move.amount_untaxed_signed)
             # Only include tax amount from VAT 7% tax group
             amount_tax = 0.0
             for taxes in move.tax_totals['groups_by_subtotal'].values():
                 for tax in taxes:
                     if tax['tax_group_id'] == tax_group_vat_7.id:
-                        amount_tax += sign * tax['tax_group_amount']
+                        is_company_currency = move.currency_id == company.currency_id
+                        amount_tax += sign * (tax['tax_group_amount'] if is_company_currency else move.currency_id._convert(tax['tax_group_amount'], company.currency_id, company, move.date))
             sheet.write(y_offset, 0, index + 1, default_style)
             sheet.write(y_offset, 1, move.name, default_style)
             sheet.write(y_offset, 2, move.ref or '', default_style)

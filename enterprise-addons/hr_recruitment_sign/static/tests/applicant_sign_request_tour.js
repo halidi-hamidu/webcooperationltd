@@ -1,11 +1,12 @@
-/** @odoo-module **/
-    
-    import { registry } from "@web/core/registry";
+odoo.define('hr_recruitment_sign.tour', function (require) {
+    'use strict';
 
-    registry.category("web_tour.tours").add('applicant_sign_request_tour', {
+    var Tour = require('web_tour.tour');
+
+    Tour.register('applicant_sign_request_tour', {
             test: true,
             url: '/web',
-            steps: () => [
+        },[
             {
                 content: "Access on the recruitment app",
                 trigger: '.o_app[data-menu-xmlid="hr_recruitment.menu_hr_recruitment_root"]',
@@ -13,17 +14,12 @@
             },
             {
                 content: "Go on applications",
-                trigger: '.dropdown-toggle[data-menu-xmlid="hr_recruitment.menu_crm_case_categ0_act_job"]',
+                trigger: '.dropdown-toggle[title="Applications"]',
                 run: 'click',
             },
             {
                 content: "Go on all applications",
                 trigger: 'a[data-menu-xmlid="hr_recruitment.menu_crm_case_categ_all_app"]',
-                run: 'click',
-            },
-            {
-                content: "Open group",
-                trigger: 'tr.o_group_has_content:contains("None")',
                 run: 'click',
             },
             {
@@ -38,7 +34,7 @@
             },
             {
                 content: "Recruitment",
-                trigger: '.dropdown-item:contains("Contract Signed")',
+                trigger: '.dropdown-item.btn.btn-secondary.o_arrow_button',
                 run: 'click',
             },
             {
@@ -49,7 +45,7 @@
             {
                 content: "Validate the creation",
                 trigger: '.btn.o_form_button_save',
-                extra_trigger: '.o_hr_employee_form_view',
+                extra_trigger: '.o_employee_form',
                 run: 'click',
             },
             {
@@ -59,4 +55,5 @@
                 run: 'click',
             },
         ]
-    });
+    );
+});

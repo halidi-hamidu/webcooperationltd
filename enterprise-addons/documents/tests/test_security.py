@@ -3,7 +3,7 @@
 import base64
 
 from odoo.tests.common import TransactionCase
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError
 from odoo.tools import mute_logger
 
 from psycopg2 import IntegrityError
@@ -425,13 +425,3 @@ class TestCaseSecurity(TransactionCase):
         })
         self.assertTrue(folder.with_user(self.document_manager).has_write_access, "Document manager should have write access on folder")
         self.assertFalse(folder.with_user(self.document_user).has_write_access, "Document user should not have write access on folder")
-
-    def test_link_constrains(self):
-        folder = self.env['documents.folder'].create({'name': 'folder'})
-        for url in ("wrong URL format", "https:/ example.com", "test https://example.com"):
-            with self.assertRaises(ValidationError):
-                self.env['documents.document'].create({
-                    'name': 'Test Document',
-                    'folder_id': folder.id,
-                    'url': url,
-                })

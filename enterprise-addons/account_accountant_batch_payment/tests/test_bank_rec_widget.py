@@ -2,7 +2,7 @@
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.addons.account_accountant.tests.test_bank_rec_widget_common import TestBankRecWidgetCommon
+from odoo.addons.account_accountant.tests.test_bank_rec_widget_common import TestBankRecWidgetCommon, WizardForm
 from odoo.tests import tagged
 
 
@@ -42,7 +42,9 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
 
         # Ensure the rule matched the batch.
         wizard = self.env['bank.rec.widget'].with_context(default_st_line_id=st_line.id).new({})
-        wizard._action_trigger_matching_rules()
+        form = WizardForm(wizard)
+        form.todo_command = 'trigger_matching_rules'
+        wizard = form.save()
 
         self.assertRecordValues(wizard.line_ids, [
             # pylint: disable=C0326
@@ -54,7 +56,7 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
             'selected_batch_payment_ids': batch.ids,
             'state': 'valid',
         }])
-        wizard._action_validate()
+        wizard.button_validate(async_action=False)
 
         self.assertRecordValues(batch, [{'state': 'reconciled'}])
 
@@ -99,7 +101,7 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
 
         # Remove payment3.
         line = wizard.line_ids.filtered(lambda x: x.flag == 'new_aml' and x.balance == -300.0)
-        wizard._action_remove_lines(line)
+        wizard._action_remove_line(line.index)
 
         self.assertRecordValues(wizard.line_ids, [
             # pylint: disable=C0326
@@ -127,7 +129,7 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
 
         # Remove payment4 & add it again using the batch.
         line = wizard.line_ids.filtered(lambda x: x.flag == 'new_aml' and x.balance == -400.0)
-        wizard._action_remove_lines(line)
+        wizard._action_remove_line(line.index)
         wizard._action_add_new_batch_payments(batch)
 
         self.assertRecordValues(wizard.line_ids, [
@@ -169,25 +171,22 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
         wizard._action_add_new_batch_payments(batch)
 
         # Validate with the full batch should reconcile directly the statement line.
-        wizard._js_action_validate()
-        self.assertTrue(wizard.return_todo_command)
-        self.assertTrue(wizard.return_todo_command.get('done'))
-        wizard._js_action_reset()
+        wizard.button_validate()
+        self.assertTrue(wizard.next_action_todo)
+        self.assertEqual(wizard.next_action_todo['type'], 'reconcile_st_line')
+        wizard.button_reset()
 
         # Remove a payment and check the wizard is well opened.
         wizard._action_add_new_batch_payments(batch)
         line = wizard.line_ids.filtered(lambda x: x.flag == 'new_aml' and x.source_aml_id.payment_id == payments[-1])
-        wizard._action_remove_lines(line)
-        wizard._js_action_validate()
-        self.assertTrue(wizard.return_todo_command)
-        self.assertEqual(
-            wizard.return_todo_command.get('open_batch_rejection_wizard', {}).get('res_model'),
-            'account.batch.payment.rejection',
-        )
+        wizard._action_remove_line(line.index)
+        wizard.button_validate()
+        self.assertTrue(wizard.next_action_todo)
+        self.assertEqual(wizard.next_action_todo.get('res_model'), 'account.batch.payment.rejection')
 
         # Create the rejection wizard.
         rejection_wizard = self.env['account.batch.payment.rejection']\
-            .with_context(**wizard.return_todo_command['open_batch_rejection_wizard']['context'])\
+            .with_context(**wizard.next_action_todo['context'])\
             .create({})
         self.assertRecordValues(rejection_wizard, [{
             'in_reconcile_payment_ids': payments[:-1].ids,
@@ -244,6 +243,6 @@ class TestBankRecWidget(TestBankRecWidgetCommon):
         wizard._action_add_new_amls(aml)
 
         # Validate with one payment inside a batch should reconcile directly the statement line.
-        wizard._js_action_validate()
-        self.assertTrue(wizard.return_todo_command)
-        self.assertTrue(wizard.return_todo_command.get('done'))
+        wizard.button_validate()
+        self.assertTrue(wizard.next_action_todo)
+        self.assertEqual(wizard.next_action_todo['type'], 'reconcile_st_line')

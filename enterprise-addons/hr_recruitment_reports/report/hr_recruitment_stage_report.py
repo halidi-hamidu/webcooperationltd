@@ -62,7 +62,7 @@ ON
 JOIN
     ir_model_fields imf
 ON
-    mtv.field_id = imf.id
+    mtv.field = imf.id
     AND imf.model = 'hr.applicant'
     AND imf.name = 'stage_id'
 
@@ -101,7 +101,7 @@ LEFT JOIN LATERAL (
     JOIN
         ir_model_fields imf
     ON
-        mtv.field_id = imf.id
+        mtv.field = imf.id
         AND imf.model = 'hr.applicant'
         AND imf.name = 'stage_id'
     WHERE

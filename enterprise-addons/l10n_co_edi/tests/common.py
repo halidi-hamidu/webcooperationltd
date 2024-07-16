@@ -42,13 +42,14 @@ class TestCoEdiCommon(AccountEdiTestCommon):
 
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='co', edi_format_ref='l10n_co_edi.edi_carvajal'):
+    def setUpClass(cls, chart_template_ref='l10n_co.l10n_co_chart_template_generic',
+                   edi_format_ref='l10n_co_edi.edi_carvajal'):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
 
         cls.frozen_today = datetime.datetime(year=2020, month=8, day=27, hour=0, minute=0, second=0, tzinfo=timezone('utc'))
 
         cls.salesperson = cls.env.ref('base.user_admin')
-        cls.salesperson.function = 'Sales'
+        cls.salesperson.function = 'Funcionario de ventas y trato al cliente final'
 
         report_text = 'GRANDES CONTRIBUYENTES SHD Res. DDI-042065 13-10-17'
         cls.company_data['company'].write({
@@ -115,7 +116,6 @@ class TestCoEdiCommon(AccountEdiTestCommon):
             'l10n_co_edi_type': cls.env.ref('l10n_co_edi.tax_type_0').id
         })
         cls.retention_tax = cls.tax.copy({
-            'name': 'retention_tax',
             'l10n_co_edi_type': cls.env.ref('l10n_co_edi.tax_type_9').id
         })
 
@@ -292,6 +292,8 @@ class TestCoEdiCommon(AccountEdiTestCommon):
                 'price_unit': 500,
                 'tax_ids': [Command.set([cls.tax_iva_excluido_0.id])],
             }),
+            Command.create({'display_type': 'line_section', 'name': 'Section'}),
+            Command.create({'display_type': 'line_note', 'name': 'Note'}),
         ]
         cls.invoice_tim = cls.env['account.move'].create(invoice_data)
 

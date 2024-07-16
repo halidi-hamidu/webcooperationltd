@@ -19,6 +19,7 @@ class TestAccountAvalaraVAT(TestAccountAvataxCommon):
             'list_price': 15.00,
             'standard_price': 15.00,
             'supplier_taxes_id': None,
+            'invoice_policy': 'order',
             'avatax_category_id': cls.env.ref('account_avatax.DC010000').id,
         })
         with cls._capture_request(return_value={'lines': [], 'summary': []}) as capture:
@@ -35,7 +36,7 @@ class TestAccountAvalaraVAT(TestAccountAvataxCommon):
                     }),
                 ]
             })
-            cls.invoice.button_external_tax_calculation()
+            cls.invoice.button_update_avatax()
         cls.captured_arguments = capture.val['json']['createTransactionModel']
         return res
 

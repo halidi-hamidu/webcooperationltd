@@ -3,15 +3,15 @@
 # 	* data_merge
 # 
 # Translators:
-# Wil Odoo, 2023
+# Martin Trigaux, 2022
 # Tony Ng, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
+"POT-Creation-Date: 2024-02-06 13:24+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
 "Last-Translator: Tony Ng, 2024\n"
 "Language-Team: Chinese (Taiwan) (https://app.transifex.com/odoo/teams/41243/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -26,13 +26,6 @@ msgstr ""
 #, python-format
 msgid "%s (copy)"
 msgstr "%s (副本)"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_group.py:0
-#, python-format
-msgid "%s - Similarity: %s%%"
-msgstr "%s - 相似度 %s%%"
 
 #. module: data_merge
 #. odoo-javascript
@@ -52,6 +45,13 @@ msgstr ""
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
+msgid ""
+"<span attrs=\"{'invisible': [('custom_merge_method', '=', False)]}\">Model "
+"specific</span>"
+msgstr ""
+
+#. module: data_merge
+#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"me-1\">Every</span>"
 msgstr "<span class=\"me-1\">每</span>"
 
@@ -59,11 +59,6 @@ msgstr "<span class=\"me-1\">每</span>"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "<span class=\"oe_inline\">%</span>"
 msgstr "<span class=\"oe_inline\">%</span>"
-
-#. module: data_merge
-#: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
-msgid "<span invisible=\"not custom_merge_method\">Model specific</span>"
-msgstr "<span invisible=\"not custom_merge_method\">依模型不同</span>"
 
 #. module: data_merge
 #: model:ir.model.constraint,message:data_merge.constraint_data_merge_rule_uniq_model_id_field_id
@@ -160,7 +155,7 @@ msgstr "建立於"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__create_uid
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__create_uid
 msgid "Created by"
-msgstr "建立人員"
+msgstr "創立者"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__create_date
@@ -182,18 +177,20 @@ msgstr "自訂合併方法"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_cleanup_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_cleanup
 msgid "Data Merge: Cleanup Records"
 msgstr "數據合併：清理記錄"
 
 #. module: data_merge
 #: model:ir.actions.server,name:data_merge.ir_cron_find_duplicates_ir_actions_server
+#: model:ir.cron,cron_name:data_merge.ir_cron_find_duplicates
 msgid "Data Merge: Find Duplicate Records"
 msgstr "數據合併：查找重複記錄"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__notify_frequency_period__days
 msgid "Days"
-msgstr "天內"
+msgstr "天數"
 
 #. module: data_merge
 #. odoo-python
@@ -269,7 +266,7 @@ msgstr "禁用合併"
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_list
 msgid "Discard"
-msgstr "捨棄"
+msgstr "取消"
 
 #. module: data_merge
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_record_view_search_merge_action
@@ -293,7 +290,7 @@ msgstr "發散欄位"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__domain
 msgid "Domain"
-msgstr "篩選範圍"
+msgstr "Domain"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__removal_mode
@@ -306,13 +303,6 @@ msgstr "移除重複資料"
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_model_form
 msgid "Duplicates"
 msgstr "副本"
-
-#. module: data_merge
-#. odoo-python
-#: code:addons/data_merge/models/data_merge_model.py:0
-#, python-format
-msgid "Duplicates to Merge"
-msgstr "待合併重複資料"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_data_merge_model__create_threshold
@@ -354,7 +344,7 @@ msgstr "我已識別出"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__id
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_list
 msgid "ID"
-msgstr "識別號"
+msgstr "ID"
 
 #. module: data_merge
 #: model:ir.model.fields,help:data_merge.field_ir_model__is_merge_enabled
@@ -393,6 +383,14 @@ msgstr "已取消"
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_record__is_master
 msgid "Is Master"
 msgstr "是主記錄"
+
+#. module: data_merge
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_group____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_model____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_record____last_update
+#: model:ir.model.fields,field_description:data_merge.field_data_merge_rule____last_update
+msgid "Last Modified on"
+msgstr "最後修改於"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_model__last_notification
@@ -506,7 +504,7 @@ msgstr "缺少所需的PostgreSQL擴充功能: unaccent"
 #: model_terms:ir.ui.view,arch_db:data_merge.data_merge_record_view_search_merge_action
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_search
 msgid "Model"
-msgstr "資料集"
+msgstr "模型"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__res_model_name
@@ -518,7 +516,7 @@ msgstr "模型名稱"
 #. module: data_merge
 #: model:ir.model,name:data_merge.model_ir_model
 msgid "Models"
-msgstr "型號"
+msgstr "模型"
 
 #. module: data_merge
 #: model:ir.model.fields.selection,name:data_merge.selection__data_merge_model__notify_frequency_period__months
@@ -609,6 +607,7 @@ msgid ""
 msgstr "高於此閾值的相似度百分比, 記錄將自動合併"
 
 #. module: data_merge
+#: model:ir.model,name:data_merge.model_ir_rule
 #: model_terms:ir.ui.view,arch_db:data_merge.view_data_merge_record_search
 msgid "Rule"
 msgstr "規則"
@@ -621,7 +620,7 @@ msgstr "選擇模型以配置消除重複規則"
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_rule__sequence
 msgid "Sequence"
-msgstr "序列號"
+msgstr "序號"
 
 #. module: data_merge
 #: model:ir.model.fields,field_description:data_merge.field_data_merge_group__similarity

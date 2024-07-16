@@ -1,8 +1,7 @@
 /** @odoo-module */
 
 import { endKnowledgeTour, makeVisible } from './knowledge_tour_utils.js';
-import { registry } from "@web/core/registry";
-import { stepUtils } from "@web_tour/tour_service/tour_utils";
+import tour from 'web_tour.tour';
 
 /**
  * Tests the cover picker feature when unsplash credentials are set. In this
@@ -10,10 +9,10 @@ import { stepUtils } from "@web_tour/tour_service/tour_utils";
  * selected unsplash collection if no name is set on the article, either
  * add a random image using the article name as query word.
  */
-registry.category("web_tour.tours").add('knowledge_random_cover_tour', {
+tour.register('knowledge_random_cover_tour', {
     test: true,
     url: '/web',
-    steps: () => [stepUtils.showAppsMenuItem(), {
+}, [tour.stepUtils.showAppsMenuItem(), {
     // Open Knowledge App
     trigger: '.o_app[data-menu-xmlid="knowledge.knowledge_menu_root"]',
 }, {
@@ -29,10 +28,10 @@ registry.category("web_tour.tours").add('knowledge_random_cover_tour', {
 }, {
     // Check that a cover has been added, and make the change cover button visible
     trigger: '.o_knowledge_cover .o_knowledge_cover_image',
-    run: () => makeVisible('.o_knowledge_replace_cover'),
+    run: () => makeVisible('.o_knowledge_change_cover'),
 }, {
     // Click on change cover button
-    trigger: '.o_knowledge_replace_cover',
+    trigger: '.o_knowledge_change_cover',
 }, {
     // Check that the cover selector has been opened, that no unsplash images can be
     // loaded as the article has no name and close the cover selector
@@ -59,14 +58,14 @@ registry.category("web_tour.tours").add('knowledge_random_cover_tour', {
 }, {
     // Check that a cover has been added and make the change cover button visible
     trigger: '.o_knowledge_cover .o_knowledge_cover_image',
-    run: () => makeVisible('.o_knowledge_replace_cover'),
+    run: () => makeVisible('.o_knowledge_change_cover'),
 }, {
     // Click on change cover button
-    trigger: '.o_knowledge_replace_cover',
+    trigger: '.o_knowledge_change_cover',
 }, {
     // Check that the cover selector has been opened, that other unsplash
     // images can be loaded and close the cover selector
     trigger: '.modal-footer .btn-secondary',
     extra_trigger: '.modal-body .o_load_more',
 }, ...endKnowledgeTour()
-]});
+]);

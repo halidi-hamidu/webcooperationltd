@@ -68,5 +68,14 @@
                 </t>
             </xpath>
         </template>
+
+        <template id="report_invoice_document" inherit_id="l10n_cl.report_invoice_document">
+            <xpath expr="//p[@name='incoterm']" position="attributes">
+                <attribute name="t-if">
+                    o.invoice_incoterm_id and not o.l10n_latam_document_type_id._is_doc_type_export() and
+                    o.company_id.country_id.code == 'CL'
+                </attribute>
+            </xpath>
+        </template>
     </data>
 </odoo>

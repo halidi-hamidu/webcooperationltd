@@ -1,9 +1,8 @@
 /** @odoo-module **/
 
-import { click, getFixture, patchDate, patchWithCleanup, nextTick } from "@web/../tests/helpers/utils";
-import { setupViewRegistries } from "@web/../tests/views/helpers";
-import { createWebClient, doAction } from "@web/../tests/webclient/helpers";
-const { DateTime } = luxon;
+import { click, getFixture, patchDate, patchWithCleanup } from "@web/../tests/helpers/utils";
+import { makeView, setupViewRegistries } from "@web/../tests/views/helpers";
+
 let target;
 
 QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
@@ -14,7 +13,7 @@ QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
     });
 
     QUnit.test("planning calendar view: copy previous week", async function (assert) {
-        assert.expect(6);
+        assert.expect(4);
         const serverData = {
             models: {
                 "planning.slot": {
@@ -40,8 +39,8 @@ QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
                         {
                             id: 1,
                             name: "First Record",
-                            start: DateTime.now().toFormat("yyyy-MM-dd HH':00:00'"),
-                            stop: DateTime.now().plus({hours:4}).toFormat("yyyy-MM-dd HH':00:00'"),
+                            start: moment().format("YYYY-MM-DD HH:00:00"),
+                            stop: moment().add(4, "hours").format("YYYY-MM-DD HH:00:00"),
                             resource_id: 1,
                             color: 7,
                             role_id: 1,
@@ -50,8 +49,8 @@ QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
                         {
                             id: 2,
                             name: "Second Record",
-                            start: DateTime.now().plus({days:2}).toFormat("yyyy-MM-dd HH':00:00'"),
-                            stop: DateTime.now().plus({hours:4, days:2}).toFormat("yyyy-MM-dd HH':00:00'"),
+                            start: moment().add(2, "days").format("YYYY-MM-DD HH:00:00"),
+                            stop: moment().add(2, "days").add(4, "hours").format("YYYY-MM-DD HH:00:00"),
                             resource_id: 2,
                             color: 9,
                             role_id: 2,
@@ -84,48 +83,33 @@ QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
                     ],
                 },
             },
-            actions: {
-                1: {
-                    id: 1,
-                    name: "planning action",
-                    res_model: "planning.slot",
-                    type: "ir.actions.act_window",
-                    views: [
-                        [false, "calendar"],
-                        [false, "list"],
-                    ],
-                },
-            },
-            views: {
-                "planning.slot,false,calendar": `
-                    <calendar class="o_planning_calendar_test"
-                        event_open_popup="true"
-                        date_start="start"
-                        date_stop="stop"
-                        color="color"
-                        mode="week"
-                        js_class="planning_calendar">
-                            <field name="resource_id" />
-                            <field name="role_id" filters="1" color="color"/>
-                            <field name="state"/>
-                    </calendar>`,
-                "planning.slot,false,list":
-                    '<list js_class="planning_tree"><field name="resource_id"/></list>',
-                "planning.slot,false,search": `<search />`,
-            },
+            views: {},
         };
 
-        const mockRPC = (route, args) => {
-            if (args.method === "action_copy_previous_week") {
-                assert.step("copy_previous_week()");
-                return Promise.resolve({});
-            }
-        };
+        const calendar = await makeView({
+            type: "calendar",
+            resModel: "planning.slot",
+            serverData,
+            arch: `<calendar class="o_planning_calendar_test"
+                    event_open_popup="true"
+                    date_start="start"
+                    date_stop="stop"
+                    color="color"
+                    mode="week"
+                    js_class="planning_calendar">
+                        <field name="resource_id" />
+                        <field name="role_id" filters="1" color="color"/>
+                        <field name="state"/>
+                </calendar>`,
+            mockRPC: function (route, args) {
+                if (args.method === "action_copy_previous_week") {
+                    assert.step("copy_previous_week()");
+                    return Promise.resolve({});
+                }
+            },
+        });
 
-        const webClient = await createWebClient({ serverData, mockRPC });
-        await doAction(webClient, 1);
-
-        patchWithCleanup(webClient.env.services.action, {
+        patchWithCleanup(calendar.env.services.action, {
             async doAction(action) {
                 assert.deepEqual(
                     action,
@@ -135,19 +119,13 @@ QUnit.module("Planning.planning_calendar_tests", ({ beforeEach }) => {
             },
         });
 
-        await click(target.querySelector(".o_control_panel_main_buttons .d-none.d-xl-inline-flex .o_button_copy_previous_week"));
+        await click(target.querySelector(".o_button_copy_previous_week"));
         assert.verifySteps(["copy_previous_week()"], "verify action_copy_previous_week() invoked.");
 
         // deselect "Maganlal" from Assigned to
         await click(target.querySelector(".o_calendar_filter_item[data-value='2'] > input"));
         assert.containsN(target, ".fc-event", 1, "should display 1 events on the week");
 
-        await click(target.querySelector(".o_control_panel_main_buttons .d-none.d-xl-inline-flex .o_button_send_all"));
-
-        // Switch the view and verify the notification
-        assert.containsOnce(target, ".o_notification_body");
-        await click(target, ".o_switch_view.o_list");
-        await nextTick();
-        assert.doesNotHaveClass(target.querySelector(".o_action_manager"), "o_notification_body");
+        await click(target.querySelector(".o_button_send_all"));
     });
 });

@@ -32,14 +32,10 @@ class FleetVehicle(models.Model):
     @api.depends('co2_fee', 'log_contracts', 'log_contracts.state', 'log_contracts.recurring_cost_amount_depreciated')
     def _compute_total_depreciated_cost(self):
         for car in self:
-            if car.log_contracts:
-                car.total_depreciated_cost = car.co2_fee + \
-                    sum(car.log_contracts.filtered(
-                        lambda contract: contract.state == 'open'
-                    ).mapped('recurring_cost_amount_depreciated'))
-            else:
-                car.total_depreciated_cost = car.model_id.with_company(car.company_id).default_total_depreciated_cost
-
+            car.total_depreciated_cost = car.co2_fee + \
+                sum(car.log_contracts.filtered(
+                    lambda contract: contract.state == 'open'
+                ).mapped('recurring_cost_amount_depreciated'))
 
     @api.depends('co2_fee', 'log_contracts', 'log_contracts.state', 'log_contracts.cost_generated')
     def _compute_total_cost(self):
@@ -122,6 +118,22 @@ class FleetVehicle(models.Model):
         else:
             return name
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        vehicles = super().create(vals_list)
+        contracts_vals_list = []
+        for vehicle in vehicles:
+            if not vehicle.log_contracts:
+                contracts_vals_list.append({
+                    'vehicle_id': vehicle.id,
+                    'recurring_cost_amount_depreciated': vehicle.model_id.default_recurring_cost_amount_depreciated,
+                    'purchaser_id': vehicle.driver_id.id,
+                    'company_id': vehicle.company_id.id,
+                    'user_id': vehicle.manager_id.id if vehicle.manager_id else self.env.user.id
+                })
+        self.env['fleet.vehicle.log.contract'].create(contracts_vals_list)
+        return vehicles
+
     def _get_acquisition_date(self):
         self.ensure_one()
         return format_date(self.env, self.acquisition_date, date_format='MMMM y')
@@ -179,17 +191,15 @@ class FleetVehicle(models.Model):
 class FleetVehicleLogContract(models.Model):
     _inherit = 'fleet.vehicle.log.contract'
 
-    recurring_cost_amount_depreciated = fields.Float(
-        "Depreciated Cost Amount", tracking=True,
-        compute='_compute_recurring_cost_amount_depreciated', store=True, readonly=False)
+    recurring_cost_amount_depreciated = fields.Float("Depreciated Cost Amount", tracking=True)
 
-    @api.depends('vehicle_id')
-    def _compute_recurring_cost_amount_depreciated(self):
-        for log_contract in self:
-            default_cost = log_contract.vehicle_id.model_id.default_recurring_cost_amount_depreciated
-            if not default_cost:
-                continue
-            log_contract.recurring_cost_amount_depreciated = default_cost
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('recurring_cost_amount_depreciated', 0) and vals.get('vehicle_id'):
+                vehicle_id = self.env['fleet.vehicle'].browse(vals['vehicle_id'])
+                vals['recurring_cost_amount_depreciated'] = vehicle_id.model_id.default_recurring_cost_amount_depreciated
+        return super().create(vals_list)
 
 
 class FleetVehicleModel(models.Model):

@@ -1,11 +1,15 @@
 # coding: utf-8
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import re
 from lxml import etree
+from lxml.objectify import fromstring
 from collections import defaultdict
 
 from odoo import models, fields, _
 from odoo.exceptions import UserError, RedirectWarning
+
+CFDIBCE_XSLT_CADENA = 'l10n_mx_reports/data/xslt/1.3/BalanzaComprobacion_1_2.xslt'
 
 
 class TrialBalanceCustomHandler(models.AbstractModel):
@@ -25,7 +29,8 @@ class TrialBalanceCustomHandler(models.AbstractModel):
 
         sat_values = self._l10n_mx_get_sat_values(options)
         file_name = f"{sat_values['vat']}{sat_values['year']}{sat_values['month']}BN"
-        sat_report = etree.fromstring(self.env['ir.qweb']._render('l10n_mx_reports.cfdibalance', sat_values))
+        cfdi = self.env['ir.qweb']._render('l10n_mx_reports.cfdibalance', sat_values)
+        sat_report = self._l10n_mx_edi_add_digital_stamp(CFDIBCE_XSLT_CADENA, cfdi)
 
         self.env['ir.attachment'].l10n_mx_reports_validate_xml_from_attachment(sat_report, 'xsd_mx_cfdibalance_1_3.xsd')
 
@@ -35,10 +40,27 @@ class TrialBalanceCustomHandler(models.AbstractModel):
             'file_type': 'xml',
         }
 
+    def _l10n_mx_edi_add_digital_stamp(self, path_xslt, cfdi):
+        """Add digital stamp certificate attributes in XML report"""
+        tree = fromstring(cfdi)
+        certificate = self.env.company.l10n_mx_edi_certificate_ids.sudo()._get_valid_certificate()
+        if not certificate:
+            return tree
+        cadena = certificate._get_cadena_chain(tree, path_xslt)
+        sello = certificate.sudo()._get_encrypted_cadena(cadena)
+        tree.attrib['Sello'] = sello
+        tree.attrib['noCertificado'] = certificate.serial_number
+        tree.attrib['Certificado'] = certificate.sudo()._get_data()[0]
+        return tree
+
     def _l10n_mx_get_sat_values(self, options):
         report = self.env['account.report'].browse(options['report_id'])
         sat_options = self._l10n_mx_get_sat_options(options)
         report_lines = report._get_lines(sat_options)
+
+        # The SAT code has to be of the form XXX.YY . Any additional suffixes are allowed, but if the line starts
+        # with anything else it should not be included in the SAT report.
+        sat_code = re.compile(r'((\d{3})\.\d{2})')
 
         account_lines = []
         parents = defaultdict(lambda: defaultdict(int))
@@ -55,7 +77,10 @@ class TrialBalanceCustomHandler(models.AbstractModel):
             credit = cols[3].get('no_format', 0.0)
             # End Debit - End Credit = End Balance
             end = balance_sign * (cols[4].get('no_format', 0.0) - cols[5].get('no_format', 0.0))
-            for pid in (line['name'].split('.')[0], line['name'].rsplit('.', 1)[0]):
+            pid_match = sat_code.match(line['name'])
+            if not pid_match:
+                raise UserError(_("Invalid SAT code: %s", line['name']))
+            for pid in pid_match.groups():
                 parents[pid]['initial'] += initial
                 parents[pid]['debit'] += debit
                 parents[pid]['credit'] += credit
@@ -103,7 +128,7 @@ class TrialBalanceCustomHandler(models.AbstractModel):
 
         coa_options = self._l10n_mx_get_sat_options(options)
         accounts = self.env['account.account'].search([
-            *self.env['account.account']._check_company_domain(self.env.company),
+            ('company_id', '=', self.env.company.id),
             ('account_type', '!=', 'equity_unaffected'),
             ('group_id', '!=', False),
         ])
@@ -194,7 +219,7 @@ class TrialBalanceCustomHandler(models.AbstractModel):
     def _l10n_mx_get_sat_options(self, options):
         sat_options = options.copy()
         del sat_options['comparison']
-        return self.env['account.report'].browse(options['report_id']).get_options(
+        return self.env['account.report'].browse(options['report_id'])._get_options(
             previous_options={
                 **sat_options,
                 'hierarchy': True,  # We need the hierarchy activated to get group lines

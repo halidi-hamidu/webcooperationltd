@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import logging
-
-from odoo.tests import HttpCase, tagged, loaded_demo_data
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from odoo.tests import HttpCase, tagged
 from odoo.addons.mail.tests.common import mail_new_test_user
-
-_logger = logging.getLogger(__name__)
 
 
 @tagged('-at_install', 'post_install')
@@ -29,7 +27,11 @@ class ProjectEnterpriseTestUi(HttpCase):
         )
 
     def test_01_ui(self):
-        if not loaded_demo_data(self.env):
-            _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
-            return
-        self.start_tour("/", 'project_test_tour', login='admin')
+        self.env['project.task'].create({
+            'name': 'Yolo Task',
+            'project_id': self.env['project.project'].create({'name': 'Yolo Project'}).id,
+            'user_ids': [(4, self.user_project_manager.id)],
+            'planned_date_begin': datetime.now() + relativedelta(day=1, hour=6, minute=0, second=0),
+            'planned_date_end': datetime.now() + relativedelta(day=7, hour=18, minute=0, second=0),
+        })
+        self.start_tour("/", 'project_enterprise_tour', login='user_project_manager')

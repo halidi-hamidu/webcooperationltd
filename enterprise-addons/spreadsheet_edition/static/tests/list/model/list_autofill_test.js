@@ -1,8 +1,7 @@
 /** @odoo-module */
 
 import { nextTick } from "@web/../tests/helpers/utils";
-
-import * as spreadsheet from "@odoo/o-spreadsheet";
+import spreadsheet from "@spreadsheet/o_spreadsheet/o_spreadsheet_extended";
 const { toCartesian } = spreadsheet.helpers;
 import { getCell, getCellFormula, getCellValue } from "@spreadsheet/../tests/utils/getters";
 import {
@@ -212,13 +211,13 @@ QUnit.module("spreadsheet > list autofill", {}, () => {
         autofill(model, "C2", "C3");
         const startingCell = getCell(model, "C2");
         assert.deepEqual(startingCell.style, style);
-        assert.deepEqual(model.getters.getCellBorder({sheetId, col, row}).left, border.left);
+        assert.deepEqual(model.getters.getCellBorder(sheetId, col, row).left, border.left);
         assert.equal(startingCell.format, "m/d/yyyy");
 
         // Check that the format of C2 has been correctly applied to C3 but not the style nor the border
         const filledCell = getCell(model, "C3");
         assert.equal(filledCell.style, undefined);
-        assert.equal(model.getters.getCellBorder({sheetId, col, row: row + 1}), null);
+        assert.equal(model.getters.getCellBorder(sheetId, col, row + 1), null);
         assert.equal(filledCell.format, "m/d/yyyy");
     });
 });

@@ -32,7 +32,7 @@ class AppointmentCrmUITest(AppointmentCommon, common.HttpCase):
                 'params': {
                     'slots': unique_slots,
                     'context': {
-                        'default_assign_method': 'time_resource',
+                        'default_assign_method': 'random',
                         'default_opportunity_id': lead.id,
                     },
                 }
@@ -44,7 +44,6 @@ class AppointmentCrmUITest(AppointmentCommon, common.HttpCase):
 
         appointment_type = self.env['appointment.type'].browse(result['appointment_type_id'])
         # The default_assign_method should be ignored as the field is not whitelisted
-        self.assertEqual(appointment_type.assign_method, 'resource_time')
+        self.assertEqual(appointment_type.assign_method, 'chosen')
         # The default_opportunity_id should be propagated as the field is whitelisted
-        appointment_invite = self.env['appointment.invite'].search([('appointment_type_ids', 'in', appointment_type.ids)])
-        self.assertEqual(appointment_invite.opportunity_id, lead)
+        self.assertEqual(appointment_type.opportunity_id, lead)

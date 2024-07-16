@@ -15,7 +15,7 @@ class OSSTaxReportCustomHandlerOss(models.AbstractModel):
     _inherit = 'account.generic.tax.report.handler'
     _description = 'OSS Tax Report Custom Handler'
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         """ The country for OSS taxes can't easily be guessed from SQL, as it would create JOIN issues.
         So, instead of handling them as a grouping key in the tax report engine, we
         post process the result of a grouping made by (type_tax_use, id) to inject the
@@ -23,17 +23,15 @@ class OSSTaxReportCustomHandlerOss(models.AbstractModel):
         """
         def append_country_and_taxes_lines(parent_line, rslt, tax_lines_by_country):
             for country, tax_lines in sorted(tax_lines_by_country.items(), key=lambda elem: elem[0].display_name):
+                col_number = len(tax_lines[0]['columns']) if tax_lines else 0
+                tax_sums = [
+                    sum(tax_lines[line_index]['columns'][col_index]['no_format'] for line_index in range(len(tax_lines)))
+                    for col_index in range(1, col_number, 2)
+                ]
+
                 country_columns = []
-                for i, column in enumerate(options['columns']):
-                    expr_label = column.get('expression_label')
-
-                    if expr_label == 'net':
-                        col_value = ''
-
-                    if expr_label == 'tax':
-                        col_value = sum(tax_line['columns'][i]['no_format'] for tax_line in tax_lines)
-
-                    country_columns.append(report._build_column_dict(col_value, column, options=options))
+                for tax_sum in tax_sums:
+                    country_columns += [{'name': ''}, {'no_format': tax_sum, 'name': report.format_value(tax_sum, figure_type='monetary')}]
 
                 country_line_id = report._get_generic_line_id('res.country', country.id, parent_line_id=parent_line['id'])
                 country_line = {
@@ -59,7 +57,7 @@ class OSSTaxReportCustomHandlerOss(models.AbstractModel):
                     )
                     rslt.append((0, tax_line))
 
-        lines = super()._dynamic_lines_generator(report, options, all_column_groups_expression_totals, warnings=warnings)
+        lines = super()._dynamic_lines_generator(report, options, all_column_groups_expression_totals)
 
         rslt = []
         tax_type_markups = {'sale', 'purchase'}
@@ -213,7 +211,7 @@ class OSSTaxReportCustomHandlerOss(models.AbstractModel):
         tree = objectify.fromstring(rendered_content)
 
         return {
-            'file_name': report.get_default_report_filename(options, 'xml'),
+            'file_name': report.get_default_report_filename('xml'),
             'file_content': etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding='utf-8'),
             'file_type': 'xml',
         }
@@ -281,7 +279,7 @@ class AccountReport(models.Model):
         # Overridden to support 'oss' availability condition
         if self.availability_condition == 'oss':
             oss_tag = self.env.ref('l10n_eu_oss.tag_oss')
-            company_ids = self.get_report_company_ids(options)
+            company_ids = [company_opt['id'] for company_opt in options.get('multi_company', [])] or self.env.company.ids
             return bool(self.env['account.tax.repartition.line']\
                         .search([('tag_ids', 'in', oss_tag.ids), ('company_id', 'in', company_ids)], limit=1))
         else:

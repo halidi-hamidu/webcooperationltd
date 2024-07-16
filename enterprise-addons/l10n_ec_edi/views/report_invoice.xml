@@ -60,7 +60,7 @@
         </xpath>
 
         <!-- Add a table for payment methods and additional info -->
-        <xpath expr="//div[@id='payment_term']" position="after">
+        <xpath expr="//div[@id='total']" position="after">
             <t t-if="o.l10n_latam_document_type_id and o.l10n_latam_internal_type != 'credit_note'">
                 <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'}">
                     <table class="table table-sm table-borderless" style="page-break-inside: avoid">
@@ -90,7 +90,7 @@
         <xpath expr="//p[@name='payment_communication']" position="attributes">
             <attribute name="t-if">not o.l10n_latam_document_type_id</attribute>
         </xpath>
-        <xpath expr="//span[@name='payment_term']" position="attributes">
+        <xpath expr="//div[@name='payment_term']" position="attributes">
             <attribute name="t-if">not o.l10n_latam_document_type_id</attribute>
         </xpath>
         <xpath expr="//p[@name='note']" position="attributes">
@@ -212,9 +212,15 @@
     <!-- Workaround for Studio reports, see odoo/odoo#60660 -->
     <template id="report_invoice" inherit_id="account.report_invoice">
         <xpath expr='//t[@t-call="account.report_invoice_document"]' position="after">
-            <t t-elif="o._get_name_invoice_report() == 'l10n_ec_edi.report_invoice_document'"
-               t-call="l10n_ec_edi.report_invoice_document"
-               t-lang="lang"/>
+            <t t-if="o._get_name_invoice_report() == 'l10n_ec_edi.report_invoice_document'"
+                t-call="l10n_ec_edi.report_invoice_document" t-lang="lang"/>
+        </xpath>
+    </template>
+
+    <template id="report_invoice_with_payments" inherit_id="account.report_invoice_with_payments">
+        <xpath expr='//t[@t-call="account.report_invoice_document"]' position="after">
+            <t t-if="o._get_name_invoice_report() == 'l10n_ec_edi.report_invoice_document'"
+                t-call="l10n_ec_edi.report_invoice_document" t-lang="lang"/>
         </xpath>
     </template>
 </odoo>

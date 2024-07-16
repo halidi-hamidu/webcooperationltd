@@ -1,6 +1,5 @@
 /** @odoo-module **/
 
-import { _t } from "@web/core/l10n/translation";
 import { templates } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -9,7 +8,7 @@ import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { AccountMoveFormRenderer } from '@account/components/account_move_form/account_move_form';
 import { BoxLayer } from '@account_invoice_extract/js/box_layer';
 
-import { App, onWillUnmount, reactive, useExternalListener, useState } from "@odoo/owl";
+const { App, onWillUnmount, useExternalListener, useState } = owl;
 
 /**
  * This is the renderer of the subview that adds OCR features on the attachment
@@ -23,8 +22,6 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
     setup() {
         super.setup();
 
-        /** @type {import("@mail/core/common/store_service").Store} */
-        this.store = useState(useService("mail.store"));
         this.dialog = useService("dialog");
         this.orm = useService("orm");
 
@@ -70,8 +67,8 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
     }
 
     fetchBoxData() {
-        this.dataMoveId = this.props.record.resId;
-        return this.orm.call('account.move', 'get_boxes', [this.props.record.resId]);
+        this.dataMoveId = this.props.record.data.id;
+        return this.orm.call('account.move', 'get_boxes', [this.props.record.data.id]);
     }
 
     /**
@@ -85,7 +82,7 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
             templates,
             props,
             translatableAttributes: ["data-tooltip"],
-            translateFn: _t,
+            translateFn: this.env._t,
         });
     }
 
@@ -138,7 +135,7 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
      * It also determines which boxes should be visible according to the current active field.
      */
     renderInvoiceExtract(attachment) {
-        const thread = this.store.Thread.insert({
+        const thread = this.env.services.messaging.modelManager.messaging.models['Thread'].insert({
             id: this.props.record.resId,
             model: this.props.record.resModel,
         });
@@ -151,15 +148,15 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
             preview_attachment_id === this.props.record.data.extract_attachment_id[0]
         ) {
             if (this.activeField !== undefined) {
-                if (this.dataMoveId !== this.props.record.resId) {
+                if (this.dataMoveId !== this.props.record.data.id) {
                     for (const boxesForPage of Object.values(this.boxes)) {
                         boxesForPage.length = 0;
                     }
                 }
-                const dataToFetch = this.boxes.length === 0 || (this.dataMoveId !== this.props.record.resId);
+                const dataToFetch = this.boxes.length === 0 || (this.dataMoveId !== this.props.record.data.id);
                 const prom = dataToFetch ? this.fetchBoxData() : new Promise(resolve => resolve([]));
                 prom.then((boxes) => {
-                    boxes.map(b => reactive(b)).forEach((box) => {
+                    boxes.map(b => owl.reactive(b)).forEach((box) => {
                         if (box.page in this.boxes) {
                             this.boxes[box.page].push(box);
                         }
@@ -178,12 +175,9 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
                             this.state.visibleBoxes[page] = [];
                         }
 
-                        const visibleBoxesForPage = boxesForPage.filter((box) => {
-                            return (
-                                box.feature === this.activeField ||
-                                (box.feature === "VAT_Number" && this.activeField === "supplier")
-                            );
-                        });
+                        const visibleBoxesForPage = _.filter(boxesForPage, (box) => {
+                            return box.feature === this.activeField || (box.feature === 'VAT_Number' && this.activeField === 'supplier');
+                        })
                         this.state.visibleBoxes[page].push(...visibleBoxesForPage);
                     }
                     this.renderBoxLayers(attachment)
@@ -235,9 +229,9 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
             {
                 resModel: 'res.partner',
                 context: context,
-                title: _t("Create"),
+                title: this.env._t("Create"),
                 onRecordSaved: (record) => {
-                    this.props.record.update({ partner_id: [record.resId] });
+                    this.props.record.update({ partner_id: [record.data.id] });
                 },
             }
         );
@@ -253,7 +247,7 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
                 changes = { invoice_date: registry.category("parsers").get("date")(newFieldValue.split(' ')[0]) };
                 break;
             case 'supplier':
-                if (Number.isFinite(newFieldValue) && newFieldValue !== 0) {
+                if (_.isNumber(newFieldValue) && newFieldValue !== 0) {
                     changes = { partner_id: [newFieldValue] };
                 }
                 else {
@@ -266,7 +260,7 @@ export class InvoiceExtractFormRenderer extends AccountMoveFormRenderer {
                 }
                 break;
             case 'VAT_Number':
-                if (Number.isFinite(newFieldValue) && newFieldValue !== 0) {
+                if (_.isNumber(newFieldValue) && newFieldValue !== 0) {
                     changes = { partner_id: [newFieldValue] };
                 }
                 else {

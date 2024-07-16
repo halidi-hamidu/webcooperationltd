@@ -3,7 +3,6 @@
 
 from collections import defaultdict
 from datetime import timedelta
-import itertools
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
@@ -19,16 +18,29 @@ class AccountBudgetPost(models.Model):
 
     name = fields.Char('Name', required=True)
     account_ids = fields.Many2many('account.account', 'account_budget_rel', 'budget_id', 'account_id', 'Accounts',
-        check_company=True,
-        domain="[('deprecated', '=', False)]")
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]")
     company_id = fields.Many2one('res.company', 'Company', required=True,
         default=lambda self: self.env.company)
 
-    @api.constrains('account_ids')
-    def _check_account_ids(self):
-        for budget in self:
-            if not budget.account_ids:
-                raise ValidationError(_('The budget must have at least one account.'))
+    def _check_account_ids(self, vals):
+        # Raise an error to prevent the account.budget.post to have not specified account_ids.
+        # This check is done on create because require=True doesn't work on Many2many fields.
+        if 'account_ids' in vals:
+            account_ids = self.new({'account_ids': vals['account_ids']}, origin=self).account_ids
+        else:
+            account_ids = self.account_ids
+        if not account_ids:
+            raise ValidationError(_('The budget must have at least one account.'))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._check_account_ids(vals)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._check_account_ids(vals)
+        return super(AccountBudgetPost, self).write(vals)
 
 
 class CrossoveredBudget(models.Model):
@@ -36,18 +48,19 @@ class CrossoveredBudget(models.Model):
     _description = "Budget"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char('Budget Name', required=True)
+    name = fields.Char('Budget Name', required=True, states={'done': [('readonly', True)]})
     user_id = fields.Many2one('res.users', 'Responsible', default=lambda self: self.env.user)
-    date_from = fields.Date('Start Date')
-    date_to = fields.Date('End Date')
+    date_from = fields.Date('Start Date', states={'done': [('readonly', True)]})
+    date_to = fields.Date('End Date', states={'done': [('readonly', True)]})
     state = fields.Selection([
         ('draft', 'Draft'),
+        ('cancel', 'Cancelled'),
         ('confirm', 'Confirmed'),
         ('validate', 'Validated'),
-        ('done', 'Done'),
-        ('cancel', 'Cancelled')
-    ], 'Status', default='draft', index=True, required=True, readonly=True, copy=False, tracking=True)
-    crossovered_budget_line = fields.One2many('crossovered.budget.lines', 'crossovered_budget_id', 'Budget Lines', copy=True)
+        ('done', 'Done')
+        ], 'Status', default='draft', index=True, required=True, readonly=True, copy=False, tracking=True)
+    crossovered_budget_line = fields.One2many('crossovered.budget.lines', 'crossovered_budget_id', 'Budget Lines',
+        states={'done': [('readonly', True)]}, copy=True)
     company_id = fields.Many2one('res.company', 'Company', required=True,
         default=lambda self: self.env.company)
 
@@ -89,7 +102,7 @@ class CrossoveredBudgetLines(models.Model):
         compute='_compute_theoritical_amount', string='Theoretical Amount',
         help="Amount you are supposed to have earned/spent at this date.")
     percentage = fields.Float(
-        compute='_compute_percentage', string='Achievement', group_operator='avg',
+        compute='_compute_percentage', string='Achievement',
         help="Comparison between practical and theoretical amount. This measure tells you if you are below or over budget.")
     company_id = fields.Many2one(related='crossovered_budget_id.company_id', comodel_name='res.company',
         string='Company', store=True, readonly=True)
@@ -97,25 +110,53 @@ class CrossoveredBudgetLines(models.Model):
     crossovered_budget_state = fields.Selection(related='crossovered_budget_id.state', string='Budget State', store=True, readonly=True)
 
     @api.model
-    def _read_group(self, domain, groupby=(), aggregates=(), having=(), offset=0, limit=None, order=None):
-        SPECIAL = {'practical_amount:sum', 'theoritical_amount:sum', 'percentage:avg'}
-        if SPECIAL.isdisjoint(aggregates):
-            return super()._read_group(domain, groupby, aggregates, having, offset, limit, order)
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        # overrides the default read_group in order to compute the computed fields manually for the group
 
-        base_aggregates = [*(agg for agg in aggregates if agg not in SPECIAL), 'id:recordset']
-        base_result = super()._read_group(domain, groupby, base_aggregates, having, offset, limit, order)
+        fields_list = {'practical_amount', 'theoritical_amount', 'percentage'}
 
-        # base_result = [(a1, b1, records), (a2, b2, records), ...]
-        result = []
-        for *other, records in base_result:
-            for index, spec in enumerate(itertools.chain(groupby, aggregates)):
-                if spec in SPECIAL:
-                    field_name, op = spec.split(':')
-                    res = sum(records.mapped(field_name))
-                    if op == 'avg' and records:
-                        res /= len(records)
-                    other.insert(index, res)
-            result.append(tuple(other))
+        # Not any of the fields_list support aggregate function like :sum
+        def truncate_aggr(field):
+            field_no_aggr = field.split(':', 1)[0]
+            if field_no_aggr in fields_list:
+                return field_no_aggr
+            return field
+        fields = {truncate_aggr(field) for field in fields}
+
+        # Read non fields_list fields
+        result = super(CrossoveredBudgetLines, self).read_group(
+            domain, list(fields - fields_list), groupby, offset=offset,
+            limit=limit, orderby=orderby, lazy=lazy)
+
+        # Populate result with fields_list values
+        if fields & fields_list:
+            for group_line in result:
+
+                # initialise fields to compute to 0 if they are requested
+                if 'practical_amount' in fields:
+                    group_line['practical_amount'] = 0
+                if 'theoritical_amount' in fields:
+                    group_line['theoritical_amount'] = 0
+                if 'percentage' in fields:
+                    group_line['percentage'] = 0
+                    group_line['practical_amount'] = 0
+                    group_line['theoritical_amount'] = 0
+
+                domain = group_line.get('__domain') or domain
+                all_budget_lines_that_compose_group = self.search(domain)
+
+                for budget_line_of_group in all_budget_lines_that_compose_group:
+                    if 'practical_amount' in fields or 'percentage' in fields:
+                        group_line['practical_amount'] += budget_line_of_group.practical_amount
+
+                    if 'theoritical_amount' in fields or 'percentage' in fields:
+                        group_line['theoritical_amount'] += budget_line_of_group.theoritical_amount
+
+                    if 'percentage' in fields:
+                        if group_line['theoritical_amount']:
+                            # use a weighted average
+                            group_line['percentage'] = float(
+                                (group_line['practical_amount'] or 0.0) / group_line['theoritical_amount'])
 
         return result
 
@@ -140,14 +181,14 @@ class CrossoveredBudgetLines(models.Model):
     def _compute_practical_amount(self):
         def get_accounts(line):
             if line.analytic_account_id:
-                return 'account.analytic.line', line.analytic_account_id.plan_id._column_name(), set(line.analytic_account_id.ids)
-            return 'account.move.line', 'account_id', set(line.general_budget_id.account_ids.ids)
+                return 'account.analytic.line', set(line.analytic_account_id.ids)
+            return 'account.move.line', set(line.general_budget_id.account_ids.ids)
 
-        def get_query(model, account_fname, date_from, date_to, account_ids):
+        def get_query(model, date_from, date_to, account_ids):
             domain = [
                 ('date', '>=', date_from),
                 ('date', '<=', date_to),
-                (account_fname, 'in', list(account_ids)),
+                ('account_id', 'in', list(account_ids)),
             ]
             if model == 'account.move.line':
                 fname = '-balance'
@@ -159,45 +200,50 @@ class CrossoveredBudgetLines(models.Model):
 
             query = self.env[model]._search(domain)
             query.order = None
-            query_str, params = query.select('%s', '%s', '%s', '%s', account_fname, general_account, f'SUM({fname})')
-            params = [model, account_fname, date_from, date_to] + params
-            query_str += f" GROUP BY {account_fname}, {general_account}"
+            query_str, params = query.select('%s', '%s', '%s', 'account_id', general_account, f'SUM({fname})')
+            params = [model, date_from, date_to] + params
+            query_str += f" GROUP BY account_id, {general_account}"
 
             return query_str, params
 
-        groups = defaultdict(lambda: defaultdict(set))  # {(model, fname): {(date_from, date_to): account_ids}}
+        groups = defaultdict(lambda: defaultdict(set))  # {model: {(date_from, date_to): account_ids}}
         for line in self:
-            model, fname, accounts = get_accounts(line)
-            groups[(model, fname)][(line.date_from, line.date_to)].update(accounts)
+            model, accounts = get_accounts(line)
+            groups[model][(line.date_from, line.date_to)].update(accounts)
 
         queries = []
         queries_params = []
-        for (model, fname), by_date in groups.items():
+        for model, by_date in groups.items():
             for (date_from, date_to), account_ids in by_date.items():
-                query, params = get_query(model, fname, date_from, date_to, account_ids)
-                queries.append(query)
-                queries_params += params
+                if account_ids:
+                    query, params = get_query(model, date_from, date_to, account_ids)
+                    queries.append(query)
+                    queries_params += params
+
+        if not queries:
+            self.practical_amount = 0
+            return
 
         self.env.cr.execute(" UNION ALL ".join(queries), queries_params)
 
         agg_general = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {(analytic, general): amount}}
         agg_analytic = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {analytic: amount}}
-        for model, fname, date_from, date_to, account_id, general_account_id, amount in self.env.cr.fetchall():
-            agg_general[(model, fname, date_from, date_to)][(account_id, general_account_id)] += amount
-            agg_analytic[(model, fname, date_from, date_to)][account_id] += amount
+        for model, date_from, date_to, account_id, general_account_id, amount in self.env.cr.fetchall():
+            agg_general[(model, date_from, date_to)][(account_id, general_account_id)] += amount
+            agg_analytic[(model, date_from, date_to)][account_id] += amount
 
         for line in self:
-            model, fname, accounts = get_accounts(line)
+            model, accounts = get_accounts(line)
             general_accounts = line.general_budget_id.account_ids
             if general_accounts:
                 line.practical_amount = sum(
-                    agg_general.get((model, fname, line.date_from, line.date_to), {}).get((account, general_account), 0)
+                    agg_general.get((model, line.date_from, line.date_to), {}).get((account, general_account), 0)
                     for account in accounts
                     for general_account in general_accounts.ids
                 )
             else:
                 line.practical_amount = sum(
-                    agg_analytic.get((model, fname, line.date_from, line.date_to), {}).get(account, 0)
+                    agg_analytic.get((model, line.date_from, line.date_to), {}).get(account, 0)
                     for account in accounts
                 )
 
@@ -266,7 +312,7 @@ class CrossoveredBudgetLines(models.Model):
         if self.analytic_account_id:
             # if there is an analytic account, then the analytic items are loaded
             action = self.env['ir.actions.act_window']._for_xml_id('analytic.account_analytic_line_action_entries')
-            action['domain'] = [('auto_account_id', '=', self.analytic_account_id.id),
+            action['domain'] = [('account_id', '=', self.analytic_account_id.id),
                                 ('date', '>=', self.date_from),
                                 ('date', '<=', self.date_to)
                                 ]

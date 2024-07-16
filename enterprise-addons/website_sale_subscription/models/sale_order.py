@@ -16,10 +16,10 @@ class SaleOrder(models.Model):
         order_line_exist = bool(order_line)
         order_line = super()._cart_update_order_line(product_id, quantity, order_line, **kwargs)
 
-        def get_default_plan_id(p):
-            pricelist = self.pricelist_id
-            pricing = self.env['sale.subscription.pricing'].sudo()._get_first_suitable_recurring_pricing(p, pricelist=pricelist)
-            return pricing.plan_id
+        def get_default_recurrence_id(p):
+            pricelist = self.env['website'].get_current_website().get_current_pricelist()
+            pricing = self.env['product.pricing']._get_first_suitable_pricing(p, pricelist)
+            return pricing.recurrence_id
 
         # Take the product from order line (in case new variant created),
         # otherwise use the default product_id
@@ -28,7 +28,7 @@ class SaleOrder(models.Model):
         if product.recurring_invoice:
             if order_line_exist and quantity <= 0:
                 sols = self.order_line.filtered(lambda sol: sol.product_id.recurring_invoice)
-                self.plan_id = sols and get_default_plan_id(sols[0].product_id) or False
+                self.recurrence_id = sols and get_default_recurrence_id(sols[0].product_id) or False
             elif not order_line_exist and quantity >= 0:
-                self.plan_id = get_default_plan_id(product)
+                self.recurrence_id = get_default_recurrence_id(product)
         return order_line

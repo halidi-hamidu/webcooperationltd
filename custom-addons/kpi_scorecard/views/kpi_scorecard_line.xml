@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="kpi_scorecard_line_view_search" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.search</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="kpi_id"/>
+                <filter string="Failed Targets" name="failures" domain="[('result', '=', 'failure')]"/>
+                <filter string="Reached Targets" name="success" domain="[('result', '=', 'success')]"/>
+                <filter string="Computation Errors" name="errors"  domain="[('result', '=', 'error')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_view_form" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.form</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="kpi_id"/>
+                        <field name="target_value"/>
+                        <field name="period_id" options="{'no_create_edit': 1, 'no_quick_create': 1}" invisible="1" />
+                        <label for="date_start" string="Period"/>
+                        <div>
+                            <field name="date_start" class="oe_inline"/> - <field name="date_end" class="oe_inline"/>
+                        </div>
+                    </group>
+                    <div class="text-muted mt16" attrs="{'invisible': [('help_notes', '=', False)]}">
+                        <field name="kpi_help_dummy" invisible="1"/>
+                        <label for="help_notes"  invisible="1"/>
+                        <field name="help_notes"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_view_kanban" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.kanban</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <kanban js_class="kpi_kanban" class="jstr-kanban-view">
+                <field name="id"/>
+                <field name="kpi_id"/>
+                <field name="formatted_target_value"/>
+                <field name="formatted_actual_value"/>
+                <field name="computation_error"/>
+                <field name="result"/>
+                <field name="all_parents"/>
+                <field name="sequence"/>
+                <field name="description"/>
+                <field name="progress_way"/>
+                <field name="result_type"/>
+                <field name="edit_rights"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click kpi-kanban-record-card">
+                            <div t-attf-class="kpi-kanban-info #{record.result.raw_value == 'error' and 'text-muted' or ''}" t-attf-title="#{record.description.raw_value and record.description.raw_value or ''}">
+                                <field name="kpi_id"/>
+                                <i t-if="record.computation_error.raw_value" class="fa fa-warning text-danger" t-attf-title="#{record.computation_error.raw_value}"> </i>
+                            </div>
+                            <div t-attf-class="kpi-kanban-figures text-center text-#{record.result.raw_value == 'success' and 'success' or record.result.raw_value == 'failure' and 'danger' or 'muted'}" title="Actual Value">
+                                <span class="kpi-kanban-show-figures">
+                                    <field name="formatted_actual_value"/>
+                                </span>
+                            </div>
+                            <div t-attf-class="kpi-kanban-figures-target text-center" title="Target Value">
+                                <span class="kpi-kanban-show-figures">
+                                    <field name="formatted_target_value"/>
+                                </span>
+                            </div>
+                            <div t-attf-class="kpi-kanban-prorgess text-center" title="Progress">
+                                <t t-set="progress_way" t-value="record.progress_way.raw_value"/>
+                                <div t-if="progress_way &gt; 0">
+                                    <t t-set="progress_width" t-value="progress_way/2"/>
+                                    <div class="progress" 
+                                         t-attf-title="#{progress_way}%"
+                                         t-if="record.result_type.raw_value == 'more'"
+                                         t-attf-style="max-width:100%; background-color:transparent; width:#{progress_width &gt; 50 and 100 or 50}%"
+                                    >
+                                         <t t-if="progress_way &gt; 100">
+                                            <t t-set="extra_width" t-value="(progress_way - 100)*50/100"/>
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 aria-valuenow="100" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 style="width: 50%;"
+                                            />
+                                            <div class="progress-bar progress-bar-striped bg-success" 
+                                                 role="progressbar" 
+                                                 t-attf-aria-valuenow="#{progress_way}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{extra_width&gt;50 and 50 or extra_width}%;"
+                                            />
+                                        </t>
+                                        <t t-else="">
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 t-attf-aria-valuenow="#{record.progress_way.raw_value}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{record.progress_way.raw_value}%;"
+                                            />
+                                            <div class="progress-bar bg-danger" 
+                                                 role="progressbar" 
+                                                 aria-valuenow="100" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{100-record.progress_way.raw_value}%;"
+                                            />
+                                        </t>
+                                    </div>
+                                    <div class="progress" 
+                                         t-attf-title="#{progress_way}%"
+                                         t-if="record.result_type.raw_value == 'less'"
+                                         t-attf-style="max-width:100%; background-color:transparent; width:#{progress_width &gt; 50 and 100 or 50}%"
+                                    >
+                                         <t t-if="progress_way &gt; 100">
+                                            <t t-set="extra_width" t-value="(progress_way - 100)*50/100"/>
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 aria-valuenow="100" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 style="width: 50%;"
+                                            />
+                                            <div class="progress-bar bg-danger" 
+                                                 role="progressbar" 
+                                                 t-attf-aria-valuenow="#{progress_way}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{extra_width&gt;50 and 50 or extra_width}%;"
+                                            />
+                                        </t>
+                                        <t t-else="">
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 t-attf-aria-valuenow="#{record.progress_way.raw_value}" 
+                                                 t-attf-aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{record.progress_way.raw_value}%;"
+                                            />
+                                            <div class="progress-bar progress-bar-striped bg-success" 
+                                                 role="progressbar" 
+                                                 aria-valuenow="100" 
+                                                 t-attf-aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 t-attf-style="width: #{100-record.progress_way.raw_value}%;"
+                                            />
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="kpi-kanban-buttons">
+                                <a class="btn btn-primary kpi-edit-target kpi-kanban-row-btn kpi-kanban-attr-period kpi-kanban-attr-period-open" title="Change Target" name="kpi-edit-target" role="button" t-if="record.edit_rights.raw_value">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <a class="btn btn-primary kpi-show-history kpi-kanban-row-btn kpi-kanban-attr-period" title="History" name="kpi-show-history" role="button">
+                                    <i class="fa fa-signal"></i>
+                                </a>
+                                <a class="btn btn-primary kpi-remove-target kpi-kanban-row-btn kpi-kanban-attr-period kpi-kanban-attr-period-open" title="Delete Target" name="kpi-remove-target" role="button" t-if="record.edit_rights.raw_value">
+                                    <i class="fa fa-remove"></i>
+                                </a>                            
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_action" model="ir.actions.act_window">
+        <field name="name">KPI Scorecard</field>
+        <field name="res_model">kpi.scorecard.line</field>
+        <field name="view_mode">kanban</field>
+        <field name="target">main</field> 
+        <field name="search_view_id" eval="kpi_scorecard_line_view_search"/>
+    </record>
+    <!-- See components/kpi_report -->
+    <record id="kpi_scorecard_line_action_report" model="ir.actions.client">
+        <field name="name">KPI Trends</field>
+        <field name="tag">kpi.scorecard.report</field>
+        <field name="res_model">kpi.scorecard.line</field>
+    </record>
+    
+</odoo>

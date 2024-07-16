@@ -10,7 +10,7 @@
                 <ENC_5 t-out="validation_time"/>
                 <ENC_6 t-out="invoice.move_type == 'in_invoice' and '05' or invoice.move_type == 'in_refund' and '95'"/>
                 <ENC_7 t-out="invoice.currency_id.name"/>
-                <ENC_8 t-out="len(invoice.invoice_line_ids)"/>
+                <ENC_8 t-out="len(invoice.invoice_line_ids.filtered(lambda line: line.display_type not in ('line_section', 'line_note')))"/>
                 <ENC_9 t-out="invoice.invoice_date_due"/>
                 <ENC_10 t-out="'2' if invoice.company_id.l10n_co_edi_test_mode else '1'"/>
                 <ENC_11 t-out="'11' if invoice.partner_id.country_id.code != 'CO' else '10'"/>
@@ -132,14 +132,14 @@
                     </FCB>
 
                     <IDE t-if="invoice.move_type == 'in_invoice'">
-                        <IDE_1 t-out="ite_counter"/>
-                        <IDE_2 t-out="'false' if float_compare(line.price_subtotal, 0, precision_rounding=line.currency_id.rounding or invoice.currency_id.rounding) &gt;= 0 else 'true'"/>
+                        <IDE_1 t-esc="ite_counter"/>
+                        <IDE_2 t-esc="'false' if float_compare(line.price_subtotal, 0, precision_rounding=line.currency_id.rounding or invoice.currency_id.rounding) &gt;= 0 else 'true'"/>
                         <IDE_3/>
-                        <IDE_4 t-out="line.discount"/>
-                        <IDE_5 t-out="format_monetary(round(invoice.currency_id.round((line.discount / 100) * line.price_unit * line.quantity) or 0.0, 2), invoice.currency_id)"/>
-                        <IDE_6 t-out="invoice.currency_id.name"/>
-                        <IDE_7 t-out="format_monetary(round(line.price_unit * line.quantity, 2), invoice.currency_id)"/>
-                        <IDE_8 t-out="invoice.currency_id.name"/>
+                        <IDE_4 t-esc="line.discount"/>
+                        <IDE_5 t-esc="format_monetary(round(invoice.currency_id.round((line.discount / 100) * line.price_unit * line.quantity) or 0.0, 2), invoice.currency_id)"/>
+                        <IDE_6 t-esc="invoice.currency_id.name"/>
+                        <IDE_7 t-esc="format_monetary(round(line.price_unit * line.quantity, 2), invoice.currency_id)"/>
+                        <IDE_8 t-esc="invoice.currency_id.name"/>
                     </IDE>
 
                     <t t-call="l10n_co_edi.tii_section"/>

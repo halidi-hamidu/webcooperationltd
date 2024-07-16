@@ -10,7 +10,6 @@ from unittest.mock import patch
 from odoo import fields
 from odoo.addons.base.tests.test_ir_cron import CronMixinCase
 from odoo.addons.social.tests.common import SocialCase
-from odoo.addons.social.models.social_post import SocialPost
 from odoo.addons.social_push_notifications.models.social_account import SocialAccountPushNotifications
 
 
@@ -69,11 +68,6 @@ class SocialPushNotificationsCase(SocialCase, CronMixinCase):
         self.visitors = Visitor.create(visitor_vals)
         self.social_post.create_uid.write({'tz': timezones[0]})
 
-        # Since mocking a decorated method doesn't work, we unset the constrains
-        # before creating the post and re-apply them after.
-        check_scheduled_date_constrains = SocialPost._check_scheduled_date._constrains
-        SocialPost._check_scheduled_date._constrains = tuple()
-
         scheduled_date = fields.Datetime.now() - datetime.timedelta(minutes=1)
         with self.capture_triggers('social.ir_cron_post_scheduled') as captured_triggers:
             self.social_post.write({
@@ -81,8 +75,6 @@ class SocialPushNotificationsCase(SocialCase, CronMixinCase):
                 'post_method': 'scheduled',
                 'scheduled_date': scheduled_date
             })
-
-        SocialPost._check_scheduled_date._constrains = check_scheduled_date_constrains
 
         # when scheduling, a CRON trigger is created to match the scheduled_date
         self.assertEqual(len(captured_triggers.records), 1)
@@ -105,7 +97,7 @@ class SocialPushNotificationsCase(SocialCase, CronMixinCase):
         self.assertTrue(all(live_post.state == 'ready' for live_post in live_posts))
         self.assertEqual(self.social_post.state, 'posting')
 
-        def _firebase_send_message_from_configuration(_this, _data, visitors):
+        def _firebase_send_message_from_configuration(this, data, visitors):
             website = visitors.website_id
             push_enabled = website.firebase_enable_push_notifications
             # Ensure that only visitors from the website with push notifications enabled

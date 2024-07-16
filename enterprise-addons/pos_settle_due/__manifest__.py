@@ -13,8 +13,14 @@
     'auto_install': True,
     'license': 'OEEL-1',
     'assets': {
-        'point_of_sale._assets_pos': [
-            'pos_settle_due/static/src/**/*',
+        'point_of_sale.assets': [
+            'pos_settle_due/static/src/css/pos.css',
+            'pos_settle_due/static/src/js/**/*.js',
+            'pos_settle_due/static/src/xml/**/*.xml',
+        ],
+        'web.assets_tests': [
+            'pos_settle_due/static/tests/tours/**/*',
+            'pos_settle_due/static/tests/helpers/**/*'
         ],
     }
 }

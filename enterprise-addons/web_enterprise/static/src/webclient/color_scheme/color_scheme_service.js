@@ -3,7 +3,6 @@
 import { whenReady } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { browser } from "@web/core/browser/browser";
-import { cookie } from "@web/core/browser/cookie";
 
 import { switchColorSchemeItem } from "./color_scheme_menu_items";
 
@@ -11,7 +10,8 @@ const serviceRegistry = registry.category("services");
 const userMenuRegistry = registry.category("user_menuitems");
 
 export class ColorSchemeService {
-    constructor(env, { ui }) {
+    constructor(env, { cookie, ui }) {
+        this.cookie = cookie;
         this.ui = ui;
         whenReady(() => this.applyColorScheme());
     }
@@ -19,7 +19,8 @@ export class ColorSchemeService {
      * @returns {String} The color scheme configured by the end-user
      */
     get activeColorScheme() {
-        return cookie.get("configured_color_scheme") || cookie.get("color_scheme") || "light";
+        const cookies = this.cookie.current;
+        return cookies.configured_color_scheme || cookies.color_scheme || "light";
     }
     /**
      * @returns {String} the color scheme that should be loaded from the server
@@ -31,7 +32,7 @@ export class ColorSchemeService {
      * @param {String} scheme
      */
     switchToColorScheme(scheme) {
-        cookie.set("configured_color_scheme", scheme);
+        this.cookie.setCookie("configured_color_scheme", scheme);
         this.applyColorScheme();
     }
     /**
@@ -40,22 +41,16 @@ export class ColorSchemeService {
      */
     applyColorScheme() {
         const effectiveScheme = this.effectiveColorScheme;
-        if (effectiveScheme !== (cookie.get("color_scheme") || "light")) {
-            cookie.set("color_scheme", effectiveScheme);
+        if (effectiveScheme !== (this.cookie.current.color_scheme || "light")) {
+            this.cookie.setCookie("color_scheme", effectiveScheme);
             this.ui.block();
-            this.reload();
+            browser.location.reload();
         }
-    }
-    /**
-     * Force the page's reload
-     */
-    reload() {
-        browser.location.reload();
     }
 }
 
 export const colorSchemeService = {
-    dependencies: ["ui"],
+    dependencies: ["cookie", "ui"],
 
     start(env, services) {
         userMenuRegistry.add("color_scheme.switch", switchColorSchemeItem);

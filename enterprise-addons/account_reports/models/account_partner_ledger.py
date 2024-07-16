@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import json
 
-from odoo import api, models, _, fields
+from odoo import models, _, fields
 from odoo.exceptions import UserError
 from odoo.osv import expression
 from odoo.tools.misc import format_date, get_lang
@@ -16,18 +16,15 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
     _inherit = 'account.report.custom.handler'
     _description = 'Partner Ledger Custom Handler'
 
-    def _get_custom_display_config(self):
-        return {
-            'css_custom_class': 'partner_ledger',
-            'templates': {
-                'AccountReportLineName': 'account_reports.PartnerLedgerLineName',
-            },
-        }
-
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
-        if options['export_mode'] == 'print' and options.get('filter_search_bar'):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
+        if self.env.context.get('print_mode') and options.get('filter_search_bar'):
             # Handled here instead of in custom options initializer as init_options functions aren't re-called when printing the report.
-            options.setdefault('forced_domain', []).append(('partner_id.name', 'ilike', options['filter_search_bar']))
+            forced_domain = options.setdefault('forced_domain', [])
+            options['forced_domain'] = forced_domain + [
+                '|', ('matched_debit_ids.debit_move_id.partner_id.display_name', 'ilike', options['filter_search_bar']),
+                '|', ('matched_credit_ids.credit_move_id.partner_id.display_name', 'ilike', options['filter_search_bar']),
+                ('partner_id.display_name', 'ilike', options['filter_search_bar']),
+            ]
 
         partner_lines, totals_by_column_group = self._build_partner_lines(report, options)
         lines = report._regroup_lines_by_name_prefix(options, partner_lines, '_report_expand_unfoldable_line_partner_ledger_prefix_group', 0)
@@ -51,9 +48,14 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             for column_group_key in options['column_groups']
         }
 
-        partners_results = self._query_partners(options)
+        search_filter = options.get('filter_search_bar') or ''
+        accept_unknown_in_filter = search_filter.lower() in self._get_no_partner_line_label().lower()
+        for partner, results in self._query_partners(options):
+            if self.env.context.get('print_mode') and search_filter and not partner and not accept_unknown_in_filter:
+                # When printing and searching for a specific partner, make it so we only show its lines, not the 'Unknown Partner' one, that would be
+                # shown in case a misc entry with no partner was reconciled with one of the target partner's entries.
+                continue
 
-        for partner, results in partners_results:
             partner_values = defaultdict(dict)
             for column_group_key in options['column_groups']:
                 partner_sum = results.get(column_group_key, {})
@@ -108,15 +110,43 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         domain = []
 
-        company_ids = report.get_report_company_ids(options)
+        company_ids = [company_opt['id'] for company_opt in options.get('multi_company', self.env.company)]
         exch_code = self.env['res.company'].browse(company_ids).mapped('currency_exchange_journal_id')
         if exch_code:
             domain += ['!', '&', '&', '&', ('credit', '=', 0.0), ('debit', '=', 0.0), ('amount_currency', '!=', 0.0), ('journal_id', 'in', exch_code.ids)]
 
         options['forced_domain'] = options.get('forced_domain', []) + domain
 
-        if self.user_has_groups('base.group_multi_currency'):
-            options['multi_currency'] = True
+        prefix_group_parameter_name = 'account_reports.partner_ledger.groupby_prefix_groups_threshold'
+        prefix_groups_threshold = int(self.env['ir.config_parameter'].sudo().get_param(prefix_group_parameter_name, 0))
+        if prefix_groups_threshold:
+            options['groupby_prefix_groups_threshold'] = prefix_groups_threshold
+
+        # 'partner_ids' key is forced on the action when opening the report from a partner's form view.
+        # We need to remove it and replace it by a forced domain in order to ensure we get the misc operations without partners
+        # reconciled with the current partner (it cannot be kept, otherwise it'll be used by the _query_get).
+        # We inject a new custom option key to keep track of it when regenerating the options to export the pdf.
+        if len(options.get('partner_ids', [])) == 1:
+            options['single_partner_mode'] = options['partner_ids'][0]
+            del options['partner_ids']
+        elif (self._context.get('print_mode') or self._context.get('active_model') == 'res.partner') and previous_options and 'single_partner_mode' in previous_options:
+            options['single_partner_mode'] = previous_options['single_partner_mode']
+
+        single_partner_id = options.get('single_partner_mode')
+        if single_partner_id:
+            forced_domain = options.setdefault('forced_domain', [])
+            options['forced_domain'] = forced_domain + [
+                '|', '&', ('matched_debit_ids.debit_move_id.partner_id', '=', single_partner_id), ('partner_id', '=', False),
+                '|', '&', ('matched_credit_ids.credit_move_id.partner_id', '=', single_partner_id), ('partner_id', '=', False),
+                ('partner_id', '=', single_partner_id),
+            ]
+
+    def _caret_options_initializer(self):
+        """ Specify caret options for navigating from a report line to the associated journal entry or payment """
+        return {
+            'account.move.line': [{'name': _("View Journal Entry"), 'action': 'caret_option_open_record_form'}],
+            'account.payment': [{'name': _("View Payment"), 'action': 'caret_option_open_record_form', 'action_param': 'payment_id'}],
+        }
 
     def _custom_unfold_all_batch_data_generator(self, report, options, lines_to_expand_by_function):
         partner_ids_to_expand = []
@@ -151,7 +181,6 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             'aml_values': self._get_aml_values(options, partner_ids_to_expand) if partner_ids_to_expand else {},
         }
 
-    @api.model
     def action_open_partner(self, options, params):
         dummy, record_id = self.env['account.report']._get_model_info_from_id(params['id'])
 
@@ -224,7 +253,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         # - the amls affecting the initial balance.
         if groupby_partners:
             # Note a search is done instead of a browse to preserve the table ordering.
-            partners = self.env['res.partner'].with_context(active_test=False).search_fetch([('id', 'in', list(groupby_partners.keys()))], ["id", "name", "trust", "company_registry", "vat"])
+            partners = self.env['res.partner'].with_context(active_test=False, prefetch_fields=False).search([('id', 'in', list(groupby_partners.keys()))])
         else:
             partners = []
 
@@ -246,7 +275,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         report = self.env.ref('account_reports.partner_ledger_report')
 
         # Create the currency table.
-        ct_query = report._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
             tables, where_clause, where_params = report._query_get(column_group_options, 'normal')
             params.append(column_group_key)
@@ -270,7 +299,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         queries = []
         params = []
         report = self.env.ref('account_reports.partner_ledger_report')
-        ct_query = report._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
             # Get sums for the initial balance.
             # period: [('date' <= options['date_from'] - 1)]
@@ -320,7 +349,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         queries = []
         params = []
         report = self.env.ref('account_reports.partner_ledger_report')
-        ct_query = report._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
             tables, where_clause, where_params = report._query_get(column_group_options, 'normal')
             params += [
@@ -333,11 +362,11 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                     %s                                                                                                    AS column_group_key,
                     aml_with_partner.partner_id                                                                           AS groupby,
                     COALESCE(SUM(CASE WHEN aml_with_partner.balance > 0 THEN 0 ELSE ROUND(
-                            partial.amount * currency_table.rate, currency_table.precision) END), 0)                      AS debit,
+                            partial.amount * currency_table.rate, currency_table.precision) END), 0)                      AS debit, 
                     COALESCE(SUM(CASE WHEN aml_with_partner.balance < 0 THEN 0 ELSE ROUND(
-                            partial.amount * currency_table.rate, currency_table.precision) END), 0)                      AS credit,
+                            partial.amount * currency_table.rate, currency_table.precision) END), 0)                      AS credit, 
                     COALESCE(SUM(- sign(aml_with_partner.balance) * ROUND(
-                            partial.amount * currency_table.rate, currency_table.precision)), 0)                          AS balance
+                            partial.amount * currency_table.rate, currency_table.precision)), 0)                          AS balance 
                 FROM {tables}
                 JOIN account_partial_reconcile partial
                     ON account_move_line.id = partial.debit_move_id OR account_move_line.id = partial.credit_move_id
@@ -387,7 +416,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                 # For the first expansion of the line, the initial balance line gives the progress
                 progress = init_load_more_progress(initial_balance_line)
 
-        limit_to_load = report.load_more_limit + 1 if report.load_more_limit and options['export_mode'] != 'print' else None
+        limit_to_load = report.load_more_limit + 1 if report.load_more_limit and not self._context.get('print_mode') else None
 
         if unfold_all_batch_data:
             aml_results = unfold_all_batch_data['aml_values'][record_id]
@@ -398,7 +427,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
         treated_results_count = 0
         next_progress = progress
         for result in aml_results:
-            if options['export_mode'] != 'print' and report.load_more_limit and treated_results_count == report.load_more_limit:
+            if not self._context.get('print_mode') and report.load_more_limit and treated_results_count == report.load_more_limit:
                 # We loaded one more than the limit on purpose: this way we know we need a "load more" line
                 has_more = True
                 break
@@ -412,7 +441,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             'lines': lines,
             'offset_increment': treated_results_count,
             'has_more': has_more,
-            'progress': next_progress
+            'progress': json.dumps(next_progress)
         }
 
     def _get_aml_values(self, options, partner_ids, offset=0, limit=None):
@@ -432,7 +461,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             indirectly_linked_aml_partner_params.append(tuple(partner_ids_wo_none))
         directly_linked_aml_partner_clause = '(' + ' OR '.join(directly_linked_aml_partner_clauses) + ')'
 
-        ct_query = self.env['account.report']._get_query_currency_table(options)
+        ct_query = self.env['res.currency']._get_query_currency_table(options)
         queries = []
         all_params = []
         lang = self.env.lang or get_lang(self.env).code
@@ -459,6 +488,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             queries.append(f'''
                 SELECT
                     account_move_line.id,
+                    account_move_line.date,
                     account_move_line.date_maturity,
                     account_move_line.name,
                     account_move_line.ref,
@@ -469,7 +499,6 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                     account_move_line.currency_id,
                     account_move_line.amount_currency,
                     account_move_line.matching_number,
-                    COALESCE(account_move_line.invoice_date, account_move_line.date)                 AS invoice_date,
                     ROUND(account_move_line.debit * currency_table.rate, currency_table.precision)   AS debit,
                     ROUND(account_move_line.credit * currency_table.rate, currency_table.precision)  AS credit,
                     ROUND(account_move_line.balance * currency_table.rate, currency_table.precision) AS balance,
@@ -480,8 +509,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                     journal.code                                                                     AS journal_code,
                     {journal_name}                                                                   AS journal_name,
                     %s                                                                               AS column_group_key,
-                    'directly_linked_aml'                                                            AS key,
-                    0                                                                                AS partial_id
+                    'directly_linked_aml'                                                            AS key
                 FROM {tables}
                 JOIN account_move ON account_move.id = account_move_line.move_id
                 LEFT JOIN {ct_query} ON currency_table.company_id = account_move_line.company_id
@@ -497,6 +525,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             queries.append(f'''
                 SELECT
                     account_move_line.id,
+                    account_move_line.date,
                     account_move_line.date_maturity,
                     account_move_line.name,
                     account_move_line.ref,
@@ -507,16 +536,15 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                     account_move_line.currency_id,
                     account_move_line.amount_currency,
                     account_move_line.matching_number,
-                    COALESCE(account_move_line.invoice_date, account_move_line.date)                    AS invoice_date,
                     CASE WHEN aml_with_partner.balance > 0 THEN 0 ELSE ROUND(
                         partial.amount * currency_table.rate, currency_table.precision
-                    ) END                                                                               AS debit,
+                    ) END                                                                               AS debit, 
                     CASE WHEN aml_with_partner.balance < 0 THEN 0 ELSE ROUND(
                         partial.amount * currency_table.rate, currency_table.precision
-                    ) END                                                                               AS credit,
+                    ) END                                                                               AS credit, 
                     - sign(aml_with_partner.balance) * ROUND(
                         partial.amount * currency_table.rate, currency_table.precision
-                    )                                                                                   AS balance,
+                    )                                                                                   AS balance, 
                     account_move.name                                                                   AS move_name,
                     account_move.move_type                                                              AS move_type,
                     account.code                                                                        AS account_code,
@@ -524,8 +552,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                     journal.code                                                                        AS journal_code,
                     {journal_name}                                                                      AS journal_name,
                     %s                                                                                  AS column_group_key,
-                    'indirectly_linked_aml'                                                             AS key,
-                    partial.id                                                                          AS partial_id
+                    'indirectly_linked_aml'                                                             AS key
                 FROM {tables}
                     LEFT JOIN {ct_query} ON currency_table.company_id = account_move_line.company_id,
                     account_partial_reconcile partial,
@@ -582,16 +609,27 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
     ####################################################
     def _get_report_line_partners(self, options, partner, partner_values, level_shift=0):
         company_currency = self.env.company.currency_id
+        unfold_all = (self._context.get('print_mode') and not options.get('unfolded_lines')) or options.get('unfold_all')
 
         unfoldable = False
         column_values = []
-        report = self.env['account.report'].browse(options['report_id'])
+        report = self.env['account.report']
         for column in options['columns']:
             col_expr_label = column['expression_label']
             value = partner_values[column['column_group_key']].get(col_expr_label)
-            unfoldable = unfoldable or (col_expr_label in ('debit', 'credit') and not company_currency.is_zero(value))
-            column_values.append(report._build_column_dict(value, column, options=options))
 
+            if col_expr_label in {'debit', 'credit', 'balance'}:
+                formatted_value = report.format_value(value, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'])
+            else:
+                formatted_value = report.format_value(value, figure_type=column['figure_type']) if value is not None else value
+
+            unfoldable = unfoldable or (col_expr_label in ('debit', 'credit') and not company_currency.is_zero(value))
+
+            column_values.append({
+                'name': formatted_value,
+                'no_format': value,
+                'class': 'number'
+            })
 
         line_id = report._get_generic_line_id('res.partner', partner.id) if partner else report._get_generic_line_id('res.partner', None, markup='no_partner')
 
@@ -599,35 +637,15 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             'id': line_id,
             'name': partner is not None and (partner.name or '')[:128] or self._get_no_partner_line_label(),
             'columns': column_values,
-            'level': 1 + level_shift,
+            'level': 2 + level_shift,
             'trust': partner.trust if partner else None,
             'unfoldable': unfoldable,
-            'unfolded': line_id in options['unfolded_lines'] or options['unfold_all'],
+            'unfolded': line_id in options['unfolded_lines'] or unfold_all,
             'expand_function': '_report_expand_unfoldable_line_partner_ledger',
         }
 
     def _get_no_partner_line_label(self):
         return _('Unknown Partner')
-
-    @api.model
-    def _format_aml_name(self, line_name, move_ref, move_name=None):
-        ''' Format the display of an account.move.line record. As its very costly to fetch the account.move.line
-        records, only line_name, move_ref, move_name are passed as parameters to deal with sql-queries more easily.
-
-        :param line_name:   The name of the account.move.line record.
-        :param move_ref:    The reference of the account.move record.
-        :param move_name:   The name of the account.move record.
-        :return:            The formatted name of the account.move.line record.
-        '''
-        names = []
-        if move_name is not None and move_name != '/':
-            names.append(move_name)
-        if move_ref and move_ref != '/':
-            names.append(move_ref)
-        if line_name and line_name != move_name and line_name != '/':
-            names.append(line_name)
-        name = ' - '.join(names)
-        return name
 
     def _get_report_line_move_line(self, options, aml_query_result, partner_line_id, init_bal_by_col_group, level_shift=0):
         if aml_query_result['payment_id']:
@@ -636,53 +654,79 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             caret_type = 'account.move.line'
 
         columns = []
-        report = self.env['account.report'].browse(options['report_id'])
+        report = self.env['account.report']
         for column in options['columns']:
             col_expr_label = column['expression_label']
-            col_value = aml_query_result[col_expr_label] if column['column_group_key'] == aml_query_result['column_group_key'] else None
+            if col_expr_label == 'ref':
+                col_value = report._format_aml_name(aml_query_result['name'], aml_query_result['ref'], aml_query_result['move_name'])
+            else:
+                col_value = aml_query_result[col_expr_label] if column['column_group_key'] == aml_query_result['column_group_key'] else None
 
             if col_value is None:
-                columns.append(report._build_column_dict(None, None))
+                columns.append({})
             else:
-                currency = False
+                col_class = 'number'
 
-                if col_expr_label == 'balance':
-                    col_value += init_bal_by_col_group[column['column_group_key']]
-
-                if col_expr_label == 'amount_currency':
+                if col_expr_label == 'date_maturity':
+                    formatted_value = format_date(self.env, fields.Date.from_string(col_value))
+                    col_class = 'date'
+                elif col_expr_label == 'amount_currency':
                     currency = self.env['res.currency'].browse(aml_query_result['currency_id'])
+                    formatted_value = report.format_value(col_value, currency=currency, figure_type=column['figure_type'])
+                elif col_expr_label == 'balance':
+                    col_value += init_bal_by_col_group[column['column_group_key']]
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'], blank_if_zero=column['blank_if_zero'])
+                else:
+                    if col_expr_label == 'ref':
+                        col_class = 'o_account_report_line_ellipsis'
+                    elif col_expr_label not in ('debit', 'credit'):
+                        col_class = ''
+                    formatted_value = report.format_value(col_value, figure_type=column['figure_type'])
 
-                    if currency == self.env.company.currency_id:
-                        col_value = ''
-
-                columns.append(report._build_column_dict(col_value, column, options=options, currency=currency))
+                columns.append({
+                    'name': formatted_value,
+                    'no_format': col_value,
+                    'class': col_class,
+                })
 
         return {
-            'id': report._get_generic_line_id('account.move.line', aml_query_result['id'], parent_line_id=partner_line_id, markup=aml_query_result['partial_id']),
+            'id': report._get_generic_line_id('account.move.line', aml_query_result['id'], parent_line_id=partner_line_id),
             'parent_id': partner_line_id,
-            'name': self._format_aml_name(aml_query_result['name'], aml_query_result['ref'], aml_query_result['move_name']),
+            'name': format_date(self.env, aml_query_result['date']),
+            'class': 'text-muted' if aml_query_result['key'] == 'indirectly_linked_aml' else 'text',  # do not format as date to prevent text centering
             'columns': columns,
             'caret_options': caret_type,
-            'level': 3 + level_shift,
+            'level': 4 + level_shift,
         }
 
     def _get_report_line_total(self, options, totals_by_column_group):
         column_values = []
-        report = self.env['account.report'].browse(options['report_id'])
+        report = self.env['account.report']
         for column in options['columns']:
-            col_value = totals_by_column_group[column['column_group_key']].get(column['expression_label'])
-            column_values.append(report._build_column_dict(col_value, column, options=options))
+            col_expr_label = column['expression_label']
+            value = totals_by_column_group[column['column_group_key']].get(column['expression_label'])
+
+            if col_expr_label in {'debit', 'credit', 'balance'}:
+                formatted_value = report.format_value(value, figure_type=column['figure_type'], blank_if_zero=False)
+            else:
+                formatted_value = report.format_value(value, figure_type=column['figure_type']) if value else None
+
+            column_values.append({
+                'name': formatted_value,
+                'no_format': value,
+                'class': 'number'
+            })
 
         return {
             'id': report._get_generic_line_id(None, None, markup='total'),
             'name': _('Total'),
+            'class': 'total',
             'level': 1,
             'columns': column_values,
         }
 
     def open_journal_items(self, options, params):
         params['view_ref'] = 'account.view_move_line_tree_grouped_partner'
-        report = self.env['account.report'].browse(options['report_id'])
-        action = report.open_journal_items(options=options, params=params)
+        action = self.env['account.report'].open_journal_items(options=options, params=params)
         action.get('context', {}).update({'search_default_group_by_account': 0, 'search_default_group_by_partner': 1})
         return action

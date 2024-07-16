@@ -6,7 +6,7 @@
     "summary": """RESTful API to integrate Odoo with whatever system you need""",
     "category": "",
     "images": ["images/openapi-swagger.png"],
-    "version": "1.2.4",
+    "version": "16.0.1.2.4",
     "application": False,
     "author": "IT-Projects LLC, Ivan Yelizariev",
     "support": "help@itpp.dev",
@@ -14,7 +14,7 @@
     "license": "LGPL-3",
     "depends": ["base_api", "mail"],
     "external_dependencies": {
-        "python": ["bravado_core", "swagger_spec_validator", "jsonschema"],
+        "python": ["bravado_core", "swagger_spec_validator", "jsonschema<4"],
         "bin": [],
     },
     "data": [

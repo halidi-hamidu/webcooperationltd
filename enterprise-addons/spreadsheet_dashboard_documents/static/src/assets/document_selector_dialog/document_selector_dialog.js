@@ -1,18 +1,16 @@
-/** @odoo-module **/
+/** @odoo-module */
 
-import { _t } from "@web/core/l10n/translation";
 import { DocumentsSelectorPanel } from "@documents_spreadsheet/spreadsheet_selector_dialog/document_selector_panel";
 import { Dialog } from "@web/core/dialog/dialog";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component } from "@odoo/owl";
+const { Component } = owl;
 
 export class DocumentSelectorDialog extends Component {
     setup() {
         this.selectedSpreadsheet = null;
         this.orm = useService("orm");
         this.actionService = useService("action");
-        this.title = _t("Create a Dashboard or select a Spreadsheet");
     }
 
     onSpreadsheetSelected({ spreadsheet }) {
@@ -29,14 +27,6 @@ export class DocumentSelectorDialog extends Component {
             this.actionService.switchView("form", {
                 resId: this.props.dashboardGroupId,
             });
-        } else {
-            const action = await this.orm.call(
-                "spreadsheet.dashboard",
-                "action_open_new_dashboard",
-                [this.props.dashboardGroupId]
-            );
-            // open the new dashboard
-            this.actionService.doAction(action, { clear_breadcrumbs: false });
         }
         this.props.close();
     }

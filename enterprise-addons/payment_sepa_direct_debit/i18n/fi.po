@@ -3,18 +3,23 @@
 # 	* payment_sepa_direct_debit
 # 
 # Translators:
-# Kari Lindgren <kari.lindgren@emsystems.fi>, 2023
-# Kim Asplund <kim.asplund@gmail.com>, 2023
-# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2023
-# Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2024
+# Veikko Väätäjä <veikko.vaataja@gmail.com>, 2022
+# Kim Asplund <kim.asplund@gmail.com>, 2022
+# Teija Hölttä <teija.holtta@gmail.com>, 2022
+# Pekka Ikonen, 2022
+# Miku Laitinen <miku.laitinen@gmail.com>, 2022
+# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
+# Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
+# Jesse Järvi <me@jessejarvi.net>, 2023
+# Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:22+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2024\n"
+"POT-Creation-Date: 2023-05-23 08:38+0000\n"
+"PO-Revision-Date: 2022-09-22 05:47+0000\n"
+"Last-Translator: Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023\n"
 "Language-Team: Finnish (https://app.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,9 +28,33 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: payment_sepa_direct_debit
-#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sepa_transaction_status
-msgid "<strong>Amount: </strong>"
-msgstr "<strong>Määrä: </strong>"
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "+32123456789"
+msgstr "+32123456789"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Authenticated by SMS by:</strong>"
+msgstr "<strong>Todennettu tekstiviestillä:</strong>"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Date and place of signature:</strong>"
+msgstr "<strong>Allekirjoituspäivä ja -paikka:</strong>"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid ""
+"<strong>Name of the reference party:</strong>\n"
+"                            ......................................"
+msgstr ""
+"<strong>Viiteosapuolen nimi:</strong>\n"
+"                            ......................................"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "<strong>Signature:</strong>"
+msgstr "<strong>Allekirjoitus:</strong>"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,body_html:payment_sepa_direct_debit.mail_template_sepa_notify_debit
@@ -42,7 +71,7 @@ msgid ""
 "                    <span style=\"font-size: 10px;\">Your SEPA Direct Debit Transaction</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.reference or ''\"></span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -128,7 +157,7 @@ msgstr ""
 "                    <span style=\"font-size: 10px;\">SEPA-suoraveloitustapahtumasi</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.reference or ''\"></span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -148,15 +177,15 @@ msgstr ""
 "\n"
 "                    Tiliäsi <t t-out=\"ctx.get('iban_last_4') or ''\">1234</t> veloitetaan enintään kahden kalenteripäivän kuluessa tai pian sen jälkeen, varmista, että sinulla on pyydetyt varat.<br><br>\n"
 "\n"
-"                   <t t-if=\"ctx.get('creditor_identifier') or ctx.get('mandate_ref')\">\n"
+"                   <t t-if=\"ctx.get('creditor_identifier') or ctx.get('mandate_ref')\"> \n"
 "                        Kauppiaan tiedot:<br>\n"
-"                       <ul>\n"
-"                           <t t-if=\"ctx.get('creditor_identifier')\">\n"
+"                       <ul> \n"
+"                           <t t-if=\"ctx.get('creditor_identifier')\"> \n"
 "                               <li> <t t-out=\"ctx['creditor_identifier'] or ''\">93 8601 1117947</t>: IBAN: <t t-out=\"ctx['creditor_identifier'] or ''\">NRO 93 8601 1117947</t></li>\n"
 "                           </t>\n"
-"                           <t t-if=\"ctx.get('mandate_ref')\">\n"
-"                               <li>SEPA-SUORAVELOITUSVALTUUTUKSEN VIITE:</li> </t> </ul> </t> <t t-out=\"ctx['mandate_ref'] or ''\"></t> \n"
-" <t t-if=\"ctx.get('creditor_identifier') or ctx.get('mandate_ref')\"> <ul> <t t-if=\"ctx.get('mandate_ref')\">                          </t>\n"
+"                           <t t-if=\"ctx.get('mandate_ref')\"> \n"
+"                               <li>SEPA-SUORAVELOITUSVALTUUTUKSEN VIITE:</li> <li> <t t-out=\"ctx['mandate_ref'] or ''\"></t> \n"
+"</li>                          </t>\n"
 "                       </ul>\n"
 "                   </t>\n"
 "                    Älä epäröi ottaa yhteyttä, jos sinulla on kysyttävää.\n"
@@ -217,7 +246,7 @@ msgid ""
 "                    <span style=\"font-size: 10px;\">Your SEPA Direct Debit Manddate</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.partner_bank_id.acc_number or ''\">BE15001559627230</span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -292,7 +321,7 @@ msgstr ""
 "                    <span style=\"font-size: 10px;\">SEPA-suoraveloituspäiväsi</span><br>\n"
 "                    <span style=\"font-size: 20px; font-weight: bold;\" t-out=\"object.partner_bank_id.acc_number or ''\">BE15001559627230</span>\n"
 "                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not company.uses_default_logo\">\n"
+"                <tr><td valign=\"middle\" align=\"right\">\n"
 "                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"company.name\">\n"
 "                </td></tr>\n"
 "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
@@ -356,9 +385,27 @@ msgstr ""
 "            "
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model,name:payment_sepa_direct_debit.model_account_bank_statement_line
-msgid "Bank Statement Line"
-msgstr "Pankkitiliotteen rivi"
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "A copy of the mandate will be sent by email to"
+msgstr ""
+"Kopio toimeksiannosta lähetetään sähköpostitse seuraavaan osoitteeseen"
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "Both the phone number and the verification code are required."
+msgstr "Sekä puhelinnumero että vahvistuskoodi vaaditaan."
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.payment_provider_form
+msgid "Buy credits"
+msgstr "Osta krediittejä"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__code
+msgid "Code"
+msgstr "Koodi"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_res_partner
@@ -366,9 +413,16 @@ msgid "Contact"
 msgstr "Kontakti"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__custom_mode
-msgid "Custom Mode"
-msgstr "Mukautettu tila"
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "Could not send the verification code."
+msgstr "Vahvistuskoodia ei voitu lähettää."
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_mandate_form
+msgid "Electronic Signature"
+msgstr "Sähköinen allekirjoitus"
 
 #. module: payment_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
@@ -376,9 +430,11 @@ msgid "IBAN"
 msgstr "IBAN"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_transaction__mandate_id
-msgid "Mandate"
-msgstr "Mandaatti"
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "Incorrect phone number."
+msgstr "Väärä puhelinnumero."
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -393,6 +449,11 @@ msgstr "Puuttuva tai virheellinen IBAN."
 #, python-format
 msgid "No transaction found matching reference %s."
 msgstr "Viitettä %s vastaavaa tapahtumaa ei löytynyt."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_signature_required
+msgid "Online Signature"
+msgstr "Allekirjoitus verkossa"
 
 #. module: payment_sepa_direct_debit
 #: model:ir.model,name:payment_sepa_direct_debit.model_account_payment_method
@@ -415,11 +476,22 @@ msgid "Payment Transaction"
 msgstr "Maksutapahtuma"
 
 #. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__phone_number
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Phone Number"
+msgstr "Puhelinnumero"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_sms_verification_required
+msgid "Phone Verification"
+msgstr "Puhelimen vahvistaminen"
+
+#. module: payment_sepa_direct_debit
 #. odoo-javascript
 #: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
 #, python-format
-msgid "Payment processing failed"
-msgstr "Maksun käsittely epäonnistui"
+msgid "Re-send SMS"
+msgstr "Lähetä tekstiviesti uudelleen"
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -434,7 +506,7 @@ msgid "SDD Mandate"
 msgstr "SDD-mandaatti"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.model.fields.selection,name:payment_sepa_direct_debit.selection__payment_provider__custom_mode__sepa_direct_debit
+#: model:ir.model.fields.selection,name:payment_sepa_direct_debit.selection__payment_provider__code__sepa_direct_debit
 msgid "SEPA Direct Debit"
 msgstr "SEPA-suoraveloitus"
 
@@ -455,14 +527,41 @@ msgid "SEPA Direct Debit: Charge Notification"
 msgstr "SEPA-suoraveloitus: Maksuilmoitus"
 
 #. module: payment_sepa_direct_debit
-#: model:ir.actions.server,name:payment_sepa_direct_debit.cron_auto_confirm_paid_sepa_txs_ir_actions_server
-msgid "SEPA Direct Debit: Confirm paid transactions"
-msgstr "SEPA-suoraveloitus: Vahvista maksetut maksutapahtumat"
-
-#. module: payment_sepa_direct_debit
 #: model:mail.template,name:payment_sepa_direct_debit.mail_template_sepa_notify_validation
 msgid "SEPA Direct Debit: Validation Notification"
 msgstr "SEPA-suoraveloitus: Validation Notification"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_payment_provider__sdd_sms_credits
+msgid "SMS Credits"
+msgstr "Tekstiviestikrediitit"
+
+#. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "SMS Sent"
+msgstr "Lähetetty tekstiviesti"
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "SMS could not be sent due to insufficient credit."
+msgstr ""
+"Tekstiviestiä ei voitu lähettää riittämättömän krediittisaldon vuoksi."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "SMS verification is disabled."
+msgstr "Tekstiviestivarmennus on poistettu käytöstä."
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Send SMS"
+msgstr "Lähetä tekstiviesti"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,description:payment_sepa_direct_debit.mail_template_sepa_notify_validation
@@ -478,11 +577,45 @@ msgid "Sent to the customer to indicate their account will be charged"
 msgstr "Lähetetään asiakkaalle ja ilmoitetaan, että hänen tilinsä veloitetaan"
 
 #. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "Server Error"
+msgstr "Palvelinvirhe"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signature
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Signature"
+msgstr "Allekirjoitus"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signed_by
+msgid "Signed By"
+msgstr "Allekirjoittanut"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__signed_on
+msgid "Signed On"
+msgstr "Allekirjoitettu"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.sdd_payment_mandate_form
+msgid "Signed online on"
+msgstr "Allekirjoitettu verkossa osoitteessa"
+
+#. module: payment_sepa_direct_debit
 #. odoo-python
 #: code:addons/payment_sepa_direct_debit/models/payment_provider.py:0
 #, python-format
 msgid "The bank account of the journal is not a valid IBAN."
 msgstr "Päiväkirjan pankkitilillä ei ole voimassa olevaa IBAN-tilinumeroa."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__signed_on
+msgid "The date of the signature"
+msgstr "Allekirjoituksen päivämäärä"
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
@@ -500,6 +633,64 @@ msgstr "Toimeksiannon omistaja ja asiakas eivät vastaa toisiaan."
 
 #. module: payment_sepa_direct_debit
 #. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The mandate was signed by %s."
+msgstr "Valtakirjan allekirjoitti %s."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The mandate was verified with phone number %s."
+msgstr "Valtuutus vahvistettiin puhelinnumerolla %s."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "The name and signature must be provided."
+msgstr "Nimi ja allekirjoitus on ilmoitettava."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__signed_by
+msgid "The name of the signer"
+msgstr "Allekirjoittajan nimi"
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The phone number does not match."
+msgstr "Puhelinnumero ei täsmää."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "The phone number must be provided and verified."
+msgstr "Puhelinnumero on ilmoitettava ja tarkistettava."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The phone number should be in international format."
+msgstr "Puhelinnumeron on oltava kansainvälisessä muodossa."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_sdd_mandate__phone_number
+msgid "The phone number used for verification by SMS code"
+msgstr "Puhelinnumero, jota käytetään tekstiviestikoodin vahvistamiseen"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__code
+msgid "The technical code of this payment provider."
+msgstr "Tämän maksupalveluntarjoajan tekninen koodi."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
 #: code:addons/payment_sepa_direct_debit/models/payment_transaction.py:0
 #, python-format
 msgid "The token is not linked to a mandate."
@@ -511,6 +702,64 @@ msgstr "Valtuutuskoodia ei ole sidottu toimeksiantoon."
 #, python-format
 msgid "The transaction is not linked to a token."
 msgstr "Transaktio ei ole sidottu valtuutuskoodiin."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "The verification code does not match."
+msgstr "Vahvistuskoodi ei täsmää."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "This mandate has already been verified."
+msgstr "Tämä toimeksianto on jo tarkistettu."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#: code:addons/payment_sepa_direct_debit/controllers/main.py:0
+#, python-format
+msgid "Unknown mandate ID."
+msgstr "Tuntematon valtuutuksen tunnus."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__verification_code
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "Verification Code"
+msgstr "Vahvistuskoodi"
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,field_description:payment_sepa_direct_debit.field_sdd_mandate__verified
+msgid "Verified"
+msgstr "Vahvistettu"
+
+#. module: payment_sepa_direct_debit
+#. odoo-javascript
+#: code:addons/payment_sepa_direct_debit/static/src/js/payment_form.js:0
+#, python-format
+msgid "We are not able to process your payment."
+msgstr "Emme pysty käsittelemään maksuasi."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__sdd_signature_required
+msgid "Whether a signature is required to create a new mandate."
+msgstr "Tarvitaanko uuden toimeksiannon luomiseen allekirjoitus."
+
+#. module: payment_sepa_direct_debit
+#: model:ir.model.fields,help:payment_sepa_direct_debit.field_payment_provider__sdd_sms_verification_required
+msgid "Whether phone numbers must be verified by an SMS code."
+msgstr "Onko puhelinnumerot varmennettava tekstiviestikoodilla."
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.payment_provider_form
+msgid ""
+"You don't have enough credit to send SMS. You can buy new credits here:"
+msgstr ""
+"Sinulla ei ole tarpeeksi krediittejä tekstiviestien lähettämiseen. Voit "
+"ostaa uusia krediittejä täältä:"
 
 #. module: payment_sepa_direct_debit
 #: model:mail.template,subject:payment_sepa_direct_debit.mail_template_sepa_notify_validation
@@ -531,3 +780,20 @@ msgid ""
 msgstr ""
 "Yritykselläsi on oltava velkojatunnus, jotta voit tehdä SEPA-"
 "suoraveloituspyynnön. Se voidaan asettaa kirjanpidon asetuksissa."
+
+#. module: payment_sepa_direct_debit
+#. odoo-python
+#: code:addons/payment_sepa_direct_debit/models/sdd_mandate.py:0
+#, python-format
+msgid "Your confirmation code is %s"
+msgstr "Vahvistuskoodisi on %s"
+
+#. module: payment_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:payment_sepa_direct_debit.inline_form
+msgid "upon validation."
+msgstr "vahvistuksen yhteydessä."
+
+#. module: payment_sepa_direct_debit
+#: model:mail.template,report_name:payment_sepa_direct_debit.mail_template_sepa_notify_validation
+msgid "{{ (object.name or '').replace('/','_') }}"
+msgstr "{{ (object.name or '').replace('/','_') }}"

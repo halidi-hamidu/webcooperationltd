@@ -3,21 +3,21 @@
 
 {
     'name': 'Croatia - Accounting Reports',
-    'countries': ['hr'],
+    'icon': '/l10n_hr/static/description/icon.png',
     'version': '1.0',
     'category': 'Accounting/Localizations/Reporting',
     'description': """
-Accounting reports for Croatia
+        Accounting reports for Croatia (in EURO !)
     """,
     'depends': [
-        'l10n_hr', 'account_reports'
+        'l10n_hr_euro', 'account_reports'
     ],
     'data': [
         'data/balance_sheet.xml',
         'data/profit_loss.xml',
     ],
     'installable': True,
-    'auto_install': ['l10n_hr', 'account_reports'],
+    'auto_install': ['l10n_hr_euro', 'account_reports'],
     'website': 'https://www.odoo.com/app/accounting',
     'license': 'OEEL-1',
 }

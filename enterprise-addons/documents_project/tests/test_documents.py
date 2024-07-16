@@ -6,6 +6,8 @@ from datetime import date, timedelta
 from odoo import Command
 
 from odoo.addons.project.tests.test_project_base import TestProjectCommon
+from odoo.exceptions import AccessError
+
 
 GIF = b"R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs="
 TEXT = base64.b64encode(bytes("workflow bridge project", 'utf-8'))
@@ -25,12 +27,6 @@ class TestCaseDocumentsBridgeProject(TestProjectCommon):
         self.attachment_txt = self.env['documents.document'].create({
             'datas': TEXT,
             'name': 'file.txt',
-            'mimetype': 'text/plain',
-            'folder_id': self.folder_a_a.id,
-        })
-        self.attachment_txt_2 = self.env['documents.document'].create({
-            'datas': TEXT,
-            'name': 'file2.txt',
             'mimetype': 'text/plain',
             'folder_id': self.folder_a_a.id,
         })
@@ -206,116 +202,42 @@ class TestCaseDocumentsBridgeProject(TestProjectCommon):
         projects._compute_attached_document_count()
         self.assertEqual(self.project_pigs.document_count, 2, "The documents linked to the tasks of the project should be taken into account.")
 
-    def test_project_document_search(self):
-        # 1. Linking documents to projects/tasks
-        documents_linked_to_task = self.env['documents.document'].search([('res_model', '=', 'project.task')])
-        documents_linked_to_task_or_project = self.env['documents.document'].search([('res_model', '=', 'project.project')]) | documents_linked_to_task
-        projects = self.project_pigs | self.project_goats
-        self.assertEqual(projects[0].document_count, 0, "No project should have document linked to it initially")
-        self.assertEqual(projects[1].document_count, 0, "No project should have document linked to it initially")
-        self.attachment_txt.write({
-            'res_model': 'project.project',
-            'res_id': projects[0].id,
+    def test_upload_document_to_workspace_with_edit_shared(self):
+        """
+        A user that has Users access to both Documents and Projects, has been invited with an Editable Share link to the project,
+        should be able to upload new documents to the project workspace folder
+        """
+        some_user = self.env['res.users'].create({
+            'name': 'Some User',
+            'login': 'some_user',
+            'password': 'some_user',
+            'groups_id': [(6, 0, [self.env.ref('documents.group_documents_user').id,
+                                  self.env.ref('project.group_project_user').id])]
         })
-        self.attachment_txt_2.write({
-            'res_model': 'project.project',
-            'res_id': projects[1].id,
+        some_partner = self.env['res.partner'].create({
+            'name': 'Some Partner',
+            'user_id': some_user.id,
         })
-        doc_gif = self.env['documents.document'].create({
-            'datas': GIF,
-            'name': 'fileText_test.txt',
-            'mimetype': 'text/plain',
-            'folder_id': self.folder_a_a.id,
-            'res_model': 'project.task',
-            'res_id': self.task_1.id,
+        # create a folder for the project
+        folder = self.env['documents.folder'].sudo().create({
+            'name': 'folder_name',
         })
-
-        # 2. Project_id search tests
-        # docs[0] --> projects[0] "Pigs"
-        # docs[1] --> projects[1] "Goats"
-        # docs[2] --> task "Pigs UserTask" --> projects[0] "Pigs"
-        docs = self.attachment_txt + self.attachment_txt_2 + doc_gif
-        # Needed for `inselect` leafs
-        docs.flush_recordset()
-        search_domains = [
-            [('project_id', 'ilike', 'pig')],
-            [('project_id', '=', 'pig')],
-            [('project_id', '!=', 'Pigs')],
-            [('project_id', '=', projects[0].id)],
-            [('project_id', '!=', False)],
-            [('project_id', '=', True)],
-            [('project_id', '=', False)],
-            [('project_id', 'in', projects.ids)],
-            [('project_id', '!=', projects[0].id)],
-            [('project_id', 'not in', projects.ids)],
-            ['|', ('project_id', 'in', [projects[1].id]), ('project_id', '=', 'Pigs')],
-        ]
-        expected_results = [
-            docs[0] + docs[2],
-            self.env['documents.document'],
-            docs[1] + documents_linked_to_task_or_project,
-            docs[0] + docs[2],
-            docs[0] + docs[1] + docs[2] + documents_linked_to_task_or_project,
-            docs[0] + docs[1] + docs[2] + documents_linked_to_task_or_project,
-            (self.env['documents.document'].search([]) - docs[0] - docs[1] - docs[2] - documents_linked_to_task_or_project),
-            docs[0] + docs[1] + docs[2],
-            docs[1] + documents_linked_to_task_or_project,
-            documents_linked_to_task_or_project,
-            docs[0] + docs[1] + docs[2],
-        ]
-        for domain, result in zip(search_domains, expected_results):
-            self.assertEqual(self.env['documents.document'].search(domain), result, "The result of the search on the field project_id/task_id is incorrect (domain used: %s)" % domain)
-
-        # 3. Task_id search tests
-        task_2 = self.env['project.task'].with_context({'mail_create_nolog': True}).create({
-            'name': 'Goats UserTask',
-            'project_id': projects[1].id})
-
-        self.attachment_txt.write({
-            'res_model': 'project.task',
-            'res_id': task_2,
+        self.project_pigs.sudo().write({
+            'collaborator_ids': [(0, 0, {"partner_id": some_partner.id})],
+            'collaborator_count': 1,
+            'documents_folder_id': folder.id,
         })
-        # docs[0] --> tasks[1]  "Goats UserTask"
-        # docs[2] --> tasks[0] "Pigs UserTask"
-        tasks = self.task_1 | task_2
-        self.env.flush_all()
-        search_domains = [
-            [('task_id', 'ilike', 'pig')],
-            [('task_id', '=', 'pig')],
-            [('task_id', '!=', 'Pigs UserTask')],
-            [('task_id', '=', tasks[1].id)],
-            [('task_id', '!=', False)],
-            [('task_id', '=', False)],
-            [('task_id', 'not in', tasks.ids)],
-            ['&', ('task_id', 'in', tasks.ids), '!', ('task_id', 'ilike', 'goats')],
-        ]
-        expected_results = [
-            docs[2],
-            self.env['documents.document'],
-            docs[0] + documents_linked_to_task,
-            docs[0],
-            docs[0] + docs[2] + documents_linked_to_task,
-            (self.env['documents.document'].search([]) - docs[0] - docs[2] - documents_linked_to_task),
-            documents_linked_to_task,
-            docs[2],
-        ]
-        for domain, result in zip(search_domains, expected_results):
-            self.assertEqual(self.env['documents.document'].search(domain), result, "The result of the search on the field project_id/task_id is incorrect (domain used: %s)" % domain)
-
-    def test_project_folder_creation(self):
-        project = self.env['project.project'].create({
-            'name': 'Project',
-            'use_documents': False,
-        })
-        self.assertFalse(project.documents_folder_id, "A project created with the documents feature disabled should have no workspace")
-        project.use_documents = True
-        self.assertTrue(project.documents_folder_id, "A workspace should be created for the project when enabling the documents feature")
-
-        documents_folder = project.documents_folder_id
-        project.use_documents = False
-        self.assertTrue(project.documents_folder_id, "The project should keep its workspace when disabling the feature")
-        project.use_documents = True
-        self.assertEqual(documents_folder, project.documents_folder_id, "No workspace should be created when enablind the documents feature if the project already has a workspace")
+        try:
+            self.env['documents.document'].with_user(some_user).create({
+                'datas': GIF,
+                'name': 'fileText_test.txt',
+                'mimetype': 'text/plain',
+                'folder_id': folder.id,
+                'res_model': 'project.project',
+                'res_id': self.project_pigs.id,
+            })
+        except AccessError:
+            self.fail("We got an access error, when we shouldn't have it, because we have edit access to the project (via shared link)")
 
     def test_project_task_access_document(self):
         """

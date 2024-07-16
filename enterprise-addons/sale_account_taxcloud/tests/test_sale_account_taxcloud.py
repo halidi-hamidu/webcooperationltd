@@ -44,14 +44,6 @@ class TestSaleAccountTaxCloud(TestAccountTaxcloudCommon):
         # Confirm Sale Order and get the all tax values
         sale_order.action_confirm()
         # The same tax should have be re-fetched from db.
-        # This check might fail due to rounding issue.
-        # When called, TaxCloud is returning the tax amount for each line.
-        # This tax amount depends on many factors like the category of the product and the address of the customer.
-        # When we receive a response from TaxCloud, we compute the tax rate with this formula: (tax_amount / price * 100)
-        # If no tax exists with that tax rate, the tax is created. Otherwise, it is reused.
-        # Depending on the address and the price, it is possible that the computation of the tax rate for the 2 lines
-        # is slightly different (like 8.225% for the first line and 8.230% for the second one, for example).
-        # In that case, a second tax is created for the second SO line, making this assert fail.
         self.assertEqual(
             sale_order.order_line.tax_id, tax, "Tax should be taken from DB."
         )
@@ -76,15 +68,11 @@ class TestSaleAccountTaxCloud(TestAccountTaxcloudCommon):
             10005,
             "Downpayment product should have the 'Gift Card' TIC",
         )
-        self.assertEqual(
-            downpayment_invoice.invoice_line_ids.tax_ids, tax, "Tax on the downpayment should be the same than on the SO."
-        )
-        downpayment_tax_amount = downpayment_invoice.amount_tax
         downpayment_invoice.action_post()
         self.assertEqual(
             downpayment_invoice.amount_tax,
-            downpayment_tax_amount,
-            "Posting a downpayment should not recompute the taxes.",
+            0.0,
+            "There should be no tax on the downpayment",
         )
         # create and post invoice, register payment
         payment = (
@@ -96,15 +84,21 @@ class TestSaleAccountTaxCloud(TestAccountTaxcloudCommon):
         invoice = sale_order.invoice_ids - downpayment_invoice
         invoice.action_post()
 
-        payment = (
-            self.env['account.payment.register']
-            .with_context(active_model='account.move', active_ids=invoice.ids)
-            .create({})
-            ._create_payments()
+        payment_method_manual_in = self.bank_journal.inbound_payment_method_line_ids.filtered(
+            lambda l: l.code == "manual"
         )
-        self.assertEqual(payment.amount, 1101.75)
+
+        register_payments = (
+            self.env["account.payment.register"]
+            .with_context(active_model='account.move', active_ids=[invoice.id])
+            .create({"payment_method_id": payment_method_manual_in.id,})
+        )
+        payment = self.env["account.payment"].browse(
+            register_payments.create_payments()["res_id"]
+        )
+        self.assertEqual(payment.amount, 1093.5)
         self.assertEqual(payment.state, "posted")
-        self.assertEqual(invoice.payment_state, "in_payment")
+        self.assertEqual(invoice.payment_state, "paid")
 
     def test_compute_taxes_on_send(self):
         sale_order = self.env["sale.order"].create({

@@ -13,7 +13,7 @@ class TaxReportPND(models.AbstractModel):
     _inherit = "account.generic.tax.report.handler"
     _description = "Abstract Tax Report PND Handler"
 
-    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
+    def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals):
         return []
 
     def _headers(self):
@@ -23,6 +23,11 @@ class TaxReportPND(models.AbstractModel):
 
     def _rows(self, options, report, domain, title=''):
         tables, where_clause, where_params = report._query_get(options, 'strict_range', domain)
+
+        transport_tax_group = self.env.ref("l10n_th.tax_group_1").id
+        advertising_tax_group = self.env.ref("l10n_th.tax_group_2").id
+        service_tax_group = self.env.ref("l10n_th.tax_group_3").id
+        rental_tax_group = self.env.ref("l10n_th.tax_group_5").id
 
         dp = self.env.company.currency_id.decimal_places
 
@@ -43,11 +48,11 @@ class TaxReportPND(models.AbstractModel):
                 ROUnD(ABS(account_move_line.tax_base_amount), %s)::text as tax_base_amount,
                 ROUND(ABS(tax.amount * account_move_line.tax_base_amount / 100), %s)::text as wht_amount,
                 '1' as wht_condition,
-                CASE tax.amount
-                    WHEN -1 THEN 'Transportation'
-                    WHEN -2 THEN 'Advertising'
-                    WHEN -3 THEN 'Service'
-                    WHEN -5 THEN 'Rental'
+                CASE account_move_line.tax_group_id
+                    WHEN %s THEN 'Transportation'
+                    WHEN %s THEN 'Advertising'
+                    WHEN %s THEN 'Service'
+                    WHEN %s THEN 'Rental'
                     ELSE ''
                 END tax_type
             FROM {tables}
@@ -58,7 +63,7 @@ class TaxReportPND(models.AbstractModel):
          ORDER BY rnum
         """
 
-        params = [title, dp, dp, dp, *where_params]
+        params = [title, dp, dp, dp, transport_tax_group, advertising_tax_group, service_tax_group, rental_tax_group, *where_params]
         self._cr.execute(query, params)
         res = self._cr.fetchall()
 

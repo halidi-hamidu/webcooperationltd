@@ -1,45 +1,43 @@
 /** @odoo-module */
 
-import { Component, useState, onWillStart, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { useRecordObserver } from "@web/model/relational_model/utils";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+
+const { Component, useState, onWillStart, onWillUpdateProps } = owl;
 
 export class TimerStartField extends Component {
     setup() {
         super.setup(...arguments);
         this.timerService = useService("timer");
-        this.state = useState({ timer: undefined, time: "", serverOffset: 0 });
+        this.state = useState({ timer: undefined, time: "", timerPause: this.timerPause, serverOffset: 0 });
 
         onWillStart(this.onWillStart);
-        useRecordObserver(this.onRecordChange.bind(this));
-        onWillUnmount(() => {
-            clearInterval(this.state.timer);
-        });
+        onWillUpdateProps(this.onWillUpdateProps);
     }
 
     async onWillStart() {
         const serverTime = await this.timerService.getServerTime();
         this.timerService.computeOffset(serverTime);
         this.state.serverOffset = this.timerService.offset;
+        this.startTimer(this.props.value);
     }
 
-    onRecordChange(record) {
+    onWillUpdateProps(nextProps) {
         clearInterval(this.state.timer);
         this.state.timer = undefined;
-        const timerPause = record.data.timer_pause;
-        if (timerPause && !record.data.timer_pause) {
+        this.state.timerPause = nextProps.record && nextProps.record.data.timer_pause;
+        if (this.timerPause && !this.state.timerPause) {
             this.timerService.clearTimer();
         }
-        this.startTimer(record.data[this.props.name], timerPause);
+        this.startTimer(nextProps.value);
     }
 
-    startTimer(timerStart, timerPause) {
+    startTimer(timerStart) {
         if (timerStart) {
             let currentTime;
-            if (timerPause) {
-                currentTime = timerPause;
+            if (this.timerPause) {
+                currentTime = this.timerPause;
                 this.timerService.computeOffset(currentTime);
             } else {
                 this.timerService.offset = this.state.serverOffset;
@@ -47,31 +45,32 @@ export class TimerStartField extends Component {
             }
             this.timerService.setTimer(0, timerStart, currentTime);
             this.state.time = this.timerService.timerFormatted;
-            clearInterval(this.state.timer);
             this.state.timer = setInterval(() => {
-                if (timerPause) {
+                if (this.timerPause) {
                     clearInterval(this.state.timer);
                 } else {
                     this.timerService.updateTimer(timerStart);
                     this.state.time = this.timerService.timerFormatted;
                 }
             }, 1000);
-        } else if (!timerPause) {
+        } else if (!this.timerPause) {
             clearInterval(this.state.timer);
             this.state.time = "";
             this.timerService.clearTimer();
         }
+    }
+
+    get timerPause() {
+        return this.props.record.data.timer_pause;
     }
 }
 
 TimerStartField.props = {
     ...standardFieldProps,
 };
+TimerStartField.fieldDependencies = {
+    timer_pause: { type: "datetime" },
+};
 TimerStartField.template = "timer.TimerStartField";
 
-export const timerStartField = {
-    component: TimerStartField,
-    fieldDependencies: [ { name: "timer_pause", type: "datetime" } ],
-};
-
-registry.category("fields").add("timer_start_field", timerStartField);
+registry.category("fields").add("timer_start_field", TimerStartField);

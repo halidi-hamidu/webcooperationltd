@@ -43,13 +43,6 @@ class SocialStreamPostFacebook(models.Model):
         for post in facebook_posts:
             post.post_link = 'https://www.facebook.com/%s' % post.facebook_post_id
 
-    def _compute_is_author(self):
-        facebook_posts = self._filter_by_media_types(['facebook'])
-        super(SocialStreamPostFacebook, (self - facebook_posts))._compute_is_author()
-
-        for post in facebook_posts:
-            post.is_author = post.facebook_author_id == post.account_id.facebook_account_id
-
     # ========================================================
     # COMMENTS / LIKES
     # ========================================================

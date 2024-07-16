@@ -26,7 +26,6 @@ class HrReferralReport(models.Model):
         ('progress', 'In Progress'),
         ('hired', 'Hired'),
         ('closed', 'Not Hired')], readonly=True)
-    company_id = fields.Many2one('res.company', string='Company', readonly=True)
 
     def init(self):
         query = '''
@@ -40,7 +39,6 @@ class HrReferralReport(models.Model):
                 a.ref_user_id as ref_user_id,
                 job_id,
                 department_id,
-                company_id,
                 m.id as medium_id,
                 CASE WHEN a.referral_state = 'hired' THEN 1 ELSE 0 END as employee_referral_hired,
                 CASE WHEN a.referral_state = 'closed' THEN 1 ELSE 0 END as employee_referral_refused

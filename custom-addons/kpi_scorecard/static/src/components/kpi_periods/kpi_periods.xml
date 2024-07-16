@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    
+    <t t-name="kpi_scorecard.KpiPeriods" owl="1">
+        <div class="jstr-panel-header">
+            <div class="jstr-periods-sections">
+                <t t-if="state.periodIds">
+                    <select class="jstr-periods-select" t-on-change="(event) => this._onChangePeriod(event)">
+                        <option></option>
+                        <t t-foreach="state.periodIds" t-as="periodChoice" t-key="periodChoice.id">
+                            <option t-attf-selected="#{periodChoice.selected and 'selected' or false}" t-attf-value="#{periodChoice.id}">
+                                <t t-esc="periodChoice.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </t>
+                <div class="jstr-periods-buttonbox">
+                    <t t-if="state.thisPeriodId">
+                        <button class="btn fa fa-calculator jstr-functional-button jstr-periods-button" 
+                                t-if="state.thisPeriodId.state == 'open'"
+                                t-on-click="() => this._onCalculatePeriodKpis()"
+                        >
+                            Calculate
+                        </button>
+                        <button class="btn fa fa-stop jstr-functional-button jstr-periods-button"
+                                t-if="props.kanbanModel.kpiAdmin and state.thisPeriodId.state == 'open'"
+                                t-on-click="() => this._onClosePeriod()"
+                        >
+                            Close
+                        </button>
+                        <button class="btn fa fa-refresh jstr-functional-button jstr-periods-button" 
+                                t-if="props.kanbanModel.kpiAdmin and state.thisPeriodId.state == 'closed'"
+                                t-on-click="() => this._onOpenPeriod()"
+                        >
+                            Re-Open
+                        </button>
+                    </t>
+                    <button class="btn fa fa-play jstr-functional-button jstr-periods-button" 
+                            t-if="props.kanbanModel.kpiAdmin"
+                            t-on-click="() => this._onNewPeriod()"
+                    >
+                        New
+                    </button>
+                </div>
+
+            </div> 
+        </div>
+    </t>
+
+</templates>

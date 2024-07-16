@@ -18,7 +18,7 @@ class AccountJournal(models.Model):
         if formats_list:
             formats_list.sort()
             import_formats_str = ', '.join(formats_list)
-            rslt.append(("file_import", _("Manual (or import %(import_formats)s)", import_formats=import_formats_str)))
+            rslt.append(("file_import", _("Import") + "(" + import_formats_str + ")"))
         return rslt
 
     def create_document_from_attachment(self, attachment_ids=None):
@@ -49,7 +49,7 @@ class AccountJournal(models.Model):
                 journal = self._find_additional_data(currency_code, account_number)
                 # If no journal found, ask the user about creating one
                 if not journal.default_account_id:
-                    raise UserError(_('You have to set a Default Account for the journal: %s', journal.name))
+                    raise UserError(_('You have to set a Default Account for the journal: %s') % (journal.name,))
                 # Prepare statement data to be used for bank statements creation
                 stmts_vals = self._complete_bank_statement_vals(stmts_vals, journal, account_number, attachment)
                 # Create the bank statements
@@ -90,7 +90,6 @@ class AccountJournal(models.Model):
                 'notifications': notifications_all,
             },
         )
-
         if errors:
             error_msg = _("The following files could not be imported:\n")
             error_msg += "\n".join([f"- {attachment_name}: {msg}" for attachment_name, msg in errors.items()])
@@ -126,7 +125,7 @@ class AccountJournal(models.Model):
                         -o 'ref': string
         """
         raise RedirectWarning(
-            message=_("Could not make sense of the given file.\nDid you install the module to support this type of file?"),
+            message=_("Could not make sense of the given file.\nDid you install the module to support this type of file ?"),
             action=self.env.ref('base.open_module_tree').id,
             button_text=_("Go to Apps"),
             additional_context={
@@ -140,7 +139,7 @@ class AccountJournal(models.Model):
         extra_msg = _('If it contains transactions for more than one account, it must be imported on each of them.')
         if len(stmts_vals) == 0:
             raise UserError(
-                _('This file doesn\'t contain any statement for account %s.', account_number)
+                _('This file doesn\'t contain any statement for account %s.') % (account_number,)
                 + '\n' + extra_msg
             )
 
@@ -151,7 +150,7 @@ class AccountJournal(models.Model):
                 break
         if no_st_line:
             raise UserError(
-                _('This file doesn\'t contain any transaction for account %s.', account_number)
+                _('This file doesn\'t contain any transaction for account %s.') % (account_number,)
                 + '\n' + extra_msg
             )
 
@@ -199,7 +198,7 @@ class AccountJournal(models.Model):
             # Already a bank account on the journal : check it's the same as on the statement
             else:
                 if not self._statement_import_check_bank_account(sanitized_account_number):
-                    raise UserError(_('The account of this statement (%s) is not the same as the journal (%s).', account_number, journal.bank_account_id.acc_number))
+                    raise UserError(_('The account of this statement (%s) is not the same as the journal (%s).') % (account_number, journal.bank_account_id.acc_number))
 
         # If importing into an existing journal, its currency must be the same as the bank statement
         if journal:
@@ -209,7 +208,7 @@ class AccountJournal(models.Model):
             if currency and currency != journal_currency:
                 statement_cur_code = not currency and company_currency.name or currency.name
                 journal_cur_code = not journal_currency and company_currency.name or journal_currency.name
-                raise UserError(_('The currency of the bank statement (%s) is not the same as the currency of the journal (%s).', statement_cur_code, journal_cur_code))
+                raise UserError(_('The currency of the bank statement (%s) is not the same as the currency of the journal (%s).') % (statement_cur_code, journal_cur_code))
 
         if not journal:
             raise UserError(_('Cannot find in which journal import this statement. Please manually select a journal.'))
@@ -247,7 +246,7 @@ class AccountJournal(models.Model):
                             line_vals['partner_id'] = partner_bank.partner_id.id
         return stmts_vals
 
-    def _create_bank_statements(self, stmts_vals, raise_no_imported_file=True):
+    def _create_bank_statements(self, stmts_vals):
         """ Create new bank statements from imported values, filtering out already imported transactions, and returns data used by the reconciliation widget """
         BankStatement = self.env['account.bank.statement']
         BankStatementLine = self.env['account.bank.statement.line']
@@ -281,10 +280,10 @@ class AccountJournal(models.Model):
                 statement_line_ids.extend(statement.line_ids.ids)
 
                 # Create the report.
-                if statement.is_complete and not self._context.get('skip_pdf_attachment_generation'):
+                if statement.is_complete:
                     statement.action_generate_attachment()
 
-        if len(statement_line_ids) == 0 and raise_no_imported_file:
+        if len(statement_line_ids) == 0:
             raise UserError(_('You already have imported that file.'))
 
         # Prepare import feedback

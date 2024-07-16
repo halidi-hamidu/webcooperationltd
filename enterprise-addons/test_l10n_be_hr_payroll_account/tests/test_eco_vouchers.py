@@ -12,7 +12,7 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 class TestEcoVouchers(AccountTestInvoicingCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='be_comp'):
+    def setUpClass(cls, chart_template_ref='l10n_be.l10nbe_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
         cls.company_data['company'].country_id = cls.env.ref('base.be')
 
@@ -29,6 +29,7 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
         full_time_calendar = self.env['resource.calendar'].create([{
             'name': "Test Calendar : 38 Hours/Week",
             'company_id': self.env.company.id,
+            'hours_per_day': 7.6,
             'tz': "Europe/Brussels",
             'two_weeks_calendar': False,
             'hours_per_week': 38.0,
@@ -43,19 +44,14 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("1", 8.0, 12.0, "morning"),
-                ("1", 12.0, 13.0, "lunch"),
                 ("1", 13.0, 16.6, "afternoon"),
                 ("2", 8.0, 12.0, "morning"),
-                ("2", 12.0, 13.0, "lunch"),
                 ("2", 13.0, 16.6, "afternoon"),
                 ("3", 8.0, 12.0, "morning"),
-                ("3", 12.0, 13.0, "lunch"),
                 ("3", 13.0, 16.6, "afternoon"),
                 ("4", 8.0, 12.0, "morning"),
-                ("4", 12.0, 13.0, "lunch"),
                 ("4", 13.0, 16.6, "afternoon"),
             ]],
         }])
@@ -63,6 +59,7 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
         part_time_calendar_3_5 = self.env['resource.calendar'].create([{
             'name': "Test Calendar: 3/5 Tuesday/Wednesday Off",
             'company_id': self.env.company.id,
+            'hours_per_day': 7.6,
             'tz': "Europe/Brussels",
             'two_weeks_calendar': False,
             'hours_per_week': 22.8,
@@ -77,13 +74,10 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
 
             }) for dayofweek, hour_from, hour_to, day_period in [
                 ("0", 8.0, 12.0, "morning"),
-                ("0", 12.0, 13.0, "lunch"),
                 ("0", 13.0, 16.6, "afternoon"),
                 ("3", 8.0, 12.0, "morning"),
-                ("3", 12.0, 13.0, "lunch"),
                 ("3", 13.0, 16.6, "afternoon"),
                 ("4", 8.0, 12.0, "morning"),
-                ("4", 12.0, 13.0, "lunch"),
                 ("4", 13.0, 16.6, "afternoon"),
             ]],
         }])
@@ -125,8 +119,11 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
         unpaid_leave_2019 = self.env['hr.leave'].create({
             'name': 'Unpaid Time Off 2021',
             'holiday_status_id': unpaid_time_off_type.id,
-            'request_date_from': date(2021, 4, 1),
-            'request_date_to': date(2021, 4, 21),
+            'date_from': datetime(2021, 4, 1, 1, 0, 0),
+            'date_to': datetime(2021, 4, 21, 23, 0, 0),
+            'request_date_from': datetime(2021, 4, 1, 1, 0, 0),
+            'request_date_to': datetime(2021, 4, 21, 23, 0, 0),
+            'number_of_days': 9,
             'employee_id': employee.id,
         })
         unpaid_leave_2019.action_approve()
@@ -145,8 +142,11 @@ class TestEcoVouchers(AccountTestInvoicingCommon):
         april_payslip.action_payslip_done()
 
         wizard = self.env['l10n.be.eco.vouchers.wizard'].create({
-            'reference_year': '2021',
+            'reference_year': 2021,
         })
         employee_line = wizard.line_ids.filtered(lambda l: l.employee_id == employee)
-        expected_result = 211.1 if loaded_demo_data(self.env) else 213.29
+        if loaded_demo_data(self.env):
+            expected_result = 215.48
+        else:
+            expected_result = 217.67
         self.assertAlmostEqual(employee_line.amount, expected_result)

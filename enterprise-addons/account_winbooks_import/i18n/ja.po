@@ -3,16 +3,18 @@
 # 	* account_winbooks_import
 # 
 # Translators:
-# Wil Odoo, 2023
-# Junko Augias, 2024
+# Martin Trigaux, 2022
+# Yoshi Tashiro (Quartile) <tashiro@roomsfor.hk>, 2022
+# Andy Yiu, 2023
+# Junko Augias, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 22:20+0000\n"
-"PO-Revision-Date: 2023-10-26 23:10+0000\n"
-"Last-Translator: Junko Augias, 2024\n"
+"POT-Creation-Date: 2023-04-14 06:17+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Junko Augias, 2023\n"
 "Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,13 +26,13 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account_winbooks_import.winbooks_import_form
 msgid ""
 "<span/>\n"
-"                    <span class=\"text-warning mb4 mt16\" invisible=\"only_open\">\n"
+"                    <span class=\"text-warning mb4 mt16\" attrs=\"{'invisible': [('only_open', '=', True)]}\">\n"
 "                        The export of data from Winbooks for closed years might contain unbalanced entries. However if you want to try to import everything, Odoo will set the difference of balance in a Suspense Account.\n"
 "                    </span>"
 msgstr ""
 "<span/>\n"
-"                    <span class=\"text-warning mb4 mt16\" invisible=\"only_open\">\n"
-"                        Winbooksからクローズした年度のデータをエクスポートした場合、未決済の仕訳が含まれる可能性があります。しかし、全てをインポートしようとすると、Odooは差額を仮勘定に設定します。\n"
+"                    <span class=\"text-warning mb4 mt16\" attrs=\"{'invisible': [('only_open', '=', True)]}\">\n"
+"                        Winbooksからクローズした年度のデータをエクスポートした場合、アンバランスなエントリが含まれる可能性があります。しかし、すべてをインポートしようとすると、Odooは差額を仮勘定に設定します。\n"
 "                    </span>"
 
 #. module: account_winbooks_import
@@ -87,6 +89,11 @@ msgid "Display Name"
 msgstr "表示名"
 
 #. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__done
+msgid "Done"
+msgstr "完了"
+
+#. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__zip_file
 msgid "File"
 msgstr "ファイル"
@@ -121,7 +128,17 @@ msgstr "オープン年のみインポート"
 #. module: account_winbooks_import
 #: model:ir.model,name:account_winbooks_import.model_account_move_line
 msgid "Journal Item"
-msgstr "仕訳項目"
+msgstr "仕訳明細"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__just_done
+msgid "Just done"
+msgstr "完了"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard____last_update
+msgid "Last Modified on"
+msgstr "最終更新日"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__write_uid
@@ -134,14 +151,14 @@ msgid "Last Updated on"
 msgstr "最終更新日"
 
 #. module: account_winbooks_import
-#: model:ir.model.fields,help:account_winbooks_import.field_account_move_line__winbooks_line_id
-msgid "Line ID that was used in Winbooks"
-msgstr "Winbooksで使用された明細ID"
-
-#. module: account_winbooks_import
 #: model:ir.model.fields,help:account_winbooks_import.field_account_move_line__winbooks_matching_number
 msgid "Matching number that was used in Winbooks"
 msgstr "Winbooksで使用された照合番号"
+
+#. module: account_winbooks_import
+#: model:ir.model.fields.selection,name:account_winbooks_import.selection__res_company__account_onboarding_winbooks_state__not_done
+msgid "Not done"
+msgstr "未完了"
 
 #. module: account_winbooks_import
 #. odoo-python
@@ -156,9 +173,14 @@ msgid "Stage Search"
 msgstr "ステージ検索"
 
 #. module: account_winbooks_import
+#: model:ir.model.fields,field_description:account_winbooks_import.field_res_company__account_onboarding_winbooks_state
+msgid "State of the onboarding winbooks step"
+msgstr "winbooksステップのオンボーディングのステート"
+
+#. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_winbooks_import_wizard__suspense_code
 msgid "Suspense Account Code"
-msgstr "仮勘定コード"
+msgstr "アカウントコードを保留にする"
 
 #. module: account_winbooks_import
 #. odoo-python
@@ -192,11 +214,6 @@ msgstr ""
 #: model:ir.actions.act_window,name:account_winbooks_import.winbooks_import_action
 msgid "Winbooks Import"
 msgstr "Winbooksインポート"
-
-#. module: account_winbooks_import
-#: model:ir.model.fields,field_description:account_winbooks_import.field_account_move_line__winbooks_line_id
-msgid "Winbooks Line"
-msgstr "Winbooks明細"
 
 #. module: account_winbooks_import
 #: model:ir.model.fields,field_description:account_winbooks_import.field_account_move_line__winbooks_matching_number

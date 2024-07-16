@@ -10,7 +10,7 @@ from freezegun import freeze_time
 class GermanTaxReportTest(AccountSalesReportCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref='de_skr03'):
+    def setUpClass(cls, chart_template_ref='l10n_de_skr03.l10n_de_chart_template'):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
     @classmethod
@@ -30,8 +30,8 @@ class GermanTaxReportTest(AccountSalesReportCommon):
 
     @freeze_time('2019-12-31')
     def test_generate_xml(self):
-        first_tax = self.env['account.tax'].search([('name', '=', '19%'), ('company_id', '=', self.company_data['company'].id)], limit=1)
-        second_tax = self.env['account.tax'].search([('name', '=', '19% EU'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        first_tax = self.env['account.tax'].search([('name', '=', '19% Umsatzsteuer'), ('company_id', '=', self.company_data['company'].id)], limit=1)
+        second_tax = self.env['account.tax'].search([('name', '=', 'Innergem. Erwerb 19%USt/19%VSt'), ('company_id', '=', self.company_data['company'].id)], limit=1)
 
         # Create and post a move with two move lines to get some data in the report
         move = self.env['account.move'].create({
@@ -57,7 +57,7 @@ class GermanTaxReportTest(AccountSalesReportCommon):
         move.action_post()
 
         report = self.env.ref('l10n_de.tax_report')
-        options = report.get_options()
+        options = report._get_options()
 
         expected_xml = """
         <Anmeldungssteuern art="UStVA" version="2019">

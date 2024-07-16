@@ -5,6 +5,7 @@ from freezegun import freeze_time
 from lxml import etree
 from odoo import Command
 from odoo.tests import tagged
+from odoo.exceptions import ValidationError
 
 from .common import (L10N_EC_EDI_XML_CREDIT_NOTE, L10N_EC_EDI_XML_DEBIT_NOTE,
                      L10N_EC_EDI_XML_IN_WTH, L10N_EC_EDI_XML_OUT_INV,
@@ -331,9 +332,10 @@ class TestEcEdiXmls(TestEcEdiCommon):
             'date': self.frozen_today,
             'journal_id': invoice.journal_id.id,
             'reason': 'no reason',
+            'refund_method': 'cancel',
         })
         with freeze_time(self.frozen_today):
-            credit_note_wizard.modify_moves()
+            credit_note_wizard.reverse_moves()
             credit_note = self.env['account.move'].search([('reversed_entry_id', '=', invoice.id)])
             credit_note.ensure_one()
         self.assert_xml_tree_equal(credit_note, L10N_EC_EDI_XML_CREDIT_NOTE, post_move=False)
@@ -452,9 +454,10 @@ class TestEcEdiXmls(TestEcEdiCommon):
     def test_xml_tree_in_withhold_suggested_tax_credit_card(self):
         """Checks the XML of a purchase withhold whose invoice's payment method is a credit card.
         Payments with credit/debit/gift cards: tax must be company.l10n_ec_withhold_credit_card_tax_id."""
+        # Required for manual documents
         self.get_and_test_xml_tree_in_withhold(
             invoice_args={
-                'l10n_ec_sri_payment_id': self.env['l10n_ec.sri.payment'].search([('code', '=', 16)], limit=1).id
+                'l10n_ec_sri_payment_id': self.env['l10n_ec.sri.payment'].search([('code', '=', 16)], limit=1).id,
             },
             xpath=self.get_withhold_xpath_for_taxes(tax_percent='0.00', tax_code='332G', withhold_amount='0.00', payment_code=16)
         )

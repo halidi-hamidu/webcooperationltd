@@ -59,13 +59,6 @@ class L10nInReportAccount(models.Model):
                 if pos_order_line.order_id.fiscal_position_id:
                     income_account = pos_order_line.order_id.fiscal_position_id.map_account(income_account)
                 details_pos_lines.setdefault(move_id, {})
-                if pos_order_line.product_id.type == 'service':
-                    uom_code = "NA"
-                else:
-                    uom_code = (
-                        pos_order_line.product_uom_id.l10n_in_code and
-                        pos_order_line.product_uom_id.l10n_in_code.split("-")[0] or "OTH"
-                    )
                 details_pos_lines[move_id][pos_order_line.id] = {
                     "account_id": income_account.id,
                     "price_subtotal": pos_order_line.price_subtotal,
@@ -73,7 +66,8 @@ class L10nInReportAccount(models.Model):
                     "qty": pos_order_line.qty,
                     "product_hsn_code": self.env["account.edi.format"]._l10n_in_edi_extract_digits(pos_order_line.product_id.l10n_in_hsn_code),
                     "currency_rate": pos_order_line.order_id.currency_rate,
-                    "product_uom_code": uom_code
+                    "product_uom_code": pos_order_line.product_uom_id.l10n_in_code \
+                        and pos_order_line.product_uom_id.l10n_in_code.split("-")[0] or "OTH"
                 }
             return details_pos_lines
 
@@ -85,8 +79,7 @@ class L10nInReportAccount(models.Model):
 
         pos_journal_items = journal_items.filtered(lambda l: l.move_id.l10n_in_pos_session_ids and l.move_id.move_type == "entry")
         hsn_json = super()._get_gstr1_hsn_json(journal_items - pos_journal_items, tax_details_by_move)
-        pos_orders = pos_journal_items.move_id.l10n_in_pos_session_ids.order_ids.filtered(lambda l: not l.is_invoiced)
-        details_pos_lines_by_move = _set_details_pos_lines(pos_orders.lines)
+        details_pos_lines_by_move = _set_details_pos_lines(pos_journal_items.move_id.l10n_in_pos_session_ids.order_ids.lines)
         for move_id in pos_journal_items.mapped("move_id"):
             tax_details = tax_details_by_move.get(move_id)
             details_pos_lines = details_pos_lines_by_move[move_id.id]

@@ -26,7 +26,7 @@ class PosOrder(models.Model):
     def _order_fields(self, ui_order):
         fields = super()._order_fields(ui_order)
         if self._check_config_germany_floor(session_id=ui_order['pos_session_id']) and 'l10n_de_fiskaly_time_start' not in fields:
-            fields['l10n_de_fiskaly_time_start'] = ui_order['date_order'].replace('T', ' ')[:19]
+            fields['l10n_de_fiskaly_time_start'] = ui_order['creation_date'].replace('T', ' ')[:19]
         return fields
 
     @api.model
@@ -99,14 +99,31 @@ class PosOrder(models.Model):
         keys = itemgetter('product_id', 'price_unit', 'discount')
         for k, g in groupby(sorted(order_lines, key=keys), key=keys):
             group = list(g)
-            unit_price = group[0]['price_subtotal_incl']/group[0]['qty']
+            unit_price = str(group[0]['price_subtotal_incl']/group[0]['qty'])
             line_dict[k] = {
                 'quantity': sum(line['qty'] for line in group),
                 'text': group[0]['full_product_name'],
-                'price_per_unit': unit_price
+                'price_per_unit': unit_price + '0' if len(unit_price.split('.')[1]) < 2 else unit_price
             }
 
         return line_dict
+
+    def _get_fields_for_draft_order(self):
+        field_list = super()._get_fields_for_draft_order()
+        if self.env.company.l10n_de_is_germany_and_fiskaly():
+            field_list.append('l10n_de_fiskaly_time_start')
+        return field_list
+
+    @api.model
+    def get_table_draft_orders(self, table_ids):
+        table_orders = super().get_table_draft_orders(table_ids)
+        if self.env.company.l10n_de_is_germany_and_fiskaly():
+            for order in table_orders:
+                order['tss_info'] = {}
+                order['tss_info']['time_start'] = order['l10n_de_fiskaly_time_start']
+                del order['l10n_de_fiskaly_time_start']
+
+        return table_orders
 
     @api.model
     def retrieve_line_difference(self, ui_orders):

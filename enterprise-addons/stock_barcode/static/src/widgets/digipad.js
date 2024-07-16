@@ -1,9 +1,9 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
 import { useService } from "@web/core/utils/hooks";
-import { Component, onWillStart } from "@odoo/owl";
+
+const { Component, onWillStart } = owl;
 
 export class Digipad extends Component {
     setup() {
@@ -13,14 +13,12 @@ export class Digipad extends Component {
             return { index, value };
         });
         this.value = String(this.props.record.data[this.props.quantityField]);
+        this.precision = 2;
         onWillStart(async () => {
             this.displayUOM = await user.hasGroup('uom.group_uom');
             await this._fetchPackagingButtons();
+            this.precision = this.props.record.fields[this.props.quantityField].digits[1];
         });
-    }
-
-    get changes() {
-        return { [this.props.quantityField]: Number(this.value) };
     }
 
     //--------------------------------------------------------------------------
@@ -48,10 +46,18 @@ export class Digipad extends Component {
      */
     async _increment(interval=1) {
         this._checkInputValue();
-        const fraction = this.value.split('.')[1]
         const numberValue = Number(this.value || 0);
-        this.value = (numberValue + interval).toFixed(fraction?.length);
-        await this.props.record.update(this.changes);
+        this.value = (numberValue + interval).toFixed(this.precision);
+        await this._notifyChanges();
+    }
+
+    /**
+     * Notifies changes on the field to mark the record as dirty.
+     * @private
+     */
+    async _notifyChanges() {
+        const changes = { [this.props.quantityField]: Number(this.value) };
+        await this.props.record.update(changes);
     }
 
     /**
@@ -61,7 +67,7 @@ export class Digipad extends Component {
      */
     async _fetchPackagingButtons() {
         const record = this.props.record.data;
-        const demandQty = record.quantity;
+        const demandQty = record.reserved_uom_qty;
         const domain = [['product_id', '=', record.product_id[0]]];
         if (demandQty) { // Doesn't fetch packaging with a too high quantity.
             domain.push(['qty', '<=', demandQty]);
@@ -94,21 +100,14 @@ export class Digipad extends Component {
             }
             this.value += button;
         }
-        this.props.record.update(this.changes);
+        this._notifyChanges();
     }
 }
-Digipad.template = 'stock_barcode.DigipadTemplate';
-Digipad.props = {
-    ...standardWidgetProps,
-    quantityField: { type: String }
-};
 
-export const digipad = {
-    component: Digipad,
-    extractProps: ({ attrs }) => {
-        return {
-            quantityField: attrs.quantity_field,
-        };
-    },
+Digipad.template = 'stock_barcode.DigipadTemplate';
+Digipad.extractProps = ({ attrs }) => {
+    return {
+        quantityField: attrs.quantity_field,
+    };
 };
-registry.category('view_widgets').add('digipad', digipad);
+registry.category('view_widgets').add('digipad', Digipad);

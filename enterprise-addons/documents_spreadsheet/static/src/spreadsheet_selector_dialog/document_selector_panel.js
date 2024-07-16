@@ -9,6 +9,7 @@ import { SpreadsheetSelectorPanel } from "@spreadsheet_edition/assets/components
 export class DocumentsSelectorPanel extends SpreadsheetSelectorPanel {
     constructor() {
         super(...arguments);
+        this.actionTag = "action_open_spreadsheet";
         this.notificationMessage = _t("New spreadsheet created in Documents");
     }
 
@@ -38,21 +39,7 @@ export class DocumentsSelectorPanel extends SpreadsheetSelectorPanel {
             Domain.and([this.domain, [["handler", "=", "spreadsheet"]]]).toList()
         );
     }
-
-    _getOpenSpreadsheetAction() {
-        return {
-            type: "ir.actions.client",
-            tag: "action_open_spreadsheet",
-            params: {
-                spreadsheet_id: this.state.selectedSpreadsheetId,
-            },
-        };
-    }
-
-    _getCreateAndOpenSpreadsheetAction() {
-        return this.orm.call("documents.document", "action_open_new_spreadsheet");
-    }
 }
-patch(SpreadsheetSelectorDialog, {
+patch(SpreadsheetSelectorDialog, "documents_spreadsheet.SpreadsheetSelectorDialog", {
     components: { ...SpreadsheetSelectorDialog.components, DocumentsSelectorPanel },
 });

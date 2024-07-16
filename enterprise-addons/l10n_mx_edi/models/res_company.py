@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from odoo import _, fields, models
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +30,6 @@ FISCAL_REGIMES_SELECTION = [
     ('629', 'De los Regímenes Fiscales Preferentes y de las Empresas Multinacionales'),
     ('630', 'Enajenación de acciones en bolsa de valores')]
 
-
 class ResCompany(models.Model):
     _inherit = 'res.company'
 
@@ -53,11 +52,8 @@ class ResCompany(models.Model):
         string='PAC password',
         help='The password used to request the seal from the PAC',
         groups='base.group_system')
-    l10n_mx_edi_certificate_ids = fields.One2many(
-        comodel_name='l10n_mx_edi.certificate',
-        inverse_name='company_id',
-        string='Certificates (MX)',
-    )
+    l10n_mx_edi_certificate_ids = fields.Many2many('l10n_mx_edi.certificate',
+        string='Certificates (MX)')
 
     # == CFDI EDI ==
     l10n_mx_edi_fiscal_regime = fields.Selection(
@@ -65,11 +61,3 @@ class ResCompany(models.Model):
         string="Fiscal Regime",
         help="It is used to fill Mexican XML CFDI required field "
         "Comprobante.Emisor.RegimenFiscal.")
-
-    def _l10n_mx_edi_get_foreign_customer_fiscal_position(self):
-        """Return the fiscal position for foreign customers from the mexican chart template.
-           Return an empty fiscal position in case it was not found.
-        """
-        self.ensure_one()
-        fiscal_position = self.env['account.chart.template'].with_company(self).ref('account_fiscal_position_foreign', raise_if_not_found=False)
-        return fiscal_position or self.env['account.fiscal.position']

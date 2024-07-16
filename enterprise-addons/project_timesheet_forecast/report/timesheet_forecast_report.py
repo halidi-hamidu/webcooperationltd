@@ -23,8 +23,6 @@ class TimesheetForecastReport(models.Model):
     difference = fields.Float('Remaining Hours', readonly=True)
     user_id = fields.Many2one('res.users', string='Assigned to', readonly=True)
     is_published = fields.Boolean(readonly=True)
-    effective_costs = fields.Float('Effective Costs', readonly=True)
-    planned_costs = fields.Float('Planned Costs', readonly=True)
 
     @api.model
     def _select(self):
@@ -36,9 +34,7 @@ class TimesheetForecastReport(models.Model):
                 F.project_id AS project_id,
                 F.user_id AS user_id,
                 0.0 AS effective_hours,
-                0.0 As effective_costs,
                 F.allocated_hours / GREATEST(F.working_days_count, 1) AS planned_hours,
-                (F.allocated_hours / GREATEST(F.working_days_count, 1) * E.hourly_cost) AS planned_costs,
                 F.allocated_hours / GREATEST(F.working_days_count, 1) AS difference,
                 'forecast' AS line_type,
                 F.id AS id,
@@ -57,6 +53,11 @@ class TimesheetForecastReport(models.Model):
                 LEFT JOIN planning_slot F ON d::date >= F.start_datetime::date AND d::date <= F.end_datetime::date
                 LEFT JOIN hr_employee E ON F.employee_id = E.id
                 LEFT JOIN resource_resource R ON E.resource_id = R.id
+                LEFT JOIN resource_calendar_leaves L
+                    ON L.resource_id IS NULL
+                    AND L.calendar_id IS NULL
+                    AND timezone(R.tz, L.date_from AT TIME ZONE 'UTC')::date <= d.date
+                    AND d.date <= timezone(R.tz, L.date_to AT TIME ZONE 'UTC')::date
         """
         return from_str
 
@@ -70,9 +71,7 @@ class TimesheetForecastReport(models.Model):
                 A.project_id AS project_id,
                 A.user_id AS user_id,
                 A.unit_amount / UOM.factor * HOUR_UOM.factor AS effective_hours,
-                (A.unit_amount / UOM.factor * HOUR_UOM.factor) * E.hourly_cost AS effective_costs,
                 0.0 AS planned_hours,
-                0.0 AS planned_costs,
                 -A.unit_amount / UOM.factor * HOUR_UOM.factor AS difference,
                 'timesheet' AS line_type,
                 -A.id AS id,
@@ -82,21 +81,18 @@ class TimesheetForecastReport(models.Model):
 
     @api.model
     def _from_union(self):
-        return """
+        from_str = """
             FROM account_analytic_line A
                 LEFT JOIN hr_employee E ON A.employee_id = E.id
-        """
-
-    @api.model
-    def _from_union_timesheet_uom(self):
-        return """
-            LEFT JOIN uom_uom UOM ON A.product_uom_id = UOM.id,
-            (
-                SELECT U.factor
-                  FROM uom_uom U
-                 WHERE U.id = %s
-            ) HOUR_UOM
+                LEFT JOIN uom_uom UOM ON A.product_uom_id = UOM.id,
+                (
+                    SELECT
+                        U.factor
+                    FROM uom_uom U
+                    WHERE U.id = %s
+                ) HOUR_UOM
         """ % (self.env.ref('uom.product_uom_hour').id)
+        return from_str
 
     @api.model
     def _where_union(self):
@@ -109,6 +105,8 @@ class TimesheetForecastReport(models.Model):
     def _where(self):
         where_str = """
             WHERE
+                L.id IS NULL
+            AND
                 EXTRACT(ISODOW FROM d.date) IN (
                     SELECT A.dayofweek::integer+1 FROM resource_calendar_attendance A WHERE A.calendar_id = R.calendar_id
                 )
@@ -116,13 +114,12 @@ class TimesheetForecastReport(models.Model):
         return where_str
 
     def init(self):
-        query = "(%s %s %s) UNION (%s %s %s %s)" % (
+        query = "(%s %s %s) UNION (%s %s %s)" % (
             self._select(),
             self._from(),
             self._where(),
             self._select_union(),
             self._from_union(),
-            self._from_union_timesheet_uom(),
             self._where_union()
         )
 

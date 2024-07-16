@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo.addons.l10n_mx_edi_extended.tests.common import TestMxExtendedEdiCommon
+from odoo.addons.l10n_mx_edi_extended_40.tests.common import TestMxExtendedEdiCommon
 from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import ValuationReconciliationTestCommon
 from odoo import fields
 from odoo.tests import tagged
@@ -50,7 +50,7 @@ class TestEdiResults(TestMxExtendedEdiCommon, ValuationReconciliationTestCommon)
                         'product_qty': 2,
                         'product_uom': self.product.uom_id.id,
                         'price_unit': self.product.list_price,
-                        'taxes_id': [(6, 0, self.product.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(self.env.company)).ids)],
+                        'taxes_id': [(6, 0, self.product.supplier_taxes_id.ids)],
                         'date_planned': fields.Datetime.now(),
                     })
                 ],
@@ -58,7 +58,7 @@ class TestEdiResults(TestMxExtendedEdiCommon, ValuationReconciliationTestCommon)
 
             purchase.button_confirm()
             picking_purchase = purchase.picking_ids
-            picking_purchase.move_line_ids.write({'quantity': 2})
+            picking_purchase.move_line_ids.write({'qty_done': 2})
             picking_purchase.button_validate()
 
             landing_cost = self.env['stock.landed.cost'].create({
@@ -84,7 +84,7 @@ class TestEdiResults(TestMxExtendedEdiCommon, ValuationReconciliationTestCommon)
                         'product_uom_qty': 2,
                         'product_uom': self.product.uom_id.id,
                         'price_unit': self.product.list_price,
-                        'tax_id': [(6, 0, self.product.taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(self.env.company)).ids)],
+                        'tax_id': [(6, 0, self.product.taxes_id.ids)],
                     })
                 ],
             })
@@ -94,7 +94,7 @@ class TestEdiResults(TestMxExtendedEdiCommon, ValuationReconciliationTestCommon)
 
             # Generate two moves for procurement by partial delivery
             picking_sale.action_assign()
-            picking_sale.move_line_ids.write({'quantity': 1})
+            picking_sale.move_line_ids.write({'qty_done': 1})
             res_dict = picking_sale.button_validate()
             self.env[res_dict['res_model']]\
                 .with_context(res_dict['context'])\
@@ -102,7 +102,7 @@ class TestEdiResults(TestMxExtendedEdiCommon, ValuationReconciliationTestCommon)
                 .process()
 
             picking_backorder = sale.picking_ids.filtered(lambda r: r.state == 'assigned')
-            picking_backorder.move_line_ids.write({'quantity': 1})
+            picking_backorder.move_line_ids.write({'qty_done': 1})
             picking_backorder.button_validate()
 
             invoice = sale._create_invoices()

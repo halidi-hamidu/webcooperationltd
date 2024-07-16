@@ -33,7 +33,7 @@ class MergeTimesheets(models.TransientModel):
 
         if 'timesheet_ids' in fields_list and active_ids:
             timesheets = self.env['account.analytic.line'].browse(active_ids)
-            timesheets = timesheets.filtered(lambda l: l.is_timesheet and not l.validated and not l.is_timer_running)
+            timesheets = timesheets.filtered(lambda l: l.is_timesheet and not l.validated)
             if timesheets:
                 res['timesheet_ids'] = timesheets.ids
 

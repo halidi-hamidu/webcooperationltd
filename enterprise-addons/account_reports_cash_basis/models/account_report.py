@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo import models, fields, api
-from odoo.tools import SQL
+from psycopg2 import sql
+
+from odoo import api, fields, models
 
 
 class AccountReport(models.Model):
@@ -12,19 +13,13 @@ class AccountReport(models.Model):
         help="Display the option to switch to cash basis mode."
     )
 
-    # OVERRIDE
-    def get_report_information(self, options):
-        info = super().get_report_information(options)
-        info['filters']['show_cash_basis'] = self.filter_cash_basis
-        return info
-
     def _init_options_cash_basis(self, options, previous_options=None):
         if self.filter_cash_basis:
             options['report_cash_basis'] = (previous_options or {}).get('report_cash_basis', False)
 
     @api.model
     def _prepare_lines_for_cash_basis(self):
-        """Prepare the cash_basis_temp_account_move_line substitute.
+        """Prepare the cash_basis_temp_account_move_line substitue.
 
         This method should be used once before all the SQL queries using the
         table account_move_line for reports in cash basis.
@@ -141,34 +136,34 @@ class AccountReport(models.Model):
         self.env.cr.execute("SELECT column_name FROM information_schema.columns WHERE table_name='account_move_line'")
         stored_fields = {f[0] for f in self.env.cr.fetchall() if f[0] in line_fields}
         changed_equivalence_dict = {
-            "balance": SQL('CASE WHEN aml.balance != 0 THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
-            "amount_currency": SQL('CASE WHEN aml.amount_currency != 0 THEN -aal.amount * cash_basis_aml.amount_currency / aml.amount_currency ELSE 0 END'),
-            "amount_residual": SQL('CASE WHEN aml.amount_residual != 0 THEN -aal.amount * cash_basis_aml.amount_residual / aml.amount_residual ELSE 0 END'),
-            "date": SQL('cash_basis_aml.date'),
-            "account_id": SQL('aal.general_account_id'),
-            "partner_id": SQL('aal.partner_id'),
-            "debit": SQL('CASE WHEN (aml.balance < 0) THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
-            "credit": SQL('CASE WHEN (aml.balance > 0) THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
+            "balance": sql.SQL('CASE WHEN aml.balance != 0 THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
+            "amount_currency": sql.SQL('CASE WHEN aml.amount_currency != 0 THEN -aal.amount * cash_basis_aml.amount_currency / aml.amount_currency ELSE 0 END'),
+            "amount_residual": sql.SQL('CASE WHEN aml.amount_residual != 0 THEN -aal.amount * cash_basis_aml.amount_residual / aml.amount_residual ELSE 0 END'),
+            "date": sql.SQL('cash_basis_aml.date'),
+            "account_id": sql.SQL('aal.general_account_id'),
+            "partner_id": sql.SQL('aal.partner_id'),
+            "debit": sql.SQL('CASE WHEN (aml.balance < 0) THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
+            "credit": sql.SQL('CASE WHEN (aml.balance > 0) THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
         }
 
         selected_fields = []
         for fname in stored_fields:
             if fname in changed_equivalence_dict:
-                selected_fields.append(SQL('%s AS %s', changed_equivalence_dict[fname], SQL.identifier(fname)))
+                selected_fields.append(sql.SQL('{original} AS "{asname}"').format(
+                    original=changed_equivalence_dict[fname],
+                    asname=sql.SQL(fname),
+                ))
             elif fname == 'analytic_distribution':
-                project_plan, other_plans = self.env['account.analytic.plan']._get_all_plans()
-                analytic_cols = SQL(', ').join(SQL.identifier('aal', n._column_name()) for n in (project_plan+other_plans))
-                selected_fields.append(SQL('to_jsonb(UNNEST(ARRAY[%s])) AS "analytic_distribution"', analytic_cols))
+                selected_fields.append(sql.SQL('to_jsonb(aal.account_id) AS "analytic_distribution"'))
             else:
-                selected_fields.append(SQL('aml.%s AS %s', SQL.identifier(fname), SQL.identifier(fname)))
+                selected_fields.append(sql.SQL('aml.{asname} AS "{asname}"').format(asname=sql.SQL(fname)))
 
-        query = SQL(
-            """
+        query = sql.SQL("""
             -- Create a temporary table
             CREATE TEMPORARY TABLE IF NOT EXISTS analytic_cash_basis_temp_account_move_line () inherits (account_move_line) ON COMMIT DROP;
 
-            INSERT INTO analytic_cash_basis_temp_account_move_line (%s)
-            SELECT %s
+            INSERT INTO analytic_cash_basis_temp_account_move_line ({all_fields})
+            SELECT {table}
             FROM ONLY cash_basis_temp_account_move_line cash_basis_aml
             JOIN ONLY account_move_line aml ON aml.id = cash_basis_aml.id
             JOIN account_analytic_line aal ON aml.id = aal.move_line_id;
@@ -177,9 +172,9 @@ class AccountReport(models.Model):
             CREATE INDEX IF NOT EXISTS analytic_cash_basis_temp_account_move_line__composite_idx ON analytic_cash_basis_temp_account_move_line (analytic_distribution, journal_id, date, company_id);
             -- Update statistics for correct planning
             ANALYZE analytic_cash_basis_temp_account_move_line
-        """,
-            SQL(', ').join(SQL.identifier(field_name) for field_name in stored_fields),
-            SQL(', ').join(selected_fields),
+        """).format(
+            all_fields=sql.SQL(', ').join(sql.Identifier(fname) for fname in stored_fields),
+            table=sql.SQL(', ').join(selected_fields),
         )
 
         self.env.cr.execute(query)

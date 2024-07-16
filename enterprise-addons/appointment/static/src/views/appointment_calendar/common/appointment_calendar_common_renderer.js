@@ -4,9 +4,9 @@ import { AttendeeCalendarCommonRenderer } from "@calendar/views/attendee_calenda
 import { patch } from "@web/core/utils/patch";
 import { useAppointmentRendererHook } from "@appointment/views/appointment_calendar/hooks";
 
-patch(AttendeeCalendarCommonRenderer.prototype, {
+patch(AttendeeCalendarCommonRenderer.prototype, "appointment_calendar_common_renderer", {
     setup() {
-        super.setup(...arguments);
+        this._super(...arguments);
         const fns = useAppointmentRendererHook(
             () => [this.fc.el],
         );
@@ -14,7 +14,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
     },
 
     get options() {
-        const options = super.options;
+        const options = this._super();
         if (this.getEventTimeFormat) {
             options.eventTimeFormat = this.getEventTimeFormat();
         }
@@ -28,7 +28,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
     mapRecordsToEvents() {
         this.maxResId = Math.max(Object.keys(this.props.model.data.records).map((id) => Number.parseInt(id)));
         const res = [
-            ...super.mapRecordsToEvents(...arguments),
+            ...this._super(...arguments),
             ...Object.values(this.props.model.data.slots).map((r) => this.convertSlotToEvent(r)),
         ];
         return res;
@@ -44,7 +44,6 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
             slotId: record.id,
             color: "green",
         };
-        result.editable = true; // Keep slots editable
         return result;
     },
 
@@ -53,10 +52,10 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     fcEventToRecord(event) {
         if (!event.extendedProps || !event.extendedProps.slotId) {
-            return super.fcEventToRecord(...arguments);
+            return this._super(...arguments);
         }
         return {
-            ...super.fcEventToRecord({
+            ...this._super({
                 allDay: event.allDay,
                 date: event.date,
                 start: event.start,
@@ -71,7 +70,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventClick(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventClick(...arguments);
+            return this._super(...arguments);
         }
         info.jsEvent.preventDefault();
         info.jsEvent.stopPropagation();
@@ -85,26 +84,24 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      * @override
      */
     onEventRender(info) {
-        super.onEventRender(...arguments);
+        this._super(...arguments);
         const { el, event } = info;
         if (event.extendedProps.slotId) {
             el.classList.add("o_calendar_slot");
-            const bg = el.querySelector(".fc-content");
+            const bg = el.querySelector(".fc-bg");
             if (bg) {
                 const duration = (event.end - event.start) / 3600000;
                 const iconSize = duration < 1 || event.allDay || this.props.model.scale === "month" ? "" : "fa-2x";
                 const domParser = new DOMParser();
                 const injectedContentEl = domParser.parseFromString(
                     /* xml */ `
-                    <div class="fc-bg opacity-75">
-                        <button class="close border-0 p-0 m-0 w-100 h-100 disabled o_hidden">
-                            <i class='fa fa-trash text-white m-0 ${iconSize}'></i>
-                        </button>
-                    </div>
+                    <button class="close border-0 p-0 m-0 w-100 h-100 disabled o_hidden">
+                        <i class='fa fa-trash text-white m-0 ${iconSize}'></i>
+                    </button>
                 `,
                     "text/html"
                 ).body.firstChild;
-                bg.insertAdjacentElement("afterend", injectedContentEl);
+                bg.appendChild(injectedContentEl);
             }
         }
     },
@@ -113,7 +110,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      * @override
      */
     isSelectionAllowed(event) {
-        let result = super.isSelectionAllowed(...arguments);
+        let result = this._super(...arguments);
         if (this.isSlotCreationMode()) {
             result = result && luxon.DateTime.fromJSDate(event.start) > luxon.DateTime.now();
         }
@@ -124,8 +121,9 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      * @override
      */
     async onSelect(info) {
+        info.jsEvent.preventDefault();
         if (!this.isSlotCreationMode()) {
-            return super.onSelect(...arguments);
+            return this._super(...arguments);
         }
         this.props.model.createSlot(this.fcEventToRecord(info));
         this.fc.api.unselect();
@@ -135,8 +133,11 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      * @override
      */
     onDateClick(info) {
+        if (info.jsEvent.defaultPrevented) {
+            return;
+        }
         if (!this.isSlotCreationMode()) {
-            return super.onDateClick(...arguments);
+            return this._super(...arguments);
         }
         // Disabled in month view
         if (this.props.model.scale === "month") {
@@ -154,7 +155,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventDrop(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventDrop(...arguments);
+            return this._super(...arguments);
         }
         this.props.model.updateSlot(this.fcEventToRecord(info.event));
     },
@@ -164,7 +165,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventResize(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventResize(...arguments);
+            return this._super(...arguments);
         }
         this.props.model.updateSlot(this.fcEventToRecord(info.event));
     },
@@ -174,7 +175,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventDragStart(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventDragStart(...arguments);
+            return this._super(...arguments);
         }
     },
 
@@ -183,7 +184,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventResizeStart(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventResizeStart(...arguments);
+            return this._super(...arguments);
         }
     },
 
@@ -192,7 +193,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventMouseEnter(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventMouseEnter(...arguments);
+            return this._super(...arguments);
         }
         const buttonEl = info.el.querySelector(".fc-bg > button");
         buttonEl && buttonEl.classList.remove("o_hidden");
@@ -203,7 +204,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventMouseLeave(info) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventMouseLeave(...arguments);
+            return this._super(...arguments);
         }
         const buttonEl = info.el.querySelector(".fc-bg > button");
         buttonEl && buttonEl.classList.add("o_hidden");
@@ -214,7 +215,7 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
      */
     onEventAllow(dropInfo, draggedEvent) {
         if (!this.isSlotCreationMode()) {
-            return super.onEventAllow?.(...arguments) || true;
+            return (this._super && this._super(...arguments)) || true;
         }
         return draggedEvent.extendedProps.slotId && luxon.DateTime.fromJSDate(dropInfo.start) > luxon.DateTime.now();
     },

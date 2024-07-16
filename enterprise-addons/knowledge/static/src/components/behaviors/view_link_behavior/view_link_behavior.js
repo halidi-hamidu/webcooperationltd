@@ -2,9 +2,9 @@
 
 import { AbstractBehavior } from "@knowledge/components/behaviors/abstract_behavior/abstract_behavior";
 import { makeContext } from "@web/core/context";
-import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
-import { useEffect } from "@odoo/owl";
+
+const { useEffect } = owl;
 
 
 /**
@@ -12,33 +12,15 @@ import { useEffect } from "@odoo/owl";
  * usable in Odoo)
  */
 export class ViewLinkBehavior extends AbstractBehavior {
-    static props = {
-        ...AbstractBehavior.props,
-        action_xml_id: { type: String, optional: true },
-        act_window: { type: Object, optional: true },
-        context: { type: Object },
-        name: { type: String },
-        view_type: { type: String }
-    };
-    static template = "knowledge.ViewLinkBehavior";
-
     setup () {
         super.setup();
         this.actionService = useService('action');
-        this.notification = useService("notification");
-        this.userService = useService("user");
         useEffect(() => {
             const type = this.props.readonly ? 'click' : 'dblclick';
             /**
              * @param {Event} event
              */
-            const onLinkClick = async (event) => {
-                const isInternalUser = await this.userService.hasGroup("base.group_user");
-                if (!isInternalUser) {
-                    return this.notification.add(_t("Only Internal Users can access this view."), {
-                        type: "warning",
-                    });
-                }
+            const onLinkClick = event => {
                 this.openViewLink(event);
             };
             this.props.anchor.addEventListener(type, onLinkClick);
@@ -48,16 +30,12 @@ export class ViewLinkBehavior extends AbstractBehavior {
         });
     }
 
-    //--------------------------------------------------------------------------
-    // HANDLERS
-    //--------------------------------------------------------------------------
-
     /**
      * @param {Event} event
      */
     async openViewLink (event) {
         const action = await this.actionService.loadAction(
-            this.props.act_window || this.props.action_xml_id,
+            this.props.act_window,
             makeContext([this.props.context])
         );
         if (action.type !== "ir.actions.act_window") {
@@ -78,3 +56,13 @@ export class ViewLinkBehavior extends AbstractBehavior {
         });
     }
 }
+
+ViewLinkBehavior.template = "knowledge.ViewLinkBehavior";
+ViewLinkBehavior.components = {};
+ViewLinkBehavior.props = {
+    ...AbstractBehavior.props,
+    act_window: { type: Object },
+    context: { type: Object },
+    name: { type: String },
+    view_type: { type: String }
+};

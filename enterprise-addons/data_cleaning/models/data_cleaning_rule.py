@@ -32,7 +32,7 @@ ACTIONS_PYTHON = {
     'case_first': lambda record, value: value.title(),
     'case_upper': lambda record, value: value.upper(),
     'case_lower': lambda record, value: value.lower(),
-    'phone': lambda record, value: record._phone_format(number=value, country=record.country_id, force_format="INTERNATIONAL"),
+    'phone': lambda record, value: record._phone_format(value, record.country_id),
     'html': lambda record, value: html2plaintext(value),
 }
 

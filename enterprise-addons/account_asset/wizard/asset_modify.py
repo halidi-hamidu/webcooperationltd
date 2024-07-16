@@ -25,57 +25,33 @@ class AssetModify(models.TransientModel):
     # if we should display the fields for the creation of gross increase asset
     gain_value = fields.Boolean(compute="_compute_gain_value")
 
-    account_asset_id = fields.Many2one(
-        'account.account',
-        string="Gross Increase Account",
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
-    )
-    account_asset_counterpart_id = fields.Many2one(
-        'account.account',
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
-        string="Asset Counterpart Account",
-    )
-    account_depreciation_id = fields.Many2one(
-        'account.account',
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
-        string="Depreciation Account",
-    )
-    account_depreciation_expense_id = fields.Many2one(
-        'account.account',
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
-        string="Expense Account",
-    )
+    account_asset_id = fields.Many2one('account.account', string="Gross Increase Account", domain="[('deprecated', '=', False), ('company_id', '=', company_id)]")
+    account_asset_counterpart_id = fields.Many2one('account.account', domain="[('deprecated', '=', False), ('company_id', '=', company_id)]", string="Asset Counterpart Account")
+    account_depreciation_id = fields.Many2one('account.account', domain="[('deprecated', '=', False), ('company_id', '=', company_id)]", string="Depreciation Account")
+    account_depreciation_expense_id = fields.Many2one('account.account', domain="[('deprecated', '=', False), ('company_id', '=', company_id)]", string="Expense Account")
     modify_action = fields.Selection(selection="_get_selection_modify_options", string="Action")
     company_id = fields.Many2one('res.company', related='asset_id.company_id')
 
     invoice_ids = fields.Many2many(
         comodel_name='account.move',
         string="Customer Invoice",
-        check_company=True,
         domain="[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')]",
         help="The disposal invoice is needed in order to generate the closing journal entry.",
     )
     invoice_line_ids = fields.Many2many(
         comodel_name='account.move.line',
-        check_company=True,
         domain="[('move_id', '=', invoice_id), ('display_type', '=', 'product')]",
         help="There are multiple lines that could be the related to this asset",
     )
     gain_account_id = fields.Many2one(
         comodel_name='account.account',
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
         compute="_compute_accounts", inverse="_inverse_gain_account", readonly=False, compute_sudo=True,
         help="Account used to write the journal item in case of gain",
     )
     loss_account_id = fields.Many2one(
         comodel_name='account.account',
-        check_company=True,
-        domain="[('deprecated', '=', False)]",
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
         compute="_compute_accounts", inverse="_inverse_loss_account", readonly=False, compute_sudo=True,
         help="Account used to write the journal item in case of loss",
     )
@@ -95,6 +71,8 @@ class AssetModify(models.TransientModel):
     def _get_selection_modify_options(self):
         if self.env.context.get('resume_after_pause'):
             return [('resume', _('Resume'))]
+        if self.env.context.get('asset_type') in ('sale', 'expense'):
+            return [('modify', _('Re-evaluate'))]
         return [
             ('dispose', _("Dispose")),
             ('sell', _("Sell")),
@@ -240,7 +218,6 @@ class AssetModify(models.TransientModel):
         asset_vals = {
             'method_number': self.method_number,
             'method_period': self.method_period,
-            'value_residual': self.value_residual,
             'salvage_value': self.salvage_value,
         }
         if self.env.context.get('resume_after_pause'):
@@ -270,11 +247,21 @@ class AssetModify(models.TransientModel):
                 raise UserError(_('There are unposted depreciations prior to the selected operation date, please deal with them first.'))
             self.asset_id._create_move_before_date(self.date)
 
+        asset_vals.update({
+            'salvage_value': new_salvage,
+        })
+        computation_children_changed = (
+                asset_vals['method_number'] != self.asset_id.method_number
+                or asset_vals['method_period'] != self.asset_id.method_period
+                or asset_vals.get('asset_paused_days') and not float_is_zero(asset_vals['asset_paused_days'] - self.asset_id.asset_paused_days, 8)
+        )
+        self.asset_id.write(asset_vals)
+
         # Check for residual/salvage increase while rounding with the company currency precision to prevent float precision issues.
         if self.currency_id.compare_amounts(residual_increase + salvage_increase, 0) > 0:
             move = self.env['account.move'].create({
                 'journal_id': self.asset_id.journal_id.id,
-                'date': fields.Date.today(),
+                'date': self.date + relativedelta(days=1),
                 'move_type': 'entry',
                 'line_ids': [
                     Command.create({
@@ -296,6 +283,7 @@ class AssetModify(models.TransientModel):
                 'name': self.asset_id.name + ': ' + self.name if self.name else "",
                 'currency_id': self.asset_id.currency_id.id,
                 'company_id': self.asset_id.company_id.id,
+                'asset_type': self.asset_id.asset_type,
                 'method': self.asset_id.method,
                 'method_number': self.method_number,
                 'method_period': self.method_period,
@@ -315,7 +303,7 @@ class AssetModify(models.TransientModel):
             })
             asset_increase.validate()
 
-            subject = _('A gross increase has been created: ') + asset_increase._get_html_link()
+            subject = _('A gross increase has been created: %s', asset_increase._get_html_link())
             self.asset_id.message_post(body=subject)
 
         if self.currency_id.compare_amounts(increase, 0) < 0:
@@ -330,34 +318,29 @@ class AssetModify(models.TransientModel):
                 'asset_value_change': True,
             }))._post()
 
-        asset_vals.update({
-            'value_residual': new_residual,
-            'salvage_value': new_salvage,
-        })
-        computation_children_changed = (
-                asset_vals['method_number'] != self.asset_id.method_number
-                or asset_vals['method_period'] != self.asset_id.method_period
-                or asset_vals.get('asset_paused_days') and not float_is_zero(asset_vals['asset_paused_days'] - self.asset_id.asset_paused_days, 8)
-        )
-        self.asset_id.write(asset_vals)
-
         restart_date = self.date if self.env.context.get('resume_after_pause') else self.date + relativedelta(days=1)
-        self.asset_id.compute_depreciation_board(restart_date)
+        if self.asset_id.depreciation_move_ids:
+            self.asset_id.compute_depreciation_board(restart_date)
+        else:
+            # We have no moves, we can compute it as new
+            self.asset_id.compute_depreciation_board()
 
         if computation_children_changed:
-            children = self.asset_id.children_ids
-            children.write({
+            self.asset_id.children_ids.write({
                 'method_number': asset_vals['method_number'],
                 'method_period': asset_vals['method_period'],
                 'asset_paused_days': self.asset_id.asset_paused_days,
             })
 
-            for child in children:
+            for child in self.asset_id.children_ids:
                 if not self.env.context.get('resume_after_pause'):
                     child._create_move_before_date(self.date)
-            children.compute_depreciation_board(restart_date)
-            children._check_depreciations()
-            children.depreciation_move_ids.filtered(lambda move: move.state != 'posted')._post()
+                if child.depreciation_move_ids:
+                    child.compute_depreciation_board(restart_date)
+                else:
+                    child.compute_depreciation_board()
+                child._check_depreciations()
+                child.depreciation_move_ids.filtered(lambda move: move.state != 'posted')._post()
         tracked_fields = self.env['account.asset'].fields_get(old_values.keys())
         changes, tracking_value_ids = self.asset_id._mail_track(tracked_fields, old_values)
         if changes:

@@ -17,24 +17,30 @@ class AppraisalAskFeedback(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
+        if not self.env.user.email:
+            raise UserError(_("Unable to post message, please configure the sender's email address."))
         result = super(AppraisalAskFeedback, self).default_get(fields)
         appraisal = self.env['hr.appraisal'].browse(result.get('appraisal_id'))
         if 'survey_template_id' in fields and appraisal and not result.get('survey_template_id'):
             result['survey_template_id'] = appraisal.department_id.appraisal_survey_template_id.id or appraisal.company_id.appraisal_survey_template_id.id
         return result
-
     appraisal_id = fields.Many2one('hr.appraisal', default=lambda self: self.env.context.get('active_id', None))
     employee_id = fields.Many2one(related='appraisal_id.employee_id', string='Appraisal Employee')
-    template_id = fields.Many2one(default=lambda self: self.env.ref('hr_appraisal_survey.mail_template_appraisal_ask_feedback', raise_if_not_found=False),
-                                  domain=lambda self: [('model_id', '=', self.env['ir.model']._get('hr.appraisal').id)])
+    template_id = fields.Many2one(default=lambda self: self.env.ref('hr_appraisal_survey.mail_template_appraisal_ask_feedback', raise_if_not_found=False))
+    user_body = fields.Html('User Contents')
+
     attachment_ids = fields.Many2many(
         'ir.attachment', 'hr_appraisal_survey_mail_compose_message_ir_attachments_rel',
         'wizard_id', 'attachment_id', string='Attachments')
+    email_from = fields.Char(
+        'From', required=True,
+        default=lambda self: self.env.user.email_formatted,
+    )
     author_id = fields.Many2one(
         'res.partner', string='Author', required=True,
         default=lambda self: self.env.user.partner_id.id,
     )
-    survey_template_id = fields.Many2one('survey.survey', required=True, domain=[('survey_type', '=', 'appraisal')])
+    survey_template_id = fields.Many2one('survey.survey', required=True, domain=[('is_appraisal', '=', True)])
     employee_ids = fields.Many2many(
         'hr.employee', string="Recipients", required=True)
     deadline = fields.Date(string="Answer Deadline", required=True, compute='_compute_deadline', store=True, readonly=False)
@@ -46,22 +52,9 @@ class AppraisalAskFeedback(models.TransientModel):
 
     @api.depends('employee_id')
     def _compute_subject(self):
-        for wizard_su in self.filtered(lambda w: w.employee_id and w.template_id).sudo():
-            wizard_su.subject = wizard_su._render_template(
-                wizard_su.template_id.subject,
-                'hr.appraisal',
-                wizard_su.appraisal_id.ids,
-                engine='inline_template',
-                options={'post_process': True}
-            )[wizard_su.appraisal_id.id]
-
-    @api.depends('template_id', 'employee_ids')
-    def _compute_body(self):
-        for wizard in self:
-            langs = set(wizard.employee_ids.user_partner_id.mapped('lang')) - {False}
-            if len(langs) == 1:
-                wizard = wizard.with_context(lang=langs.pop())
-            super(AppraisalAskFeedback, wizard)._compute_body()
+        for wizard in self.filtered('employee_id'):
+            if wizard.template_id:
+                wizard.subject = self.sudo()._render_template(wizard.template_id.subject, 'hr.appraisal', wizard.appraisal_id.ids, post_process=True)[wizard.appraisal_id.id]
 
     @api.depends('appraisal_id.date_close')
     def _compute_deadline(self):
@@ -76,16 +69,12 @@ class AppraisalAskFeedback(models.TransientModel):
             emailless_employees_all = self.env['hr.employee'].search(['|', ('work_email', '=', False), ('user_id.partner_id', '=', False)])
             warning = {
                 'title': _('Missing email'),
-                'message': _('This employee doesn\'t have any mail address registered and will not receive any email. \nThe following employees do not have any email: \n%s',
+                'message': _('This employee doesn\'t have any mail address registered and will not receive any email. \nThe following employees do not have any email : \n%s',
                         ', '.join(emailless_employees_all.mapped('name'))),
                 'type': 'notification',
             }
             self.employee_ids = self.employee_ids - emailless_employees
             return {'warning': warning}
-
-    @api.onchange('template_id')
-    def _onchange_template_id(self):
-        self.attachment_ids = self.template_id.attachment_ids
 
     def _prepare_survey_anwers(self, employees):
         answers = self.env['survey.user_input']
@@ -127,14 +116,14 @@ class AppraisalAskFeedback(models.TransientModel):
 
     def _send_mail(self, answer):
         """ Create mail specific for recipient containing notably its access token """
+        user_body = self.user_body
+        user_body = user_body if not is_html_empty(html_sanitize(user_body, strip_style=True, strip_classes=True)) else False
         ctx = {
-            'logged_user': self.env.user.name,
-            'employee': self.employee_id.name,
-            'deadline': self.deadline,
+            'user_body': user_body
         }
-        body = self.with_context(**ctx)._render_field('body', answer.ids)[answer.id]
+        body = self.with_context(**ctx)._render_field('body', answer.ids, post_process=True)[answer.id]
         mail_values = {
-            'email_from': self.author_id.email_formatted,
+            'email_from': self.email_from,
             'author_id': self.author_id.id,
             'model': None,
             'res_id': None,
@@ -175,42 +164,10 @@ class AppraisalAskFeedback(models.TransientModel):
                 self.appraisal_id.with_context(mail_activity_quick_update=True).activity_schedule(
                     'mail.mail_activity_data_todo', self.deadline,
                     summary=_('Fill the feedback form on survey'),
-                    note=_('An appraisal feedback was requested. Please take time to fill the <a href="%s" target="_blank">survey</a>',
-                        answer.get_start_url()),
+                    note=_('An appraisal feedback was requested. Please take time to fill the <a href="%s" target="_blank">survey</a>') %
+                        answer.get_start_url(),
                     user_id=employee.user_id.id)
 
         self.appraisal_id.employee_feedback_ids |= self.employee_ids
         self.appraisal_id.survey_ids |= self.survey_template_id
         return {'type': 'ir.actions.act_window_close'}
-
-    def action_save_as_template(self):
-        """ hit save as template button: current form value will be a new
-            template attached to the current document. """
-        model = self.env['ir.model']._get('hr.appraisal')
-        template_name = _("Appraisal: Ask Feedback new template")
-        for record in self:
-            values = {
-                'name': template_name,
-                'subject': record.subject or False,
-                'body_html': record.body or False,
-                'model_id': model.id,
-                'use_default_to': True,
-            }
-            template = self.env['mail.template'].create(values)
-
-            if record.attachment_ids:
-                attachments = record.env['ir.attachment'].sudo().browse(record.attachment_ids.ids).filtered(lambda a: a.create_uid.id == record._uid)
-                if attachments:
-                    attachments.write({'res_model': template._name, 'res_id': template.id})
-                template.attachment_ids |= record.attachment_ids
-
-            # generate the saved template
-            record.write({'template_id': template.id})
-
-            return {
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'res_id': template.id,
-                'res_model': 'mail.template',
-                'target': 'new',
-            }

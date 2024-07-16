@@ -2,7 +2,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from .common import TestInterCompanyRulesCommonSOPO
-from odoo import Command
 from odoo.tests import Form
 from odoo.tests import tagged
 
@@ -15,14 +14,20 @@ class TestInterCompanySaleToPurchase(TestInterCompanyRulesCommonSOPO):
         sale_order = Form(self.env['sale.order'])
         sale_order.company_id = company
         sale_order.warehouse_id = company.warehouse_id
+        sale_order.pricelist_id = self.env['product.pricelist'].search([('id', '=', 1)])
         sale_order.partner_id = partner
         sale_order.user_id = user
-        with sale_order.order_line.new() as line:
-            line.name = 'Service'
-            line.product_id = self.product_consultant
-            line.price_unit = 450.0
+        sale_order.partner_invoice_id = partner
+        sale_order.partner_shipping_id = partner
+        sale_order = sale_order.save()
 
-        return sale_order.save()
+        with Form(sale_order) as so:
+            with so.order_line.new() as line:
+                line.name = 'Service'
+                line.product_id = self.product_consultant
+                line.price_unit = 450.0
+
+        return sale_order
 
     def generate_sale_order(self, company, partner, user):
         sale_order = self._generate_draft_sale_order(company, partner, user)
@@ -186,55 +191,3 @@ class TestInterCompanySaleToPurchase(TestInterCompanyRulesCommonSOPO):
         so.with_user(self.res_users_company_a).action_confirm()
         purchase_order = self.env['purchase.order'].sudo().search([('partner_id', '=', self.company_a.partner_id.id)], limit=1)
         self.assertEqual(purchase_order.company_id, self.company_b)
-
-    def test_inter_company_auto_validation(self):
-        """
-        In a setup with two companies A and B, with a service product that is set as a "Subcontract Services".
-        Company A purchase the service from company B, and company B purchase the service from a vendor.
-        We test that if we make a purchase order on A and confirm it that it generate an SO in B and a PO.
-        """
-        buyer, vendor = self.env['res.partner'].create([{
-            'name': 'buyer',
-            'company_id': False,
-        }, {
-            'name': 'vendor',
-            'company_id': False,
-        }])
-
-        (self.company_a | self.company_b).update({
-            'rule_type': 'sale_purchase',
-            'auto_validation': True,
-        })
-
-        service_purchase = self.env['product.product'].create({
-            'name': "service 1",
-            'purchase_ok': True,
-            'sale_ok': True,
-            'type': 'service',
-            'service_to_purchase': True,
-            'seller_ids': [
-                Command.create({'partner_id': self.company_b.partner_id.id, 'price': 100, 'company_id': self.company_a.id}),
-                Command.create({'partner_id': vendor.id, 'price': 100, 'company_id': self.company_b.id}),
-            ],
-        })
-        service_purchase.with_company(self.company_b).update({'service_to_purchase': True})
-
-        so_a = self._generate_draft_sale_order(self.company_a, buyer, self.res_users_company_a)
-        so_a.order_line.product_id = service_purchase
-        so_a.with_company(self.company_a).action_confirm()
-
-        po_a = so_a._get_purchase_orders()
-        self.assertEqual(po_a.company_id, self.company_a)
-        self.assertEqual(po_a.partner_id, self.company_b.partner_id)
-        self.assertEqual(po_a.order_line.product_id, service_purchase)
-
-        po_a.with_company(self.company_a).button_approve()
-        so_b = self.env['sale.order'].with_company(self.company_b).search([('partner_id', '=', self.company_a.partner_id.id)], limit=1)
-        self.assertEqual(so_b.company_id, self.company_b)
-        self.assertEqual(so_b.partner_id, self.company_a.partner_id)
-        self.assertEqual(so_b.order_line.product_id, service_purchase)
-
-        po_b = so_b._get_purchase_orders()
-        self.assertEqual(po_b.company_id, self.company_b)
-        self.assertEqual(po_b.partner_id, vendor)
-        self.assertEqual(po_b.order_line.product_id, service_purchase)

@@ -47,7 +47,6 @@ class AccountCashFlowReportHandler(models.AbstractModel):
         # Options ---------------------------------
         # We don't need all companies
         options.pop('multi_company', None)
-        options['single_company'] = self.env.company.ids
 
         # Filter cash journals
         options['journals'] = [journal for journal in options.get('journals', []) if journal.get('type') == 'cash']
@@ -168,7 +167,6 @@ class AccountCashFlowReportHandler(models.AbstractModel):
         # Options ---------------------------------
         # We don't need all companies
         options.pop('multi_company', None)
-        options['single_company'] = self.env.company.ids
 
         # Filter bank journals
         options['journals'] = [journal for journal in options.get('journals', []) if journal.get('type') == 'bank']
