@@ -12,9 +12,7 @@
             <field name="state">code</field>
             <field name="code">model.send_receipt_cron()</field>
         </record>
-    </data>
 
-    <data noupdate="1">
         <record id="get_delivered_reports_sms_notification" forcecreate='True' model="ir.cron">
             <field name="name">Get Payment Receipt Status VFD</field>
             <field eval="False" name="active"/>
@@ -26,5 +24,41 @@
             <field name="state">code</field>
             <field name="code">model.get_receipt_status()</field>
         </record>
+
+
+        <record id="send_payment_receipt_efd" forcecreate='True' model="ir.cron">
+            <field name="name">Get Payment Receipt EFDMS</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_payment_receipt_vfd"/>
+            <field name="state">code</field>
+            <field name="code">model.send_receipt_cron()</field>
+        </record>
+        <record id="get_receipt_sequence" forcecreate='True' model="ir.cron">
+            <field name="name">Get Receipt Sequence</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_payment_receipt_vfd"/>
+            <field name="state">code</field>
+            <field name="code">model.get_receipt_sequence_cron()</field>
+        </record>
+        <record id="get_missing_receipt" forcecreate='True' model="ir.cron">
+            <field name="name">Get Missing Receipt</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_payment_receipt_missing"/>
+            <field name="state">code</field>
+            <field name="code">model.get_missing_receipt_cron()</field>
+        </record>
+
     </data>
 </odoo>

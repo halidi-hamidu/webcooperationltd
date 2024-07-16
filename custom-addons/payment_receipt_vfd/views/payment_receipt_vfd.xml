@@ -9,12 +9,14 @@
                     <header>
                         <button name="send_receipt" string="SEND NOW" class="oe_highlight" states="draft"
                                 type="object"/>
+                         <button name="send_receipt" string="VERIFY NOW" class="oe_highlight" states="verified" type="object"/>
+                         <button name="resend_receipt" string="Reset" states="reconcilled,diff,error" type="object"/>
                         <button name="resend_receipt" string="Resend" states="error"
                                 type="object"/>
                         <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" states=""
                                 type="object"/>
                         <button name="cancel_receipt" string="Cancel" states="draft,sent" type="object"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,error,verified,cancel"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,error,verified,reconcilled,diff,error,cancel"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -53,6 +55,19 @@
                                     <field name="error_message" readonly="1"/>
                                 </group>
                             </page>
+                            <page name="tra_page" string="EFDMS Details">
+                                <group>
+                                    <group>
+                                        <field name="total_excl_tax"/>
+                                        <field name="total_tax"/>
+                                        <field name="total_incl_tax"/>
+                                    </group>
+                                    <group>
+                                        <field name="base_amount_diff"/>
+                                        <field name="tax_amount_diff"/>
+                                    </group>
+                                </group>
+                            </page>
 
                         </notebook>
                     </sheet>
@@ -65,7 +80,7 @@
             <field name="model">payment.receipt.vfd</field>
             <field name="arch" type="xml">
                 <tree create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='error'"
-                      default_order="create_date desc">
+                      decoration-success="state=='reconcilled'" decoration-info="state=='verified'" decoration-warning="state=='diff'" default_order="create_date desc">
                     <field name="receipt_date" optional="hide"/>
                     <field name="receipt_time" string="Receipt Datetime"/>
                     <field name="receipt_time_str" optional="hide"/>
@@ -74,14 +89,19 @@
                     <field name="amount_untaxed_signed" sum="Total"/>
                     <field name="amount_tax_signed" sum="Total"/>
                     <field name="amount_total_signed" sum="Total"/>
-                    <field name="receipt_no" optional="show"/>
-                    <field name="receipt_id" optional="show"/>
-                    <field name="receipt_z_no" optional="show"/>
+                    <field name="receipt_no" optional="hide"/>
+                    <field name="receipt_id" optional="hide"/>
+                    <field name="receipt_z_no" optional="hide"/>
                     <field name="customer_name"/>
+                    <field name="total_excl_tax" sum="Total Excl Tax"/>
+                    <field name="total_tax" sum="Total Tax"/>
+                    <field name="total_incl_tax" sum="Total Incl Tax"/>
+                    <field name="base_amount_diff" sum="Base Amount Difference"/>
+                    <field name="tax_amount_diff" sum="Tax Amount Difference"/>
                     <field name="customer_phone" optional="hide"/>
                     <field name="customer_vrn" optional="hide"/>
                     <field name="customer_id" optional="hide"/>
-                    <field name="verification_code"/>
+                    <field name="verification_code" optional="hide"/>
                     <field name="receipt_url" optional="hide"/>
                     <field name="state" optional="show"/>
                 </tree>
@@ -112,7 +132,29 @@
             </field>
         </record>
 
+        <record id="payment_receipt_missing_tree_view" model="ir.ui.view">
+            <field name="name">payment.receipt.missing.tree</field>
+            <field name="model">payment.receipt.missing</field>
+            <field name="arch" type="xml">
+                <tree string="Missing EFD Receipts" default_order="create_date desc">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="payment_receipt_missing_act_window" model="ir.actions.act_window">
+            <field name="name">Missing EFD Receipts</field>
+            <field name="res_model">payment.receipt.missing</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There are no Receipts found.
+                </p>
+            </field>
+        </record>
+
         <menuitem name="EFD Receipts" id="payment_receipt_vfd_menu" parent="account.menu_finance_receivables" sequence="4" action="payment_receipt_vfd_act_window"/>
+        <menuitem name="Missing EFD Receipts" id="payment_receipt_missing_menu" parent="account.menu_finance_receivables" sequence="5" action="payment_receipt_missing_act_window" groups="base.group_user" />
 
     </data>
 </odoo>

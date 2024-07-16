@@ -6,3 +6,4 @@ from . import sms_notification
 from . import account_move
 from . import sale_order
 from . import project_project
+from . import res_partner

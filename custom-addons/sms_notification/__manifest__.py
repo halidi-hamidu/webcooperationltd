@@ -28,8 +28,10 @@
         'views/sms_configuration_views.xml',
         'views/sale_order_views.xml',
         'views/account_move.xml',
+        'views/res_partner_views.xml',
         'data/sms_templates.xml',
         'data/ir_cron_views.xml',
+
     ],
     # only loaded in demonstration mode
     'demo': [],

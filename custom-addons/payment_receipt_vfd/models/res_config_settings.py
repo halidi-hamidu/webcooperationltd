@@ -24,6 +24,12 @@ class ResConfigSettings(models.TransientModel):
                                     config_parameter='payment_receipt_vfd.verification_code')
     has_vrn = fields.Boolean('Has VRN', readonly=True, config_parameter='payment_receipt_vfd.has_vrn')
 
+    # VFD Verification Configurations
+    verification_base_url = fields.Char("Verification Base URL", config_parameter='payment_receipt_vfd.verification_base_url')
+    verification_secrete_url = fields.Char("Verification Secrete URL", config_parameter='payment_receipt_vfd.verification_secrete_url')
+    verification_code_base = fields.Char("Verification Code Base", config_parameter='payment_receipt_vfd.verification_code_base')
+    starting_sequence = fields.Char("Starting Sequence", config_parameter='payment_receipt_vfd.starting_sequence')
+
     def refresh_settings(self):
         res, res_obj = self.env['payment.receipt.vfd'].get_vfd_settings()
         if res:

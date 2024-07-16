@@ -1,5 +1,7 @@
 import pytz
 import requests
+from bs4 import BeautifulSoup
+from requests_html import HTMLSession
 from odoo import fields, models, api, http, _
 from datetime import datetime, date
 import logging
@@ -15,6 +17,7 @@ class PaymentReceiptVfd(models.Model):
 
     receipt_id = fields.Integer('Receipt ID')
     receipt_no = fields.Char('Receipt No')
+    receipt_sequence = fields.Integer('Receipt Sequence')
     receipt_date = fields.Date('Receipt Date')
     receipt_time = fields.Datetime('Receipt Time')
     receipt_time_str = fields.Char('Receipt Time', compute='get_receipt_time_str')
@@ -34,16 +37,31 @@ class PaymentReceiptVfd(models.Model):
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
     company_currency_id = fields.Many2one(string='Company Currency', readonly=True,
                                           related='company_id.currency_id')
+    sequence_produced = fields.Boolean(default=False)
+
+    ###VALUES FROM INVOICE
     amount_tax_signed = fields.Monetary(related='invoice_id.amount_tax_signed',string='Tax Amount',currency_field='company_currency_id')
     amount_total_signed = fields.Monetary(related='invoice_id.amount_total_signed',string='Total Amount',currency_field='company_currency_id')
     amount_untaxed_signed = fields.Monetary(related='invoice_id.amount_untaxed_signed',string='Untaxed Amount ',currency_field='company_currency_id')
     invoice_currency = fields.Many2one(string='Invoice Currency', readonly=True,
                                           related='invoice_id.currency_id')
+    
+    ######VALUES FROM TRA
+    total_excl_tax = fields.Monetary(string='TRA Total Excl Tax', currency_field='company_currency_id',readonly=True)
+    total_tax = fields.Monetary(string='TRA Tax Amount', currency_field='company_currency_id',readonly=True)
+    total_incl_tax = fields.Monetary(string='TRA Total Incl Tax', currency_field='company_currency_id',readonly=True)
+
+    ######DIFFERENCES BETWEEN INVOICE & TRA
+    base_amount_diff = fields.Monetary(string='Base Amount Diff', currency_field='company_currency_id',readonly=True)
+    tax_amount_diff = fields.Monetary(string='Tax Amount Diff', currency_field='company_currency_id',readonly=True)
+
     state = fields.Selection([
         ('draft', 'In Queue'),
         ('sent', 'Sent'),
+        ('verified', 'Posted to eFDMS'),
+        ('reconcilled', 'Matching'),
+        ('diff', 'Different'),
         ('error', 'Error'),
-        ('verified', 'Verified'),
         ('cancel', 'Cancelled'),
     ], default='draft', copy=False)
 
@@ -59,7 +77,6 @@ class PaymentReceiptVfd(models.Model):
 
     def send_receipt_cron(self):
         records = self.search([('state', 'in', ['draft', 'error'])], order='receipt_time asc', limit=1)
-        print(records)
         for rec in records:
             rec.post_receipt(rec)
 
@@ -173,8 +190,6 @@ class PaymentReceiptVfd(models.Model):
                 rec.receipt_url = response.json()['data']['ReceiptUrl']
                 rec.state = 'sent'
                 rec.env.cr.commit()
-                print('Response')
-                print(response.json())
                 return response.json()['data']
 
             if response.status_code == 401:
@@ -205,6 +220,63 @@ class PaymentReceiptVfd(models.Model):
 
     def get_config_param(self, key):
         return self.env['ir.config_parameter'].sudo().get_param(key)
+    
+    def send_receipt_cron(self):
+        records = self.search([('state', 'in', ['verified'])], order='receipt_time asc', limit=20)
+        for rec in records:
+            rec.post_receipt_efdms(rec)
+
+    def get_receipt_sequence_cron(self):
+        records = self.search([('sequence_produced', '=', False)])
+        for rec in records:
+            verification_code_base = self.get_config_param('payment_receipt_vfd.verification_code_base')
+            rec.receipt_sequence= int(rec.receipt_no.replace(verification_code_base,""))
+            if rec.receipt_sequence:
+                rec.sequence_produced = True
+
+    def send_receipt(self):
+        for rec in self:
+            rec.post_receipt_efdms(rec)
+
+    def resend_receipt(self):
+        for rec in self:
+            rec.state = 'verified'
+
+    def post_receipt_efdms(self, obj):
+        for rec in obj:
+            secrete_url = self.get_config_param('payment_receipt_vfd.verification_secrete_url')
+            session = HTMLSession()
+            resps = session.get(rec.receipt_url)
+            if resps.status_code == 200:
+                print(rec.receipt_time_str)
+                resps = session.get(secrete_url+rec.receipt_time_str)
+                if len(resps.html.find("table")) == 2:
+                    receipt_table = resps.html.find("table")[1]
+                    list_of_items = receipt_table.text.splitlines()
+
+                    if len(list_of_items) == 7:
+                        toet = float(list_of_items[1].replace(',', ''))
+                        tox = float(list_of_items[5].replace(',', ''))
+                        toit = float(list_of_items[7].replace(',', ''))
+                    else:
+                        toet = float(list_of_items[1].replace(',', ''))
+                        tox = float(list_of_items[3].replace(',', ''))
+                        toit = float(list_of_items[5].replace(',', ''))
+
+                    if (toet + tox) > 0:
+                        rec.total_excl_tax = toet
+                        rec.total_tax = tox
+                        rec.total_incl_tax = toet + tox
+
+                        rec.base_amount_diff = rec.amount_untaxed_signed - rec.total_excl_tax 
+                        rec.tax_amount_diff = rec.amount_tax_signed - rec.total_tax
+
+                        if rec.base_amount_diff == 0 and rec.tax_amount_diff == 0:
+                            rec.state = 'reconcilled'
+                        else:
+                            rec.state = 'diff'
+                else:
+                    rec.state = 'error'
 
 
 class VfdReceiptLines(models.Model):
@@ -218,3 +290,41 @@ class VfdReceiptLines(models.Model):
     tax_type = fields.Char('Tax Type')
     discount = fields.Float('Discount')
     payment_receipt_id = fields.Many2one('payment.receipt.vfd')
+
+class PaymentReceiptMissing(models.Model):
+    _name = 'payment.receipt.missing'
+    _description = 'Missing Payment Receipt'
+
+    name = fields.Char('Receipt No',required=True)
+
+    _sql_constraints = [('name_unique', 'unique(name)','Can not add same receipt Twice!')]
+
+    def get_missing_receipt_cron(self):
+        records = self.env['payment.receipt.vfd'].search_read([],['receipt_sequence'])
+        list_of_seq = []
+        for rec in records:
+            list_of_seq.append(rec['receipt_sequence'])
+        missing_receipt = self.find_missing_entry(list_of_seq)
+        if missing_receipt:
+            verification_code_base = self.get_config_param('receipt_verification.verification_code_base')
+            for receipt in missing_receipt:
+                if not self.check_exists(str(receipt)):
+                    self.create({'name': verification_code_base + str(receipt)})
+
+    def find_missing_entry(self,sequence):
+        if sequence:
+            expected_sequence = range(min(sequence), max(sequence) + 1)
+            missing_entries = set(expected_sequence) - set(sequence)
+            if missing_entries:
+                return list(missing_entries)
+            else:
+                return None
+        else:
+            return None
+        
+    def check_exists(self,receipt_code):
+        verification_code_base = self.get_config_param('receipt_verification.verification_code_base')
+        return self.search([('name','=',verification_code_base + receipt_code)])
+        
+    def get_config_param(self, key):
+        return self.env['ir.config_parameter'].sudo().get_param(key)
