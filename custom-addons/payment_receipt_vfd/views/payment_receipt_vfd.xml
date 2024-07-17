@@ -9,14 +9,13 @@
                     <header>
                         <button name="send_receipt" string="SEND NOW" class="oe_highlight" states="draft"
                                 type="object"/>
-                         <button name="send_receipt" string="VERIFY NOW" class="oe_highlight" states="verified" type="object"/>
-                         <button name="resend_receipt" string="Reset" states="reconcilled,diff,error" type="object"/>
-                        <button name="resend_receipt" string="Resend" states="error"
-                                type="object"/>
+                         <button name="verify_receipt" string="VERIFY NOW" class="oe_highlight" states="verified" type="object"/>
+                         <button name="reset_receipt" string="Reset" states="reconcilled,diff,missing" type="object"/>
+                        <button name="resend_receipt" string="Resend" states="error" type="object"/>
                         <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" states=""
                                 type="object"/>
                         <button name="cancel_receipt" string="Cancel" states="draft,sent" type="object"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,error,verified,reconcilled,diff,error,cancel"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,verified,error,reconcilled,diff,missing,cancel"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -33,6 +32,7 @@
                                 <field name="receipt_id" readonly="1"/>
                                 <field name="receipt_z_no" readonly="1"/>
                                 <field name="verification_code" readonly="1"/>
+                                <field name="business_line" readonly="1"/>
                             </group>
                             <group>
                                 <field name="customer_name" readonly="1"/>
@@ -79,15 +79,17 @@
             <field name="name">payment.receipt.vfd.tree</field>
             <field name="model">payment.receipt.vfd</field>
             <field name="arch" type="xml">
-                <tree create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='error'"
-                      decoration-success="state=='reconcilled'" decoration-info="state=='verified'" decoration-warning="state=='diff'" default_order="create_date desc">
+                <tree create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='missing' or state=='error'"
+                      decoration-success="state=='reconcilled'" decoration-info="state=='verified'" decoration-warning="state=='diff'" 
+                      default_order="create_date desc">
                     <field name="receipt_date" optional="hide"/>
                     <field name="receipt_time" string="Receipt Datetime"/>
                     <field name="receipt_time_str" optional="hide"/>
                     <field name="invoice_id"/>
                     <field name="invoice_currency"/>
-                    <field name="amount_untaxed_signed" sum="Total"/>
-                    <field name="amount_tax_signed" sum="Total"/>
+                    <field name="business_line" optional="show"/>
+                    <field name="amount_untaxed_signed" sum="Untaxed"/>
+                    <field name="amount_tax_signed" sum="Tax"/>
                     <field name="amount_total_signed" sum="Total"/>
                     <field name="receipt_no" optional="hide"/>
                     <field name="receipt_id" optional="hide"/>
@@ -113,6 +115,12 @@
             <field name="model">payment.receipt.vfd</field>
             <field name="arch" type="xml">
                 <search string="VFD Receipt">
+                    <field name="receipt_no"/>
+                    <field name="customer_name"/>
+                    <field name="business_line"/>
+                    <separator/>
+                    <filter string="Receipt Date" name="receipt_date" date="receipt_date"/>
+                    <separator/>
                     <group expand="1" string="Group By">
                         <filter string="Status" name="state" domain="[]"
                                 context="{'group_by':'state'}"/>

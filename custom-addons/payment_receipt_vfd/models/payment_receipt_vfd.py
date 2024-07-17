@@ -27,6 +27,13 @@ class PaymentReceiptVfd(models.Model):
     customer_vrn = fields.Char('Customer VRN')
     payment_method = fields.Char('Payment Method')
     invoice_id = fields.Many2one('account.move')
+    business_line = fields.Selection([
+        ('atras', 'IoT VTS'),
+        ('ects', 'IoT ECTS'),
+        ('itms', 'IT Management & Security Services'),
+        ('uis', 'Unified Infrastructure Solutions'),
+        ('ictpack', 'Application Software'),
+    ], string='Business Line',readonly=True, related="invoice_id.business_line")
     error_message = fields.Char('Error Message')
     verification_code = fields.Char('Verification Code')
     customer_id = fields.Char('Customer TIN')
@@ -62,6 +69,7 @@ class PaymentReceiptVfd(models.Model):
         ('reconcilled', 'Matching'),
         ('diff', 'Different'),
         ('error', 'Error'),
+        ('missing', 'Missing'),
         ('cancel', 'Cancelled'),
     ], default='draft', copy=False)
 
@@ -221,7 +229,7 @@ class PaymentReceiptVfd(models.Model):
     def get_config_param(self, key):
         return self.env['ir.config_parameter'].sudo().get_param(key)
     
-    def send_receipt_cron(self):
+    def verify_receipt_cron(self):
         records = self.search([('state', 'in', ['verified'])], order='receipt_time asc', limit=20)
         for rec in records:
             rec.post_receipt_efdms(rec)
@@ -234,11 +242,11 @@ class PaymentReceiptVfd(models.Model):
             if rec.receipt_sequence:
                 rec.sequence_produced = True
 
-    def send_receipt(self):
+    def verify_receipt(self):
         for rec in self:
             rec.post_receipt_efdms(rec)
 
-    def resend_receipt(self):
+    def reset_receipt(self):
         for rec in self:
             rec.state = 'verified'
 
@@ -276,7 +284,7 @@ class PaymentReceiptVfd(models.Model):
                         else:
                             rec.state = 'diff'
                 else:
-                    rec.state = 'error'
+                    rec.state = 'missing'
 
 
 class VfdReceiptLines(models.Model):
@@ -306,7 +314,7 @@ class PaymentReceiptMissing(models.Model):
             list_of_seq.append(rec['receipt_sequence'])
         missing_receipt = self.find_missing_entry(list_of_seq)
         if missing_receipt:
-            verification_code_base = self.get_config_param('receipt_verification.verification_code_base')
+            verification_code_base = self.get_config_param('payment_receipt_vfd.verification_code_base')
             for receipt in missing_receipt:
                 if not self.check_exists(str(receipt)):
                     self.create({'name': verification_code_base + str(receipt)})
@@ -323,7 +331,7 @@ class PaymentReceiptMissing(models.Model):
             return None
         
     def check_exists(self,receipt_code):
-        verification_code_base = self.get_config_param('receipt_verification.verification_code_base')
+        verification_code_base = self.get_config_param('payment_receipt_vfd.verification_code_base')
         return self.search([('name','=',verification_code_base + receipt_code)])
         
     def get_config_param(self, key):
