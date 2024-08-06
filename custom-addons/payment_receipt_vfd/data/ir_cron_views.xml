@@ -30,13 +30,26 @@
             <field name="name">Get Payment Receipt EFDMS</field>
             <field eval="True" name="active"/>
             <field name="user_id" ref="base.user_root"/>
-            <field name="interval_number">1</field>
+            <field name="interval_number">20</field>
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
             <field name="model_id" ref="model_payment_receipt_vfd"/>
             <field name="state">code</field>
             <field name="code">model.verify_receipt_cron()</field>
         </record>
+
+        <record id="send_missing_payment_receipt_efd" forcecreate='True' model="ir.cron">
+            <field name="name">Get Missing Payment Receipt EFDMS</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="model_id" ref="model_payment_receipt_vfd"/>
+            <field name="state">code</field>
+            <field name="code">model.verify_missing_receipt_cron()</field>
+        </record>
+
         <record id="get_receipt_sequence" forcecreate='True' model="ir.cron">
             <field name="name">Get Receipt Sequence</field>
             <field eval="True" name="active"/>

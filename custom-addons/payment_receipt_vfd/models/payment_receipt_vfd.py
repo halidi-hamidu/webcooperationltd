@@ -233,6 +233,11 @@ class PaymentReceiptVfd(models.Model):
         records = self.search([('state', 'in', ['verified'])], order='receipt_time asc', limit=20)
         for rec in records:
             rec.post_receipt_efdms(rec)
+    
+    def verify_missing_receipt_cron(self):
+        records = self.search([('state', 'in', ['missing'])], order='receipt_time desc', limit=30)
+        for rec in records:
+            rec.post_receipt_efdms(rec)
 
     def get_receipt_sequence_cron(self):
         records = self.search([('sequence_produced', '=', False)])
