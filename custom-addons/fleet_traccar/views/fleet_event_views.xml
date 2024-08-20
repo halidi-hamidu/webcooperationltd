@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fleet_events_tree_view" model="ir.ui.view">
+        <field name="name">Traccar.fleet_events.tree</field>
+        <field name="model">fleet.traccar.events</field>
+        <field name="arch" type="xml">
+            <tree create="0" string="Fleet Events">
+                <field name="vehicle_id"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="attributes"/>
+                <field name="event_time"/>
+                <field name="position_id" optional="hide"/>
+                <field name="event_id" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="fleet_events_search_view" model="ir.ui.view">
+        <field name="name">Traccar.fleet_events.search</field>
+        <field name="model">fleet.traccar.events</field>
+        <field name="arch" type="xml">
+            <search string="Fleet Events">
+                <group expand="1" string="Group By">
+                    <filter string="Vehicle" name="vehicle_id" domain="[]"
+                            context="{'group_by':'vehicle_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="fleet_events_act_window" model="ir.actions.act_window">
+        <field name="name">Fleet Events</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fleet.traccar.events</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                No events currently
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="fleet_trips_view_tree" model="ir.ui.view">
+        <field name="name">fleet_trips_view_tree</field>
+        <field name="model">fleet.traccar.trips</field>
+        <field name="arch" type="xml">
+            <tree create="0" string="fleet_trips_tree">
+                <field name="name"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="distance_in_km"/>
+                <field name="average_speed_kph"/>
+                <field name="max_speed_kph"/>
+                <field name="duration_hr"/>
+                <field name="spent_fuel"/>
+                <field name="start_address"/>
+                <field name="end_address"/>
+                <field name="start_lat" optional="hide"/>
+                <field name="end_lat" optional="hide"/>
+                <field name="start_lon" optional="hide"/>
+                <field name="end_lon" optional="hide"/>
+                <button name="open_map" type="object" string="View on Map"></button>
+            </tree>
+        </field>
+    </record>
+
+    <record id="fleet_trips_search_view" model="ir.ui.view">
+        <field name="name">Traccar.fleet_trips.search</field>
+        <field name="model">fleet.traccar.trips</field>
+        <field name="arch" type="xml">
+            <search string="Fleet Trips">
+                <field name="name" string="Vehicle"/>
+                <group expand="1" string="Group By">
+                    <filter string="Vehicle" name="group_name"
+                            context="{'group_by':'name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="fleet_trips_action" model="ir.actions.act_window">
+        <field name="name">Fleet Trips</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fleet.traccar.trips</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_name':1}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                No trips currently
+            </p>
+        </field>
+    </record>
+</odoo>

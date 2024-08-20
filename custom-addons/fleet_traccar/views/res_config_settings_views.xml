@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.hr.fleet</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="90"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('settings')]/div[@id='fleet']" position="inside">
+                    <div class="app_settings_block" data-string="Fleet" id="fleet-summary" string="Fleet Summary" data-key="fleet" groups="fleet.fleet_group_manager">
+                        <h2>Traccar Server Settings</h2>
+                        <div class="row mt16 o_settings_container" id="fleet_summary_setting">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"/>
+                                <div class="o_setting_right_pane">
+                                    <div class="text-muted content-group mt16">
+                                        <span>Traccar Server URL</span>
+                                        <field name="tracking_base_url" class="text-center oe_inline" />
+                                    </div>
+                                    <div class="text-muted content-group mt16">
+                                        <span>Username</span>
+                                        <field name="api_user" class="text-center oe_inline" />
+                                    </div>
+                                    <div class="text-muted content-group mt16">
+                                        <span>Password</span>
+                                        <field name="api_password" class="text-center oe_inline" password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="app_settings_block">
+                        <h2>Traccar Data Operations</h2>
+                        <div class="row mt16 o_settings_container" id="fleet_summary_setting">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"/>
+                                <div class="o_setting_right_pane">
+                                    <div class="text-muted content-group mt16">
+                                        <span>Import Vehicle from Traccar</span>
+                                        <field name="import_data" class="text-center oe_inline" widget="boolean_toggle" />
+                                    </div>
+                                    <div class="text-muted content-group mt16">
+                                        <span>Synchronize Traccar Records</span>
+                                        <field name="sync_data" class="text-center oe_inline" widget="boolean_toggle" />
+                                    </div>
+                                    <div class="text-muted content-group mt16">
+                                        <span>Traccar Data Start Date</span>
+                                        <field name="data_start_date" class="text-center oe_inline" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

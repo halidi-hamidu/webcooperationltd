@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="fleet_stops_view_tree" model="ir.ui.view">
+        <field name="name">fleet_stops_view_tree</field>
+        <field name="model">fleet.traccar.stops</field>
+        <field name="arch" type="xml">
+            <tree create="0" string="fleet_stops_tree">
+                <field name="name"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="duration_hr"/>
+                <field name="engine_hours_hr"/>
+                 <field name="address"/>
+                <field name="latitude" optional="hide"/>
+                <field name="longitude" optional="hide"/>
+                <button name="open_map" type="object" string="View on Map"></button>
+            </tree>
+        </field>
+    </record>
+
+    <record id="fleet_stops_search_view" model="ir.ui.view">
+        <field name="name">Traccar.fleet_stops.search</field>
+        <field name="model">fleet.traccar.stops</field>
+        <field name="arch" type="xml">
+            <search string="Fleet Stops">
+                <field name="name" string="Vehicle"/>
+                <group expand="1" string="Group By">
+                    <filter string="Vehicle" name="group_name" context="{'group_by':'name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="fleet_stops_action" model="ir.actions.act_window">
+        <field name="name">Fleet Stops</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fleet.traccar.stops</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_name':1}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                No stops currently
+            </p>
+        </field>
+    </record>
+</odoo>
