@@ -10,6 +10,7 @@ TRACCAR_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 class FleetEvents(models.Model):
     _name = 'fleet.traccar.events'
     _description = 'Fleet Events'
+    _order = 'event_time desc'
 
     name = fields.Char('Event Name')
     event_id = fields.Integer('Event Id')

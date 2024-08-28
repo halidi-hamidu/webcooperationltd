@@ -9,6 +9,7 @@ TRACCAR_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 class FleetStops(models.Model):
     _name = 'fleet.traccar.stops'
     _description = 'Fleet Stops'
+    _order = 'start_time desc'
 
     name = fields.Char('Vehicle')
     device_id = fields.Integer("Device ID")
