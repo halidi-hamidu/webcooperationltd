@@ -9,11 +9,11 @@
                 <field name="name"/>
                 <field name="vehicle_id"/>
                 <field name="start_time" string="Date"/>
-                <field name="distance_in_km"/>
-                <field name="average_speed_kph" />
+                <field name="distance_in_km" sum="Total Distance"/>
+                <field name="average_speed_kph" avg="Avereage Speed"/>
                 <field name="engine_hours_hr" />
                 <field name="max_speed_kph" />
-                <field name="spent_fuel" />
+                <field name="spent_fuel" sum="Total Fuel"/>
                 <field name="end_time" />
             </tree>
         </field>
@@ -25,9 +25,12 @@
         <field name="arch" type="xml">
             <search string="Fleet Summary">
                 <field name="name" string="Vehicle" />
+                <filter string="Date" name="start_time" date="start_time"/>
                 <group expand="1" string="Group By">
                     <filter string="Vehicle" name="group_name"
                             context="{'group_by':'name'}"/>
+                    <separator/>
+                    <filter string="Date" name="start_time_grp" context="{'group_by': 'start_time'}"/>
                 </group>
             </search>
         </field>
@@ -45,6 +48,13 @@
             </p>
         </field>
     </record>
+
+    <menuitem id="menu_fleet_summary_action"
+              name="Fleet Summary"
+              parent="fleet.menu_fleet_reporting"
+              action="fleet_summary_action"
+              sequence="2"
+              groups="fleet.fleet_group_manager"/>
 
 
 </odoo>

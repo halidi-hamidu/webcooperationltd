@@ -21,9 +21,12 @@
         <field name="model">fleet.traccar.events</field>
         <field name="arch" type="xml">
             <search string="Fleet Events">
+                <filter string="Event Date" name="event_time" date="event_time"/>
                 <group expand="1" string="Group By">
                     <filter string="Vehicle" name="vehicle_id" domain="[]"
                             context="{'group_by':'vehicle_id'}"/>
+                    <separator/>
+                    <filter string="Event Date" name="event_time" context="{'group_by': 'event_time'}"/>
                 </group>
             </search>
         </field>
@@ -40,4 +43,12 @@
             </p>
         </field>
     </record>
+
+    <menuitem id="menu_fleet_events_act_window"
+              name="Fleet Events"
+              parent="fleet.menu_fleet_reporting"
+              action="fleet_events_act_window"
+              sequence="5"
+              groups="fleet.fleet_group_manager"/>
+
 </odoo>
