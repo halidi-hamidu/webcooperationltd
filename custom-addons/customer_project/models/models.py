@@ -26,7 +26,7 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     project_ids = fields.One2many('project.project', 'partner_id', string='Projects')
-    project_count = fields.Integer("Projects", compute='_compute_project_count',store=True, string="Projects Count")
+    project_count = fields.Integer(compute='_compute_project_count',store=True, string="Projects Count")
 
     @api.depends('project_ids')
     def _compute_project_count(self):
