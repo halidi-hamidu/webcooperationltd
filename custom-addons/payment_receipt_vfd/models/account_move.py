@@ -6,11 +6,11 @@ import pytz
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    is_vfd_receipt_generated = fields.Boolean("VFD Generated", default=False)
-    vfd_receipt_ids = fields.One2many('payment.receipt.vfd', 'invoice_id')
-    payment_type_id = fields.Many2one('payment.receipt.payment.type','Payment Type')
-    tax_type_id = fields.Many2one('payment.receipt.tax.type','Tax Type')
-    identity_type_id = fields.Many2one('payment.receipt.identity.type','Identity Type')
+    is_vfd_receipt_generated = fields.Boolean("VFD Generated", default=False, copy=False)
+    vfd_receipt_ids = fields.One2many('payment.receipt.vfd', 'invoice_id', copy=False)
+    payment_type_id = fields.Many2one('payment.receipt.payment.type','Payment Type', copy=False)
+    tax_type_id = fields.Many2one('payment.receipt.tax.type','Tax Type', copy=False)
+    identity_type_id = fields.Many2one('payment.receipt.identity.type','Identity Type', copy=False)
 
     def generate_vfd_receipt(self):
         for rec in self:
