@@ -9,6 +9,7 @@ from infobip_api_client.model.sms_response import SmsResponse
 from infobip_api_client.model.sms_textual_message import SmsTextualMessage
 from infobip_api_client.api.send_sms_api import SendSmsApi
 from infobip_api_client.exceptions import ApiException
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class SmsNotification(models.Model):
 
     customer = fields.Many2one('res.partner')
     phone_number = fields.Char(related="customer.phone")
-    mobile_number = fields.Char(related="customer.mobile")
+    mobile_number = fields.Char(related="customer.mobile", store=True)
     message = fields.Char('Message',sanitize=True)
     body_html = fields.Html('Rich-text Contents', sanitize=True, help="Rich-text/HTML message")
     failure_reason = fields.Char('Failure Reason', copy=False)
@@ -32,6 +33,9 @@ class SmsNotification(models.Model):
     invoice_date = fields.Date(related='invoice_id.invoice_date')
     message_id_from_infobip = fields.Char('Message ID from InfoBip')
     after_sent_state = fields.Char('Status From Provider', copy=False)
+    broadcast_id = fields.Many2one('sms.notification.broadcast')
+
+    message_count = fields.Integer("Message Count", compute='_compute_message_count', store=True)
     type = fields.Selection([
         ('new', 'New Registration'),
         ('30days', '30 Days Before Invoice Date'),
@@ -49,6 +53,7 @@ class SmsNotification(models.Model):
         ('error', 'Error'),
         ('canceled', 'Canceled')
     ], 'SMS Status', readonly=True, copy=False, default='outgoing', required=True)
+
 
     def format_phone_number(self, phone):
         if phone:
@@ -208,3 +213,69 @@ class SmsNotification(models.Model):
         message =  self.env['sms.template']._render_template(template.body, template.model,[res_ids])
         key_value = list(message)[0]
         return message[key_value]
+    
+
+    @api.depends('customer')
+    def _compute_message_count(self):
+        for rec in self:
+            rec.message_count = self.env['sms.notification'].search_count([('customer', '=', rec.customer.id)])
+
+    def view_message(self):
+        pass
+ 
+class SmsBroadcasting(models.Model):
+    _name = 'sms.notification.broadcast'
+    _description = 'SMS Broadcast'
+
+    name = fields.Char(string="BroadCast name ", required=True)
+    customer_tags = fields.Many2many('res.partner.category', required=True)
+    body_html = fields.Char('Message',sanitize=True)
+    state = fields.Selection([
+        ('draft','draft'),
+        ('finish', 'finish'),
+    ], 'SMS Status', readonly=True, copy=False, default='draft', required=True)
+    customer_count = fields.Integer(compute='_compute_customer_count', store=True)
+
+    @api.depends('customer_tags')
+    def _compute_customer_count(self):
+        """
+        This function is a compute method that calculates the number of customers that belong to the partner categories
+        specified in the 'customer_tags' field of this 'sms.notification.broadcast' record. It does this by searching the
+        'res.partner' model for records that have a category ID that is in the list of category IDs specified in
+        'customer_tags'. It then sets the 'customer_count' field of the 'sms.notification.broadcast' record to the number of
+        customers found in the search.
+        """
+        for rec in self: 
+            rec.customer_count = len(self.env['res.partner'].search([('category_id', 'in', rec.customer_tags.ids)]))
+    def generate_sms(self):
+        """
+        # This function generates a new SMS notification for each customer that belongs to the
+        # partner categories specified in the 'customer_tags' field of this 'sms.notification.broadcast'
+        # record. It creates a new 'sms.notification' record for each customer. The 'broadcast_id' field
+        # of each 'sms.notification' record is set to the ID of the 'sms.notification.broadcast' record
+        # that triggered the creation of the SMS notification. Finally, the state of the
+        # 'sms.notification.broadcast' record is set to 'finish'.
+        """
+        for rec in self:
+            customers = self.env['res.partner'].search([('category_id', 'in', rec.customer_tags.ids)])
+            for customer in customers:
+                vals = {
+                    'customer': customer.id,
+                    'message': rec.body_html,
+                    'type': 'other',
+                    'broadcast_id': rec.id
+                }
+                self.env['sms.notification'].create(vals)
+            rec.state = 'finish'    
+            return rec.state
+
+    def action_view_customers(self):
+        """
+        # This function is used to open a list view of all customers which are sent an SMS notification
+        # via the "Generate SMS" button. We use the existing "sms_act_window" action and modify
+        # the domain to only show the customers that were sent the SMS notification generated by
+        # this 'sms.notification.broadcast' record.
+        """
+        action = self.env["ir.actions.actions"]._for_xml_id("sms_notification.sms_act_window")
+        action['domain'] = [('broadcast_id', '=', self.id)]
+        return action
