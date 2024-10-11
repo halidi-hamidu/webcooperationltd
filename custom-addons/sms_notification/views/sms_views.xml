@@ -5,24 +5,28 @@
             <field name="name">sms.notification.tree.view</field>
             <field name="model">sms.notification</field>
             <field name="arch" type="xml">
-                <tree string="SMS Notifications" default_order="create_date desc" decoration-muted="state=='canceled'"
-                      decoration-danger="state=='error'">
-                    <field name="create_date" string="Created Date"/>
-                    <field name="customer"/>
-                    <field name="invoice_id"/>
-                    <field name="invoice_date" string="Invoice Date"/>
-                    <field name="phone_number"/>
-                    <field name="message" widget="html"/>
-                    <field name="sent_datetime"/>
-                    <field name="delivered_datetime"/>
-                    <button name="send_again" string="Send Now" type="object" icon="fa-paper-plane text-success"
-                            states="outgoing" confirm="Do you want send the Message now?"/>
-                    <button name="mark_outgoing" string="Retry" type="object" icon="fa-repeat text-success"
-                            states="error" confirm="Retry Sending the Message now?"/>
-                    <button name="cancel" string="Cancel Email" type="object" icon="fa-times-circle text-danger"
-                            states="outgoing" confirm="Are you sure you want to Cancel the Message?"/>
-                    <field name="type"/>
-                    <field name="state"/>
+                <tree string="SMS Notifications" default_order="create_date desc"
+                    decoration-muted="state=='canceled'"
+                    decoration-danger="state=='error'">
+                    <field name="create_date" string="Created Date" />
+                    <field name="customer" />
+                    <field name="invoice_id" />
+                    <field name="invoice_date" string="Invoice Date" />
+                    <field name="phone_number" />
+                    <field name="message" widget="html" />
+                    <field name="sent_datetime" />
+                    <field name="delivered_datetime" />
+                    <button name="send_again" string="Send Now" type="object"
+                        icon="fa-paper-plane text-success"
+                        states="outgoing" confirm="Do you want send the Message now?" />
+                    <button name="mark_outgoing" string="Retry" type="object"
+                        icon="fa-repeat text-success"
+                        states="error" confirm="Retry Sending the Message now?" />
+                    <button name="cancel" string="Cancel Email" type="object"
+                        icon="fa-times-circle text-danger"
+                        states="outgoing" confirm="Are you sure you want to Cancel the Message?" />
+                    <field name="type" />
+                    <field name="state" />
                 </tree>
             </field>
         </record>
@@ -34,52 +38,69 @@
                 <form string="Email message">
                     <header>
                         <button name="send_again" string="Send Now" type="object" states="outgoing"
-                                class="oe_highlight"/>
-                        <button name="mark_outgoing" string="Retry" type="object" states="exception,cancel"/>
-                        <button name="cancel" string="Cancel" type="object" states="outgoing"/>
+                            class="oe_highlight" />
+                        <button name="mark_outgoing" string="Retry" type="object"
+                            states="exception,cancel" />
+                        <button name="cancel" string="Cancel" type="object" states="outgoing" />
                         <field name="state" widget="statusbar"
-                               statusbar_visible="outgoing,sent,delivered,error,cancel"/>
+                            statusbar_visible="outgoing,sent,delivered,error,cancel" />
                     </header>
                     <sheet>
+                        <group class="oe_right">
+                            <!-- message_count -->
+                            <div class="text-right">
+                                <button name="view_message" type="object"
+                                    class="oe_right">
+                                    <i class="fa fa-commenting-o fa-5x" aria-hidden="true"></i>
+
+                                    <field name="message_count" readonly="True"/>
+                                </button>
+    
+                            </div>
+                        </group>
                         <group>
+                            
                             <group>
-                                <field name="customer"
-                                       attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
-                                <field name="create_date" string="Created Date"/>
-                                <field name="phone_number"/>
+                                 <field name="customer"
+                                    attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
+                                <field name="create_date" string="Created Date" />
+                                <field name="phone_number" />
                                 <field name="invoice_id"
-                                       attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
+                                    attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
                             </group>
                             <group>
                                 <field name="type"
-                                       attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
-                                <field name="sent_datetime" readonly="1"/>
-                                <field name="delivered_datetime" readonly="1"/>
+                                    attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
+                                <field name="sent_datetime" readonly="1" />
+                                <field name="delivered_datetime" readonly="1" />
                                 <field name="use_sms_template"
-                                       attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
+                                    attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
                                 <field name="template_id"
-                                       options="{'no_create': True, 'no_quick_create': True, 'no_create_edit':True}"
-                                       attrs="{'invisible':[('use_sms_template','=',False)],'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
+                                    options="{'no_create': True, 'no_quick_create': True, 'no_create_edit':True}"
+                                    attrs="{'invisible':[('use_sms_template','=',False)],'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
                             </group>
 
                         </group>
 
                         <notebook>
-                            <page string="Body" attrs="{'invisible':[('use_sms_template','=',True)]}">
+                            <page string="Body"
+                                attrs="{'invisible':[('use_sms_template','=',True)]}">
                                 <field name="message" widget="text"
-                                       attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}"/>
+                                    attrs="{'readonly':[('state','in',('sent','canceled','error','delivered'))]}" />
                             </page>
-                            <page string="Failure Reason" attrs="{'invisible': [('state', '!=', 'error')]}">
-                                <field name="failure_reason" readonly="True"/>
+                            <page string="Failure Reason"
+                                attrs="{'invisible': [('state', '!=', 'error')]}">
+                                <field name="failure_reason" readonly="True" />
                             </page>
-                            <page string="Waiting Delivery Status" attrs="{'invisible': [('state', '!=', 'sent')]}">
+                            <page string="Waiting Delivery Status"
+                                attrs="{'invisible': [('state', '!=', 'sent')]}">
                                 <group>
                                     <button class="oe_highlight" name="mark_outgoing" type="object"
-                                            string="Enable Editing On Delivery Failure"
-                                            confirm="Do you really wish to perform this action?"/>
+                                        string="Enable Editing On Delivery Failure"
+                                        confirm="Do you really wish to perform this action?" />
                                 </group>
 
-                                <field name="after_sent_state" readonly="True"/>
+                                <field name="after_sent_state" readonly="True" />
                             </page>
                         </notebook>
                     </sheet>
@@ -92,19 +113,23 @@
             <field name="model">sms.notification</field>
             <field name="arch" type="xml">
                 <search string="SMS Notification">
-                    <field name="customer" string="Customer"/>
-                    <filter string="New Registration" name="type" domain="[('type','=','new')]"/>
-                    <filter string="15 Days Before Invoice Date" name="type" domain="[('type','=','15days')]"/>
-                	<filter string="30 Days Before Invoice Date" name="type" domain="[('type','=','30days')]"/>
-                    <filter string="Due Date" name="type" domain="[('type','=','due')]"/>
-                    <filter string="7 Days After Invoice Date" name="type" domain="[('type','=','7days')]"/>
-                    <filter string="Above 7 Days After Due Date" name="type" domain="[('type','=','above7')]"/>
-                    <filter string="Other" name="type" domain="[('type','=','other')]"/>
+                    <field name="customer" string="Customer" />
+                    <filter string="New Registration" name="type" domain="[('type','=','new')]" />
+                    <filter string="15 Days Before Invoice Date" name="type"
+                        domain="[('type','=','15days')]" />
+                    <filter string="30 Days Before Invoice Date" name="type"
+                        domain="[('type','=','30days')]" />
+                    <filter string="Due Date" name="type" domain="[('type','=','due')]" />
+                    <filter string="7 Days After Invoice Date" name="type"
+                        domain="[('type','=','7days')]" />
+                    <filter string="Above 7 Days After Due Date" name="type"
+                        domain="[('type','=','above7')]" />
+                    <filter string="Other" name="type" domain="[('type','=','other')]" />
                     <group expand="1" string="Group By">
                         <filter string="Customer" name="group_customer" domain="[]"
-                                context="{'group_by':'customer'}"/>
+                            context="{'group_by':'customer'}" />
                         <filter string="Status" name="group_state" domain="[]"
-                                context="{'group_by':'state'}"/>
+                            context="{'group_by':'state'}" />
                     </group>
                 </search>
             </field>
@@ -124,8 +149,77 @@
             </field>
         </record>
 
-        <menuitem id="sms_root" name="SMS History" parent="sale.sale_menu_root"
-                  sequence="20" action="sms_act_window"/>
+        <!-- sms broad casting  section -->
+        <record id="sms__broadcasting_tree_view" model="ir.ui.view">
+            <field name="name">sms.notification.tree.view</field>
+            <field name="model">sms.notification.broadcast</field>
+            <field name="arch" type="xml">
+                <tree string="SMS Notifications Broadcasting " default_order="create_date desc">
+                    <field name="name" string="Notification Broadcasting" />
+                    <field name="customer_tags" string="Customer tags" widget="many2many_tags" />
+                    <field name="customer_count"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sms_broadcasting_view_form" model="ir.ui.view">
+            <field name="name">sms.notification.broadcasting.view.form</field>
+            <field name="model">sms.notification.broadcast</field>
+            <field name="arch" type="xml">
+                <form string="Email message">
+                    <header>
+                        <button name="generate_sms" string="Generate SMS" type="object"
+                            class="oe_highlight"
+                            states="draft" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,finish" />
+                    </header>
+                    <sheet>
+                        <div class="text-right">
+                            <button name="action_view_customers" type="object"
+                                class="oe_right">
+                                <i class="fa fa-users fa-5x" aria-hidden="true"></i>
+                                <field name="customer_count" readonly="True"/>
+                            </button>
+
+                        </div>
+
+                        <separator string=" " colspan="4" />
+                        <group>
+                            <field name="name" />
+                            <field name="customer_tags" widget="many2many_tags" />
+                         
+                        </group>
+                        <notebook>
+                            <page string="Body">
+                                <field name="body_html" widget="text" />
+                            </page>
+                        </notebook>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="sms_broadcasting_act_window" model="ir.actions.act_window">
+            <field name="name">SMS Broadcast Notifications</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sms.notification.broadcast</field>
+            <field name="view_mode">tree,form,search</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    No Template found
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="sms_root" name="SMS" parent="sale.sale_menu_root"
+            sequence="20" />
+        <menuitem id="sms_notification_menu" name="SMS Notifications" parent="sms_root"
+            action="sms_act_window" sequence="10" />
+        <menuitem id="sms_broadCasting_menu" name="Broadcast Template" parent="sms_root"
+            action="sms_broadcasting_act_window" sequence="20" />
+
 
     </data>
 </odoo>
