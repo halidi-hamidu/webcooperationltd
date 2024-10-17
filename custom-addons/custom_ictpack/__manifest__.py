@@ -20,6 +20,7 @@
         "purchase",
         "project",
         "contract",
+        "approvals",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -41,6 +42,7 @@
         "views/report_invoice.xml",
         "views/report_sale.xml",
         "views/report_purchase.xml",
+        "views/approval_request_views.xml",
         # "views/report_quotation.xml",
         # "views/report_payment.xml",
         # "views/report_statement.xml",
