@@ -12,6 +12,10 @@ class AccountMove(models.Model):
     tax_type_id = fields.Many2one('payment.receipt.tax.type','Tax Type', copy=False)
     identity_type_id = fields.Many2one('payment.receipt.identity.type','Identity Type', copy=False)
 
+    def _get_exchange_rate(self, currency, date):
+            rate = self.env['res.currency.rate'].search([('currency_id', '=', currency.id), ('name', '<=', date)], limit=1, order='name desc')
+            return rate.rate if rate else 1
+
     def generate_vfd_receipt(self):
         for rec in self:
             if rec.partner_id.phone is False:
@@ -19,7 +23,8 @@ class AccountMove(models.Model):
             receipt_no_ = rec.get_receipt_no()
             exchange_rate = 1
             if rec.currency_id.name != 'TZS':
-                exchange_rate = rec.currency_id.rate
+                invoice_date = rec.invoice_date
+                exchange_rate = self._get_exchange_rate(rec.currency_id, invoice_date)
 
             vals = {
                 "invoice_id": rec.id,
