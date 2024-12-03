@@ -28,6 +28,11 @@ class AccountMove(models.Model):
                 invoice_date = rec.invoice_date
                 exchange_rate = self._get_exchange_rate(rec.currency_id, invoice_date)
 
+            def clean_name(name):
+                name = name.replace('\n', ' ')
+                name = re.sub(r'[^A-Za-z0-9 /{}-]+', '', name)
+                return name.strip()
+            
             vals = {
                 "invoice_id": rec.id,
                 "receipt_id": rec.get_receipt_id(),
@@ -45,7 +50,7 @@ class AccountMove(models.Model):
                 "payment_method": rec.payment_type_id.key,
                 "items": [
                     {
-                        'name': re.sub(r'[^A-Za-z0-9 ]+', '', x.name.replace('\n', ' ')).strip(),
+                        'name': clean_name(x.name),
                         'quantity': "1",
                         'price': str(x.price_subtotal/exchange_rate),
                         'tax': str((x.price_subtotal * rec.tax_type_id.rate)/exchange_rate),
