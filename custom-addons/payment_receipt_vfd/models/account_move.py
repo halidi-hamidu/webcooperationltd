@@ -1,6 +1,8 @@
 from odoo import fields, models, api, exceptions, _
 from datetime import datetime, date
 import pytz
+import re
+from odoo.tools import html_escape, html_sanitize
 
 
 class AccountMove(models.Model):
@@ -43,7 +45,7 @@ class AccountMove(models.Model):
                 "payment_method": rec.payment_type_id.key,
                 "items": [
                     {
-                        'name': str(x.name),
+                        'name': re.sub(r'[^A-Za-z0-9 ]+', '', x.name.replace('\n', ' ')).strip(),
                         'quantity': "1",
                         'price': str(x.price_subtotal/exchange_rate),
                         'tax': str((x.price_subtotal * rec.tax_type_id.rate)/exchange_rate),
