@@ -30,6 +30,7 @@ class ResConfigSettings(models.TransientModel):
     verification_code_base = fields.Char("Verification Code Base", config_parameter='payment_receipt_vfd.verification_code_base')
     starting_sequence = fields.Char("Starting Sequence", config_parameter='payment_receipt_vfd.starting_sequence')
 
+    enable_to_edit_fields = fields.Boolean(default=False, string="Enable Edit Mode")
     def refresh_settings(self):
         res, res_obj = self.env['payment.receipt.vfd'].get_vfd_settings()
         if res:

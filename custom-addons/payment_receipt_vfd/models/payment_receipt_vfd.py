@@ -61,6 +61,7 @@ class PaymentReceiptVfd(models.Model):
     ######DIFFERENCES BETWEEN INVOICE & TRA
     base_amount_diff = fields.Monetary(string='Base Amount Diff', currency_field='company_currency_id',readonly=True)
     tax_amount_diff = fields.Monetary(string='Tax Amount Diff', currency_field='company_currency_id',readonly=True)
+    
 
     state = fields.Selection([
         ('draft', 'In Queue'),
@@ -341,3 +342,4 @@ class PaymentReceiptMissing(models.Model):
         
     def get_config_param(self, key):
         return self.env['ir.config_parameter'].sudo().get_param(key)
+    
