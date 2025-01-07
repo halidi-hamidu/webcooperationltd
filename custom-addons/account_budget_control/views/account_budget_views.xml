@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!--Account budget: Crossover Views-->
+        <record id="crossovered_budget_view_form" model="ir.ui.view">
+            <field name="name">crossovered.budget.view.form.custom</field>
+            <field name="model">crossovered.budget</field>
+            <field name="inherit_id" ref="account_budget.crossovered_budget_view_form"/>
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <field name="type"/>
+                </field>
+                 <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='theoritical_amount']" position="after">
+                    <field name="crossovered_budget_type" invisible="1"/>
+                    <field name="allocated_amount"/>
+                    <field name="budget_balance"/>
+                    <field name="allocated_balance"/>
+                </xpath>
+                <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='percentage']" position="after">
+                    <button name="open_budget_allocation_form"
+                            attrs="{'invisible':['|',('parent.state','!=','validate'),('crossovered_budget_type','=','revenue')]}"
+                            context="{'analytic_line_id': analytic_account_id,'is_relocation': False,'budget_line_id': id,'general_budget_id':general_budget_id}"
+                            type="object" string="Allocate" class="oe_highlight"
+                            groups="account.group_account_manager"/>
+                    <button name="open_budget_allocation_form"
+                            attrs="{'invisible':['|',('parent.state','!=','validate'),('crossovered_budget_type','=','revenue')]}"
+                            context="{'analytic_line_id': analytic_account_id,'is_relocation': True,'budget_line_id': id,'general_budget_id':general_budget_id}"
+                            type="object" string="Relocate" class="oe_highlight"
+                            groups="account.group_account_manager"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!--Budget Allocation: Allocation views-->
+        <record id="view_budget_allocation_search" model="ir.ui.view">
+            <field name="name">account.budget.allocation.search</field>
+            <field name="model">account.budget.allocation</field>
+            <field name="arch" type="xml">
+                <search string="Budgetary Allocation">
+                    <field name="name" filter_domain="[('name','ilike',self)]" string="Budgetary Allocation"/>
+                    <field name="budget_line_id" filter_domain="[('budget_line_id','ilike',self)]" string="Budget Line"/>
+                    <field name="analytic_line_id" filter_domain="[('analytic_line_id','ilike',self)]" string="Analytic Account"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="view_budget_allocation_tree" model="ir.ui.view">
+            <field name="name">account.budget.allocation.tree</field>
+            <field name="model">account.budget.allocation</field>
+            <field name="arch" type="xml">
+                <tree string="Budgetary Allocation" create="false" delete='false'>
+                    <field name="is_relocation" invisible="1"/>
+                    <field name="crossovered_budget_id" invisible="1"/>
+                    <field name="name"/>
+                    <field name="analytic_line_id"/>
+                    <field name="budget_line_id"/>
+                    <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="date"/>
+                    <field name="to_analytic_line_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                    <field name="to_general_budget_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                    <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="view_budget_allocation_form">
+            <field name="name">account.budget.allocation.form</field>
+            <field name="model">account.budget.allocation</field>
+            <field name="arch" type="xml">
+                <form string="Budgetary Allocation" create="false" delete='false'>
+                    <group>
+                        <field name="crossovered_budget_id" invisible="1"/>
+                        <field name="analytic_line_id"/>
+                        <field name="general_budget_id"/>
+                        <field name="name"/>
+                        <field name="is_relocation" invisible="1"/>
+                        <field name="amount"/>
+                        <field name="date"/>
+                        <field name="to_budget_line_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                        <field name="to_analytic_line_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                        <field name="to_general_budget_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="budget_line_id" invisible="1"/>
+                        <field name="date_from" invisible="1"/>
+                        <field name="date_to" invisible="1"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_budget_allocation_form_button">
+            <field name="name">account.budget.allocation.form</field>
+            <field name="model">account.budget.allocation</field>
+            <field name="arch" type="xml">
+                <form string="Budgetary Allocation" create="false" delete='false'>
+                    <group>
+                        <field name="crossovered_budget_id" invisible="1"/>
+                        <field name="analytic_line_id"/>
+                        <field name="general_budget_id"/>
+                        <field name="name"/>
+                        <field name="is_relocation" invisible="1"/>
+                        <field name="amount"/>
+                        <field name="date"/>
+                        <field name="to_budget_line_id" attrs="{'invisible':[('is_relocation','=',False)],'required':[('is_relocation','=',True)]}"/>
+                        <field name="to_analytic_line_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                        <field name="to_general_budget_id" attrs="{'invisible':[('is_relocation','=',False)]}"/>
+                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="budget_line_id" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button string='Save' name="create_allocation" type="object" attrs="{'invisible': [('amount', '&lt;=', 0)]}" class="oe_highlight"/>
+                        <button string="Discard" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="act_budget_allocation" model="ir.actions.act_window">
+            <field name="name">Budgetary Allocation</field>
+            <field name="res_model">account.budget.allocation</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="view_budget_allocation_tree"/>
+            <field name="search_view_id" ref="view_budget_allocation_search"/>
+        </record>
+
+    </data>
+</odoo>

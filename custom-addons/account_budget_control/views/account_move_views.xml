@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_move_form" model="ir.ui.view">
+            <field name="name">account.move.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='account_id']" position="before">
+                    <field name="move_type" invisible="1"/>
+                    <field name="crossovered_budget_id" options="{'no_create': True}" attrs="{'required':[('move_type','!=','entry')]}"/>
+                    <field name="budget_line_id" options="{'no_create': True}" attrs="{'required':[('move_type','!=','entry')]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
