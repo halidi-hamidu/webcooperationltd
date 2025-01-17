@@ -1,3 +1,4 @@
+import re
 from odoo import fields, models, api
 from datetime import timedelta
 
@@ -12,6 +13,18 @@ class AccountMove(models.Model):
     seven_days_sms_limit = fields.Integer('SMS Limit 7 days', default=0)
     above_seven_days_sms_limit = fields.Integer('SMS Limit Above 7 days', default=0)
     thirty_days_before_sms_limit = fields.Integer('SMS Limit 30 Days Before', default=0)
+
+    car_plate_numbers = fields.Char(string='Car Plate Numbers', compute='_compute_car_plate_numbers')
+
+    @api.depends('line_ids')
+    def _compute_car_plate_numbers(self):
+        for move in self:
+            car_plate_numbers = ', '.join(
+                re.search(r'T\d{3}[A-Z]{3}', line.name).group()
+                for line in move.line_ids
+                if line.name and re.search(r'T\d{3}[A-Z]{3}', line.name)
+            )
+            move.car_plate_numbers = car_plate_numbers
 
     def queue_sms_notification(self):
         old_invoice_template = self.env.ref('sms_notification.sms_notification_template_old_invoice_template')
@@ -126,6 +139,11 @@ class AccountMove(models.Model):
                 return 'above-7-days'
 
     def _render_template(self, template, res_ids):
+        # move = self.browse(res_ids)
+        # car_plate_numbers = ', '.join(re.search(r'T\d{3}[A-Z]{3}', line.name).group() for line in move.line_ids if line.name and re.search(r'T\d{3}[A-Z]{3}', line.name))
+        # context = {
+        #     'car_plate_numbers': car_plate_numbers,
+        # }
         message =  self.env['sms.template']._render_template(template.body, template.model,[res_ids])
         key_value = list(message)[0]
         return message[key_value]
