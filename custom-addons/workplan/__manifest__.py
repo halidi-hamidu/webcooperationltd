@@ -31,8 +31,8 @@
     'website': 'https://www.ictpack.com',
     'depends': ['base', 'mail','hr','project','uom','account_budget_control'],
     'data': [
-        'security/ir.model.access.csv',
         'security/workplan_security.xml',
+        'security/ir.model.access.csv',
         'views/workplan_menu_views.xml',
         'views/res_obj_out_indicator_views.xml',
         'views/workplan_views.xml',
