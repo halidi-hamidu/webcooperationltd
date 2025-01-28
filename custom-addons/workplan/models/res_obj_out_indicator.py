@@ -53,4 +53,5 @@ class WorkplanIndicator(models.Model):
     outcome_id = fields.Many2one('workplan.outcome', 'Outcome', required=True)
     objective_id = fields.Many2one('workplan.objective', 'Objective', related='outcome_id.objective_id')
     company_id = fields.Many2one('res.company', 'Company', required=True, default=lambda self: self.env.company)
+    measure = fields.Char('Measure')
     

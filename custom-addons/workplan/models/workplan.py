@@ -109,6 +109,8 @@ class WorkplanWorkplanLines(models.Model):
     objective_id = fields.Many2one('workplan.objective', 'Objective',)
     outcome_id = fields.Many2one('workplan.outcome', 'Outcome',domain="[('objective_id', '=?', objective_id)]")
     indicator_id = fields.Many2one('workplan.indicator', 'Indicator',domain="[('outcome_id', '=?', outcome_id)]")
+    measure = fields.Char(related='indicator_id.measure', string='Measure', store=True, readonly=True)
+    target = fields.Float(string="Target", default=0.0)
     date_from = fields.Date('Start Date', required=True)
     date_to = fields.Date('End Date', required=True)
     company_id = fields.Many2one(related='workplan_id.company_id', string='Company', store=True, readonly=True)
@@ -118,7 +120,7 @@ class WorkplanWorkplanLines(models.Model):
     planned_target = fields.Integer(string="Planned Activities",compute="_compute_planned_actual_balance",readonly=True)
     actual_target = fields.Integer(string="Done Activities", compute="_compute_planned_actual_balance",readonly=True)
     task_ids = fields.One2many('project.task', 'workplan_line_id', 'Activities', states={'done': [('readonly', True)]}, copy=True)
-    progress = fields.Float(string="Progress", default=0.0, compute="_compute_planned_actual_balance")
+    progress = fields.Float(string="Activities Progress", default=0.0, compute="_compute_planned_actual_balance")
     budget_estimate = fields.Monetary('Budget Estimate',compute="_compute_planned_actual_balance",)
     allocated_balance = fields.Monetary('Allocated Balance',compute="_compute_planned_actual_balance",)
     

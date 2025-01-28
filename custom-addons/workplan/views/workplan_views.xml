@@ -58,7 +58,9 @@
                                 <tree string="Workplan Lines" editable="bottom">
                                     <field name="objective_id" options="{'no_create': True}"/>
                                     <field name="outcome_id" options="{'no_create': True}"/>
-                                    <field name="indicator_id" options="{'no_create': True}"/> 
+                                    <field name="indicator_id" options="{'no_create': True}"/>
+                                    <field name="measure"/> 
+                                    <field name="target"/>  
                                     <field name="planned_target" />
                                     <field name="actual_target" />
                                     <field name="budget_estimate" sum="Budget Estimate"/>
@@ -76,6 +78,8 @@
                                             <field name="objective_id" options="{'no_create': True}"/>
                                             <field name="outcome_id" options="{'no_create': True}"/>
                                             <field name="indicator_id" options="{'no_create': True}"/>
+                                            <field name="measure"/> 
+                                            <field name="target"/>  
                                             <field name="planned_target"/>
                                             <field name="actual_target"/>
                                         </group>
@@ -215,6 +219,8 @@
                     <field name="objective_id"/>
                     <field name="outcome_id"/>
                     <field name="indicator_id"/>
+                    <field name="measure"/> 
+                    <field name="target"/>  
                     <field name="workplan_id"/>
                     <filter name="filter_not_cancelled" string="Not Cancelled" domain="[('workplan_state','!=','cancel')]"/>
                     <separator/>
@@ -236,6 +242,8 @@
                     <field name="objective_id" />
                     <field name="outcome_id" />
                     <field name="indicator_id" />
+                    <field name="measure"/> 
+                    <field name="target"/>  
                     <field name="planned_target" />
                     <field name="actual_target" />
                     <field name="company_id" groups="base.group_multi_company"/>
@@ -258,6 +266,8 @@
                             <field name="objective_id"  attrs="{'readonly':[('workplan_state','!=','draft')]}"/>
                             <field name="outcome_id"  attrs="{'readonly':[('workplan_state','!=','draft')]}"/>
                             <field name="indicator_id"  attrs="{'readonly':[('workplan_state','!=','draft')]}"/>
+                            <field name="measure"/> 
+                            <field name="target" attrs="{'readonly':[('workplan_state','!=','draft')]}"/>  
                             <field name="planned_target" />
                             <field name="actual_target" />
                             <field name="date_from"  attrs="{'readonly':[('workplan_state','!=','draft')]}"/>
