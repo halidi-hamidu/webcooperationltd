@@ -55,6 +55,7 @@ class ProjectTaskType(models.Model):
     
     def _compute_allocated_balance(self):
         for record in self:
+            record.allocated_balance = 0
             budget_line = self.env['crossovered.budget.lines'].search([('task_id','=',record.id)])
             if budget_line:
                 record.allocated_balance = budget_line.allocated_balance
