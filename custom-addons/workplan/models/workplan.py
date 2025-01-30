@@ -106,9 +106,9 @@ class WorkplanWorkplanLines(models.Model):
 
     #name = fields.Char(compute='_compute_line_name')
     workplan_id = fields.Many2one('workplan.workplan', 'Workplan', ondelete='cascade', index=True, required=True)
-    objective_id = fields.Many2one('workplan.objective', 'Objective',)
-    outcome_id = fields.Many2one('workplan.outcome', 'Outcome',domain="[('objective_id', '=?', objective_id)]")
-    indicator_id = fields.Many2one('workplan.indicator', 'Indicator',domain="[('outcome_id', '=?', outcome_id)]")
+    objective_id = fields.Many2one('workplan.objective', 'Objective',required=True)
+    outcome_id = fields.Many2one('workplan.outcome', 'Outcome',domain="[('objective_id', '=?', objective_id)]",required=True)
+    indicator_id = fields.Many2one('workplan.indicator', 'Indicator',domain="[('outcome_id', '=?', outcome_id)]",required=True)
     measure = fields.Char(related='indicator_id.measure', string='Measure', store=True, readonly=True)
     target = fields.Float(string="Target", default=0.0)
     date_from = fields.Date('Start Date', required=True)
@@ -123,6 +123,15 @@ class WorkplanWorkplanLines(models.Model):
     progress = fields.Float(string="Activities Progress", default=0.0, compute="_compute_planned_actual_balance")
     budget_estimate = fields.Monetary('Budget Estimate',compute="_compute_planned_actual_balance",)
     allocated_balance = fields.Monetary('Allocated Balance',compute="_compute_planned_actual_balance",)
+
+    #Add unique constraint for the three fields
+    _sql_constraints = [
+        (
+            'unique_objective_outcome_indicator',
+            'UNIQUE (objective_id, outcome_id, indicator_id)',
+            'The combination of Objective, Outcome, and Indicator must be unique!'
+        ),
+    ]
     
     @api.depends('task_ids.planned_target','task_ids.actual_target')
     def _compute_planned_actual_balance(self):

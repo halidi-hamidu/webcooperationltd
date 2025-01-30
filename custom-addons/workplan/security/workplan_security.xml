@@ -33,4 +33,12 @@
         <field name="domain_force">[('department_id','=',user.employee_id.department_id.id)]</field>
         <field name="groups" eval="[(4, ref('base.group_user')),(4, ref('workplan_group_user')), (4,ref('workplan_group_manager')), (4,ref('workplan_group_hod'))]"/>
     </record>
+    <!-- Rule For Workplan Administrator-->
+    <record id="rule_workplan_department" model="ir.rule">
+        <field name="name">Rule: Workplan Administrator</field>
+        <field name="model_id" ref="model_workplan_workplan"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('workplan_group_admin'))]"/>
+    </record>
 </odoo>
