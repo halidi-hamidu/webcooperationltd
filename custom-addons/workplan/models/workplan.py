@@ -109,6 +109,7 @@ class WorkplanWorkplanLines(models.Model):
     objective_id = fields.Many2one('workplan.objective', 'Objective',required=True)
     outcome_id = fields.Many2one('workplan.outcome', 'Outcome',domain="[('objective_id', '=?', objective_id)]",required=True)
     indicator_id = fields.Many2one('workplan.indicator', 'Indicator',domain="[('outcome_id', '=?', outcome_id)]",required=True)
+    department_id = fields.Many2one(related='workplan_id.department_id', string='Department', store=True)
     measure = fields.Char(related='indicator_id.measure', string='Measure', store=True, readonly=True)
     target = fields.Float(string="Target", default=0.0)
     date_from = fields.Date('Start Date', required=True)
@@ -128,7 +129,7 @@ class WorkplanWorkplanLines(models.Model):
     _sql_constraints = [
         (
             'unique_objective_outcome_indicator',
-            'UNIQUE (objective_id, outcome_id, indicator_id)',
+            'UNIQUE (objective_id, outcome_id, indicator_id,department_id)',
             'The combination of Objective, Outcome, and Indicator must be unique!'
         ),
     ]
