@@ -5,7 +5,9 @@
 #
 #################################################################################
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
+
 
 class ContractContract(models.Model):
 
@@ -42,3 +44,22 @@ class ContractLine(models.Model):
         name = name.replace("#START#", first_date_invoiced.strftime(date_format)  if first_date_invoiced else "#START#")
         name = name.replace("#END#", last_date_invoiced.strftime(date_format) if last_date_invoiced else "#END#")
         return name
+    
+
+    def cancel(self):
+        for contract in self.mapped("contract_id"):
+            lines = self.filtered(lambda l, c=contract: l.contract_id == c)
+            msg = _(
+                "Contract line canceled: %s",
+                "<br/>- ".join(
+                    [
+                        "<strong>%(product)s</strong>" % {"product": name}
+                        for name in lines.mapped("name")
+                    ]
+                ),
+            )
+            contract.message_post(body=msg)
+        self.mapped("predecessor_contract_line_id").write(
+            {"successor_contract_line_id": False}
+        )
+        return self.write({"is_canceled": True, "is_auto_renew": False})
