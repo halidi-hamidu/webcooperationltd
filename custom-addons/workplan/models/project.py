@@ -29,7 +29,7 @@ class ProjectTaskType(models.Model):
     workplan_activity = fields.Boolean(string="Activity from workplan", default=False,)
     workplan_line_id = fields.Many2one('workplan.workplan.lines', 'Objective',)
     planned_target = fields.Integer(string="Planned Target Units", )
-    actual_target = fields.Integer(string="Actual Targets Units",)
+    actual_target = fields.Integer(string="Actual Targets Units", compute="_compute_actual_target", store=True)
     workplan_state = fields.Selection(related='workplan_line_id.workplan_state', string='Workplan State', store=True, readonly=True)
     state = fields.Selection([
         ('draft','Draft'),
@@ -44,6 +44,20 @@ class ProjectTaskType(models.Model):
     uom_id = fields.Many2one('uom.uom', 'Unit of Measure',)
     uom_name = fields.Char(string='Unit of Measure Name', related='uom_id.name', readonly=True)
     general_budget_id = fields.Many2one('account.budget.post', 'Budgetary Activity')
+    weight = fields.Integer(string='Weight', default=0.0)
+
+    is_uom_id_readonly = fields.Boolean(string='Is UOM ID Readonly', compute='_compute_is_field_readonly')
+    is_planned_target_readonly = fields.Boolean(string='Is Planned Target Readonly', compute='_compute_is_field_readonly')
+    child_tasks = fields.One2many('project.task', 'parent_id', string='Child Tasks')
+
+    @api.depends('uom_id', 'planned_target')
+    def _compute_is_field_readonly(self):
+        field_names = ['uom_id', 'planned_target']
+        for record in self:
+            for field_name in field_names:
+                config = self.env['project.task.config'].search([('field_name', '=', field_name)], limit=1)
+                readonly = config.readonly if config else False
+                setattr(record, f'is_{field_name}_readonly', readonly)
 
     @api.depends('unit_amount','planned_target')
     def _compute_total_amount(self):
@@ -59,3 +73,20 @@ class ProjectTaskType(models.Model):
             budget_line = self.env['crossovered.budget.lines'].search([('task_id','=',record.id)])
             if budget_line:
                 record.allocated_balance = budget_line.allocated_balance
+
+    @api.depends('planned_target', 'child_tasks.stage_id', 'child_tasks.weight')
+    def _compute_actual_target(self):
+        for record in self:
+            if record.id:
+                total_weight = sum(task.weight for task in record.child_tasks if task.stage_id.name == 'Done')
+                record.actual_target = (total_weight / 100) * record.planned_target
+            else:
+                record.actual_target = 0
+
+class ProjectTaskConfig(models.Model):
+    _name = 'project.task.config'
+    _description = 'Project Task Configuration'
+
+    name = fields.Char(string='Name', required=True)
+    field_name = fields.Char(string='Field Name', required=True)
+    readonly = fields.Boolean(string='Readonly', default=True)
