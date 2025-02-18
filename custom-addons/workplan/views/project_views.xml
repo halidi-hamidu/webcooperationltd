@@ -59,6 +59,7 @@
                                 <field name="id" optional="hide"/>
                                 <field name="child_text" invisible="1"/>
                                 <field name="allow_subtasks" invisible="1"/>
+                                <field name="workplan_line_id" invisible="1"/>
                                 <field name="name" widget="name_with_subtask_count"/>
                                 <field name="display_project_id" string="Project" optional="hide" options="{'no_open': 1}"/>
                                 <field name="milestone_id"
@@ -80,6 +81,7 @@
                                 <field name="kanban_state" widget="state_selection" optional="show" options="{'hide_label': True, 'autosave': False}" nolabel="1"/>
                                 <field name="stage_id" optional="show" context="{'default_project_id': project_id}"/>
                                 <field name="weight"/>
+                                <field name="workplan_task_state"/>
                                 <button name="action_open_task" type="object" title="View Task" string="View Task" class="btn btn-link float-end"/>
                             </tree>
                         </field>
@@ -139,22 +141,5 @@
             </field>
         </record>
 
-        <record id="action_view_all_task" model="ir.actions.act_window">
-            <field name="name">Workplan Activities</field>
-            <field name="res_model">project.task</field>
-            <field name="view_mode">tree,form,calendar,kanban,pivot,graph,activity</field>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_open_tasks': 1, 'all_task': 1}</field>
-            <field name="search_view_id" ref="project.view_task_search_form_extended"/>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_smiling_face">
-                    No tasks found. Let's create one!
-                </p>
-                <p>
-                    Organize your tasks by dispatching them across the pipeline.<br/>
-                    Collaborate efficiently by chatting in real-time or via email.
-                </p>
-            </field>
-        </record>
     </data>
 </odoo>

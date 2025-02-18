@@ -175,20 +175,19 @@ class WorkplanWorkplanLines(models.Model):
                 date_to = line.date_to
                 if (workplan_date_from and date_to < workplan_date_from) or (workplan_date_to and date_to > workplan_date_to):
                     raise ValidationError(_('"End Date" of the workplan line should be included in the Period of the workplan'))
-                
+    
     def action_view_activities(self):
-        action = self.env['ir.actions.act_window'].with_context({'active_id': self.project_id.id,})._for_xml_id('workplan.action_view_all_task')
-        context = action['context']
-        domain = action['domain']
-        context = ast.literal_eval(context)
-        domain = ast.literal_eval(domain)
-        domain.append(('workplan_activity','=',True))
-        domain.append(('workplan_line_id','=',self.id))
-        context.update({
-            'default_project_id': self.project_id.id,
-            'default_workplan_line_id': self.id,
-            'default_workplan_activity': True,
-            })
-        action['context'] = context
-        action['domain'] = domain
-        return action
+        self.ensure_one()
+        domain = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]
+        tasks = self.env['project.task'].search(domain)
+        if tasks:
+            return tasks[0].action_open_workplan_activity(domain)
+        # else:
+        #     action = self.env.ref('workplan.action_view_all_task').read()[0]
+        #     action['domain'] = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]
+        #     action['context'] = {
+        #         'default_project_id': self.project_id.id,
+        #         'default_workplan_line_id': self.id,
+        #         'default_workplan_activity': True,
+        #     }
+        #     return action
