@@ -63,7 +63,7 @@ class ProjectTaskType(models.Model):
         field_names = ['uom_id', 'planned_target']
         for record in self:
             for field_name in field_names:
-                config = self.env['project.task.config'].search([('field_name', '=', field_name)], limit=1)
+                config = self.env['project.task.config'].sudo().search([('field_name', '=', field_name)], limit=1)
                 readonly = config.readonly if config else False
                 setattr(record, f'is_{field_name}_readonly', readonly)
 
