@@ -181,7 +181,12 @@ class WorkplanWorkplanLines(models.Model):
         domain = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]
         tasks = self.env['project.task'].search(domain)
         if tasks:
-            return tasks[0].action_open_workplan_activity(domain)
+            context = {
+                'default_project_id': self.project_id.id,
+                'default_workplan_line_id': self.id,
+                'default_workplan_activity': True,
+             }
+            return tasks[0].action_open_workplan_activity(domain,context)
         # else:
         #     action = self.env.ref('workplan.action_view_all_task').read()[0]
         #     action['domain'] = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]

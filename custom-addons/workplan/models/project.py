@@ -91,7 +91,7 @@ class ProjectTaskType(models.Model):
             else:
                 record.actual_target = 0
 
-    def action_open_workplan_activity(self, domain=None):
+    def action_open_workplan_activity(self, domain=None,context=None):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
@@ -99,7 +99,7 @@ class ProjectTaskType(models.Model):
             'res_model': 'project.task',
             'view_mode': 'tree,form,calendar,kanban,pivot,graph,activity',
             'domain': domain,
-            'context': {'search_default_open_tasks': 1, 'all_task': 1},
+            'context': {'search_default_open_tasks': 1, 'all_task': 1} + context,
             'search_view_id': self.env.ref('project.view_task_search_form_extended').id,
             'help': """
                 <p class="o_view_nocontent_smiling_face">
