@@ -39,7 +39,6 @@
         'views/hr_department_views.xml',
         'views/project_views.xml',
         'views/account_budget_views.xml',
-        'views/workplan_fields_config_views.xml',
     ],
     'images': ['static/description/banner.png'],
     'installable': True,

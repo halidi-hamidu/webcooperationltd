@@ -179,20 +179,28 @@ class WorkplanWorkplanLines(models.Model):
     def action_view_activities(self):
         self.ensure_one()
         domain = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]
-        tasks = self.env['project.task'].search(domain)
-        if tasks:
-            context = {
+        context = {
                 'default_project_id': self.project_id.id,
                 'default_workplan_line_id': self.id,
                 'default_workplan_activity': True,
+                'search_default_open_tasks': 1,
+                'all_task': 1,
              }
-            return tasks[0].action_open_workplan_activity(domain,context)
-        # else:
-        #     action = self.env.ref('workplan.action_view_all_task').read()[0]
-        #     action['domain'] = [('workplan_line_id', '=', self.id), ('workplan_activity', '=', True)]
-        #     action['context'] = {
-        #         'default_project_id': self.project_id.id,
-        #         'default_workplan_line_id': self.id,
-        #         'default_workplan_activity': True,
-        #     }
-        #     return action
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f"{self.objective_id.name} - {self.outcome_id.name}",
+            'res_model': 'project.task',
+            'view_mode': 'tree,form,calendar,kanban,pivot,graph,activity',
+            'domain': domain,
+            'context': context,
+            'search_view_id': self.env.ref('project.view_task_search_form_extended').id,
+            'help': """
+                <p class="o_view_nocontent_smiling_face">
+                    No tasks found. Let's create one!
+                </p>
+                <p>
+                    Organize your tasks by dispatching them across the pipeline.<br/>
+                    Collaborate efficiently by chatting in real-time or via email.
+                </p>
+            """,
+        }

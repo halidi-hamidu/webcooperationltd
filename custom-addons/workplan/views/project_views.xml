@@ -10,8 +10,6 @@
                 <field name="partner_id" position="after">
                      <field name="workplan_activity" invisible="1"/>
                      <field name="workplan_state" invisible="1"/>
-                     <field name="is_uom_id_readonly" invisible="1"/>
-                     <field name="is_planned_target_readonly" invisible="1"/>
                 </field>
                 <field name="partner_id" position="attributes">
                      <attribute name="invisible">1</attribute>
@@ -29,7 +27,7 @@
                      <attribute name="attrs">{'invisible': [('workplan_activity', '=', True)]}</attribute>
                 </field>
                 <field name="tag_ids" position="after">
-                    <field name="weight"/>
+                    <field name="weight" attrs="{'invisible': [('workplan_activity', '=', True)]}" />
                 </field>
                 <page name="task_dependencies" position="attributes">
                     <attribute name="attrs">{'invisible': ['|',('allow_task_dependencies', '=', False),('workplan_activity', '=', True)]}</attribute>
@@ -91,13 +89,13 @@
                     <page name="workplan_budget" string="Plan And Budget" attrs="{'invisible': [('workplan_activity', '=', False)]}">
                         <group>
                             <group>
-                                <field name="planned_target" attrs="{'readonly': [('workplan_state', 'in', ['submit','confirm','validate','done']), ('is_planned_target_readonly', '=', True)]}"/>
+                                <field name="planned_target" />
                             </group>
                              <group>
                                 <field name="unit_amount" attrs="{'readonly': [('workplan_state', 'in', ['submit','confirm','validate','done'])]}"/>
                             </group>
                             <group>
-                                <field name="uom_id" attrs="{'readonly': [('workplan_state', 'in', ['submit','confirm','validate','done']), ('is_uom_id_readonly', '=', True)]}"/>
+                                <field name="uom_id" />
                             </group>
                             <group>
                                 <field name="total_amount"/>
@@ -105,9 +103,12 @@
                             <group>
                                 <field name="general_budget_id" attrs="{'readonly': [('workplan_state', 'in', ['submit','confirm','validate','done'])]}"/>
                             </group>
+                            <group>
+                                <field name="budget_amount"/>
+                            </group>
                         </group>
                         <group>
-                            <field name="actual_target" attrs="{'readonly': [('workplan_state', '!=', 'validate')]}"/>
+                            <field name="actual_target"/>
                         </group>
                     </page>
                 </page>
@@ -120,12 +121,17 @@
             <field name="inherit_id" ref="project.view_task_tree2"/>
             <field name="arch" type="xml">
                  <field name="milestone_id" position="after">
+                    <field name="planned_target" attrs="{'invisible': [('workplan_activity', '=', False)]}"/>
                     <field name="total_amount" attrs="{'invisible': [('workplan_activity', '=', False)]}" sum="Budget Estimate"/>
+                    <field name="budget_amount" attrs="{'invisible': [('workplan_activity', '=', False)]}" sum="Budget Amount"/>
                     <field name="allocated_balance" attrs="{'invisible': [('workplan_activity', '=', False)]}" sum="Allocated Balance"/>
                     <field name="workplan_activity" invisible="1"/>
                  </field>
                 <field name="milestone_id" position="attributes">
                      <attribute name="attrs">{'invisible': ['|',('allow_milestones', '=', False),('workplan_activity', '=', True)]}</attribute>
+                </field>
+                <field name="stage_id" position="attributes">
+                     <attribute name="invisible">1</attribute>
                 </field>
             </field>
         </record>
