@@ -111,7 +111,7 @@ class WorkplanWorkplanLines(models.Model):
     indicator_id = fields.Many2one('workplan.indicator', 'Indicator',domain="[('outcome_id', '=?', outcome_id)]",required=True)
     department_id = fields.Many2one(related='workplan_id.department_id', string='Department', store=True)
     measure = fields.Char(related='indicator_id.measure', string='Measure', store=True, readonly=True)
-    target = fields.Float(string="Goal", default=0.0)
+    target = fields.Float(string="Goal", default=0.0,tracking=True)
     date_from = fields.Date('Start Date', required=True)
     date_to = fields.Date('End Date', required=True)
     company_id = fields.Many2one(related='workplan_id.company_id', string='Company', store=True, readonly=True)
