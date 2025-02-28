@@ -11,6 +11,25 @@
                 <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="after">
                     <field name="task_id"/>
                 </xpath>
+                <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='date_from']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='date_to']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='paid_date']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="view_crossovered_budget_line_tree">
+            <field name="name">crossovered.budget.line.tree</field>
+            <field name="model">crossovered.budget.lines</field>
+            <field name="inherit_id" ref="account_budget.view_crossovered_budget_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="general_budget_id" position="after">
+                    <field name="task_id"/>
+                </field>
             </field>
         </record>
     </data>
