@@ -80,7 +80,7 @@ class ProjectTaskType(models.Model):
                 record.allocated_balance = budget_line.allocated_balance
     
     def _get_budget_line(self,task_id):
-        budget_line = self.env['crossovered.budget.lines'].search([('task_id','=',task_id)])
+        budget_line = self.env['crossovered.budget.lines'].sudo().search([('task_id','=',task_id)])
         if budget_line:
             return budget_line
         else:
