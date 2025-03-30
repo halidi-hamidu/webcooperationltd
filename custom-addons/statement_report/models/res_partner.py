@@ -59,7 +59,7 @@ class Partner(models.Model):
         """ for computing 'bills' of partner """
         bill_ids = self.env['account.move'].search(
             [('partner_id', '=', self.id),
-             ('move_type', '=', ['in_invoice', 'in_refund']),
+             ('move_type', 'in', ['in_invoice', 'in_refund']),
              ('payment_state', '!=', 'paid'),
              ('state', '=', 'posted')]).ids
         self.vendor_statement_ids = bill_ids
