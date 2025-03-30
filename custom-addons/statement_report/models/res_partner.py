@@ -52,7 +52,7 @@ class Partner(models.Model):
             [('partner_id', '=', self.id),
              ('move_type', 'in', ['out_invoice', 'out_refund']),
              ('payment_state', '!=', 'paid'),
-             ('state', '=', 'posted')]).ids
+             ('state', 'in', ['posted','draft'])]).ids
         self.customer_report_ids = inv_ids
 
     def _compute_vendor_statement_ids(self):
@@ -61,7 +61,7 @@ class Partner(models.Model):
             [('partner_id', '=', self.id),
              ('move_type', 'in', ['in_invoice', 'in_refund']),
              ('payment_state', '!=', 'paid'),
-             ('state', '=', 'posted')]).ids
+             ('state', 'in', ['posted','draft'])]).ids
         self.vendor_statement_ids = bill_ids
 
     def main_query(self):
@@ -71,7 +71,7 @@ class Partner(models.Model):
                     amount_residual_signed AS amount_due ,
                     amount_residual AS balance
             FROM account_move WHERE payment_state != 'paid'
-            AND state ='posted' AND partner_id= '%s'
+            AND state IN ('posted','draft') AND partner_id= '%s'
             AND company_id = '%s' """ % (self.id, self.env.company.id)
         return query
 
@@ -80,7 +80,7 @@ class Partner(models.Model):
         amount_query = """ SELECT SUM(amount_total_signed) AS total, 
                     SUM(amount_residual) AS balance
                 FROM account_move WHERE payment_state != 'paid' 
-                AND state ='posted' AND partner_id= '%s'
+                AND state IN ('posted','draft') AND partner_id= '%s'
                 AND company_id = '%s' """ % (self.id, self.env.company.id)
         return amount_query
 
@@ -423,7 +423,7 @@ class Partner(models.Model):
                             amount_residual AS balance
                     FROM account_move WHERE move_type
                         IN ('out_invoice', 'in_invoice') 
-                       AND state ='posted' AND payment_state != 'paid'
+                       AND state IN ('posted','draft') AND payment_state != 'paid'
                        AND company_id = '%s' AND partner_id = '%s'
                     GROUP BY name, invoice_date, invoice_date_due, 
                     amount_total_signed, amount_residual_signed, 
@@ -553,7 +553,7 @@ class Partner(models.Model):
                         amount_residual AS balance
                    FROM account_move WHERE move_type 
                         IN ('out_invoice', 'in_invoice') 
-                        AND state ='posted' 
+                        AND state IN ('posted','draft') 
                         AND payment_state != 'paid' 
                         AND company_id = '%s' AND partner_id = '%s'
                    GROUP BY name, invoice_date, invoice_date_due,
