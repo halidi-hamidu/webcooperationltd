@@ -156,6 +156,7 @@ class PaymentReceiptVfd(models.Model):
 
             if response.status_code == 200:
                 rec.state = 'verified'
+                rec.env.cr.commit()
 
             if response.status_code == 401:
                 _logger.error(str(response.json()['message']))
