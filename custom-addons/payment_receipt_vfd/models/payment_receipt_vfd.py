@@ -232,12 +232,12 @@ class PaymentReceiptVfd(models.Model):
         return self.env['ir.config_parameter'].sudo().get_param(key)
     
     def verify_receipt_cron(self):
-        records = self.search([('state', 'in', ['verified'])], order='receipt_time asc', limit=20)
+        records = self.search([('state', 'in', ['verified'])], order='receipt_time asc', limit=10)
         for rec in records:
             rec.post_receipt_efdms(rec)
     
     def verify_missing_receipt_cron(self):
-        records = self.search([('state', 'in', ['missing'])], order='receipt_time desc', limit=30)
+        records = self.search([('state', 'in', ['missing'])], order='receipt_time desc', limit=10)
         for rec in records:
             rec.post_receipt_efdms(rec)
 
@@ -263,7 +263,6 @@ class PaymentReceiptVfd(models.Model):
             session = HTMLSession()
             resps = session.get(rec.receipt_url)
             if resps.status_code == 200:
-                print(rec.receipt_time_str)
                 resps = session.get(secrete_url+rec.receipt_time_str)
                 if len(resps.html.find("table")) == 2:
                     receipt_table = resps.html.find("table")[1]
@@ -292,6 +291,7 @@ class PaymentReceiptVfd(models.Model):
                             rec.state = 'diff'
                 else:
                     rec.state = 'missing'
+            rec.env.cr.commit()
 
 
 class VfdReceiptLines(models.Model):
