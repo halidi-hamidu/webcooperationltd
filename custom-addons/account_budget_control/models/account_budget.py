@@ -132,10 +132,11 @@ class CrossoveredBudgetLines(models.Model):
         queries_params = []
         for model, by_date in groups.items():
             for (date_from, date_to), account_ids in by_date.items():
-                if account_ids:
-                    query, params = get_query(model, date_from, date_to, account_ids)
-                    queries.append(query)
-                    queries_params += params
+                for rec in self:
+                    if account_ids:
+                        query, params = get_query(model, date_from, date_to, account_ids,rec.id)
+                        queries.append(query)
+                        queries_params += params
 
         if not queries:
             self.practical_amount = 0
