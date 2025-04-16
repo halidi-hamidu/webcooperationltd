@@ -21,3 +21,4 @@
 #############################################################################
 from . import account_budget
 from . import account_move
+from . import analytic_line
