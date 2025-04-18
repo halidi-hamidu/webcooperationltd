@@ -7,4 +7,4 @@ from odoo.exceptions import ValidationError
 class AccountAnalyticLine(models.Model):
      _inherit = 'account.analytic.line'
 
-     crossovered_budget_line = fields.Many2one('crossovered.budget.lines', 'Budget Line',related="move_line_id.budget_line_id")
+     crossovered_budget_line = fields.Many2one('crossovered.budget.lines', 'Budget Line',related="move_line_id.budget_line_id",store=True)

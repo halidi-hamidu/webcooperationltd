@@ -97,44 +97,51 @@ class CrossoveredBudgetLines(models.Model):
     def _compute_practical_amount(self):
         def get_accounts(line):
             if line.analytic_account_id:
-                return 'account.analytic.line', set(line.analytic_account_id.ids)
-            return 'account.move.line', set(line.general_budget_id.account_ids.ids)
+                return 'account.analytic.line', set(line.analytic_account_id.ids), line.id
+            return 'account.move.line', set(line.general_budget_id.account_ids.ids), line.id
 
-        def get_query(model, date_from, date_to, account_ids,line_id):
+        def get_query(model, date_from, date_to, account_ids, line_id):
             domain = [
                 ('date', '>=', date_from),
                 ('date', '<=', date_to),
                 ('account_id', 'in', list(account_ids)),
             ]
             if model == 'account.move.line':
+                domain += [
+                    ('parent_state', '=', 'posted'),
+                    ('budget_line_id', '=', line_id),  
+                ]
                 fname = '-balance'
                 general_account = 'account_id'
-                domain += [('parent_state', '=', 'posted'),('budget_line_id','=',line_id)]
             else:
+                domain += [
+                    ('crossovered_budget_line', '=', line_id),
+                ]
                 fname = 'amount'
                 general_account = 'general_account_id'
-                domain += [('crossovered_budget_line','=',line_id)]
 
             query = self.env[model]._search(domain)
             query.order = None
-            query_str, params = query.select('%s', '%s', '%s', 'account_id', general_account, f'SUM({fname})')
-            params = [model, date_from, date_to] + params
+            query_str, params = query.select(
+                '%s', '%s', '%s','%s', 'account_id', general_account, f'SUM({fname})'
+            )
+            params = [model, date_from, date_to, line_id] + params
             query_str += f" GROUP BY account_id, {general_account}"
-
             return query_str, params
 
-        groups = defaultdict(lambda: defaultdict(set))  # {model: {(date_from, date_to): account_ids}}
+        # Group by (model, date_from, date_to, line_id)
+        groups = defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
         for line in self:
-            model, accounts = get_accounts(line)
-            groups[model][(line.date_from, line.date_to)].update(accounts)
+            model, accounts, line_id = get_accounts(line)
+            groups[model][(line.date_from, line.date_to)][line_id].update(accounts)
 
         queries = []
         queries_params = []
         for model, by_date in groups.items():
-            for (date_from, date_to), account_ids in by_date.items():
-                for rec in self:
+            for (date_from, date_to), by_line in by_date.items():
+                for line_id, account_ids in by_line.items():
                     if account_ids:
-                        query, params = get_query(model, date_from, date_to, account_ids,rec.id)
+                        query, params = get_query(model, date_from, date_to, account_ids, line_id)
                         queries.append(query)
                         queries_params += params
 
@@ -144,26 +151,17 @@ class CrossoveredBudgetLines(models.Model):
 
         self.env.cr.execute(" UNION ALL ".join(queries), queries_params)
 
-        agg_general = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {(analytic, general): amount}}
-        agg_analytic = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {analytic: amount}}
-        for model, date_from, date_to, account_id, general_account_id, amount in self.env.cr.fetchall():
-            agg_general[(model, date_from, date_to)][(account_id, general_account_id)] += amount
-            agg_analytic[(model, date_from, date_to)][account_id] += amount
+        # New aggregation: {(model, date_from, date_to, line_id): {account_id: amount}}
+        agg_per_line = defaultdict(lambda: defaultdict(float))
+        for model, date_from, date_to, line_id, account_id, general_account_id, amount in self.env.cr.fetchall():
+            agg_per_line[(model, date_from, date_to, line_id)][account_id] += amount
 
         for line in self:
-            model, accounts = get_accounts(line)
-            general_accounts = line.general_budget_id.account_ids
-            if general_accounts:
-                line.practical_amount = sum(
-                    agg_general.get((model, line.date_from, line.date_to), {}).get((account, general_account), 0)
-                    for account in accounts
-                    for general_account in general_accounts.ids
-                )
-            else:
-                line.practical_amount = sum(
-                    agg_analytic.get((model, line.date_from, line.date_to), {}).get(account, 0)
-                    for account in accounts
-                )
+            model, accounts, line_id = get_accounts(line)
+            line.practical_amount = sum(
+                agg_per_line.get((model, line.date_from, line.date_to, line_id), {}).get(account, 0)
+                for account in accounts
+            )
 
 
 
