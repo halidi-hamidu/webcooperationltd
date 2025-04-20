@@ -213,6 +213,18 @@
             <field name="action" ref="act_workplan_workplan_view" />
         </record>
 
+        <record id="action_workplan_activities" model="ir.actions.act_window">
+            <field name="name">Workplan Activities</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="domain">[('workplan_activity','=',True),('workplan_line_id','!=',False)]</field>
+            <field name="context">{'search_default_my_tasks': 1,'create': False,'edit': False,'delete': False}</field>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+        </record>
+
+        <record id="menu_workplan_plan_activity" model="ir.ui.menu">
+            <field name="action" ref="action_workplan_activities" />
+        </record>
     <!-- Workplan views end-->
 
     <!-- Workplan Lines views start-->
