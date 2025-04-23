@@ -29,7 +29,7 @@ class ProjectTaskType(models.Model):
     workplan_activity = fields.Boolean(string="Activity from workplan", default=False,)
     workplan_line_id = fields.Many2one('workplan.workplan.lines', 'Objective',)
     planned_target = fields.Integer(string="Planned Target Units",tracking=True)
-    actual_target = fields.Integer(string="Actual Targets Units", compute="_compute_actual_target",  readonly=True)
+    actual_target = fields.Integer(string="Actual Targets Units", compute="_compute_actual_target_and_progress",  readonly=True)
     workplan_state = fields.Selection(related='workplan_line_id.workplan_state', string='Workplan State', store=True, readonly=True)
     workplan_task_state = fields.Selection([
         ('draft','Draft'),
@@ -49,6 +49,8 @@ class ProjectTaskType(models.Model):
     child_tasks = fields.One2many('project.task', 'parent_id', string='Child Tasks')
     object_id = fields.Many2one(related='workplan_line_id.objective_id', string='Objective')
     outcome_id = fields.Many2one(related='workplan_line_id.outcome_id', string='Outcome')
+    progress = fields.Float(string="Progress", default=0.0, compute="_compute_actual_target_and_progress")
+
 
     def get_name(self):
         self.ensure_one()
@@ -93,4 +95,23 @@ class ProjectTaskType(models.Model):
                 total_weight = sum(task.weight for task in record.child_tasks if task.workplan_task_state == 'done')
                 record.actual_target = (total_weight / 100) * record.planned_target
             else:
+                # Set actual_target to 0 if there are no child tasks
                 record.actual_target = 0
+
+    @api.depends('planned_target', 'child_tasks.workplan_task_state', 'child_tasks.weight')
+    def _compute_actual_target_and_progress(self):
+        """
+        Computes the actual target and progress for each record.
+        """
+        for record in self:
+            if record.id:
+                # Compute Actual Target
+                total_weight = sum(task.weight for task in record.child_tasks if task.workplan_task_state == 'done')
+                record.actual_target = (total_weight / 100) * record.planned_target if record.planned_target > 0 else 0
+
+                # Compute Progress
+                done_tasks = len(record.child_tasks.filtered(lambda task: task.workplan_task_state == 'done'))
+                record.progress = (done_tasks / record.planned_target) * 100 if record.planned_target > 0 else 0.0
+            else:
+                record.actual_target = 0
+                record.progress = 0.0

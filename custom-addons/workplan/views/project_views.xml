@@ -85,7 +85,7 @@
                         </field>
                     </page>
                 </page>
-                <page name="description_page" position="after">
+                <page name="description_page" position="before">
                     <page name="workplan_budget" string="Plan And Budget" attrs="{'invisible': [('workplan_activity', '=', False)]}">
                         <group>
                             <group>
@@ -110,6 +110,9 @@
                         <group>
                             <field name="actual_target"/>
                         </group>
+                        <group>
+                            <field name="progress"/>
+                        </group>
                     </page>
                 </page>
             </field>
@@ -126,6 +129,7 @@
                     <field name="budget_amount" attrs="{'invisible': [('workplan_activity', '=', False)]}" sum="Budget Amount"/>
                     <field name="allocated_balance" attrs="{'invisible': [('workplan_activity', '=', False)]}" sum="Allocated Balance"/>
                     <field name="workplan_activity" invisible="1"/>
+                    <field name="progress" widget="progressbar" options="{'max': 100}" />
                  </field>
                 <field name="milestone_id" position="attributes">
                      <attribute name="attrs">{'invisible': ['|',('allow_milestones', '=', False),('workplan_activity', '=', True)]}</attribute>
