@@ -110,8 +110,9 @@ class ProjectTaskType(models.Model):
                 record.actual_target = (total_weight / 100) * record.planned_target if record.planned_target > 0 else 0
 
                 # Compute Progress
+                all_tasks = len(record.child_tasks)
                 done_tasks = len(record.child_tasks.filtered(lambda task: task.workplan_task_state == 'done'))
-                record.progress = (done_tasks / record.planned_target) * 100 if record.planned_target > 0 else 0.0
+                record.progress = (done_tasks / all_tasks) * 100 if all_tasks > 0 else 0
             else:
                 record.actual_target = 0
                 record.progress = 0.0
