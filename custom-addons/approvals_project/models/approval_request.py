@@ -40,9 +40,11 @@ class ApprovalRequest(models.Model):
     def _compute_allocated_balance(self):
         for record in self:
             record.allocated_balance = 0
-            budget_line = record.task_id._get_budget_line(record.task_id.id)
-            if budget_line:
-                record.allocated_balance = budget_line.allocated_balance
+            if record.task_id:
+                budget_line = record.task_id._get_budget_line(record.task_id.id)
+                if budget_line:
+                    record.allocated_balance = budget_line.allocated_balance
+            
 
     def action_view_task(self):
         self.ensure_one()
