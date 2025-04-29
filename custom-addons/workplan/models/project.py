@@ -21,6 +21,7 @@
 #############################################################################
 
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class ProjectTaskType(models.Model):
@@ -45,7 +46,7 @@ class ProjectTaskType(models.Model):
     uom_id = fields.Many2one('uom.uom', 'Unit of Measure',)
     uom_name = fields.Char(string='Unit of Measure Name', related='uom_id.name', readonly=True)
     general_budget_id = fields.Many2one('account.budget.post', 'Budgetary Activity')
-    weight = fields.Integer(string='Weight', default=0.0)
+    weight = fields.Integer(string='Weight', default=0.0, required=True)
     child_tasks = fields.One2many('project.task', 'parent_id', string='Child Tasks')
     object_id = fields.Many2one(related='workplan_line_id.objective_id', string='Objective')
     outcome_id = fields.Many2one(related='workplan_line_id.outcome_id', string='Outcome')
@@ -107,12 +108,20 @@ class ProjectTaskType(models.Model):
             if record.id:
                 # Compute Actual Target
                 total_weight = sum(task.weight for task in record.child_tasks if task.workplan_task_state == 'done')
+                # Compute Total Possible Weight
+                total_possible_weight = sum(task.weight for task in record.child_tasks)
+
                 record.actual_target = (total_weight / 100) * record.planned_target if record.planned_target > 0 else 0
 
                 # Compute Progress
                 all_tasks = len(record.child_tasks)
                 done_tasks = len(record.child_tasks.filtered(lambda task: task.workplan_task_state == 'done'))
-                record.progress = (done_tasks / all_tasks) * 100 if all_tasks > 0 else 0
+                # record.progress = (done_tasks / all_tasks) * 100 if all_tasks > 0 else 0
+                # Compute Progress
+                if total_possible_weight > 0:
+                    record.progress = total_weight
+                else:
+                    record.progress = 0.0
             else:
                 record.actual_target = 0
                 record.progress = 0.0

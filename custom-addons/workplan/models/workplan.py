@@ -141,17 +141,23 @@ class WorkplanWorkplanLines(models.Model):
             actual = 0
             allocated = 0
             estimate = 0
+            total_progress = 0
+            total_tasks = len(line.task_ids)
+
             for task in line.task_ids:
                 planned += task.planned_target
                 actual += task.actual_target
                 estimate += task.total_amount
                 allocated += task.allocated_balance
+                total_progress += task.progress
+
             line.planned_target = planned
             line.actual_target = actual
             line.budget_estimate = estimate
             line.allocated_balance = allocated
-            if planned != 0:
-                line.progress = (actual / planned) * 100
+
+            if total_tasks > 0:
+                line.progress = total_progress / total_tasks
             else:
                 line.progress = 0.0
 
