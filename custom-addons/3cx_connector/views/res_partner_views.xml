@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Partner Form View Extension -->
+    <record id="view_partner_form_3cx" model="ir.ui.view">
+        <field name="name">res.partner.form.3cx</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add smart button to header -->
+            <xpath expr="//div[@name='button_box']/button[1]" position="before">
+                    <button name="action_open_call_logs" type="object" class="oe_stat_button" icon="fa-phone">
+                        <field name="call_log_count" widget="statinfo" string="Calls"/>
+                    </button>
+                    <button name="action_make_call" type="object" class="oe_stat_button" icon="fa-phone-square">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_value">
+                                <i class="fa fa-phone"/> Call
+                            </span>
+                        </div>
+                    </button>
+            </xpath>
+
+            <!-- Add 3CX Sync Status -->
+            <xpath expr="//field[@name='category_id']/parent::group" position="after">
+                
+            </xpath>
+
+            <!-- Add Call History and Sync Page -->
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="Call History" name="call_history">
+                    <field name="call_log_ids">
+                        <tree>
+                            <field name="start_time"/>
+                            <field name="direction"/>
+                            <field name="duration"/>
+                            <field name="status"/>
+                            <field name="recording_url" widget="url"/>
+                        </tree>
+                        <form>
+                            <group>
+                                <field name="start_time"/>
+                                <field name="end_time"/>
+                                <field name="duration"/>
+                                <field name="direction"/>
+                                <field name="status"/>
+                                <field name="recording_url" widget="url"/>
+                                <field name="notes"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+                 <page string="3cx Sync" name="3cx_sync">
+                    <group string="3CX Sync">
+                        <field name="cx3_id" readonly="1"/>
+                        <field name="last_cx3_sync" readonly="1"/>
+                        <field name="cx3_sync_status"/>
+                    </group>
+                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Partner List View Extension -->
+    <record id="view_partner_tree_3cx" model="ir.ui.view">
+        <field name="name">res.partner.tree.3cx</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="before">
+                <field name="cx3_sync_status"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

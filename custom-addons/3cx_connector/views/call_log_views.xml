@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <record id="view_call_log_tree" model="ir.ui.view">
+        <field name="name">call.log.tree</field>
+        <field name="model">call.log</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="status=='answered'" 
+                  decoration-danger="status=='missed'" 
+                  decoration-warning="status=='failed'">
+                <field name="partner_id" widget="many2one_avatar"/>
+                <field name="phone"/>
+                <field name="direction" widget="selection"/>
+                <field name="start_time" string="Time"/>
+                <field name="duration" widget="duration_formatter"/>
+                <field name="status" widget="selection"/>
+                <field name="user_id" string="Agent"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_call_log_graph" model="ir.ui.view">
+        <field name="name">call.log.graph</field>
+        <field name="model">call.log</field>
+        <field name="arch" type="xml">
+            <graph string="Call Statistics">
+                <field name="start_time" interval="day"/>
+                <field name="duration" type="measure"/>
+                <field name="direction" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_call_log_pivot" model="ir.ui.view">
+        <field name="name">call.log.pivot</field>
+        <field name="model">call.log</field>
+        <field name="arch" type="xml">
+            <pivot string="Call Analysis">
+                <field name="start_time" interval="month"/>
+                <field name="partner_id" type="col"/>
+                <field name="duration" type="measure"/>
+                <field name="status" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Search View Improvements -->
+    <record id="view_call_log_search_report" model="ir.ui.view">
+        <field name="name">call.log.search.report</field>
+        <field name="model">call.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id" />
+                <field name="phone" />
+                <separator/>
+                <filter name="inbound_calls" string="Inbound" domain="[('direction','=','in')]"/>
+                <filter name="outbound_calls" string="Outbound" domain="[('direction','=','out')]"/>
+                <separator/>
+                <filter name="answered_calls" string="Answered" domain="[('status','=','answered')]"/>
+                <filter name="missed_calls" string="Missed" domain="[('status','=','missed')]"/>
+                <filter name="failed_calls" string="Failed" domain="[('status','=','failed')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_call_log" model="ir.actions.act_window">
+        <field name="name">Call Logs</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+    </record>
+
+    <!-- Actions for Inbound Calls -->
+    <record id="action_inbound_answered" model="ir.actions.act_window">
+        <field name="name">Answered Inbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','in'),('status','=','answered')]</field>
+        <field name="context">{'search_default_group_by_partner': 1}</field>
+    </record>
+
+    <record id="action_inbound_missed" model="ir.actions.act_window">
+        <field name="name">Missed Inbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','in'),('status','=','missed')]</field>
+    </record>
+
+    <record id="action_inbound_failed" model="ir.actions.act_window">
+        <field name="name">Failed Inbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','in'),('status','=','failed')]</field>
+    </record>
+
+    <!-- Actions for Outbound Calls -->
+    <record id="action_outbound_answered" model="ir.actions.act_window">
+        <field name="name">Answered Outbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','out'),('status','=','answered')]</field>
+    </record>
+
+    <record id="action_outbound_missed" model="ir.actions.act_window">
+        <field name="name">Missed Outbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','out'),('status','=','missed')]</field>
+    </record>
+
+    <record id="action_outbound_failed" model="ir.actions.act_window">
+        <field name="name">Failed Outbound Calls</field>
+        <field name="res_model">call.log</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="domain">[('direction','=','out'),('status','=','failed')]</field>
+    </record>
+
+    <menuitem id="menu_3cx_call_logs" name="Call History" parent="menu_3cx_main" action="action_call_log" sequence="2"/>
+    
+     <menuitem id="menu_3cx_reports_main" name="Call Reports" parent="menu_3cx_main" sequence="11"/>
+
+     <menuitem id="menu_3cx_inbound_calls" name="Inbound Calls" parent="menu_3cx_reports_main" sequence="1"/>
+     <menuitem id="menu_3cx_inbound_answered" name="Answered" parent="menu_3cx_inbound_calls" action="action_inbound_answered" sequence="2"/>
+     <menuitem id="menu_3cx_inbound_missed" name="Missed" parent="menu_3cx_inbound_calls" action="action_inbound_missed" sequence="3"/>
+     <menuitem id="menu_3cx_inbound_failed" name="Failed" parent="menu_3cx_inbound_calls" action="action_inbound_failed" sequence="4"/>
+
+     <menuitem id="menu_3cx_outbound_calls" name="Outbound Calls" parent="menu_3cx_reports_main" sequence="5"/>
+     <menuitem id="menu_3cx_outbound_answered" name="Answered" parent="menu_3cx_outbound_calls" action="action_outbound_answered" sequence="6"/>
+     <menuitem id="menu_3cx_outbound_missed" name="Missed" parent="menu_3cx_outbound_calls" action="action_outbound_missed" sequence="7"/>
+     <menuitem id="menu_3cx_outbound_failed" name="Failed" parent="menu_3cx_outbound_calls" action="action_outbound_failed" sequence="8"/>
+
+</odoo>

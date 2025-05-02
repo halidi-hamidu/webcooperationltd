@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_call_metrics_tree" model="ir.ui.view">
+        <field name="name">call.metrics.tree</field>
+        <field name="model">call.metrics</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="team_id"/>
+                <field name="total_calls"/>
+                <field name="answered_calls"/>
+                <field name="missed_calls"/>
+                <field name="conversion_rate" widget="percentage"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_call_metrics_pivot" model="ir.ui.view">
+        <field name="name">call.metrics.pivot</field>
+        <field name="model">call.metrics</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="date" type="row" interval="week"/>
+                <field name="team_id" type="col"/>
+                <field name="total_calls" type="measure"/>
+                <field name="conversion_rate" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_call_metrics" model="ir.actions.act_window">
+        <field name="name">Call Performance</field>
+        <field name="res_model">call.metrics</field>
+        <field name="view_mode">tree,pivot,graph</field>
+    </record>
+
+    <menuitem id="menu_call_metrics" name="Team Analytics" parent="menu_3cx_main" action="action_call_metrics" sequence="10"/>
+</odoo>
