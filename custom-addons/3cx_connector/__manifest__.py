@@ -33,6 +33,7 @@
     'external_dependencies': {
         'python': ['requests'],
     },
+    'images': ['static/description/icon.png'],
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
