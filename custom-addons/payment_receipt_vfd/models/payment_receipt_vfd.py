@@ -262,8 +262,9 @@ class PaymentReceiptVfd(models.Model):
             secrete_url = self.get_config_param('payment_receipt_vfd.verification_secrete_url')
             session = HTMLSession()
             resps = session.get(rec.receipt_url)
+            receipt_time = ':'.join(rec.receipt_url[-6:][i:i+2] for i in range(0, 6, 2))
             if resps.status_code == 200:
-                resps = session.get(secrete_url+rec.receipt_time_str)
+                resps = session.get(secrete_url+receipt_time)
                 if len(resps.html.find("table")) == 2:
                     receipt_table = resps.html.find("table")[1]
                     list_of_items = receipt_table.text.splitlines()
