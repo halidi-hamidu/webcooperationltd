@@ -1,0 +1,19 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<odoo>
+    <record id="view_helpdesk_ticket_form_inherit_sla_desc" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.inherit.sla.description</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <field name="ticket_type_id" position="attributes">
+                <attribute name="domain">[('team_ids', 'in', team_id)]</attribute>
+                <attribute name="options">{'no_create': True}</attribute>
+            </field>
+
+            <xpath expr="//group" position="inside">
+                <label for="sla_description" string="Description"/>
+                <field name="sla_description" widget="html" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

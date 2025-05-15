@@ -1,0 +1,14 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<odoo>
+    <!-- Inherit the existing tree view -->
+    <record id="view_helpdesk_ticket_type_tree_inherit" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.type.tree.inherit</field>
+        <field name="model">helpdesk.ticket.type</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_type_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[last()]" position="after">
+                <field name="team_ids" widget="many2many_tags"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
