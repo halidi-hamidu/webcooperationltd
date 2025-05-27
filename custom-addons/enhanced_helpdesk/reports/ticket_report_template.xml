@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <odoo>
+    <template id="ticket_report_template">
+      <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="ticket">
+          <div class="page">
+            <h2>Helpdesk Ticket Report</h2>
+            <p><strong>Ticket ID:</strong> <t t-esc="ticket.id"/></p>
+            <p><strong>Subject:</strong> <t t-esc="ticket.name"/></p>
+            <p><strong>Description:</strong> <t t-esc="ticket.description"/></p>
+            <p><strong>Status:</strong> <t t-esc="ticket.stage_id.name"/></p>
+            <p><strong>Assigned To:</strong> <t t-esc="ticket.user_id.name"/></p>
+            <p><strong>Customer:</strong> <t t-esc="ticket.partner_id.name"/></p>
+            <p><strong>Created On:</strong> <t t-esc="ticket.create_date"/></p>
+  
+            <br/>
+            <h3>Transfer History</h3>
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <!-- <th>To Team</th> -->
+                  <th>Assigned To</th>
+                  <!-- <th>To User</th> -->
+                  <!-- <th>Reason</th> -->
+                  <th>Transfer Date</th>
+                  <th>Status</th>
+                  <th>Time Commited</th>
+                  <th>Time Taken</th>
+                  <th>Team Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="ticket.transfer_ids" t-as="transfer">
+                  <tr>
+                    <td><t t-esc="transfer.old_team_id.name"/></td>
+                    <!-- <td><t t-esc="transfer.new_team_id.name"/></td> -->
+                    <td><t t-esc="transfer.old_user_id.name"/></td>
+                    <!-- <td><t t-esc="transfer.new_user_id.name"/></td> -->
+                    <!-- <td><t t-esc="transfer.reason"/></td> -->
+                    <td><t t-esc="transfer.transfer_date"/></td>
+                    <td><t t-esc="transfer.status"/></td>
+                    <td><t t-esc="transfer.time_commited_to_resolve_the_ticket_by_the_team"/></td>
+                    <td><t t-esc="transfer.time_taken_for_the_team_to_resolve"/></td>
+                    <td><t t-esc="transfer.team_status_on_ticket_assigned"/></td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+          </div>
+        </t>
+      </t>
+    </template>
+  </odoo>
+  
