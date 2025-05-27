@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="email_template_sla_breach" model="mail.template">
+      <field name="name">SLA Breach Notification</field>
+      <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+      <field name="subject">SLA Breach: ${object.name}</field>
+      <field name="email_from">${object.user_id.email or service@ictpack.com}</field>
+      <field name="email_to">${object.user_id.email}</field>
+      <field name="body_html">
+        <![CDATA[
+          <p>Hello Team,</p>
+          <p>This is to notify you that the following ticket has <b>breached SLA</b>:</p>
+          <ul>
+            <li><strong>Ticket:</strong> ${object.name}</li>
+            <li><strong>Deadline:</strong> ${object.sla_deadline}</li>
+            <li><strong>Breached At:</strong> ${object.sla_breach_time}</li>
+            <li><strong>Assigned To:</strong> ${object.user_id.name}</li>
+          </ul>
+          <p>Please take immediate action.</p>
+          <p>Regards,<br/>Helpdesk System</p>
+        ]]>
+      </field>
+    </record>
+  </odoo>
+  
