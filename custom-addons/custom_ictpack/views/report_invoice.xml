@@ -359,20 +359,24 @@
                                 <td class="text-right">
                                     <span t-field="o.amount_untaxed"/>
                                 </td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_untaxed_signed"/>
-                                </td>
+                                <t t-if="o.currency_id.name != 'TZS'">
+                                    <td class="text-right">
+                                        <span t-field="o.amount_untaxed_signed"/>
+                                    </td>
+                                </t>
                             </tr>
                         	<tr>
-                            <td>
+                                <td>
                                     <strong class="text-primary-alt">Tax</strong>
                                 </td>
                                 <td class="text-right">
                                     <span t-field="o.amount_tax"/>
                                 </td>
-                                 <td class="text-right">
-                                    <span t-field="o.amount_tax_signed"/>
-                                </td>
+                                <t t-if="o.currency_id.name != 'TZS'">
+                                    <td class="text-right">
+                                        <span t-field="o.amount_tax_signed"/>
+                                    </td>
+                                </t>
                         </tr>
                             <tr class="border-black o_total">
                                 <td>
@@ -381,9 +385,11 @@
                                 <td class="text-right">
                                     <span t-field="o.amount_total"/>
                                 </td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_total_signed"/>
-                                </td>
+                                <t t-if="o.currency_id.name != 'TZS'">
+                                    <td class="text-right">
+                                        <span t-field="o.amount_total_signed"/>
+                                    </td>
+                                </t>
                             </tr>
                         </table>
                     </div>
