@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <record id="view_dev_res_partner_list" model="ir.ui.view">
+            <field name="name">view.dev.res.partner.statement.tree</field>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <tree string="Partner" create="0" edit="0" delete="0" default_order='partner_overdue_amount desc'>
+                   <field name="name" />
+			       <field name="email" />
+				    <field name="phone"/>
+				    <field name="partner_overdue_amount" widget="badge" decoration-danger="partner_overdue_amount > 0"/>
+
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_view_dev_due_partner" model="ir.actions.act_window">
+            <field name="name">Customers</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">tree</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('dev_customer_statement_advance.view_dev_res_partner_list')})]"/>
+        </record>
+    
+    
+        
+        <record id="view_res_partner_customer_statement_form" model="ir.ui.view">
+             <field name="name">view.res.partner.customer.statement.form</field>
+             <field name="model">res.partner</field>
+             <field name="inherit_id" ref="base.view_partner_form"/>
+             <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string='Customer Statement'>
+                        <group>
+                            <group>
+                                <field name="overdue_date"/>
+                                <field name="aging_by"/>
+                            </group>
+                            <group>
+                                <table>
+                                    <tr>
+                                        <td width="25%">
+                                            <button name="compute_statement_lines" string='Compute' 
+                                                    type="object" class="oe_highlight" style="margin-left:10px"/>
+                                        </td>
+                                        <td width="25%">
+                                            <button name="print_statement" string='PDF Statement' 
+                                                    type="object" class="oe_highlight" style="margin-left:10px"/>
+                                        </td>
+                                        <td width="25%">
+                                            <button name="generate_excel" string='Excel Statement' 
+                                                    type="object" class="oe_highlight" style="margin-left:10px"/>
+                                        </td>
+                                        <td width="25%">
+                                            <button name="send_statement" string='Send Statement' 
+                                                    type="object" class="oe_highlight" style="margin-left:10px"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </group>
+                        </group>
+                        <field name="statement_lines" readonly="1">
+                            <tree>
+                                <field name="invoice_number"/>
+                                <field name="desc"/>
+                                <field name="invoice_date"/>
+                                <field name="due_date"/>
+                                <field name="invoice_amount"/>
+                                <field name="payment_amount"/>
+                                <field name="balance_amount"/>
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <field name="statement_currency_id" invisible="1"/>
+                        <div>
+                            <field name="partner_overdue_amount" style="float:right" readonly="1"/>
+                        </div>
+                        <label for="partner_overdue_amount" style="float:right"/>
+                    </page>
+                </xpath>
+             </field>
+        </record>
+        
+        
+    </data>
+</odoo>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dev_customer_statement_form" model="ir.ui.view">
+        <field name="name">view Customer Statement</field>
+        <field name="model">dev.customer.statement</field>
+        <field name="arch" type="xml">
+           <form string="Customer Statement">
+                <group>
+                    <group>
+                        <field name="is_on_date"/>
+                        <field name="month" attrs="{'invisible':[('is_on_date','=',True)],'required':[('is_on_date','=',False)]}"/>
+                        <field name="is_privious_year" attrs="{'invisible':[('is_on_date','=',True)]}"/>
+                        <field name="date_upto" string="Date As on" attrs="{'invisible':[('is_on_date','=',False)]}"/>
+                    </group>
+                    <group>
+                        <field name="aging_by"/>
+                    </group>
+                </group>
+                <footer>
+	            	<button string="Print Statement" name="print_statement" type="object" class="oe_highlight"/>
+	            	 or
+	            	 <button string="Excel Statement" name="print_excel_statement" type="object" class="oe_highlight"/>
+	            	 or
+	            	 <button string="Send" name="send_statement" type="object" class="oe_highlight"/>
+	            	 or
+                     <button string="Cancel" class="oe_link" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <record id="action_dev_customer_statement" model="ir.actions.act_window">
+            <field name="name">Customer Statement Window</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">dev.customer.statement</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="base.model_res_partner" />
+            <field name="binding_type">report</field>
+        </record>
+        
+        
+    
+</odoo>
+

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <template id="external_statement_layout">
+            <t t-if="not o and doc">
+                <t t-set="o" t-value="doc"/>
+            </t>
+
+            <t t-if="o and 'company_id' in o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+            </t>
+            <t t-if="not o or not 'company_id' in o">
+                <t t-set="company" t-value="res_company"/>
+            </t>
+             <t t-call="dev_customer_statement_advance.external_customer_sta_header"><t t-raw="0"/></t>
+    </template>
+		
+		
+		<template id="external_customer_sta_header">
+               <div class="header">
+                     <div class="row" >
+                        <div class="col-12" style="border:0px solid #FFF">
+                            <t t-set="com_val" t-value="get_company_info(o)"/>
+			                <table width="100%" >
+			                    <tr>
+				                	<td style="border-bottom: 1px solid black;">
+				                	     <img t-att-src="image_data_uri(com_val.get('image').logo)" style="max-width: 170px;max-height: 160px;text-align: right"/>
+				                    </td>
+                        		</tr>
+                        		<tr>
+				                	<td  style="font-size: 14px;" width="60%">
+				                	    <t t-if="com_val.get('name')">
+				                	        <span t-esc="com_val.get('name')"/><br/>
+				                	    </t>
+				                	    <t t-if="com_val.get('street')">
+				                	        <span t-esc="com_val.get('street')"/><br/>
+				                	    </t>
+				                	    <t t-if="com_val.get('city')">
+				                	        <span t-esc="com_val.get('city')"/><br/>
+				                	    </t>
+				                	    <t t-if="com_val.get('state')">
+				                	        <span t-esc="com_val.get('state')"/><br/>
+				                	    </t>
+				                	    <t t-if="com_val.get('country')">
+				                	        <span t-esc="com_val.get('country')"/><br/>
+				                	    </t>
+				                    </td>
+                        		</tr>
+			                </table>
+                        </div>
+                </div> 
+                </div>
+                
+                <div class="article o_report_layout_standard">
+                    <t t-raw="0" />
+                </div>
+
+                <div class="footer o_standard_footer">
+                    <div class="text-center" style="border-top: 1px solid black;">
+                        <ul class="list-inline mb4">
+                            <li t-if="company.phone" class="list-inline-item">Phone: <span t-field="company.phone"/></li>
+                            <li t-if="company.email" class="list-inline-item">Email: <span t-field="company.email"/></li>
+                            <li t-if="company.website" class="list-inline-item">Web: <span t-field="company.website"/></li>
+                            <li t-if="company.vat" class="list-inline-item"><t t-esc="company.country_id.vat_label or 'Tax ID'"/>: <span t-field="company.vat"/></li>
+                        </ul>
+
+                        <div name="financial_infos">
+                            <span t-field="company.report_footer"/>
+                        </div>
+
+                        <div t-if="report_type == 'pdf'" class="text-muted">
+                            Page: <span class="page"/> / <span class="topage"/>
+                        </div>
+                    </div>
+                </div>
+        </template>
+    
+        
+        
+</odoo>
