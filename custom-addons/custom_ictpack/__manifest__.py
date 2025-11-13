@@ -27,6 +27,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/cron.xml",
+        "views/payment_reference_warning_wizard_view.xml",
         "views/account_move_view.xml",
         "views/sale_order_view.xml",
         "views/company_form_view.xml",

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Payment Reference Warning Wizard Form View -->
+        <record id="view_payment_reference_warning_wizard_form" model="ir.ui.view">
+            <field name="name">payment.reference.warning.wizard.form</field>
+            <field name="model">payment.reference.warning.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Payment Reference Warning">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <i class="fa fa-exclamation-triangle" style="color: #ffc107; margin-right: 10px;"/>
+                                Duplicate Payment Reference Detected
+                            </h1>
+                        </div>
+                        
+                        <group>
+                            <field name="warning_message" nolabel="1" widget="html"/>
+                        </group>
+
+                        <group>
+                            <field name="duplicate_invoice_ids" nolabel="1" mode="tree" colspan="2">
+                                <tree string="Duplicate Invoices" decoration-info="state == 'draft'" 
+                                      decoration-success="state == 'posted'" create="false" delete="false">
+                                    <field name="name" string="Invoice Number"/>
+                                    <field name="partner_id" string="Partner"/>
+                                    <field name="invoice_date" string="Invoice Date"/>
+                                    <field name="amount_total" string="Amount" widget="monetary"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="state" string="Status" widget="badge" 
+                                           decoration-info="state == 'draft'"
+                                           decoration-success="state == 'posted'"
+                                           decoration-warning="state == 'sent'"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button string="Continue Anyway" name="action_continue" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard Action -->
+        <record id="action_payment_reference_warning_wizard" model="ir.actions.act_window">
+            <field name="name">Payment Reference Warning</field>
+            <field name="res_model">payment.reference.warning.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+        </record>
+    </data>
+</odoo>

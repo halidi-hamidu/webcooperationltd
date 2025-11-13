@@ -39,6 +39,54 @@ class AccountMove(models.Model):
 
     is_payment = fields.Boolean(string='Is Payment voucher',default=False)
 
+    has_duplicate_payment_ref = fields.Boolean(string='Has Duplicate Payment Reference', compute='_compute_has_duplicate_payment_ref', store=False)
+
+    @api.depends('payment_reference')
+    def _compute_has_duplicate_payment_ref(self):
+        """Check if the payment reference has been used in other invoices."""
+        for record in self:
+            if record.payment_reference:
+                domain = [
+                    ('payment_reference', '=', record.payment_reference),
+                    ('id', '!=', record.id if record.id else False),
+                    ('state', '!=', 'cancel')
+                ]
+                existing_invoices = self.env['account.move'].search(domain, limit=1)
+                record.has_duplicate_payment_ref = bool(existing_invoices)
+            else:
+                record.has_duplicate_payment_ref = False
+
+    def action_show_payment_reference_warning(self):
+        """Open wizard to show duplicate payment reference warning."""
+        self.ensure_one()
+        
+        # Check if there are duplicates
+        if not self.payment_reference:
+            return
+        
+        domain = [
+            ('payment_reference', '=', self.payment_reference),
+            ('id', '!=', self.id),
+            ('state', '!=', 'cancel')
+        ]
+        existing_invoices = self.env['account.move'].search(domain)
+        
+        if not existing_invoices:
+            return
+        
+        # Create and open the wizard
+        wizard = self.env['payment.reference.warning.wizard'].create({
+            'move_id': self.id,
+        })
+        
+        return {
+            'name': _('Payment Reference Warning'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment.reference.warning.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
     @api.model
     def _get_currency_name(self):
