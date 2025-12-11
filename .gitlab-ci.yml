@@ -1,6 +1,6 @@
 include:
-  - project: "development/sec-templates"
-    ref: "charles.mgema-main-patch-48059"
+  - project: "security/sonarqube-scanner"
+    ref: "main"
     file: "/.gitlab-ci-sonarqube-template.yml"
 
 stages:
@@ -19,3 +19,4 @@ build_docker_image:
     - DOCKER_BUILDKIT=1 docker build -t $TAG_COMMIT -t $TAG_LATEST .
     - docker push $TAG_COMMIT
     - docker push $TAG_LATEST
+    
