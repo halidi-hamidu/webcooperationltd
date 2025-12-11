@@ -4,49 +4,200 @@
       <t t-call="web.html_container">
         <t t-foreach="docs" t-as="ticket">
           <div class="page">
-            <h2>Helpdesk Ticket Report</h2>
-            <p><strong>Ticket ID:</strong> <t t-esc="ticket.id"/></p>
-            <p><strong>Subject:</strong> <t t-esc="ticket.name"/></p>
-            <p><strong>Description:</strong> <t t-esc="ticket.description"/></p>
-            <p><strong>Status:</strong> <t t-esc="ticket.stage_id.name"/></p>
-            <p><strong>Assigned To:</strong> <t t-esc="ticket.user_id.name"/></p>
-            <p><strong>Customer:</strong> <t t-esc="ticket.partner_id.name"/></p>
-            <p><strong>Created On:</strong> <t t-esc="ticket.create_date"/></p>
-  
-            <br/>
-            <h3>Transfer History</h3>
-            <table class="table table-sm table-bordered">
-              <thead>
-                <tr>
-                  <th>Team</th>
-                  <!-- <th>To Team</th> -->
-                  <th>Assigned To</th>
-                  <!-- <th>To User</th> -->
-                  <!-- <th>Reason</th> -->
-                  <th>Transfer Date</th>
-                  <th>Status</th>
-                  <th>Time Commited</th>
-                  <th>Time Taken</th>
-                  <th>Team Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <t t-foreach="ticket.transfer_ids" t-as="transfer">
+            <!-- Header Section -->
+            <div class="row" style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+              <div class="col-12">
+                <h2 style="color: #875A7B; font-weight: bold;">Helpdesk Ticket Report</h2>
+                <p style="font-size: 12px; color: #666;">Generated on: <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/></p>
+              </div>
+            </div>
+
+            <!-- Basic Information Section -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <h4 style="background-color: #875A7B; color: white; padding: 8px; margin-bottom: 15px;">Basic Information</h4>
+                <table class="table table-sm" style="font-size: 11px;">
                   <tr>
-                    <td><t t-esc="transfer.old_team_id.name"/></td>
-                    <!-- <td><t t-esc="transfer.new_team_id.name"/></td> -->
-                    <td><t t-esc="transfer.old_user_id.name"/></td>
-                    <!-- <td><t t-esc="transfer.new_user_id.name"/></td> -->
-                    <!-- <td><t t-esc="transfer.reason"/></td> -->
-                    <td><t t-esc="transfer.transfer_date"/></td>
-                    <td><t t-esc="transfer.status"/></td>
-                    <td><t t-esc="transfer.time_commited_to_resolve_the_ticket_by_the_team"/></td>
-                    <td><t t-esc="transfer.time_taken_for_the_team_to_resolve"/></td>
-                    <td><t t-esc="transfer.team_status_on_ticket_assigned"/></td>
+                    <td style="width: 25%;"><strong>Ticket Number:</strong></td>
+                    <td style="width: 25%;"><t t-esc="ticket.id"/></td>
+                    <td style="width: 25%;"><strong>Team:</strong></td>
+                    <td style="width: 25%;"><t t-esc="ticket.team_id.name or 'N/A'"/></td>
                   </tr>
-                </t>
-              </tbody>
-            </table>
+                  <tr>
+                    <td><strong>Subject:</strong></td>
+                    <td colspan="3"><t t-esc="ticket.name"/></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Type:</strong></td>
+                    <td><t t-esc="ticket.ticket_type_id.name or 'N/A'"/></td>
+                    <td><strong>Priority:</strong></td>
+                    <td><t t-esc="dict(ticket._fields['priority'].selection).get(ticket.priority, 'N/A')"/></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Status:</strong></td>
+                    <td><t t-esc="ticket.stage_id.name"/></td>
+                    <td><strong>Assigned To:</strong></td>
+                    <td><t t-esc="ticket.user_id.name or 'Unassigned'"/></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Customer:</strong></td>
+                    <td><t t-esc="ticket.partner_id.name or 'N/A'"/></td>
+                    <td><strong>Email:</strong></td>
+                    <td><t t-esc="ticket.partner_email or 'N/A'"/></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Created On:</strong></td>
+                    <td><t t-esc="ticket.create_date.strftime('%Y-%m-%d %H:%M:%S') if ticket.create_date else 'N/A'"/></td>
+                    <td><strong>Last Updated:</strong></td>
+                    <td><t t-esc="ticket.write_date.strftime('%Y-%m-%d %H:%M:%S') if ticket.write_date else 'N/A'"/></td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <h4 style="background-color: #875A7B; color: white; padding: 8px; margin-bottom: 15px;">Description</h4>
+                <div style="padding: 10px; border: 1px solid #ddd; min-height: 60px; font-size: 11px;">
+                  <t t-esc="ticket.description or 'No description provided'"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tags Section -->
+            <t t-if="ticket.tag_ids">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h4 style="background-color: #875A7B; color: white; padding: 8px; margin-bottom: 15px;">Tags</h4>
+                  <div style="padding: 10px; font-size: 11px;">
+                    <t t-foreach="ticket.tag_ids" t-as="tag">
+                      <span style="background-color: #e9ecef; padding: 4px 8px; margin-right: 5px; border-radius: 3px;">
+                        <t t-esc="tag.name"/>
+                      </span>
+                    </t>
+                  </div>
+                </div>
+              </div>
+            </t>
+
+            <!-- Ticket Transfer History (Tagging Timeline) -->
+            <t t-if="ticket.tag_transfer_ids">
+              <div class="row mb-3" style="page-break-inside: avoid;">
+                <div class="col-12">
+                  <h4 style="background-color: #875A7B; color: white; padding: 8px; margin-bottom: 15px;">Ticket Transfer History / Tagging Timeline</h4>
+                  <table class="table table-sm table-bordered" style="font-size: 10px;">
+                    <thead style="background-color: #f8f9fa;">
+                      <tr>
+                        <th>Tagged User</th>
+                        <th>Team</th>
+                        <th>Tagged By</th>
+                        <th>Date Tagged</th>
+                        <th>Status</th>
+                        <th>Responded At</th>
+                        <th>Response Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <t t-foreach="ticket.tag_transfer_ids" t-as="transfer">
+                        <tr>
+                          <td><t t-esc="transfer.tagged_user_id.name or 'N/A'"/></td>
+                          <td><t t-esc="transfer.team_id.name or 'N/A'"/></td>
+                          <td><t t-esc="transfer.tagged_by_user_id.name or 'N/A'"/></td>
+                          <td><t t-esc="transfer.date_tagged.strftime('%Y-%m-%d %H:%M:%S') if transfer.date_tagged else 'N/A'"/></td>
+                          <td>
+                            <span t-if="transfer.action == 'pending'" style="color: #0dcaf0;">Pending</span>
+                            <span t-elif="transfer.action == 'accept'" style="color: #28a745;">Accepted</span>
+                            <span t-elif="transfer.action == 'reject'" style="color: #dc3545;">Rejected</span>
+                            <span t-elif="transfer.action == 'hold'" style="color: #ffc107;">On Hold</span>
+                          </td>
+                          <td>
+                            <t t-if="transfer.accepted_at">
+                              <t t-esc="transfer.accepted_at.strftime('%Y-%m-%d %H:%M:%S')"/>
+                            </t>
+                            <t t-elif="transfer.rejected_at">
+                              <t t-esc="transfer.rejected_at.strftime('%Y-%m-%d %H:%M:%S')"/>
+                            </t>
+                            <t t-elif="transfer.held_at">
+                              <t t-esc="transfer.held_at.strftime('%Y-%m-%d %H:%M:%S')"/>
+                            </t>
+                            <t t-else="">Pending</t>
+                          </td>
+                          <td>
+                            <t t-if="transfer.response_duration">
+                              <t t-set="hours" t-value="int(transfer.response_duration)"/>
+                              <t t-set="minutes" t-value="int((transfer.response_duration - hours) * 60)"/>
+                              <strong>
+                                <t t-if="hours > 0">
+                                  <t t-esc="hours"/> hour<t t-if="hours != 1">s</t>
+                                </t>
+                                <t t-if="minutes > 0">
+                                  <t t-if="hours > 0"> </t>
+                                  <t t-esc="minutes"/> min<t t-if="minutes != 1">s</t>
+                                </t>
+                                <t t-if="hours == 0 and minutes == 0">
+                                  Less than 1 minute
+                                </t>
+                              </strong>
+                            </t>
+                            <t t-else="">
+                              <span style="color: #999;">Awaiting Response</span>
+                            </t>
+                          </td>
+                        </tr>
+                      </t>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </t>
+
+            <!-- Team Transfer History -->
+            <t t-if="ticket.transfer_ids">
+              <div class="row mb-3" style="page-break-inside: avoid;">
+                <div class="col-12">
+                  <h4 style="background-color: #875A7B; color: white; padding: 8px; margin-bottom: 15px;">Team Transfer History</h4>
+                  <table class="table table-sm table-bordered" style="font-size: 10px;">
+                    <thead style="background-color: #f8f9fa;">
+                      <tr>
+                        <th>From Team</th>
+                        <th>From User</th>
+                        <th>Transfer Date</th>
+                        <th>Status</th>
+                        <th>Time Committed</th>
+                        <th>Time Taken</th>
+                        <th>Team Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <t t-foreach="ticket.transfer_ids" t-as="transfer">
+                        <tr>
+                          <td><t t-esc="transfer.old_team_id.name or 'N/A'"/></td>
+                          <td><t t-esc="transfer.old_user_id.name or 'N/A'"/></td>
+                          <td><t t-esc="transfer.transfer_date.strftime('%Y-%m-%d %H:%M:%S') if transfer.transfer_date else 'N/A'"/></td>
+                          <td><t t-esc="transfer.status or 'N/A'"/></td>
+                          <td><t t-esc="transfer.time_commited_to_resolve_the_ticket_by_the_team or 'N/A'"/></td>
+                          <td><t t-esc="transfer.time_taken_for_the_team_to_resolve or 'N/A'"/></td>
+                          <td><t t-esc="transfer.team_status_on_ticket_assigned or 'N/A'"/></td>
+                        </tr>
+                      </t>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </t>
+
+
+
+            <!-- Footer -->
+            <div class="row" style="margin-top: 30px; padding-top: 10px; border-top: 2px solid #000;">
+              <div class="col-12 text-center">
+                <p style="font-size: 10px; color: #666;">
+                  End of Report - Page <span class="page"/> of <span class="topage"/>
+                </p>
+              </div>
+            </div>
+
           </div>
         </t>
       </t>

@@ -5,9 +5,6 @@ class HelpdeskTicketTransfer(models.Model):
     _name = 'helpdesk.ticket.transfer'
     _description = 'Helpdesk Ticket Transfer Log'
     _order = 'transfer_date desc'
-    
-    
-   
 
     ticket_id = fields.Many2one('helpdesk.ticket', required=True)
     old_team_id = fields.Many2one('helpdesk.team', string='From Team')
@@ -26,11 +23,7 @@ class HelpdeskTicketTransfer(models.Model):
     time_commited_to_resolve_the_ticket_by_the_team = fields.Datetime(string='Time Commited to Resolve', default=fields.Datetime.now)
     time_taken_for_the_team_to_resolve =  fields.Datetime(string='Date and Time Taken for the Team to Resolve', default=fields.Datetime.now)
     team_status_on_ticket_assigned = fields.Char(string='Team Status on Ticket Assigned', compute='_compute_team_status_on_ticket_assigned')
-    
-    
-   
-    
-    
+
     
     @api.depends('transfer_date', 'ticket_id.create_date')
     def _compute_time_to_resolve(self):
@@ -46,13 +39,7 @@ class HelpdeskTicketTransfer(models.Model):
         if self.ticket_id:
             self.old_team_id = self.ticket_id.team_id.id
             self.old_user_id = self.ticket_id.user_id.id
-            
-            
-            
-            
-    
-                
-                
+         
     @api.depends('status', 'time_taken_for_the_team_to_resolve', 'time_commited_to_resolve_the_ticket_by_the_team')
     def _compute_team_status_on_ticket_assigned(self):
         for rec in self:
@@ -82,29 +69,36 @@ class HelpdeskTicketTransfer(models.Model):
 
     def transfer_as_task(self):
         for rec in self:
-            if not rec.old_user_id:
-                raise UserWarning("Please specify a user to assign the task to.")
-
+            # Determine who to assign the task to
+            assignee = rec.old_user_id
+            if not assignee:
+                # If no old_user_id, try to use the current ticket assignee
+                assignee = rec.ticket_id.user_id
+            if not assignee:
+                # If still no assignee, use the current user
+                assignee = self.env.user
+            
             # Create the task
             task = self.env['project.task'].create({
                 'name': f"Follow-up: Ticket {rec.ticket_id.name}",
-                'user_ids': rec.old_user_id,
+                'user_ids': [(6, 0, [assignee.id])],  # Proper many2many format
                 'date_deadline': rec.time_commited_to_resolve_the_ticket_by_the_team,
                 'description': f"""
                     Ticket ID: {rec.ticket_id.name}
                     Reason: {rec.reason or 'N/A'}
-                    From: {rec.old_user_id.name or 'N/A'}
+                    From: {rec.old_user_id.name if rec.old_user_id else 'N/A'}
                     Status: {rec.status}
                     Transfer Date: {rec.transfer_date.strftime('%Y-%m-%d %H:%M:%S')}
+                    Assigned To: {assignee.name}
                 """,
             })
             # Compose message for the chat
             message = f"""
                 <ul>
                     <li><b>Task Assigned From Ticket:</b> <a href="/web#id={rec.ticket_id.id}&model=helpdesk.ticket&view_type=form">{rec.ticket_id.name}</a></li>
-                    <li><b>Assigned To:</b> {rec.old_user_id.name}</li>
+                    <li><b>Assigned To:</b> {assignee.name}</li>
                     <li><b>Date Assigned:</b> {rec.transfer_date.strftime('%Y-%m-%d %H:%M:%S')}</li>
-                    <li><b>Committed Deadline To Resolve:</b> {rec.time_commited_to_resolve_the_ticket_by_the_team}</li>
+                    <li><b>Committed Deadline To Resolve:</b> {rec.time_commited_to_resolve_the_ticket_by_the_team or 'Not specified'}</li>
                     <li><b>Task Created By:</b> {self.env.user.name}</li>
                     <li><a href="/web#id={task.id}&model=project.task&view_type=form">View Task</a></li>
                 </ul>

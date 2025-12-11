@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Add Team Types section to team form -->
+    <record id="enhanced_helpdesk_view_helpdesk_team_form_types" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.team.form.types</field>
+        <field name="model">helpdesk.team</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_team_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert Team Types into the Channels section -->
+            <xpath expr="//div[@id='channels']" position="inside">
+                <div class="col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane"/>
+                    <div class="o_setting_right_pane">
+                        <label for="team_type_ids"/>
+                        <div class="text-muted">
+                            Ticket types available for this team
+                        </div>
+                        <div class="mt16">
+                            <field name="team_type_ids" widget="many2many_tags" options="{'no_quick_create': True}" can_create="true" can_write="true"/>
+                        </div>
+                        
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

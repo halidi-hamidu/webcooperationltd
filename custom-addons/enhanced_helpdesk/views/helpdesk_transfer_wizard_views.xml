@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Accept Transfer Confirmation Wizard -->
+    <record id="view_helpdesk_transfer_accept_wizard_form" model="ir.ui.view">
+        <field name="name">helpdesk.transfer.accept.wizard.form</field>
+        <field name="model">helpdesk.transfer.accept.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Transfer Accept">
+                <div class="oe_title">
+                    <h2>
+                        <i class="fa fa-question-circle text-warning"/> Are you sure you want to accept this transfer request?
+                    </h2>
+                </div>
+                <group>
+                    <group string="Transfer Information">
+                        <field name="ticket_id" readonly="1"/>
+                        <field name="tagged_by_user_id" readonly="1"/>
+                        <field name="date_tagged" readonly="1"/>
+                    </group>
+                    <group string="Your Information">
+                        <field name="tagged_user_id" readonly="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm_accept" 
+                            string="Yes, Accept" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button name="action_cancel" 
+                            string="Cancel" 
+                            type="object" 
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Reject Transfer Wizard -->
+    <record id="view_helpdesk_transfer_reject_wizard_form" model="ir.ui.view">
+        <field name="name">helpdesk.transfer.reject.wizard.form</field>
+        <field name="model">helpdesk.transfer.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Transfer Request">
+                <div class="oe_title">
+                    <h2>
+                        <i class="fa fa-times-circle text-danger"/> Reject Transfer Request
+                    </h2>
+                    <p>Please provide a reason for rejecting this transfer request.</p>
+                </div>
+                <group>
+                    <group string="Transfer Information">
+                        <field name="ticket_id" readonly="1"/>
+                        <field name="tagged_by_user_id" readonly="1"/>
+                        <field name="tagged_user_id" readonly="1"/>
+                    </group>
+                </group>
+                <group string="Rejection Details">
+                    <label for="predefined_reasons" string="Select Reasons (Optional):"/>
+                    <field name="predefined_reasons" widget="many2many_checkboxes" nolabel="1"/>
+                    <label for="rejection_reason" string="Additional Details (Optional):"/>
+                    <field name="rejection_reason" placeholder="Please explain your reason for rejecting this transfer..." nolabel="1"/>
+                    <p class="text-muted"><i>Note: You must provide at least one reason above or write additional details below.</i></p>
+                </group>
+                <footer>
+                    <button name="action_confirm_reject" 
+                            string="Confirm Rejection" 
+                            type="object" 
+                            class="btn-danger"/>
+                    <button name="action_cancel" 
+                            string="Cancel" 
+                            type="object" 
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Transfer Details Wizard -->
+    <record id="view_helpdesk_transfer_details_wizard_form" model="ir.ui.view">
+        <field name="name">helpdesk.transfer.details.wizard.form</field>
+        <field name="model">helpdesk.transfer.details.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Transfer Details">
+                <div class="oe_title">
+                    <h2>
+                        <field name="action" widget="badge" 
+                               decoration-info="action == 'pending'" 
+                               decoration-success="action == 'accept'" 
+                               decoration-danger="action == 'reject'" 
+                               decoration-warning="action == 'hold'"/>
+                        Transfer Details
+                    </h2>
+                </div>
+                <group>
+                    <group string="Basic Information">
+                        <field name="ticket_id" readonly="1"/>
+                        <field name="tagged_user_id" readonly="1"/>
+                        <field name="tagged_by_user_id" readonly="1"/>
+                        <field name="date_tagged" readonly="1"/>
+                        <field name="response_time" readonly="1" attrs="{'invisible': [('response_time', '=', False)]}"/>
+                    </group>
+                </group>
+                
+                <!-- Hold Details -->
+                <group string="Hold Information" attrs="{'invisible': [('action', '!=', 'hold')]}">
+                    <field name="held_at" readonly="1"/>
+                    <field name="hold_reasons_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="hold_details" readonly="1" widget="text"/>
+                </group>
+                
+                <!-- Rejection Details -->
+                <group string="Rejection Information" attrs="{'invisible': [('action', '!=', 'reject')]}">
+                    <field name="rejected_at" readonly="1"/>  
+                    <field name="rejection_reasons_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="rejection_reason" readonly="1" widget="text"/>
+                </group>
+                
+                <footer>
+                    <button name="action_close" 
+                            string="Close" 
+                            type="object" 
+                            class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Rejection Reasons Tree View -->
+    <record id="view_helpdesk_rejection_reason_tree" model="ir.ui.view">
+        <field name="name">helpdesk.rejection.reason.tree</field>
+        <field name="model">helpdesk.rejection.reason</field>
+        <field name="arch" type="xml">
+            <tree string="Rejection Reasons" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Rejection Reasons Form View -->
+    <record id="view_helpdesk_rejection_reason_form" model="ir.ui.view">
+        <field name="name">helpdesk.rejection.reason.form</field>
+        <field name="model">helpdesk.rejection.reason</field>
+        <field name="arch" type="xml">
+            <form string="Rejection Reason">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" nolabel="1" placeholder="Description of this rejection reason..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Rejection Reasons Action -->
+    <record id="action_helpdesk_rejection_reason" model="ir.actions.act_window">
+        <field name="name">Rejection Reasons</field>
+        <field name="res_model">helpdesk.rejection.reason</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first rejection reason!
+            </p>
+            <p>
+                Define predefined reasons that users can select when rejecting transfer requests.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu for Rejection Reasons -->
+    <menuitem id="menu_helpdesk_rejection_reasons"
+              name="Rejection Reasons"
+              parent="helpdesk.helpdesk_menu_config"
+              action="action_helpdesk_rejection_reason"
+              sequence="15"/>
+</odoo>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_helpdesk_working_time_tree" model="ir.ui.view">
+        <field name="name">helpdesk.working.time.tree</field>
+        <field name="model">helpdesk.working.time</field>
+        <field name="arch" type="xml">
+            <tree string="Helpdesk Working Times">
+                <field name="name"/>
+                <field name="day_of_week"/>
+                <field name="hour_from"/>
+                <field name="hour_to"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_helpdesk_working_time_form" model="ir.ui.view">
+        <field name="name">helpdesk.working.time.form</field>
+        <field name="model">helpdesk.working.time</field>
+        <field name="arch" type="xml">
+            <form string="Helpdesk Working Time">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="day_of_week"/>
+                        <field name="hour_from"/>
+                        <field name="hour_to"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_helpdesk_working_time" model="ir.actions.act_window">
+        <field name="name">Working Time</field>
+        <field name="res_model">helpdesk.working.time</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+        <menuitem id="menu_helpdesk_working_time_config" name="Working Time" parent="helpdesk.helpdesk_menu_config" action="action_helpdesk_working_time" sequence="10"/>
+
+    <!-- Server Action for bulk working time application -->
+    <record id="action_server_apply_working_time" model="ir.actions.server">
+        <field name="name">Apply Working Time Configuration</field>
+        <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+# Open wizard to select working time configuration
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'helpdesk.working.time.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'active_ids': context.get('active_ids', []),
+        'active_model': 'helpdesk.ticket',
+    }
+}
+        </field>
+    </record>
+</odoo>
