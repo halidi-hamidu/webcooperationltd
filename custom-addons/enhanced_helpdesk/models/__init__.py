@@ -2,3 +2,9 @@ from . import helpdesk_ticket
 from . import helpdesk_ticket_type
 from . import helpdesk_ticket_transfer
 from . import reasons_to_hold_ticket
+from . import helpdesk_working_time
+from . import helpdesk_ticket_tag_transfer
+from . import helpdesk_hold_wizard
+from . import helpdesk_transfer_wizards
+from . import helpdesk_tags
+from . import helpdesk_team

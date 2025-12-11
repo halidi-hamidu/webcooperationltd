@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Tag Transfer Tree View -->
+    <record id="view_helpdesk_ticket_tag_transfer_tree" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.tag.transfer.tree</field>
+        <field name="model">helpdesk.ticket.tag.transfer</field>
+        <field name="arch" type="xml">
+            <tree string="Tag Transfer Lines" create="false" edit="false">
+                <field name="tagged_user_id" string="Tagged User"/>
+                <field name="tagged_by_user_id" string="Tagged By"/>
+                <field name="date_tagged" string="Date Tagged"/>
+                <field name="action" string="Status"/>
+                <field name="accepted_at" string="Accepted At" attrs="{'invisible': [('action', '!=', 'accept')]}"/>
+                <field name="rejected_at" string="Rejected At" attrs="{'invisible': [('action', '!=', 'reject')]}"/>
+                <field name="held_at" string="Put on Hold At" attrs="{'invisible': [('action', '!=', 'hold')]}"/>
+                <field name="response_duration" string="Response Time (Hours)" optional="hide"/>
+                <field name="can_user_act" invisible="1"/>
+                <button name="action_accept" 
+                        string="Accept" 
+                        type="object" 
+                        class="btn-success"
+                        attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
+                        groups="base.group_user"/>
+                <button name="action_reject" 
+                        string="Reject" 
+                        type="object" 
+                        class="btn-danger"
+                        attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
+                        groups="base.group_user"/>
+                <button name="action_hold" 
+                        string="Hold" 
+                        type="object" 
+                        class="btn-warning"
+                        attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
+                        groups="base.group_user"/>
+                <button name="action_view_details" 
+                        string="View Details" 
+                        type="object" 
+                        class="btn-info"
+                        icon="fa-info-circle"
+                        attrs="{'invisible': [('action', 'in', ['pending', 'accept'])]}"
+                        groups="base.group_user"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Tag Transfer Form View -->
+    <record id="view_helpdesk_ticket_tag_transfer_form" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.tag.transfer.form</field>
+        <field name="model">helpdesk.ticket.tag.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Tag Transfer Line" create="false">
+                <header>
+                    <button name="action_accept" 
+                            string="Accept" 
+                            type="object" 
+                            class="btn-success"
+                            attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"/>
+                    <button name="action_reject" 
+                            string="Reject" 
+                            type="object" 
+                            class="btn-danger"
+                            attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"/>
+                    <button name="action_hold" 
+                            string="Hold" 
+                            type="object" 
+                            class="btn-warning"
+                            attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"/>
+                    <button name="action_view_details" 
+                            string="View Details" 
+                            type="object" 
+                            class="btn-info"
+                            attrs="{'invisible': [('action', 'in', ['pending', 'accept'])]}"/>
+                    <field name="action" widget="statusbar" statusbar_visible="pending,accept,reject,hold"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Tag Information">
+                            <field name="ticket_id" readonly="1"/>
+                            <field name="tagged_user_id" readonly="1"/>
+                            <field name="tagged_by_user_id" readonly="1"/>
+                            <field name="date_tagged" readonly="1"/>
+                        </group>
+                        <group string="Response Information">
+                            <field name="response_time" readonly="1"/>
+                            <field name="accepted_at" readonly="1" attrs="{'invisible': [('action', '!=', 'accept')]}"/>
+                            <field name="rejected_at" readonly="1" attrs="{'invisible': [('action', '!=', 'reject')]}"/>
+                            <field name="held_at" readonly="1" attrs="{'invisible': [('action', '!=', 'hold')]}"/>
+                            <field name="response_duration" readonly="1" widget="float_time"/>
+                            <field name="message_id" readonly="1" groups="base.group_no_one"/>
+                            <field name="can_user_act" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                    
+                    <!-- Hold Details -->
+                    <group string="Hold Information" attrs="{'invisible': [('action', '!=', 'hold')]}">
+                        <field name="hold_reasons_ids" widget="many2many_tags" readonly="1"/>
+                        <field name="hold_details" readonly="1" widget="text"/>
+                    </group>
+                    
+                    <!-- Rejection Details -->
+                    <group string="Rejection Information" attrs="{'invisible': [('action', '!=', 'reject')]}">
+                        <field name="rejection_reasons_ids" widget="many2many_tags" readonly="1"/>
+                        <field name="rejection_reason" readonly="1" widget="text"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tag Transfer Action -->
+    <record id="action_helpdesk_ticket_tag_transfer" model="ir.actions.act_window">
+        <field name="name">Tag Transfer Lines</field>
+        <field name="res_model">helpdesk.ticket.tag.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No tag transfer lines found!
+            </p>
+            <p>
+                Tag transfer lines are created automatically when users are mentioned (@user) in ticket chatter.
+            </p>
+        </field>
+    </record>
+
+    <!-- Tag Transfer Lines - My Tags Action (for current user) -->
+    <record id="action_helpdesk_ticket_tag_transfer_my_tags" model="ir.actions.act_window">
+        <field name="name">My Tag Assignments</field>
+        <field name="res_model">helpdesk.ticket.tag.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('tagged_user_id', '=', uid)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                You haven't been tagged in any tickets yet!
+            </p>
+            <p>
+                When someone mentions you (@your_name) in a ticket chatter, you'll see those assignments here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pending Tag Assignments Action -->
+    <record id="action_helpdesk_ticket_tag_transfer_pending" model="ir.actions.act_window">
+        <field name="name">Pending Tag Assignments</field>
+        <field name="res_model">helpdesk.ticket.tag.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('action', '=', 'pending')]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- All Tag Assignments Action (for admins) -->
+    <record id="action_helpdesk_ticket_tag_transfer_all" model="ir.actions.act_window">
+        <field name="name">All Tag Assignments</field>
+        <field name="res_model">helpdesk.ticket.tag.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No tag assignments found!
+            </p>
+            <p>
+                This view shows all user tag assignments across all tickets.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+        <!-- Menu items - Create our own section under Settings -->
+    <menuitem id="menu_helpdesk_tag_assignments" name="Tag Assignments" 
+              web_icon="fa fa-tags" 
+              sequence="150"/>
+              
+    <menuitem id="menu_helpdesk_tag_transfer_my_tags" name="My Tag Assignments" 
+              parent="menu_helpdesk_tag_assignments" 
+              action="action_helpdesk_ticket_tag_transfer_my_tags" 
+              sequence="25"/>
+              
+    <menuitem id="menu_helpdesk_tag_transfer_all" name="All Tag Assignments" 
+              parent="menu_helpdesk_tag_assignments" 
+              action="action_helpdesk_ticket_tag_transfer_all" 
+              sequence="26"
+              groups="base.group_system"/>
+</odoo>

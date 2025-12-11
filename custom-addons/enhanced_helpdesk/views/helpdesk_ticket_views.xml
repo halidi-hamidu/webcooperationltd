@@ -5,14 +5,70 @@
         <field name="model">helpdesk.ticket</field>
         <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
         <field name="arch" type="xml">
-            <field name="ticket_type_id" position="attributes">
-                <attribute name="domain">[('team_ids', 'in', team_id)]</attribute>
-                <attribute name="options">{'no_create': True}</attribute>
-            </field>
+            
+            <!-- Hide original scattered occurrences to prevent duplicates -->
+            <xpath expr="//field[@name='team_id'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='ticket_type_id'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+             <xpath expr="//field[@name='user_id'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+           
 
+            <!-- Insert canonical placement at top-left: Team -> Type -> Tags -> Assigned to -->
+            <xpath expr="//field[@name='priority']" position="before">
+                <group colspan="4" col="4">
+                    <field name="team_id"/>
+                    <field name="ticket_type_id"/>
+                     <field name="user_id" colspan="2"/>
+                    <field name="tag_ids" widget="many2many_tags"/>
+                   
+                </group>
+            </xpath>
+
+            <!-- SLA description and info (unchanged placement) -->
             <xpath expr="//group" position="inside">
                 <label for="sla_description" string="Description"/>
                 <field name="sla_description" widget="html" readonly="1"/>
+                
+                <group string="SLA Information" attrs="{'invisible': [('sla_deadline', '=', False)]}">
+                    <field name="sla_status" widget="badge" 
+                           decoration-success="sla_status == 'safe'"
+                           decoration-warning="sla_status == 'warning'"
+                           decoration-danger="sla_status in ['critical', 'breached']"/>
+                    <field name="sla_deadline"/>
+                    <field name="sla_breached" attrs="{'invisible': [('sla_breached', '=', False)]}"/>
+                    <field name="sla_breach_time" attrs="{'invisible': [('sla_breach_time', '=', False)]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="enhanced_helpdesk_view_helpdesk_ticket_chatter_notice" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.ticket.form.chatter.notice.top</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert notice at the very top of the form sheet -->
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="o_helpdesk_chatter_notice alert alert-info" role="note" style="margin:0 0 10px 0;">
+                    <p style="margin:0 0 6px 0; font-weight:600;">Messaging guide</p>
+                    <p style="margin:0 0 4px 0;">
+                        <strong>Send message</strong> — Used for external communication. Any message entered here can be viewed by customers or external stakeholders, so only customer-facing information should be shared in this section.
+                    </p>
+                    <p style="margin:0 0 8px 0;">
+                        <strong>Log note</strong>Used for internal communication only. This section is meant for team-to-team updates, progress notes, and internal feedback. It is not visible to customers or external parties.
+                    </p>
+                    <p style="margin:0; font-size:0.9rem; color:#555;">
+                        You can attach files or mention colleagues to alert them. Choose the correct mode before sending.
+                    </p>
+                </div>
             </xpath>
         </field>
     </record>
