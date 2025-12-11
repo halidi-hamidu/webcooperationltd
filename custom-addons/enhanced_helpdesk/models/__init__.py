@@ -8,3 +8,5 @@ from . import helpdesk_hold_wizard
 from . import helpdesk_transfer_wizards
 from . import helpdesk_tags
 from . import helpdesk_team
+from . import helpdesk_ticket_report_analysis
+from . import helpdesk_tagged_team_analysis

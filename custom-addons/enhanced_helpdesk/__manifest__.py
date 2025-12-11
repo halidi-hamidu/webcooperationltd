@@ -27,6 +27,7 @@
         "data/ir_cron.xml",
         'views/helpdesk_tag_views.xml',
         'views/helpdesk_team_views.xml',
+        'views/helpdesk_tagged_team_analysis_views.xml',
     ],
     "assets": {
         "web.assets_backend": [
