@@ -230,23 +230,23 @@ class HelpdeskTicket(models.Model):
                 lambda u: u.has_group('base.group_user')
             )
             users |= follower_users
-            # 5) Helpdesk managers (if group exists)
-            try:
-                managers = self.env.ref('helpdesk.group_helpdesk_manager').users.filtered(
-                    lambda u: u.company_id == (ticket.company_id or self.env.company)
-                )
-                users |= managers
-            except Exception:
-                pass
-            # 6) System administrators
-            try:
-                admins = self.env.ref('base.group_system').users.filtered(
-                    lambda u: u.company_id == (ticket.company_id or self.env.company)
-                )
-                users |= admins
-            except Exception:
-                pass
-            recipients |= users
+            # # 5) Helpdesk managers (if group exists)
+            # try:
+            #     managers = self.env.ref('helpdesk.group_helpdesk_manager').users.filtered(
+            #         lambda u: u.company_id == (ticket.company_id or self.env.company)
+            #     )
+            #     users |= managers
+            # except Exception:
+            #     pass
+            # # 6) System administrators
+            # try:
+            #     admins = self.env.ref('base.group_system').users.filtered(
+            #         lambda u: u.company_id == (ticket.company_id or self.env.company)
+            #     )
+            #     users |= admins
+            # except Exception:
+            #     pass
+            # recipients |= users
         return recipients.filtered(lambda u: u.active)
 
     def _send_sla_breach_notifications(self):
