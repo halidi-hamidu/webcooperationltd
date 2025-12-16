@@ -200,55 +200,27 @@ class HelpdeskTicket(models.Model):
                 record._send_sla_update_notification(changes)
 
     def _get_sla_notification_recipients(self):
-        """Return a recordset of res.users who should be notified for these tickets."""
+        """Return a recordset of res.users who should be notified for these tickets.
+        
+        ONLY sends notifications to followers of the ticket (internal users).
+        """
         recipients = self.env['res.users']
         for ticket in self:
             users = self.env['res.users']
-            # 1) Assigned user
-            if getattr(ticket, 'user_id', False):
-                users |= ticket.user_id
-            # 2) Team leader/manager (robust lookup)
-            team = getattr(ticket, 'team_id', False)
-            if team:
-                leader = False
-                for candidate in ('user_id', 'leader_id', 'team_leader_id', 'manager_id'):
-                    try:
-                        leader = getattr(team, candidate, False) or False
-                    except Exception:
-                        leader = False
-                    if leader:
-                        users |= leader
-                        break
-                # 3) Team members if no specific assigned user
-                if not getattr(ticket, 'user_id', False):
-                    if hasattr(team, 'member_ids'):
-                        users |= team.member_ids
-                    elif hasattr(team, 'member_id'):
-                        users |= team.member_id
-            # 4) Ticket followers who are internal users
+            
+            # Get ticket followers who are internal users
             follower_users = ticket.message_follower_ids.mapped('partner_id.user_ids').filtered(
                 lambda u: u.has_group('base.group_user')
             )
             users |= follower_users
-            # 5) Helpdesk managers (if group exists)
-            try:
-                managers = self.env.ref('helpdesk.group_helpdesk_manager').users.filtered(
-                    lambda u: u.company_id == (ticket.company_id or self.env.company)
-                )
-                users |= managers
-            except Exception:
-                pass
-            # 6) System administrators
-            try:
-                admins = self.env.ref('base.group_system').users.filtered(
-                    lambda u: u.company_id == (ticket.company_id or self.env.company)
-                )
-                users |= admins
-            except Exception:
-                pass
+            
+            # Add collected users to recipients
             recipients |= users
+            
         return recipients.filtered(lambda u: u.active)
 
+    
+    
     def _send_sla_breach_notifications(self):
         """Send SLA breach notification to all relevant stakeholders"""
         template = self.env.ref('enhanced_helpdesk.email_template_sla_breach', raise_if_not_found=False)
