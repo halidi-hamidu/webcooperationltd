@@ -20,4 +20,24 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from . import models
+from odoo import api, fields, models
+
+
+class HrVersion(models.Model):
+    """This class extends the 'hr.contract' model to add a custom 'notice_days'
+     field. The 'notice_days' field is used to store the notice period for HR
+     contracts."""
+    _inherit = 'hr.version'
+
+    notice_days = fields.Integer(
+        string="Notice Period",
+        compute="_compute_notice_days",
+        store=False,  # keep False if you want it dynamic
+        help="Number of days required for notice before termination."
+    )
+
+    @api.depends_context('uid')
+    def _compute_notice_days(self):
+        """Compute notice period from company's setting"""
+        for record in self:
+            record.notice_days = record.company_id.contract_expiration_notice_period or 0
