@@ -10,17 +10,17 @@
                     <field name="is_vfd_receipt_generated" invisible="1"/>
                     <button name="generate_vfd_receipt" type="object" string="Generate VFD Receipt" class="oe_highlight"
                             confirm="Are you sure you want to generate VFD receipt for this transaction? This action can't be undone."
-                            attrs="{'invisible': ['|','|',('is_vfd_receipt_generated', '==', True),('state', 'in', ('draft','authorize','cancel')), ('move_type', '!=', 'out_invoice')] }"/>
-                    <button name="print_vfd_receipt"  class="oe_highlight" type="object" string="Print VFD Receipt" attrs="{'invisible': ['|','|',('is_vfd_receipt_generated', '==', False),('state', 'in', ('draft','authorize','cancel')),('move_type', '!=', 'out_invoice')] }"/>
-                    <button name="%(account.account_invoices)d"  class="oe_highlight" type="action" string="Print TAX Invoice" attrs="{'invisible': ['|',('is_vfd_receipt_generated', '==', False),('state', 'in', ('draft','authorize','cancel'))] }"/>
+                            invisible="['|','|',('is_vfd_receipt_generated', '==', True),('state', 'in', ('draft','authorize','cancel')), ('move_type', '!=', 'out_invoice')]"/>
+                    <button name="print_vfd_receipt"  class="oe_highlight" type="object" string="Print VFD Receipt" invisible="['|','|',('is_vfd_receipt_generated', '==', False),('state', 'in', ('draft','authorize','cancel')),('move_type', '!=', 'out_invoice')]"/>
+                    <button name="%(account.account_invoices)d"  class="oe_highlight" type="action" string="Print TAX Invoice" invisible="['|',('is_vfd_receipt_generated', '==', False),('state', 'in', ('draft','authorize','cancel'))]"/>
                 </xpath>
                 <xpath expr="//notebook" postion="inside">
-                    <page name="vfd_info" string="VFD Info" attrs="{'invisible': [('move_type', '!=', 'out_invoice')]}">
+                    <page name="vfd_info" string="VFD Info" invisible="['|', ('move_type', '!=', 'out_invoice')]">
                         <group string="VFD Info">
                             <group id="vfd_tab_group">
-                                <field name="payment_type_id" attrs="{'required': [('move_type', '=', 'out_invoice')] }"/>
-                                <field name="tax_type_id" attrs="{'required': [('move_type', '=', 'out_invoice')] }"/>
-                                <field name="identity_type_id" attrs="{'required': [('move_type', '=', 'out_invoice')] }"/>
+                                <field name="payment_type_id" required="['|', ('move_type', '=', 'out_invoice')]"/>
+                                <field name="tax_type_id" required="['|', ('move_type', '=', 'out_invoice')]"/>
+                                <field name="identity_type_id" required="['|', ('move_type', '=', 'out_invoice')]"/>
                                 <field name="is_vfd_receipt_generated" widget="boolean_toggle" />
                             </group>
                         </group>

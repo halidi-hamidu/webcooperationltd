@@ -8,119 +8,81 @@
             <field name="priority" eval="25"/>
             <field name="inherit_id" ref="base.res_config_settings_view_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//div[hasclass('settings')]" position="inside">
-                    <div class="app_settings_block" data-string="payment_receipt_vfd" string="VFD Receipt"
-                         data-key="payment_receipt_vfd" groups="base.group_erp_manager">
-                        <h2>Payment Receipt VFD Configurations</h2>
-                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
-                            <div class="col-xs-12 col-md-8 o_setting_box">
-                                <div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_base_url"/>
-                                        <field name="vfd_base_url" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_api_key"/>
-                                        <field name="vfd_api_key" password="True" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_api_secret"/>
-                                        <field name="vfd_api_secret" password="True" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="x_tin"/>
-                                        <field name="x_tin" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_token"/>
-                                        <field name="vfd_token" password="True" class="col-8 oe_inline"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <h2>Payment Receipt VFD Daily Counter</h2>
-                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
-                            <div class="col-xs-12 col-md-8 o_setting_box">
-                                <div>
-                                <div class="row">
-                                    
-                                        <label class="col-3" for="enable_to_edit_fields"/>
-                                        <field name="enable_to_edit_fields" class="col-8 oe_inline" widget="boolean_toggle" />
-                                
-                                </div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_receipt_count"/>
-                                        <field name="vfd_receipt_count" class="col-8 oe_inline" attrs="{'readonly': [('enable_to_edit_fields', '=', False)]}"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="vfd_daily_counter"/>
-                                        <field name="vfd_daily_counter" class="col-8 oe_inline" attrs="{'readonly': [('enable_to_edit_fields', '=', False)]}"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="counter_latest_update"/>
-                                        <field name="counter_latest_update"  class="col-8 oe_inline" attrs="{'readonly': [('enable_to_edit_fields', '=', False)]}"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <h2>VFD API Settings</h2>
-                        <div class="row mt16 o_settings_container" name="payment_receipt_vfd_setting_container">
-                            <div class="col-xs-12 col-md-8 o_setting_box">
-                                <div>
-                                    <div class="row">
-                                        <button name="refresh_token" class="oe_highlight mr-2" type="object"
+                <xpath expr="//form" position="inside">
+                    <app data-string="VFD Receipt" string="VFD Receipt" name="payment_receipt_vfd" groups="base.group_erp_manager">
+                        <block title="Payment Receipt VFD Configurations" name="vfd_config_container">
+                            <setting id="vfd_base_url_setting" string="VFD Base URL">
+                                <field name="vfd_base_url"/>
+                            </setting>
+                            <setting id="vfd_api_key_setting" string="VFD API Key">
+                                <field name="vfd_api_key" password="True"/>
+                            </setting>
+                            <setting id="vfd_api_secret_setting" string="VFD API Secret">
+                                <field name="vfd_api_secret" password="True"/>
+                            </setting>
+                            <setting id="x_tin_setting" string="TIN Number">
+                                <field name="x_tin"/>
+                            </setting>
+                            <setting id="vfd_token_setting" string="VFD Token">
+                                <field name="vfd_token" password="True"/>
+                            </setting>
+                        </block>
+                        <block title="Payment Receipt VFD Daily Counter" name="vfd_counter_container">
+                            <setting id="enable_edit_fields_setting" string="Enable Field Editing" help="Enable editing of counter fields">
+                                <field name="enable_to_edit_fields" widget="boolean_toggle"/>
+                            </setting>
+                            <setting id="vfd_receipt_count_setting" string="VFD Receipt Count">
+                                <field name="vfd_receipt_count" readonly="enable_to_edit_fields == False"/>
+                            </setting>
+                            <setting id="vfd_daily_counter_setting" string="VFD Daily Counter">
+                                <field name="vfd_daily_counter" readonly="enable_to_edit_fields == False"/>
+                            </setting>
+                            <setting id="counter_latest_update_setting" string="Counter Latest Update">
+                                <field name="counter_latest_update" readonly="enable_to_edit_fields == False"/>
+                            </setting>
+                        </block>
+                        <block title="VFD API Settings" name="vfd_api_settings_container">
+                            <setting id="vfd_api_actions_setting" string="API Actions">
+                                <div class="content-group">
+                                    <div class="row ms-2">
+                                        <button name="refresh_token" class="oe_highlight" type="object"
                                                 string="Refresh Token"/>
-                                        <button name="refresh_settings" class="oe_highlight" type="object"
+                                        <button name="refresh_settings" class="oe_highlight mt-2" type="object"
                                                 string="Refresh Settings"/>
                                     </div>
-                                    <div class="row">
-                                        <label class="col-3" for="header"/>
-                                        <field name="header" class="col-8 oe_inline" readonly="1"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="message"/>
-                                        <field name="message" class="col-8 oe_inline" readonly="1"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="expires"/>
-                                        <field name="expires" class="col-8 oe_inline" readonly="1"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="verification_code"/>
-                                        <field name="verification_code" class="col-8 oe_inline" readonly="1"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="has_vrn"/>
-                                        <field name="has_vrn" class="col-8 oe_inline" readonly="1"/>
-                                    </div>
-
                                 </div>
-                            </div>
-                        </div>
-                        <h2>Electronic Receipt Verification Configurations</h2>
-                        <div class="row mt16 o_settings_container" name="receipt_verification_setting_container">
-                            <div class="col-xs-12 col-md-8 o_setting_box">
-                                <div>
-                                    <div class="row">
-                                        <label class="col-3" for="verification_base_url"/>
-                                        <field name="verification_base_url" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="verification_secrete_url"/>
-                                        <field name="verification_secrete_url" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="verification_code_base"/>
-                                        <field name="verification_code_base" class="col-8 oe_inline"/>
-                                    </div>
-                                    <div class="row">
-                                        <label class="col-3" for="starting_sequence"/>
-                                        <field name="starting_sequence" class="col-8 oe_inline"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            </setting>
+                            <setting id="vfd_header_setting" string="Header">
+                                <field name="header" readonly="1"/>
+                            </setting>
+                            <setting id="vfd_message_setting" string="Message">
+                                <field name="message" readonly="1"/>
+                            </setting>
+                            <setting id="vfd_expires_setting" string="Expires">
+                                <field name="expires" readonly="1"/>
+                            </setting>
+                            <setting id="vfd_verification_code_setting" string="Verification Code">
+                                <field name="verification_code" readonly="1"/>
+                            </setting>
+                            <setting id="vfd_has_vrn_setting" string="Has VRN">
+                                <field name="has_vrn" readonly="1"/>
+                            </setting>
+                        </block>
+                        <block title="Electronic Receipt Verification Configurations" name="receipt_verification_container">
+                            <setting id="verification_base_url_setting" string="Verification Base URL">
+                                <field name="verification_base_url"/>
+                            </setting>
+                            <setting id="verification_secrete_url_setting" string="Verification Secret URL">
+                                <field name="verification_secrete_url"/>
+                            </setting>
+                            <setting id="verification_code_base_setting" string="Verification Code Base">
+                                <field name="verification_code_base"/>
+                            </setting>
+                            <setting id="starting_sequence_setting" string="Starting Sequence">
+                                <field name="starting_sequence"/>
+                            </setting>
+                        </block>
+                    </app>
                 </xpath>
             </field>
         </record>
@@ -130,7 +92,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
-            <field name="target">inline</field>
+            <field name="target">new</field>
             <field name="context">{'module' : 'payment_receipt_vfd'}</field>
         </record>
 

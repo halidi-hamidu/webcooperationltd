@@ -7,14 +7,14 @@
             <field name="arch" type="xml">
                 <form string="VFD Receipt" create="false" edit="false">
                     <header>
-                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" states="draft"
+                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" invisible="state == 'draft'"
                                 type="object"/>
-                         <button name="verify_receipt" string="VERIFY NOW" class="oe_highlight" states="verified" type="object"/>
-                         <button name="reset_receipt" string="Reset" states="reconcilled,diff,missing" type="object"/>
-                        <button name="resend_receipt" string="Resend" states="error" type="object"/>
-                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" states=""
+                        <button name="verify_receipt" string="VERIFY NOW" class="oe_highlight" invisible="state == 'verified'" type="object"/>
+                        <button name="reset_receipt" string="Reset" invisible="state in ['reconcilled','diff','missing']" type="object"/>
+                        <button name="resend_receipt" string="Resend" invisible="state == 'error'" type="object"/>
+                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" invisible="state == ''"
                                 type="object"/>
-                        <button name="cancel_receipt" string="Cancel" states="draft,sent" type="object"/>
+                        <button name="cancel_receipt" string="Cancel" invisible="state in ['draft','sent']" type="object"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,sent,verified,error,reconcilled,diff,missing,cancel"/>
                     </header>
                     <sheet>
@@ -50,7 +50,7 @@
                                 </group>
                             </page>
                             <page name="error_page" string="Error Status"
-                                  attrs="{'invisible':[('state','!=','error')]}">
+                                  invisible="state != 'error'">
                                 <group>
                                     <field name="error_message" readonly="1"/>
                                 </group>
@@ -79,7 +79,7 @@
             <field name="name">payment.receipt.vfd.tree</field>
             <field name="model">payment.receipt.vfd</field>
             <field name="arch" type="xml">
-                <tree create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='missing' or state=='error'"
+                <list create="false" string="VFD Receipts" decoration-muted="state=='cancel'" decoration-danger="state=='missing' or state=='error'"
                       decoration-success="state=='reconcilled'" decoration-info="state=='verified'" decoration-warning="state=='diff'" 
                       default_order="create_date desc">
                     <field name="receipt_date" optional="hide"/>
@@ -106,11 +106,11 @@
                     <field name="verification_code" optional="hide"/>
                     <field name="receipt_url" optional="hide"/>
                     <field name="state" optional="show"/>
-                </tree>
+                </list>
             </field>
         </record>
 
-        <record id="payment_receipt_vfd_search_view" model="ir.ui.view">
+        <!-- <record id="payment_receipt_vfd_search_view" model="ir.ui.view">
             <field name="name">payment.receipt.vfd.search</field>
             <field name="model">payment.receipt.vfd</field>
             <field name="arch" type="xml">
@@ -121,7 +121,7 @@
                     <separator/>
                     <filter string="Receipt Date" name="receipt_date" date="receipt_date"/>
                     <separator/>
-                    <group expand="1" string="Group By">
+                    <group expand="0" string="Group By">
                         <filter string="Status" name="state" domain="[]"
                                 context="{'group_by':'state'}"/>
                         <separator/>
@@ -129,12 +129,12 @@
                     </group>
                 </search>
             </field>
-        </record>
+        </record> -->
 
         <record id="payment_receipt_vfd_act_window" model="ir.actions.act_window">
             <field name="name">VFD Receipt</field>
             <field name="res_model">payment.receipt.vfd</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     There is no Receipts found.
@@ -146,16 +146,16 @@
             <field name="name">payment.receipt.missing.tree</field>
             <field name="model">payment.receipt.missing</field>
             <field name="arch" type="xml">
-                <tree string="Missing EFD Receipts" default_order="create_date desc">
+                <list string="Missing EFD Receipts" default_order="create_date desc">
                     <field name="name"/>
-                </tree>
+                </list>
             </field>
         </record>
 
         <record id="payment_receipt_missing_act_window" model="ir.actions.act_window">
             <field name="name">Missing EFD Receipts</field>
             <field name="res_model">payment.receipt.missing</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">list</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     There are no Receipts found.
