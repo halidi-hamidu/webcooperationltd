@@ -4,15 +4,17 @@
     <data>
 
         <template id="report_invoice_custom" inherit_id="account.report_invoice_document">
-            <xpath expr="//t[@t-set='address']" position="replace"/>
-            <xpath expr="//div[@class='row']" position="replace">
+            <!-- Hide the default address section -->
+            <xpath expr="//div[@class='row'][1]" position="replace">
                 <div class="row"></div>
             </xpath>
-            <xpath expr=".//t/div[2]/div/h2" position="replace"/>
-            <xpath expr="//div[@class='mt-5'][1]" position="attributes">
-                <attribute name="class">'mt-1'</attribute>
+            
+            <!-- Replace the informations section with custom layout -->
+            <xpath expr="//div[@id='informations']" position="replace">
             </xpath>
-            <xpath expr=".//t/div[2]/div/div[@id='informations']" position="replace">
+
+            <!-- Add custom header section before the informations div -->
+            <xpath expr="//div[@class='clearfix invoice_main']" position="inside">
                 <style>
                     .table-head-bg{
                     background-color:#bcd5ed !important;
@@ -22,6 +24,9 @@
                     color:#2d74b5 !important;
                     }
                 </style>
+            </xpath>
+            
+            <xpath expr="//div[@class='page mb-4']" position="before">
                 <br/>
                 <!--Company and invoice Info Begins-->
                 <div class="row">
@@ -47,7 +52,6 @@
                                             </strong>
                                             <span t-field="o.company_id.vat"/>
                                         </t>
-                                        <!-- TODO: Add VRN in company model.-->
 	                                     <t t-if="o.company_id.vrn">
 	                                          <strong>
 	                                              <span class="text-primary-alt">VRN:</span>
@@ -247,33 +251,32 @@
                             <!-- TODO: remove in master -->
                             <th class="table-head-bg">S/N</th>
                             <t t-set="colspan" t-value="6"/>
-                            <th name="th_description" class="text-left table-head-bg">
+                            <th name="th_description" class="text-start table-head-bg">
                                 <span>Description</span>
                             </th>
                             <!-- TODO: remove in master -->
-                            <th name="th_source" class="d-none text-left table-head-bg" t-if="0">
+                            <th name="th_source" class="d-none text-start table-head-bg" t-if="0">
                                 <span>Source Document</span>
                             </th>
-                            <th name="th_quantity" class="text-right table-head-bg">
+                            <th name="th_quantity" class="text-end table-head-bg">
                                 <span>Qty</span>
                             </th>
                             <th name="th_priceunit"
-                                t-attf-class="table-head-bg text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                t-attf-class="table-head-bg text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                 <span>Unit Price</span>
                             </th>
                             <th name="th_price_unit" t-if="display_discount"
-                                t-attf-class="table-head-bg text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                t-attf-class="table-head-bg text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                 <span>Disc.%</span>
                                 <!-- TODO: remove in master -->
                                 <t t-set="colspan" t-value="colspan+1"/>
                             </th>
                             <th name="th_taxes"
-                                t-attf-class="table-head-bg text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                t-attf-class="table-head-bg text-start {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                 <span>18% VAT</span>
                             </th>
-                            <th name="th_subtotal" class="text-right table-head-bg">
-                                <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>
-                                <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>
+                            <th name="th_subtotal" class="text-end table-head-bg">
+                                <span>Amount</span>
                             </th>
                         </tr>
                     </thead>
@@ -281,7 +284,8 @@
                         <t t-set="current_subtotal" t-value="0"/>
                         <t t-set="lines"
                            t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
-                        <t t-foreach="lines" t-as="line">
+                        <t t-set="lines_to_report" t-value="o._get_move_lines_to_report()"/>
+                        <t t-foreach="lines_to_report" t-as="line">
                             <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
                                groups="account.group_show_line_subtotals_tax_excluded"/>
                             <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
@@ -310,10 +314,7 @@
                                               id="line_tax_ids"/>
                                     </td>
                                     <td class="text-end o_price_total">
-                                        <span class="text-nowrap" t-field="line.price_subtotal"
-                                              groups="account.group_show_line_subtotals_tax_excluded"/>
-                                        <span class="text-nowrap" t-field="line.price_total"
-                                              groups="account.group_show_line_subtotals_tax_included"/>
+                                        <span class="text-nowrap" t-field="line.price_subtotal"/>
                                     </td>
                                 </t>
                                 <t t-if="line.display_type == 'line_section'">
@@ -329,10 +330,10 @@
                                     </td>
                                 </t>
                             </tr>
-                            <t t-if="current_section and (line_last or lines[line_index+1].display_type == 'line_section')">
+                            <t t-if="current_section and (line_last or lines_to_report[line_index+1].display_type == 'line_section')">
                                 <tr class="is-subtotal text-end">
                                     <td colspan="99">
-                                        <strong class="mr16">Subtotal</strong>
+                                        <strong class="me-3">Subtotal</strong>
                                         <span
                                                 t-esc="current_subtotal"
                                                 t-options='{"widget": "monetary", "display_currency": o.currency_id}'
@@ -348,7 +349,8 @@
 
             <!--Items Table Ends-->
 
-            <xpath expr="//div[@class='clearfix mb-4'][1]" position="replace">
+            <!-- Replace the total section -->
+            <xpath expr="//div[@id='right-elements']" position="replace">
                 <div id="total" class="row">
                     <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ms-auto">
                         <table class="table table-bordered table-sm;page-break-inside: avoid;">
@@ -356,11 +358,11 @@
                                 <td>
                                     <strong class="text-primary-alt">Tax Base Total</strong>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     <span t-field="o.amount_untaxed"/>
                                 </td>
                                 <t t-if="o.currency_id.name != 'TZS'">
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <span t-field="o.amount_untaxed_signed"/>
                                     </td>
                                 </t>
@@ -369,11 +371,11 @@
                                 <td>
                                     <strong class="text-primary-alt">Tax</strong>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     <span t-field="o.amount_tax"/>
                                 </td>
                                 <t t-if="o.currency_id.name != 'TZS'">
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <span t-field="o.amount_tax_signed"/>
                                     </td>
                                 </t>
@@ -382,11 +384,11 @@
                                 <td>
                                     <strong class="text-primary-alt">Grand Total</strong>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     <span t-field="o.amount_total"/>
                                 </td>
                                 <t t-if="o.currency_id.name != 'TZS'">
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <span t-field="o.amount_total_signed"/>
                                     </td>
                                 </t>
@@ -394,8 +396,12 @@
                         </table>
                     </div>
                 </div>
+            </xpath>
+            
+            <!-- Add custom footer sections after payment_term div -->
+            <xpath expr="//div[@id='payment_term']" position="after">
                 <div class="row">
-                    <div class="col-12 mt8">
+                    <div class="col-12 mt-2">
                         <table class="table table-bordered table-sm">
                             <thead>
                                 <tr>
@@ -519,7 +525,7 @@
                                     </td>
                                     <td width="40%" class="table-head-bg">                                  
                                         <div t-if="o.vfd_receipt_ids" class="row align-items-center">
-                                            <div class="col-6 align-self-center text-right pt-4">
+                                            <div class="col-6 align-self-center text-end pt-4">
                                                 <br/>
                                                 <strong class="text-primary-alt">Scan to Verify</strong>
                                                 <br/>
@@ -531,12 +537,12 @@
                                             </div>
                                             <div class="col-6">
                                                 <img class="mt-2"
-                                                     t-att-src="'/report/barcode/QR/'+str(o.vfd_receipt_ids.receipt_url)"
-                                                     style="height:120px; width:120px;" alt="QR Code"/>
+                                                     t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.vfd_receipt_ids.receipt_url, 200, 200)"
+                                                     style="width:200px;height:200px" alt="QR Code"/>
                                             </div>
                                         </div>
                                         <div t-if="o.vfd_receipt_ids" class="row">
-                                            <div class="col-12 mt8 text-center">
+                                            <div class="col-12 mt-2 text-center">
                                                 <span t-esc="str(o.vfd_receipt_ids.receipt_url)"/>
                                             </div>
                                         </div>
@@ -547,7 +553,6 @@
                     </div>
                 </div>
             </xpath>
-            <xpath expr="//p[@class='mt-4'][1]" position="replace"/>
         </template>
     </data>
 </odoo>
