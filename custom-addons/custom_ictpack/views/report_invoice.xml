@@ -23,6 +23,26 @@
                     .text-primary-alt{
                     color:#2d74b5 !important;
                     }
+                    .table-bordered {
+                    <!-- border-radius: 8px !important; -->
+                    overflow: hidden !important;
+                    border: 1px solid #dee2e6 !important;
+                    }
+                    <!-- .table-bordered thead tr:first-child th:first-child {
+                    border-top-left-radius: 8px !important;
+                    }
+                    .table-bordered thead tr:first-child th:last-child {
+                    border-top-right-radius: 8px !important;
+                    }
+                    .table-bordered tbody tr:last-child td:first-child {
+                    border-bottom-left-radius: 8px !important;
+                    }
+                    .table-bordered tbody tr:last-child td:last-child {
+                    border-bottom-right-radius: 8px !important;
+                    } -->
+                    .table-bordered th, .table-bordered td {
+                    border-color: #dee2e6 !important;
+                    }
                 </style>
             </xpath>
             
@@ -247,7 +267,7 @@
                 <!--Items Table Begins-->
                 <table class="table table-sm table-bordered o_main_table" name="invoice_line_table">
                     <thead>
-                        <tr>
+                        <tr >
                             <!-- TODO: remove in master -->
                             <th class="table-head-bg">S/N</th>
                             <t t-set="colspan" t-value="6"/>
@@ -354,7 +374,7 @@
                 <div id="total" class="row">
                     <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ms-auto">
                         <table class="table table-bordered table-sm;page-break-inside: avoid;">
-                            <tr class="border-black o_subtotal" style="">
+                            <tr class="o_subtotal" style="">
                                 <td>
                                     <strong class="text-primary-alt">Tax Base Total</strong>
                                 </td>
@@ -380,7 +400,7 @@
                                     </td>
                                 </t>
                         </tr>
-                            <tr class="border-black o_total">
+                            <tr class="o_total">
                                 <td>
                                     <strong class="text-primary-alt">Grand Total</strong>
                                 </td>
