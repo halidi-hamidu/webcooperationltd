@@ -13,8 +13,8 @@ from . import purchase_order
 from . import account_payment
 from . import project
 from . import account
-from . import hr_contract
+# from . import hr_contract
 from . import account_analytic_account
 from . import account_bank_statement
-from . import contract
+# from . import contract
 from . import mail_activity

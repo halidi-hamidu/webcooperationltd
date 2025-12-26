@@ -17,15 +17,15 @@
                     <field name="business_line"/>
                 </field>
                 <field name="business_line" position="after">
-                    <div class="o_td_label" attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}">
+                    <div class="o_td_label" invisible="[('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]">
                         <label for="payment_reference" string="Payment Reference"/>
                     </div>
-                    <div class="d-flex" attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}">
+                    <div class="d-flex" invisible="[('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]">
                         <field name="payment_reference" />
                         <field name="has_duplicate_payment_ref" invisible="1"/>
-                        <span class="o_form_label mx-3 oe_edit_only" attrs="{'invisible': [('has_duplicate_payment_ref', '=', False)]}">  </span>
+                        <span class="o_form_label mx-3 oe_edit_only" invisible="[('has_duplicate_payment_ref', '=', False)]">  </span>
                         <div class="alert alert-warning" role="alert" 
-                                attrs="{'invisible': [('has_duplicate_payment_ref', '=', False)]}"
+                                invisible="[('has_duplicate_payment_ref', '=', False)]"
                                 style="margin-bottom: 10px;">
                             <i class="fa fa-exclamation-triangle"/> 
                             <strong>Warning:</strong> This payment reference has been used in other invoices. 
@@ -39,11 +39,12 @@
                     </div>
                 </field>
                 <field name="ref" position="after">
-                    <field name="po_no" attrs="{'invisible':[('move_type', '!=', 'out_invoice')]}"/>
-                    <field name="po_date" attrs="{'invisible':[('move_type', '!=', 'out_invoice')]}"/>
+                    <field name="po_no" invisible="[('move_type', '!=', 'out_invoice')]"/>
+                    <field name="po_date" invisible="[('move_type', '!=', 'out_invoice')]"/>
                 </field>
                 <field name="journal_id" position="attributes">
-                    <attribute name="attrs">{'readonly': [('name', '!=', '/')],'invisible':['|',('is_payment', '=', True),('is_petty', '=', True)]}</attribute>
+                    <attribute name="readonly">[('name', '!=', '/')]</attribute>
+                    <attribute name="invisible">['|',('is_payment', '=', True),('is_petty', '=', True)]</attribute>
                 </field>
                 <field name="company_id" position="before">
                     <field name="is_payment" invisible="1"/>
@@ -51,21 +52,21 @@
                     <field name="name" invisible="1"/>
                 </field>
                 <xpath expr="//form/sheet/div[2]/span/field[@name='move_type']" position="attributes">
-                    <attribute name="attrs">{'invisible': ['|', '|', '|',('move_type', '=', 'entry'), ('state', '=', 'draft'),('is_payment', '=', True),('is_petty', '=', True)]}</attribute>
+                    <attribute name="invisible">['|', '|', '|',('move_type', '=', 'entry'), ('state', '=', 'draft'),('is_payment', '=', True),('is_petty', '=', True)]</attribute>
                 </xpath>
                 <xpath expr="//form/sheet/div[2]/span/field[@name='move_type']" position="after">
-                    <field name="move_type" string="Payment Voucher" attrs="{'invisible': ['|', ('is_payment', '=', False), ('state', '=', 'draft')]}" readonly="1" nolabel="1"/>
-                    <field name="move_type" string="Pettycash Voucher" attrs="{'invisible': ['|', ('is_petty', '=', False), ('state', '=', 'draft')]}" readonly="1" nolabel="1"/>
+                    <field name="move_type" string="Payment Voucher" invisible="['|', ('is_payment', '=', False), ('state', '=', 'draft')]" readonly="1" nolabel="1"/>
+                    <field name="move_type" string="Pettycash Voucher" invisible="['|', ('is_petty', '=', False), ('state', '=', 'draft')]" readonly="1" nolabel="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/div[2]/h1[1]" position="replace">
                     <h1>
-                                <span attrs="{'invisible': ['|', '|', ('move_type', '!=', 'out_invoice'), ('state', '!=', 'draft'), ('name', '!=', '/')]}">PROFORMA Invoice</span>
-                                <span attrs="{'invisible': ['|', '|', ('move_type', '!=', 'out_refund'), ('state', '!=', 'draft'), ('name', '!=', '/')]}">Draft Credit Note</span>
-                                <span attrs="{'invisible': ['|', '|', ('move_type', '!=', 'in_invoice'), ('state', '!=', 'draft'), ('name', '!=', '/')]}">Draft Bill</span>
-                                <span attrs="{'invisible': ['|', '|', ('move_type', '!=', 'in_refund'), ('state', '!=', 'draft'), ('name', '!=', '/')]}">Draft Refund</span>
-                                <span attrs="{'invisible': ['|', '|', ('move_type', '!=', 'out_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/')]}">Draft Sales Receipt</span>
-                                <span attrs="{'invisible': ['|', '|', '|',('move_type', '!=', 'in_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/'), ('is_payment', '=', False)]}">Draft Payment Voucher</span>
-                                <span attrs="{'invisible': ['|', '|', '|',('move_type', '!=', 'in_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/'), ('is_petty', '=', False)]}">Draft Pettycash Voucher</span>
+                        <span invisible="['|', '|', ('move_type', '!=', 'out_invoice'), ('state', '!=', 'draft'), ('name', '!=', '/')]">PROFORMA Invoice</span>
+                        <span invisible="['|', '|', ('move_type', '!=', 'out_refund'), ('state', '!=', 'draft'), ('name', '!=', '/')]">Draft Credit Note</span>
+                        <span invisible="['|', '|', ('move_type', '!=', 'in_invoice'), ('state', '!=', 'draft'), ('name', '!=', '/')]">Draft Bill</span>
+                        <span invisible="['|', '|', ('move_type', '!=', 'in_refund'), ('state', '!=', 'draft'), ('name', '!=', '/')]">Draft Refund</span>
+                        <span invisible="['|', '|', ('move_type', '!=', 'out_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/')]">Draft Sales Receipt</span>
+                        <span invisible="['|', '|', '|',('move_type', '!=', 'in_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/'), ('is_payment', '=', False)]">Draft Payment Voucher</span>
+                        <span invisible="['|', '|', '|',('move_type', '!=', 'in_receipt'), ('state', '!=', 'draft'), ('name', '!=', '/'), ('is_petty', '=', False)]">Draft Pettycash Voucher</span>
                     </h1>
                 </xpath>
                 <button name="button_draft" position="attributes">
@@ -74,10 +75,10 @@
             </field>
         </record>
 
-        <record id="account.action_move_in_receipt_type" model="ir.actions.act_window">
+        <record id="action_move_in_receipt_type" model="ir.actions.act_window">
             <field name="name">Payment Vouchers</field>
             <field name="res_model">account.move</field>
-            <field name="view_mode">tree,kanban,form,graph</field>
+            <field name="view_mode">list,kanban,form,graph</field>
             <field name="domain">[('journal_id.type','=','payment'),('move_type', '=', 'in_receipt')]</field>
             <field name="context">{'default_move_type': 'in_receipt','default_is_payment':True}</field>
             <field name="view_id" ref="account.view_invoice_tree"/>
@@ -95,7 +96,7 @@
         <record id="action_account_petty_payable" model="ir.actions.act_window">
             <field name="name">Pettycash Vouchers</field>
             <field name="res_model">account.move</field>
-            <field name="view_mode">tree,kanban,form,graph</field>
+            <field name="view_mode">list,kanban,form,graph</field>
             <field name="domain">[('journal_id.type','=','petty'),('move_type', '=', 'in_receipt')]</field>
             <field name="context">{'default_move_type': 'in_receipt','default_is_petty':True}</field>
             <field name="view_id" ref="account.view_invoice_tree"/>
@@ -113,7 +114,7 @@
         <menuitem
                 id="menu_action_move_in_receipt_type"
                 name="Payment Voucher"
-                action="account.action_move_in_receipt_type"
+                action="action_move_in_receipt_type"
                 parent="account.menu_finance_payables"
                 sequence="20"
         />

@@ -3,7 +3,7 @@
 
 from odoo import api, fields, models, _
 from odoo.tools import ustr
-from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
+from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError
 
 class AccountBankStatement(models.Model):
     _inherit = "account.bank.statement"

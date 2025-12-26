@@ -3,7 +3,7 @@
 
 from odoo import api, fields, models, _
 from odoo.tools import ustr
-from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
+from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, UserError
 
 
 # ---------------------------------------------------------
@@ -231,7 +231,7 @@ class AccountBudgetAllocation(models.Model):
         if budget_obj:
             total = budget_obj.allocated_amount + values['amount']
             if total > budget_obj.planned_amount:
-                raise Warning(
+                raise UserError(
                     _("You can not Allocate more that Budgted Amount"))
             elif values['is_relocation']:
                 record = super(AccountBudgetAllocation, self).create(values)
@@ -242,13 +242,13 @@ class AccountBudgetAllocation(models.Model):
                                    self).create(values)
                     return record
                 elif values['amount'] >= balance and values['amount'] > 0:
-                    raise Warning(
+                    raise UserError(
                         _("You can not Allocate more that available balance (%f)" % balance))
                 elif values['amount'] == 0:
-                    raise Warning(_("You can not Allocate Zero Amount!"))
+                    raise UserError(_("You can not Allocate Zero Amount!"))
                 # return record
         else:
-            raise Warning(_("No budget line selected!"))
+            raise UserError(_("No budget line selected!"))
 
     def create_allocation(self):
         if self.id:
@@ -309,7 +309,7 @@ class AccountBudgetAllocation(models.Model):
         for allocation in self:
             res = {}
             if allocation.amount < 0:
-                res['warning'] = {'title': 'Negative Allocation',
+                res['UserError'] = {'title': 'Negative Allocation',
                                   'message': '''Allocated Amount Can not be Negative'''}
                 res['value'] = {'amount': abs(allocation.amount)}
                 return res
@@ -366,14 +366,14 @@ class AccountBudgetRelocation(models.Model):
         if self.amount <= self.from_budget_line_id.allocated_balance:
             self.write({'state': 'waiting'})
         else:
-            raise Warning(
+            raise UserError(
                 _("Relocation amount is greater than amount available!"))
 
     def approve_relocation(self):
         if self.from_budget_line_id.id != self.to_budget_line_id.id and self.amount > 0:
             self.write({'approved_by': self._uid, 'state': 'approved'})
         else:
-            raise Warning(
+            raise UserError(
                 _("Two budget Lines must be different and amount to relocate must be positive"))
 
     def cancel_relocation(self):
@@ -446,7 +446,7 @@ class AccountBudgetRelocation(models.Model):
             self.env['account.analytic.line'].create(credit_line_analytic)
             self.write({'state': 'relocated'})
         else:
-            raise Warning(
+            raise UserError(
                 _("You can not Allocate more that available balance!"))
 
     def action_correct_relocation(self):

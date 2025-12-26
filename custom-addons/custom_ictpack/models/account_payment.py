@@ -6,7 +6,7 @@
 #################################################################################
 
 from odoo import models, fields, api, _
-from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
+from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError
 from num2words import num2words
 
 

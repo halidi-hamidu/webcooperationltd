@@ -17,6 +17,26 @@
                         .text-primary-alt{
                         color:#2d74b5 !important;
                         }
+                        .table-bordered {
+                        border-radius: 8px !important;
+                        overflow: hidden !important;
+                        border: 1px solid #dee2e6 !important;
+                        }
+                        .table-bordered thead tr:first-child th:first-child {
+                        border-top-left-radius: 8px !important;
+                        }
+                        .table-bordered thead tr:first-child th:last-child {
+                        border-top-right-radius: 8px !important;
+                        }
+                        .table-bordered tbody tr:last-child td:first-child {
+                        border-bottom-left-radius: 8px !important;
+                        }
+                        .table-bordered tbody tr:last-child td:last-child {
+                        border-bottom-right-radius: 8px !important;
+                        }
+                        .table-bordered th, .table-bordered td {
+                        border-color: #dee2e6 !important;
+                        }
                     </style>
                     <br/>
                     <!--Company and invoice Info Begins-->
@@ -262,8 +282,7 @@
                                 </th>
                                 <th name="th_taxes" class="text-end table-head-bg">Taxes</th>
                                 <th name="th_subtotal" class="text-end table-head-bg">
-                                    <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>
-                                    <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>
+                                    <span>Amount</span>
                                 </th>
                             </tr>
                         </thead>
@@ -279,13 +298,13 @@
                                    groups="account.group_show_line_subtotals_tax_included"/>
 
                                 <tr t-att-class="'bg-200 fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''">
-                                    <t t-if="not line.display_type">
+                                    <t t-if="line.display_type == 'product'">
                                         <td name="td_name">
                                             <span t-field="line.name"/>
                                         </td>
                                         <td name="td_quantity" class="text-end">
                                             <span t-field="line.product_uom_qty"/>
-                                            <span t-field="line.product_uom"/>
+                                            <span t-field="line.product_uom_id" groups="uom.group_uom"/>
                                         </td>
                                         <td name="td_priceunit" class="text-end">
                                             <span t-field="line.price_unit"/>
@@ -295,14 +314,11 @@
                                             <span t-field="line.discount"/>
                                         </td>
                                         <td name="td_taxes" class="text-end">
-                                            <span t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
+                                            <span t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))"/>
                                         </td>
                                         <td t-if="not line.is_downpayment" name="td_subtotal"
                                             class="text-end o_price_total">
-                                            <span t-field="line.price_subtotal"
-                                                  groups="account.group_show_line_subtotals_tax_excluded"/>
-                                            <span t-field="line.price_total"
-                                                  groups="account.group_show_line_subtotals_tax_included"/>
+                                            <span t-field="line.price_subtotal"/>
                                         </td>
                                     </t>
                                     <t t-elif="line.display_type == 'line_section'">
@@ -319,10 +335,10 @@
                                     </t>
                                 </tr>
 
-                                <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section') and not line.is_downpayment">
+                                <t t-if="current_section and (line_last or lines_to_report[line_index+1].display_type == 'line_section') and not line.is_downpayment">
                                     <tr class="is-subtotal text-end">
                                         <td name="td_section_subtotal" colspan="99">
-                                            <strong class="mr16">Subtotal</strong>
+                                            <strong class="me-3">Subtotal</strong>
                                             <span
                                                     t-out="current_subtotal"
                                                     t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'
@@ -339,8 +355,10 @@
                             <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
                                 <table class="table table-sm">
                                     <!-- Tax totals -->
-                                    <t t-set="tax_totals" t-value="doc.tax_totals"/>
-                                    <t t-call="account.document_tax_totals"/>
+                                    <t t-call="sale.document_tax_totals">
+                                        <t t-set="tax_totals" t-value="doc.tax_totals"/>
+                                        <t t-set="currency" t-value="doc.currency_id"/>
+                                    </t>
                                 </table>
                             </div>
                         </div>
