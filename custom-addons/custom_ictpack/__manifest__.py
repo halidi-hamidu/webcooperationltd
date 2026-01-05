@@ -38,7 +38,7 @@
         # "views/account_analytic_account_view.xml",
         # "views/contract.xml",
         # "views/contract_line.xml",
-        # "views/internal_layout.xml",
+        "views/internal_layout.xml",
         "views/report_external_layout_views.xml",
         "views/report_invoice.xml",
         "views/report_sale.xml",
