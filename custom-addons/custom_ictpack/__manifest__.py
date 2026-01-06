@@ -20,6 +20,7 @@
         "sale_crm",
         "purchase",
         "project",
+        "stock",
         # "contract",
     ],
     "data": [
