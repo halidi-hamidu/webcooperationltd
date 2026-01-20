@@ -3,12 +3,17 @@
  <!--    External Layout extension  -->
     <template id="internal_layout_inherit" inherit_id="web.internal_layout">
         <!-- Add custom header class -->
-        <xpath expr="//div[hasclass('header')]" position="attributes">
+        <!-- <xpath expr="//div[hasclass('header')]" position="attributes">
             <attribute name="class">header o_clean_header</attribute>
         </xpath>
+         -->
+        <!-- Hide default header content -->
+        <xpath expr="//div[hasclass('header')]/*" position="attributes">
+            <attribute name="style">display: none !important;</attribute>
+        </xpath>
         
-        <!-- Replace header content with custom layout -->
-        <xpath expr="//div[hasclass('header')]/*" position="replace">
+        <!-- Add custom header content -->
+        <xpath expr="//div[hasclass('header')]" position="inside">
             <div class="row">
                 <div class="col-3">
                     <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="IctPack"/>
@@ -19,6 +24,12 @@
                 <div class="col-3">
                 </div>
             </div>
+        </xpath>
+    </template>
+
+    <template id="address_layout_inherit" inherit_id="web.address_layout">
+        <xpath expr="//div[@t-if='address']" position="attributes">
+            <attribute name="style">display: none !important;</attribute>
         </xpath>
     </template>
 </odoo>

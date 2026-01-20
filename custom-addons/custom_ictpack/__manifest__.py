@@ -21,6 +21,7 @@
         "purchase",
         "project",
         "stock",
+        'approvals',
         # "contract",
     ],
     "data": [
@@ -44,7 +45,7 @@
         "views/report_invoice.xml",
         "views/report_sale.xml",
         "views/report_purchase.xml",
-        # "views/approval_request_views.xml",
+        "views/approval_request_views.xml",
     ],
     "installable": True,
     "maintainers": ["ictpack"],
