@@ -2,13 +2,6 @@ import logging
 from odoo import fields, models, api
 from datetime import datetime, timedelta
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from infobip_api_client.api_client import ApiClient, Configuration
-from infobip_api_client.model.sms_advanced_textual_request import SmsAdvancedTextualRequest
-from infobip_api_client.model.sms_destination import SmsDestination
-from infobip_api_client.model.sms_response import SmsResponse
-from infobip_api_client.model.sms_textual_message import SmsTextualMessage
-from infobip_api_client.api.send_sms_api import SendSmsApi
-from infobip_api_client.exceptions import ApiException
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -30,9 +23,7 @@ class SmsNotification(models.Model):
     template_id = fields.Many2one('sms.template')
     invoice_id = fields.Many2one('account.move', domain=[('business_line', '=', 'atras')])
     invoice_date = fields.Date(related='invoice_id.invoice_date')
-    message_id_from_infobip = fields.Char('Message ID from InfoBip')
-    after_sent_state = fields.Char('Status From Provider', copy=False)
-    broadcast_id = fields.Many2one('sms.notification.broadcast')
+    sms_tracker_id = fields.Many2one('sms.sms', string='SMS Tracker', readonly=True)
 
     message_count = fields.Integer("Message Count", compute='_compute_message_count', store=True)
     type = fields.Selection([
@@ -53,149 +44,90 @@ class SmsNotification(models.Model):
         ('canceled', 'Canceled')
     ], 'SMS Status', readonly=True, copy=False, default='outgoing', required=True)
 
-
-    def format_phone_number(self, phone):
-        if phone:
-            number = ''.join(phone.strip())
-            if len(number) > 1:
-                if number[0] == '0':
-                    stripped_number = number[1:]
-                    formatted_number = '255' + stripped_number
-                    return formatted_number
-
-                if number[0] == '+':
-                    stripped_number = number[1:]
-                    return stripped_number
-
-                if number[:3] == '255':
-                    return number
-
-                if number[0] not in ['0', '+', '255']:
-                    formatted_number = '255' + number
-                    return formatted_number
-        else:
-            return False
-
     def send_sms_notification_cron(self):
+        """Cron job to send pending SMS notifications"""
         sms_obj = self.search([('state', '=', 'outgoing')])
         for rec in sms_obj:
             rec.send_again()
             rec.env.cr.commit()
 
-    def send_with_infobip(self, recipient, message):
-        API_KEY, BASE_URL, SENDER = self.api_credentials()
-        RECIPIENT = str(self.format_phone_number(recipient))
-        MESSAGE_TEXT = self.clean_message(message)
-
-        client_config = Configuration(
-            host=BASE_URL,
-            api_key={"APIKeyHeader": API_KEY},
-            api_key_prefix={"APIKeyHeader": "App"},
-        )
-
-        api_client = ApiClient(client_config)
-
-        sms_request = SmsAdvancedTextualRequest(
-            messages=[
-                SmsTextualMessage(
-                    destinations=[
-                        SmsDestination(
-                            to=RECIPIENT,
-                        ),
-                    ],
-                    _from=SENDER,
-                    text=MESSAGE_TEXT,
-                )
-            ])
-
-        api_instance = SendSmsApi(api_client)
-
+    def send_sms_via_odoo(self, recipient, message):
+        """Send SMS using Odoo's standard SMS API which will use sms_infobip"""
+        if not recipient:
+            return {'success': False, 'error': 'No phone number provided'}
+        
+        # Use Odoo's standard SMS sending mechanism
+        # This will automatically use the sms_infobip provider
         try:
-            api_response: SmsResponse = api_instance.send_sms_message(sms_advanced_textual_request=sms_request)
-            return api_response
-        except ApiException as ex:
-            _logger.error(ex)
-            return ex
+            sms = self.env['sms.sms'].sudo().create({
+                'number': recipient,
+                'body': message,
+                'partner_id': self.customer.id if self.customer else False,
+            })
+            sms.send()
+            return {'success': True, 'sms_id': sms.id, 'state': sms.state}
+        except Exception as e:
+            _logger.error("Failed to send SMS: %s", str(e))
+            return {'success': False, 'error': str(e)}
 
     def clean_message(self, message):
+        """Clean message text by removing extra whitespace"""
         message_words = message.split()
         cleaned_message = ' '.join(message_words)
         return cleaned_message
 
-    def api_credentials(self):
-        BASE_URL = self.env['ir.config_parameter'].sudo().get_param('sms_notification.infobip_base_url')
-        API_KEY = self.env['ir.config_parameter'].sudo().get_param('sms_notification.infobip_api_key')
-        SENDER = self.env['ir.config_parameter'].sudo().get_param('sms_notification.infobip_sender_id')
-        return API_KEY, BASE_URL, SENDER
-
     def send_again(self):
+        """Send or resend SMS notification"""
         for rec in self:
             if rec.state == 'outgoing':
+                # Prepare message
                 if rec.use_sms_template:
                     message = self._render_template(rec.template_id, rec.id)
-                    recipient = rec.phone_number
                     rec.message = self.clean_message(message)
-                    if recipient:
-                        response = self.send_with_infobip(recipient, message)
-                        if not isinstance(response, ApiException):
-                            self.sent_to_provider(rec, response)
-                        else:
-                            self.failed_to_send(rec, response)
-                    else:
-                        self.no_phone_number(rec)
                 else:
-                    recipient = rec.phone_number
-                    response = self.send_with_infobip(recipient, rec.message)
-                    if recipient:
-                        if not isinstance(response, ApiException):
-                            self.sent_to_provider(rec, response)
-                        else:
-                            self.failed_to_send(rec, response)
-                    else:
-                        self.no_phone_number(rec)
-
-    def sent_to_provider(self, rec, response):
-        if response.messages[0].status.name == 'PENDING_ACCEPTED':
-            rec.message_id_from_infobip = response.messages[0].message_id
-            rec.sent_datetime = fields.datetime.now()
-            rec.state = 'sent'
-
-    def failed_to_send(self, rec, response):
-        rec.state = 'error'
-        rec.failure_reason = response
-
-    def no_phone_number(self, rec):
-        rec.state = 'error'
-        rec.failure_reason = 'No Phone Number Was Provided'
-
-    def get_delivered_reports_from_provider(self):
-        API_KEY, BASE_URL, SENDER = self.api_credentials()
-        client_config = Configuration(
-            host=BASE_URL,
-            api_key={"APIKeyHeader": API_KEY},
-            api_key_prefix={"APIKeyHeader": "App"},
-        )
-        api_client = ApiClient(client_config)
-        api_instance = SendSmsApi(api_client)
-
-        today = datetime.today().date()
-        thirty_days_ago = today - timedelta(days=30)
-        message_obj = self.search([('state', '=', 'sent'),('create_date', '>=', thirty_days_ago), ('create_date', '<=', today)], limit=100)
-
-        for rec in message_obj:
-            api_response = api_instance.get_outbound_sms_message_delivery_reports(
-                message_id=rec.message_id_from_infobip, limit=2)
-
-            if len(api_response.results) != 0:
-                if api_response.results[0].status.name == 'DELIVERED_TO_HANDSET':
-                    formatted_datetime = api_response.results[0].done_at.strftime(
-                        DEFAULT_SERVER_DATETIME_FORMAT)
-                    rec.delivered_datetime = formatted_datetime
-                    rec.state = 'delivered'
-                    rec.env.cr.commit()
+                    message = rec.message
+                
+                # Get recipient
+                recipient = rec.phone_number
+                
+                if not recipient:
+                    rec.no_phone_number()
+                    continue
+                
+                # Send SMS using Odoo's standard API
+                result = rec.send_sms_via_odoo(recipient, message)
+                
+                if result.get('success'):
+                    rec.sent_to_provider(result)
                 else:
-                    logs = api_instance.get_outbound_sms_message_logs(message_id=[rec.message_id_from_infobip])
-                    rec.after_sent_state = api_response
+                    rec.failed_to_send(result.get('error', 'Unknown error'))
+
+    def sent_to_provider(self, result):
+        """Mark SMS as sent"""
+        self.sms_tracker_id = result.get('sms_id')
+        self.sent_datetime = fields.Datetime.now()
+        self.state = 'sent'
+
+    def failed_to_send(self, error_message):
+        """Mark SMS as failed"""
+        self.state = 'error'
+        self.failure_reason = str(error_message)
+
+    def no_phone_number(self):
+        """Mark SMS as failed due to missing phone number"""
+        self.state = 'error'
+        self.failure_reason = 'No Phone Number Was Provided'
+
+    def update_delivery_status(self):
+        """Update delivery status from linked sms.sms records"""
+        for rec in self.search([('state', '=', 'sent'), ('sms_tracker_id', '!=', False)]):
+            sms = rec.sms_tracker_id
+            if sms.state == 'sent':
+                rec.state = 'delivered'
+                rec.delivered_datetime = fields.Datetime.now()
+            elif sms.state in ('error', 'canceled'):
+                rec.state = 'error'
+                rec.failure_reason = sms.failure_reason or 'SMS delivery failed'
 
 
     def mark_outgoing(self):
@@ -221,60 +153,3 @@ class SmsNotification(models.Model):
 
     def view_message(self):
         pass
- 
-class SmsBroadcasting(models.Model):
-    _name = 'sms.notification.broadcast'
-    _description = 'SMS Broadcast'
-
-    name = fields.Char(string="BroadCast name ", required=True)
-    customer_tags = fields.Many2many('res.partner.category', required=True)
-    body_html = fields.Char('Message',sanitize=True)
-    state = fields.Selection([
-        ('draft','draft'),
-        ('finish', 'finish'),
-    ], 'SMS Status', readonly=True, copy=False, default='draft', required=True)
-    customer_count = fields.Integer(compute='_compute_customer_count', store=True)
-
-    @api.depends('customer_tags')
-    def _compute_customer_count(self):
-        """
-        This function is a compute method that calculates the number of customers that belong to the partner categories
-        specified in the 'customer_tags' field of this 'sms.notification.broadcast' record. It does this by searching the
-        'res.partner' model for records that have a category ID that is in the list of category IDs specified in
-        'customer_tags'. It then sets the 'customer_count' field of the 'sms.notification.broadcast' record to the number of
-        customers found in the search.
-        """
-        for rec in self: 
-            rec.customer_count = len(self.env['res.partner'].search([('category_id', 'in', rec.customer_tags.ids)]))
-    def generate_sms(self):
-        """
-        # This function generates a new SMS notification for each customer that belongs to the
-        # partner categories specified in the 'customer_tags' field of this 'sms.notification.broadcast'
-        # record. It creates a new 'sms.notification' record for each customer. The 'broadcast_id' field
-        # of each 'sms.notification' record is set to the ID of the 'sms.notification.broadcast' record
-        # that triggered the creation of the SMS notification. Finally, the state of the
-        # 'sms.notification.broadcast' record is set to 'finish'.
-        """
-        for rec in self:
-            customers = self.env['res.partner'].search([('category_id', 'in', rec.customer_tags.ids)])
-            for customer in customers:
-                vals = {
-                    'customer': customer.id,
-                    'message': rec.body_html,
-                    'type': 'other',
-                    'broadcast_id': rec.id
-                }
-                self.env['sms.notification'].create(vals)
-            rec.state = 'finish'    
-            return rec.state
-
-    def action_view_customers(self):
-        """
-        # This function is used to open a list view of all customers which are sent an SMS notification
-        # via the "Generate SMS" button. We use the existing "sms_act_window" action and modify
-        # the domain to only show the customers that were sent the SMS notification generated by
-        # this 'sms.notification.broadcast' record.
-        """
-        action = self.env["ir.actions.actions"]._for_xml_id("sms_notification.sms_act_window")
-        action['domain'] = [('broadcast_id', '=', self.id)]
-        return action
