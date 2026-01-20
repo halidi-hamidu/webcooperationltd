@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sms_infobip_account_manage_view_form" model="ir.ui.view">
+        <field name="name">sms.infobip.account.manage.view.form</field>
+        <field name="model">sms.infobip.account.manage</field>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <form string="Infobip SMS Configuration">
+                <group string="Infobip Credentials">
+                    <field name="company_id" invisible="1"/>
+                    
+                    <label for="sms_infobip_base_url"/>
+                    <div class="d-flex align-items-center">
+                        <field name="sms_infobip_base_url" 
+                               placeholder="https://api.infobip.com"
+                               required="1"/>
+                        <a target="_blank" class="btn btn-link ms-1 w-25"
+                            role="button"
+                            href="https://www.infobip.com/docs/api">
+                            Need help ?
+                            <i class="fa fa-external-link" aria-hidden="true"/>
+                        </a>
+                    </div>
+                    
+                    <field name="sms_infobip_api_key" 
+                           password="True" 
+                           placeholder="Your Infobip API Key"
+                           required="1"/>
+                    
+                    <field name="sms_infobip_sender_id" 
+                           placeholder="Your Sender ID or Phone Number"
+                           required="1"/>
+                    
+                    <div class="mt-3">
+                        <button name="action_test_connection" 
+                                string="Test Connection"
+                                icon="fa-plug" 
+                                type="object"
+                                class="btn btn-secondary"/>
+                    </div>
+                </group>
+                
+                <group string="Test SMS">
+                    <label for="test_number"/>
+                    <div class="d-flex align-items-center">
+                        <field name="test_number" placeholder="+255 712 345 678 or 0712345678"/>
+                        <button name="action_send_test" 
+                                string="Send Test SMS"
+                                icon="fa-send" 
+                                type="object"
+                                class="btn btn-link w-25 ms-1"/>
+                    </div>
+                </group>
+                
+                <footer>
+                    <button string="Save Configuration" 
+                            type="object" 
+                            name="action_save" 
+                            class="btn-primary" 
+                            data-hotkey="q"/>
+                    <button string="Discard" 
+                            class="btn-secondary" 
+                            special="cancel" 
+                            data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
