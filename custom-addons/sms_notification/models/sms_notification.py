@@ -20,7 +20,6 @@ class SmsNotification(models.Model):
 
     customer = fields.Many2one('res.partner')
     phone_number = fields.Char(related="customer.phone")
-    mobile_number = fields.Char(related="customer.mobile", store=True)
     message = fields.Char('Message',sanitize=True)
     body_html = fields.Html('Rich-text Contents', sanitize=True, help="Rich-text/HTML message")
     failure_reason = fields.Char('Failure Reason', copy=False)
@@ -134,7 +133,7 @@ class SmsNotification(models.Model):
             if rec.state == 'outgoing':
                 if rec.use_sms_template:
                     message = self._render_template(rec.template_id, rec.id)
-                    recipient = rec.phone_number or rec.mobile_number
+                    recipient = rec.phone_number
                     rec.message = self.clean_message(message)
                     if recipient:
                         response = self.send_with_infobip(recipient, message)
@@ -145,7 +144,7 @@ class SmsNotification(models.Model):
                     else:
                         self.no_phone_number(rec)
                 else:
-                    recipient = rec.phone_number or rec.mobile_number
+                    recipient = rec.phone_number
                     response = self.send_with_infobip(recipient, rec.message)
                     if recipient:
                         if not isinstance(response, ApiException):

@@ -7,7 +7,22 @@
             <field name="priority" eval="25"/>
             <field name="inherit_id" ref="base.res_config_settings_view_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//div[hasclass('settings')]" position="inside">
+                <xpath expr="//form" position="inside">
+                    <app data-string="SMS Notification" string="SMS Notification" name="sms_notification" groups="base.group_erp_manager">
+                        <block title="SMS Notification Configurations" name="sms_notification_config_container">
+                            <setting id="infobip_base_url_setting" string="Infobip Base URL">
+                                <field name="infobip_base_url"/>
+                            </setting>
+                            <setting id="infobip_api_key_setting" string="Infobip API Key">
+                                <field name="infobip_api_key" password="True"/>
+                            </setting>
+                            <setting id="infobip_sender_id_setting" string="Infobip Sender ID">
+                                <field name="infobip_sender_id"/>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+                <!-- <xpath expr="//div[hasclass('settings')]" position="inside">
                     <div class="app_settings_block" data-string="sms_notification" string="SMS Notification"
                          data-key="sms_notification" groups="base.group_system">
                         <h2>SMS Notification Configurations</h2>
@@ -31,7 +46,7 @@
                             </div>
                         </div>
                     </div>
-                </xpath>
+                </xpath> -->
             </field>
         </record>
 
@@ -40,7 +55,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
-            <field name="target">inline</field>
+            <field name="target">new</field>
             <field name="context">{'module' : 'sms_notification'}</field>
         </record>
 
