@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Inherit Form View -->
+        <!-- <record id="view_hr_attendance_form_inherit" model="ir.ui.view">
+            <field name="name">hr.attendance.form.inherit</field>
+            <field name="model">hr.attendance</field>
+            <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <button name="action_open_map" type="object" string="View in Map" class="oe_highlight" invisible="not work_location_coordinates"/>
+                </xpath>
+                <xpath expr="//sheet" position="before">
+                    <field name="employee_photo" widget="image" class="oe_avatar"/>
+                </xpath>
+                <xpath expr="//field[@name='employee_id']" position="after">
+                    <field name="work_location_coordinates"/>
+                </xpath>
+            </field>
+        </record> -->
+
+        <!-- Inherit Tree View -->
+        <record id="view_hr_attendance_tree_inherit" model="ir.ui.view">
+            <field name="name">hr.attendance.tree.inherit</field>
+            <field name="model">hr.attendance</field>
+            <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='worked_hours']" position="after">
+                    <field name="work_location_coordinates" optional="hide"/>
+                    <button name="action_open_map" type="object" string="View in Map" class="oe_highlight" invisible="not work_location_coordinates"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Action for VTS Attendance -->
+        <record id="action_vts_attendance" model="ir.actions.act_window">
+            <field name="name">VTS Attendance</field>
+            <field name="res_model">hr.attendance</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('employee_id.is_vts_employee', '=', True)]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No VTS attendance records found
+                </p>
+                <p>
+                    VTS attendance records are created when employees check in via the mobile app.
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu Item -->
+        <menuitem id="menu_vts_attendance" name="Attendances" parent="vts_root_menu" action="action_vts_attendance" sequence="4"/>
+    </data>
+</odoo>

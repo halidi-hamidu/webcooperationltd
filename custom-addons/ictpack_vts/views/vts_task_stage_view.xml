@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="vts_reported_problem_form_view" model="ir.ui.view">
+            <field name="name">vts_task_stage.form</field>
+            <field name="model">vts.task.stages</field>
+            <field name="arch" type="xml">
+                <form string="VTS Task Stages">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="key"/>
+                            <field name="stage"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="vts_task_stage_tree_view" model="ir.ui.view">
+            <field name="name">vts.reported.problem.tree</field>
+            <field name="model">vts.task.stages</field>
+            <field name="arch" type="xml">
+                <list string="VTS Task Stage">
+                    <field name="name"/>
+                    <field name="key"/>
+                    <field name="stage" />
+                </list>
+            </field>
+        </record>
+
+        <record id="vts_task_stage_act_window" model="ir.actions.act_window">
+            <field name="name">VTS Task Stage</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">vts.task.stages</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    No Task Stages found.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Task Stages" id="vts_task_stage_menu" parent="vts_config_menu" action="vts_task_stage_act_window"/>
+
+    </data>
+</odoo>

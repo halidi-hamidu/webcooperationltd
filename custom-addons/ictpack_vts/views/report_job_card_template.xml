@@ -1,0 +1,179 @@
+<odoo>
+    <template id="report_job_card">
+        <style>
+            body {
+                background-color: #1a1c2d;
+                color: #ffffff;
+                font-family: Arial, sans-serif;
+            }
+            
+            .job-card {
+                padding: 20px;
+                max-width: 900px;
+                margin: auto;
+            }
+            
+            .header {
+                text-align: left;
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                margin: 0;
+                font-size: 20px;
+                color: #ffffff;
+            }
+            
+            .header h2 {
+                margin: 0;
+                font-size: 30px;
+                color: #ffffff;
+            }
+            
+            .details {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+            
+            .column {
+                width: 48%;
+            }
+            
+            .column p {
+                margin: 0 0 10px 0;
+            }
+            
+            .tabs {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .tabs button {
+                background-color: #272942;
+                color: #ffffff;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                margin-right: 10px;
+            }
+            
+            .tabs button:hover {
+                background-color: #44476a;
+            }
+            
+            .problems, .actions {
+                margin-bottom: 20px;
+            }
+            
+            .section {
+                margin-bottom: 20px;
+            }
+            
+            .section h3 {
+                border-bottom: 1px solid #44476a;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+                font-size: 16px;
+                color: #ffffff;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            table, th, td {
+                border: 1px solid #44476a;
+            }
+            
+            td {
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+                color: #ffffff;
+            }
+            
+            th {
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+                color: #ffffff;
+            }
+            
+        </style>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="job-card">
+                    <div class="header">
+                        <h1>Job Card Number</h1>
+                        <h2><t t-esc="doc.name"/></h2>
+                    </div>
+    
+                    <div class="details">
+                        <div class="column">
+                            <p><strong>Customer</strong><br/><t t-esc="doc.customer_id.name"/></p>
+                            <p><strong>Phone</strong><br/><t t-esc="doc.customer_id.phone"/></p>
+                            <p><strong>Complete Address</strong><br/><t t-esc="doc.customer_id.contact_address"/></p>
+                            <p><strong>Service Type</strong><br/><t t-esc="doc.service_type"/></p>
+                            <p><strong>Date of Service</strong><br/><t t-esc="doc.service_date"/></p>
+                            <p><strong>Technician</strong><br/><t t-esc="doc.vts_employee.name"/></p>
+                        </div>
+                        <div class="column">
+                            <p><strong>Driver Name</strong><br/><t t-esc="doc.driver_name"/></p>
+                            <p><strong>Driver Mobile No</strong><br/><t t-esc="doc.driver_mobile"/></p>
+                            <p><strong>Driver License</strong><br/><t t-esc="doc.driver_license"/></p>
+                            <p><strong>Vehicle No</strong><br/><t t-esc="doc.license_plate"/></p>
+                            <p><strong>Vehicle Model</strong><br/><t t-esc="doc.vehicle_model"/></p>
+                            <p><strong>Vehicle Make</strong><br/><t t-esc="doc.vehicle_make"/></p>
+                        </div>
+                    </div>
+    
+                    <div class="tabs">
+                        <button>Installation</button>
+                        <button>Service</button>
+                        <button>Vehicle Inspection</button>
+                    </div>
+    
+                    <div class="problems">
+                        <div class="section">
+                            <h3>REPORTED PROBLEMS</h3>
+                            <!-- <table>
+                                <t t-foreach="doc.reported_problems" t-as="problem">
+                                    <tr>
+                                        <td><strong>Name</strong></td>
+                                        <td><t t-esc="problem"/></td>
+                                    </tr>
+                                </t>
+                            </table> -->
+                        </div>
+                        <div class="section">
+                            <h3>PROBLEM SEEN</h3>
+                            <!-- <table>
+                                <t t-foreach="doc.problem_seen" t-as="problem">
+                                    <tr>
+                                        <td><strong>Name</strong></td>
+                                        <td><t t-esc="doc.problems_seen_display"/></td>
+                                    </tr>
+                                </t>
+                            </table> -->
+                            <td><t t-esc="doc.problems_seen_display"/></td>
+                        </div>
+                    </div>
+    
+                    <!-- <div class="actions">
+                        <h3>ACTION TAKEN</h3>
+                        <table>
+                            <t t-foreach="doc.action_taken" t-as="action">
+                                <tr>
+                                    <td><strong>Name</strong></td>
+                                    <td><t t-esc="action"/></td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div> -->
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="hr_employee_form_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.form.vts</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='hr_settings']" position="after">
+                    <page name="vts_settings" string="VTS Settings">
+                        <group name="vts_authentication" string="Authentication">
+                            <field name="vts_username"/>
+                            <field name="vts_password" password="1"/>
+                            <field name="vts_employee_role" string="Role" />
+                        </group>
+                        <group name="vts_settings" string="Settings">
+                            <field name="is_vts_employee"/>
+                            <field name="employee_stock_location" />
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="hr_work_location_form_view_inherit" model="ir.ui.view">
+            <field name="name">hr.work.location.view.form.vts</field>
+            <field name="model">hr.work.location</field>
+            <field name="inherit_id" ref="hr.hr_work_location_form_view"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='location_type']" position="after">
+                    <field name="is_vts_location"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

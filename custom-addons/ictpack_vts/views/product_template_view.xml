@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_template_form_inherit" model="ir.ui.view">
+            <field name="name">product.template.product.form.vtd</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='invoicing']" position="after">
+                    <page name="vtd" string="VTD">
+                        <group>
+                            <group>
+                                <field name="is_vtd_product"/>
+                                <field name="is_vtd_accessory"/>
+                            </group>
+                            <group>
+                            </group>
+                        </group>
+
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_production_lot_form_inherit" model="ir.ui.view">
+            <field name="name">production.lot.form.vtd</field>
+            <field name="model">stock.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="sheet" position="before">
+                    <header invisible="not is_vtd_product">
+                        <field name="vtd_state" widget="statusbar"/>
+                    </header>
+                </xpath>
+                 <xpath expr="//button[@name='action_lot_open_quants']" position="after">
+                    <!-- <button name="action_view_trip" icon="fa-truck" class="oe_stat_button" type="object" invisible="trip_count == 0">
+                        <field name="trip_count" widget="statinfo" string="Associated Trips"/>
+                    </button> -->
+                </xpath>
+                <xpath expr="//field[@name='ref']" position="after">
+                    <field name="vtd_dispatched_to"/>
+                    <field name="vtd_dispatched_date"/>
+                    <field name="is_vtd_product"/>
+                </xpath>
+                <!-- <xpath expr="//page[@name='description']" position="after">
+                    <page name="vtd_details" invisible="not is_vtd_product" string="VTD Details">
+                        <group>
+                            <field name="" readonly="1"/>
+                        </group>
+                    </page>
+                </xpath> -->
+            </field>
+        </record>
+
+        <!-- <record id="view_production_lot_tree_inherit" model="ir.ui.view">
+            <field name="name">stock.view.production.lot.tree</field>
+            <field name="model">stock.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='create_date']" position="after">
+                    <field name="trip_count"/>
+                    <field name="ects_state"/>
+                    <field name="tra_date"/>
+                    <field name="tra_power"/>
+                    <field name="latitude"/>
+                    <field name="longitude"/>
+                    <button name="open_map" type="object" string="View on Map" class="oe_highlight"/>
+                </xpath>
+            </field>
+        </record> -->
+
+    </data>
+</odoo>

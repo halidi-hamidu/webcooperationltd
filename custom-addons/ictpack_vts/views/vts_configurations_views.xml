@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="vts_team_config_tree_view" model="ir.ui.view">
+        <field name="name">vts.operation.team.tree</field>
+        <field name="model">vts.operation.team</field>
+        <field name="arch" type="xml">
+            <list string="Sales Team" sample="1" multi_edit="1">
+                <field name="name" readonly="1"/>
+                <field name="user_id" domain="[('share', '=', False)]" widget="many2one_avatar_user"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vts_configuration_form" model="ir.ui.view">
+        <field name="name">vts.operation.team.form</field>
+        <field name="model">vts.operation.team</field>
+        <field name="arch" type="xml">
+            <form string="VTS Team Configuration">
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_title">
+                        <label for="name" string="Team Name"/>
+                        <h1>
+                            <field class="text-break" name="name" placeholder="e.g. Delivery Team"/>
+                        </h1>
+                        <div name="options_active"/>
+                    </div>
+                    <group>
+                        <group name="left" string="Team Details">
+                            <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]"/>
+                        </group>
+                        <group name="right">
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Members" name="members_users">
+                            <field name="member_ids" mode="kanban" class="w-100">
+                                <kanban>
+                                    <templates>
+                                        <t t-name="card" class="flex-row">
+                                            <aside>
+                                                <field name="avatar_128" widget="image" class="o_image_64_cover" alt="Avatar"/>
+                                            </aside>
+                                            <main class="ms-3">
+                                                <field name="name" class="fw-bold fs-5"/>
+                                                <div class="d-flex align-items-baseline text-break">
+                                                    <i class="fa fa-envelope me-1" role="img" aria-label="Email" title="Email"/><field name="email"/>
+                                                </div>
+                                            </main>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                            <!-- <field name="crm_team_member_ids" mode="kanban" class="w-100" invisible="is_membership_multi or not is_membership_multi" context="{                                     'kanban_view_ref': 'sales_team.crm_team_member_view_kanban_from_team',                                     'form_view_ref': 'sales_team.crm_team_member_view_form_from_team',                                     'list_view_ref': 'sales_team.crm_team_member_view_tree_from_team',                                     'default_crm_team_id': id,                                 }"/> -->
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- <div class="oe_chatter">
+                    <field name="message_follower_ids" help="Follow this salesteam to automatically track the events associated to users of this team."/>
+                    <field name="message_ids"/>
+                </div> -->
+            </form>
+        </field>
+    </record>
+
+    <record id="vts_team_config" model="ir.actions.act_window">
+        <field name="name">VTS Team Configurations</field>
+        <field name="res_model">vts.operation.team</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Create your VTS Team Configurations.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="vts_team_config_menu"
+        name="Team Configurations"
+        action="vts_team_config"
+        parent="vts_config_menu"
+        />
+
+</odoo>
