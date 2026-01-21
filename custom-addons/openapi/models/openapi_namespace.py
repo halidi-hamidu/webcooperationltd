@@ -62,13 +62,11 @@ class Namespace(models.Model):
     )
     spec_url = fields.Char("Specification Link", compute="_compute_spec_url")
 
-    _sql_constraints = [
-        (
-            "name_uniq",
-            "unique (name)",
-            "A namespace already exists with this name. Namespace's name must be unique!",
-        )
-    ]
+    _name_uniq = models.Constraint(
+        "unique (name)",
+        "A namespace already exists with this name. Namespace's name must be unique!",
+    )
+
 
     def name_get(self):
         return [

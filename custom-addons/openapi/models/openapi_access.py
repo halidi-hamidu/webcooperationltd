@@ -81,13 +81,10 @@ class Access(models.Model):
         domain="[('model_id', '=', model_id)]",
     )
 
-    _sql_constraints = [
-        (
-            "namespace_model_uniq",
-            "unique (namespace_id, model_id)",
-            "There is already a record for this Model",
-        )
-    ]
+    _namespace_model_uniq = models.Constraint(
+        'unique(namespace_id, model_id)',
+        'There is already a record for this Model',
+    )
 
     @api.model
     def _get_method_list(self):
@@ -445,13 +442,10 @@ class AccessCreateContext(models.Model):
     model_id = fields.Many2one("ir.model", "Model", required=True, ondelete="cascade")
     context = fields.Text("Context", required=True)
 
-    _sql_constraints = [
-        (
-            "context_model_name_uniq",
-            "unique (name, model_id)",
-            "There is already a context with the same name for this Model",
-        )
-    ]
+    _context_model_name_uniq = models.Constraint(
+        'unique(name, model_id)',
+        'There is already a context with the same name for this Model',
+    )
 
     @api.model
     def _fix_name(self, vals):
