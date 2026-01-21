@@ -682,7 +682,6 @@ class VtsJobCard(models.Model):
     def search_customers(self, search_term):
         customers = self.env['res.partner'].search([
             ('name', 'ilike', search_term),
-            ('customer_rank', '>', 0)
         ], limit=10)
 
         customer_data = []
