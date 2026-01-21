@@ -27,6 +27,7 @@ class AccountMove(models.Model):
             move.car_plate_numbers = car_plate_numbers
 
     def queue_sms_notification(self):
+        """Generate SMS mailings via mass_mailing_sms for invoice reminders"""
         old_invoice_template = self.env.ref('sms_notification.sms_notification_template_old_invoice_template')
         new_registration_template = self.env.ref('sms_notification.sms_notification_template_new_registration')
         thirty_days_before_template = self.env.ref(
@@ -49,7 +50,8 @@ class AccountMove(models.Model):
             override = False
             if override:
                 message = self._render_template(old_invoice_template, rec.id)
-                self.create_sms_record(obj=rec, message=message, template=old_invoice_template, type='other')
+                self.create_sms_mailing(obj=rec, message=message, template=old_invoice_template, 
+                                      sms_type='Other - Invoice Notification')
                 rec.new_registration_sms_limit += 1
                 rec.fifteen_days_sms_limit += 1
                 rec.due_day_sms_limit += 1
@@ -63,30 +65,33 @@ class AccountMove(models.Model):
 
                 if self.check_validity(rec.invoice_date, rec.new_registration_sms_limit) == 'new':
                     message = self._render_template(new_registration_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=new_registration_template, type='new')
+                    self.create_sms_mailing(obj=rec, message=message, template=new_registration_template, 
+                                          sms_type='New Registration')
                     rec.new_registration_sms_limit += 1
                 if self.check_validity(rec.invoice_date, rec.thirty_days_before_sms_limit) == '30-days-before':
                     message = self._render_template(thirty_days_before_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=thirty_days_before_template,
-                                           type='30days')
+                    self.create_sms_mailing(obj=rec, message=message, template=thirty_days_before_template,
+                                          sms_type='30 Days Before Reminder')
                     rec.thirty_days_before_sms_limit += 1
                 if self.check_validity(rec.invoice_date, rec.fifteen_days_sms_limit) == '15-days-before':
                     message = self._render_template(fifteen_days_before_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=fifteen_days_before_template,
-                                           type='15days')
+                    self.create_sms_mailing(obj=rec, message=message, template=fifteen_days_before_template,
+                                          sms_type='15 Days Before Reminder')
                     rec.fifteen_days_sms_limit += 1
                 if self.check_validity(rec.invoice_date, rec.due_day_sms_limit) == 'due-day':
                     message = self._render_template(due_day_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=due_day_template, type='due')
+                    self.create_sms_mailing(obj=rec, message=message, template=due_day_template, 
+                                          sms_type='Due Date Reminder')
                     rec.due_day_sms_limit += 1
                 if self.check_validity(rec.invoice_date, rec.seven_days_sms_limit) == '7-days-after':
                     message = self._render_template(seven_days_after_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=seven_days_after_template, type='7days')
+                    self.create_sms_mailing(obj=rec, message=message, template=seven_days_after_template, 
+                                          sms_type='7 Days After Reminder')
                     rec.seven_days_sms_limit += 1
                 if self.check_validity(rec.invoice_date, rec.above_seven_days_sms_limit) == 'above-7-days':
                     message = self._render_template(above_seven_days_after_template, rec.id)
-                    self.create_sms_record(obj=rec, message=message, template=above_seven_days_after_template,
-                                           type='above7')
+                    self.create_sms_mailing(obj=rec, message=message, template=above_seven_days_after_template,
+                                          sms_type='Above 7 Days After Reminder')
                     rec.above_seven_days_sms_limit += 1
 
     def reset_limits(self):
@@ -103,17 +108,26 @@ class AccountMove(models.Model):
             rec.above_seven_days_sms_limit = 0
             print("Limit Removed")
 
-    def create_sms_record(self, obj, message, template, type):
+    def create_sms_mailing(self, obj, message, template, sms_type):
+        """Create a mailing.mailing record for SMS sending via mass_mailing_sms"""
+        # Create mailing.mailing record targeting the partner directly
         vals = {
-            'customer': obj.partner_id.id,
-            'message': message,
-            'body_html': template.body,
-            'state': 'outgoing',
-            'type': type,
-            'invoice_id': obj.id,
+            'sms_subject': f'{sms_type} - {obj.partner_id.name} - Invoice {obj.display_name}',
+            'body_plaintext': message,
+            'mailing_type': 'sms',
+            'mailing_model_id': self.env['ir.model']._get('res.partner').id,
+            'mailing_domain': repr([('id', '=', obj.partner_id.id)]),
+            'state': 'draft',
+            'sms_allow_unsubscribe': False,
         }
-        self.env['sms.notification'].create(vals)
+        
+        mailing = self.env['mailing.mailing'].create(vals)
+        
+        # Put mailing in queue for sending
+        mailing.action_put_in_queue()
+        
         obj.sms_notification_limit = 0
+        return mailing
 
     def update_sms_record(self):
         pass
