@@ -277,7 +277,7 @@ def create_log_record(**kwargs):
         registry = odoo.modules.registry.Registry(request.session.db)
         with registry.cursor() as cr:
             # use new cursor to save data even in case of an error in the old cursor
-            env = odoo.api.Environment(cr, request.session.uid, {})
+            env = odoo.api.Environment(cr, request.env.uid, {})
             _create_log_record(env, **kwargs)
 
 
@@ -412,7 +412,7 @@ def get_create_context(namespace, model, canned_context):
     :rtype: dict
     :raise: werkzeug.exceptions.HTTPException TODO: add description in which case
     """
-    cr, uid = request.cr, request.session.uid
+    cr, uid = request.env.cr, request.env.uid
 
     # Singleton by construction (_sql_constraints)
     openapi_access = request.env(cr, uid)["openapi.access"].search(
@@ -482,7 +482,7 @@ def get_model_openapi_access(namespace, model):
     :raise: werkzeug.exceptions.HTTPException if the namespace has no accesses.
     """
     # TODO: this method has code duplicates with openapi specification code (e.g. get_OAS_definitions_part)
-    cr, uid = request.cr, request.session.uid
+    cr, uid = request.env.cr, request.env.uid
     # Singleton by construction (_sql_constraints)
     openapi_access = (
         request.env(cr, uid)["openapi.access"]
@@ -572,7 +572,7 @@ def wrap__resource__create_one(modelname, context, data, success_code, out_field
     model_obj = get_model_for_read(modelname)
     try:
         created_obj = model_obj.with_context(context).create(data)
-        test_mode = request.registry.test_cr
+        test_mode = None
         if not test_mode:
             # Somehow don't making a commit here may lead to error
             # "Record does not exist or has been deleted"
@@ -627,7 +627,7 @@ def wrap__resource__update_one(modelname, id, success_code, data):
               otherwise error response
     :rtype: werkzeug.wrappers.Response
     """
-    cr, uid = request.cr, request.session.uid
+    cr, uid = request.env.cr, request.env.uid
     record = request.env(cr, uid)[modelname].browse(id)
     if not record.exists():
         return error_response(*CODE__obj_not_found)
@@ -649,7 +649,7 @@ def wrap__resource__unlink_one(modelname, id, success_code):
               otherwise error response
     :rtype: werkzeug.wrappers.Response
     """
-    cr, uid = request.cr, request.session.uid
+    cr, uid = request.env.cr, request.env.uid
     record = request.env(cr, uid)[modelname].browse([id])
     if not record.exists():
         return error_response(*CODE__obj_not_found)

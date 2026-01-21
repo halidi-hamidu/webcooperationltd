@@ -273,8 +273,9 @@ def get_model_for_read(model, ENV=False):
     """
     if ENV:
         return ENV[model]
-    cr, uid = request.cr, request.session.uid
-    test_mode = request.registry.test_cr
+    cr, uid = request.env.cr, request.env.uid
+    # test_mode = request.registry.test_cr
+    test_mode = None
     if not test_mode:
         # Permit parallel query execution on read
         # Contrary to ISOLATION_LEVEL_SERIALIZABLE as per Odoo Standard
