@@ -140,36 +140,64 @@ class VtsJobCard(models.Model):
         for record in self:
             record.name = f'{record.vts_employee.barcode}{self.env["ir.sequence"].next_by_code("vts.job.card")}'
 
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         try:
-            # Ensure the name is set
-            if 'name' not in vals or not vals['name']:
-                employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
-                if employee:
-                    vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
-                else:
-                    vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
-
-            # Extract and handle attachments
-            attachment_vals = vals.pop('attachments', [])
-            res = super(VtsJobCard, self).create(vals)
-
-            if res:
-                self._handle_attachments(attachment_vals, res)
-                res.service_date = fields.Datetime.now()
-                res.state = "draft"
-
-            jobcard_vars = {
-                'id': res.id,
-                'name': res.name,
-                'customer_name': res.customer_id.name if res.customer_id else '',
-                'technician': res.vts_employee.name if res.vts_employee else '',
-                'service_type': res.service_type,
-                'state': res.state,
-            }
-
-
-            return format_response('success', 'Job card created successfully.', jobcard_vars)
+            # Store attachments separately for each record
+            attachments_list = []
+            
+            # Process each vals dictionary
+            for vals in vals_list:
+                # Ensure the name is set
+                if 'name' not in vals or not vals['name']:
+                    employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
+                    if employee:
+                        vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
+                    else:
+                        vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
+                
+                # Extract and store attachments for later processing
+                attachments_list.append(vals.pop('attachments', []))
+            
+            # Create all records
+            records = super(VtsJobCard, self).create(vals_list)
+            
+            # Process each created record
+            for record, attachment_vals in zip(records, attachments_list):
+                # Handle attachments
+                if attachment_vals:
+                    self._handle_attachments(attachment_vals, record.id)
+                
+                # Set default values
+                if not record.service_date:
+                    record.service_date = fields.Datetime.now()
+                if not record.state:
+                    record.state = "draft"
+            
+            # If single record, return detailed response
+            if len(records) == 1:
+                record = records[0]
+                jobcard_vars = {
+                    'id': record.id,
+                    'name': record.name,
+                    'customer_name': record.customer_id.name if record.customer_id else '',
+                    'technician': record.vts_employee.name if record.vts_employee else '',
+                    'service_type': record.service_type,
+                    'state': record.state,
+                }
+                return format_response('success', 'Job card created successfully.', jobcard_vars)
+            else:
+                # Multiple records created
+                jobcards_data = [{
+                    'id': rec.id,
+                    'name': rec.name,
+                    'customer_name': rec.customer_id.name if rec.customer_id else '',
+                    'technician': rec.vts_employee.name if rec.vts_employee else '',
+                    'service_type': rec.service_type,
+                    'state': rec.state,
+                } for rec in records]
+                return format_response('success', f'{len(records)} job cards created successfully.', jobcards_data)
+                
         except Exception as e:
             return format_response('error', str(e), None)
     
