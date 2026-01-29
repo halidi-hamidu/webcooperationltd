@@ -21,7 +21,7 @@
 #############################################################################
 {
     'name': 'Customer Project',
-    'version': '16.0.1.0.0',
+    'version': '19.0.1.0',
     'summary': 'Customer Project',
     'description': 'Customer Project',
     'category': 'Extra Tools',
