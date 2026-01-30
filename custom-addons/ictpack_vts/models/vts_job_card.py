@@ -12,6 +12,7 @@ CHECKLIST_TYPES_SELECTION = [
 SERVICE_TYPE_SELECTION = [
     ("installation", "New Installation"),
     ("service-routine", "Service Routine"),
+    ("driver-registration", "Driver Registration"),
 ]
 
 JOB_CARD_STATE = [
@@ -141,63 +142,46 @@ class VtsJobCard(models.Model):
             record.name = f'{record.vts_employee.barcode}{self.env["ir.sequence"].next_by_code("vts.job.card")}'
 
     @api.model_create_multi
-    def create(self, vals_list):
+    def create(self, vals):
         try:
-            # Store attachments separately for each record
-            attachments_list = []
-            
-            # Process each vals dictionary
-            for vals in vals_list:
-                # Ensure the name is set
-                if 'name' not in vals or not vals['name']:
-                    employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
-                    if employee:
-                        vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
-                    else:
-                        vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
-                
-                # Extract and store attachments for later processing
-                attachments_list.append(vals.pop('attachments', []))
-            
-            # Create all records
-            records = super(VtsJobCard, self).create(vals_list)
-            
-            # Process each created record
-            for record, attachment_vals in zip(records, attachments_list):
-                # Handle attachments
-                if attachment_vals:
-                    self._handle_attachments(attachment_vals, record.id)
-                
-                # Set default values
-                if not record.service_date:
-                    record.service_date = fields.Datetime.now()
-                if not record.state:
-                    record.state = "draft"
-            
-            # If single record, return detailed response
-            if len(records) == 1:
-                record = records[0]
-                jobcard_vars = {
-                    'id': record.id,
-                    'name': record.name,
-                    'customer_name': record.customer_id.name if record.customer_id else '',
-                    'technician': record.vts_employee.name if record.vts_employee else '',
-                    'service_type': record.service_type,
-                    'state': record.state,
-                }
-                return format_response('success', 'Job card created successfully.', jobcard_vars)
-            else:
-                # Multiple records created
-                jobcards_data = [{
-                    'id': rec.id,
-                    'name': rec.name,
-                    'customer_name': rec.customer_id.name if rec.customer_id else '',
-                    'technician': rec.vts_employee.name if rec.vts_employee else '',
-                    'service_type': rec.service_type,
-                    'state': rec.state,
-                } for rec in records]
-                return format_response('success', f'{len(records)} job cards created successfully.', jobcards_data)
-                
+            # Ensure the name is set
+            if 'name' not in vals or not vals['name']:
+                employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
+                if employee:
+                    vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
+                else:
+                    vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
+
+            # Auto-populate customer_id for service routine from project
+            if vals.get('service_type') == 'service-routine' and not vals.get('customer_id'):
+                license_plate = vals.get('license_plate')
+                if license_plate:
+                    # Search for project with name matching the license plate
+                    project = self.env['project.project'].search([('name', '=', license_plate)], limit=1)
+                    if project and project.partner_id:
+                        vals['customer_id'] = project.partner_id.id
+                        vals['project_id'] = project.id
+
+            # Extract and handle attachments
+            attachment_vals = vals.pop('attachments', [])
+            res = super(VtsJobCard, self).create(vals)
+
+            if res:
+                self._handle_attachments(attachment_vals, res)
+                res.service_date = fields.Datetime.now()
+                res.state = "draft"
+
+            jobcard_vars = {
+                'id': res.id,
+                'name': res.name,
+                'customer_name': res.customer_id.name if res.customer_id else '',
+                'technician': res.vts_employee.name if res.vts_employee else '',
+                'service_type': res.service_type,
+                'state': res.state,
+            }
+
+
+            return format_response('success', 'Job card created successfully.', jobcard_vars)
         except Exception as e:
             return format_response('error', str(e), None)
     
@@ -460,7 +444,7 @@ class VtsJobCard(models.Model):
         total_service_routine = self.env['vts.job.card'].search_count(service_routine_domain)
         vehicle_checklist_draft_count = self.env['vts.daily.checkup.list'].search_count(vehicle_checklist_draft_domain)
         vehicle_checklist_submitted_count = self.env['vts.daily.checkup.list'].search_count(vehicle_checklist_submitted_domain)
-        ticket_count = self.env['helpdesk.ticket'].search_count(ticket_domain)
+        ticket_count = self.env['helpdesk.ticket'].sudo().search_count(ticket_domain)
 
         vals = {
             "device_in_stock": device_in_stock_count['data'],
@@ -682,6 +666,7 @@ class VtsJobCard(models.Model):
     def search_customers(self, search_term):
         customers = self.env['res.partner'].search([
             ('name', 'ilike', search_term),
+            ('customer_rank', '>', 0)
         ], limit=10)
 
         customer_data = []
@@ -727,7 +712,7 @@ class VtsDailyCheckupList(models.Model):
     name = fields.Char(string='Name', default=lambda self: self.env['ir.sequence'].next_by_code('vts.daily.checkup.list'))
     created_date_time = fields.Datetime('Created Date Time')
     projects_ids = fields.Many2many('project.project', string='Project', required=False)
-    location = fields.Many2one('hr.work.location', string='Location', required=True)
+    location_name = fields.Char(string='Location', required=True)
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True)
     state = fields.Selection(DAILY_CHECK_UP_LIST_SELECTION, string='State', default='draft')
     vehicle_checkup_status = fields.Json()
@@ -784,7 +769,7 @@ class VtsDailyCheckupList(models.Model):
                 'name': checklist.name or '',
                 'state': (checklist.state or '').upper(),
                 'date': checklist.created_date_time or '',
-                'location': checklist.location.name if checklist.location else '',
+                'location_name': checklist.location_name or '',
                 'projects': projects,
             })
 

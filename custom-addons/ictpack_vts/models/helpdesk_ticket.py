@@ -10,7 +10,7 @@ class HelpdeskTicket(models.Model):
     job_card_id = fields.Many2one('vts.job.card', string='Job Cards')
 
     def return_employee_tickets(self, technician_id, domain=[], limit=25):
-        tickets = self.search([('technician_id', '=', technician_id)] + domain, limit=limit, order='create_date desc')
+        tickets = self.sudo().search([('technician_id', '=', technician_id)] + domain, limit=limit, order='create_date desc')
         values = []
         if tickets:
             for ticket in tickets:
