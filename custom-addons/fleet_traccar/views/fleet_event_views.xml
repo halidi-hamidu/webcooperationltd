@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="fleet_events_tree_view" model="ir.ui.view">
-        <field name="name">Traccar.fleet_events.tree</field>
+    <record id="fleet_events_list_view" model="ir.ui.view">
+        <field name="name">Traccar.fleet_events.list</field>
         <field name="model">fleet.traccar.events</field>
         <field name="arch" type="xml">
-            <tree create="0" string="Fleet Events">
+            <list create="0" string="Fleet Events">
                 <field name="vehicle_id"/>
                 <field name="name"/>
                 <field name="type"/>
@@ -12,7 +12,7 @@
                 <field name="event_time"/>
                 <field name="position_id" optional="hide"/>
                 <field name="event_id" optional="hide"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -22,12 +22,12 @@
         <field name="arch" type="xml">
             <search string="Fleet Events">
                 <filter string="Event Date" name="event_time" date="event_time"/>
-                <group expand="1" string="Group By">
+                    <group>
                     <filter string="Vehicle" name="vehicle_id" domain="[]"
                             context="{'group_by':'vehicle_id'}"/>
                     <separator/>
                     <filter string="Event Date" name="event_time" context="{'group_by': 'event_time'}"/>
-                </group>
+                    </group>
             </search>
         </field>
     </record>
@@ -36,7 +36,7 @@
         <field name="name">Fleet Events</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">fleet.traccar.events</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
                 No events currently

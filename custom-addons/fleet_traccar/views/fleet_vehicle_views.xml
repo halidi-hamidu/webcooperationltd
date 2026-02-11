@@ -3,7 +3,7 @@
     <record id='fleet.fleet_vehicle_odometer_action' model='ir.actions.act_window'>
         <field name="name">Odometers</field>
         <field name="res_model">fleet.vehicle.odometer</field>
-        <field name="view_mode">tree,kanban,form,graph</field>
+        <field name="view_mode">list,kanban,form,graph</field>
         <field name="context">{'search_default_groupby_vehicle':1}</field>
         <field name="help" type="html">
           <p class="o_view_nocontent_smiling_face">
@@ -18,7 +18,7 @@
         <field name="name">Vehicle Trips</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">fleet.traccar.trips</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('vehicle_id','=',active_id)]</field>
         <field name="context">{'search_default_vehicle_id': active_id}</field>
     </record>
@@ -26,7 +26,7 @@
         <field name="name">Vehicle Stops</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">fleet.traccar.stops</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('vehicle_id','=',active_id)]</field>
         <field name="context">{'search_default_vehicle_id': active_id}</field>
     </record>
@@ -34,7 +34,7 @@
         <field name="name">Vehicle Summary</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">fleet.traccar.summary</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('vehicle_id','=',active_id)]</field>
         <field name="context">{'search_default_vehicle_id': active_id}</field>
     </record>
@@ -42,7 +42,7 @@
         <field name="name">Vehicle Events</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">fleet.traccar.events</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('vehicle_id','=',active_id)]</field>
         <field name="context">{'search_default_vehicle_id': active_id}</field>
     </record>
@@ -53,16 +53,16 @@
         <field name="arch" type="xml">
             <xpath expr="//form/header" position="inside">
                 <button name="sync_single_trip" type="object" class="oe_stat_button" icon="fa-refresh"
-                        string="Sync Trips" attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}">
+                        string="Sync Trips" invisible="is_tracccar_vehicle == False">
                 </button>
                 <button name="sync_single_stop" type="object" class="oe_stat_button" icon="fa-refresh"
-                        string="Sync Stops" attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}">
+                        string="Sync Stops" invisible="is_tracccar_vehicle == False">
                 </button>
                 <button name="sync_single_summary" type="object" class="oe_stat_button" icon="fa-refresh"
-                        string="Sync Summary" attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}">
+                        string="Sync Summary" invisible="is_tracccar_vehicle == False">
                 </button>
                 <button name="sync_single_event" type="object" class="oe_stat_button" icon="fa-refresh"
-                        string="Sync Events" attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}">
+                        string="Sync Events" invisible="is_tracccar_vehicle == False">
                 </button>
             </xpath>
             <field name="manager_id" position="after">
@@ -70,11 +70,11 @@
                 <field name="is_tracccar_vehicle" widget="boolean_toggle" />
             </field>
             <xpath expr="//notebook" position="inside">
-                <page string="Traccar Info" attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}">
+                <page string="Traccar Info" invisible="is_tracccar_vehicle == False">
                      <group col="2">
-                        <group>
-                            <field name="device_uid" string="Device Unique ID" attrs="{'required': [('is_tracccar_vehicle','=',True)]}"/>
-                            <field name="traccar_id" attrs="{'readonly':[('create_traccer_vehicle','==',True)]}" />
+                        <group> 
+                            <field name="device_uid" string="Device Unique ID" required="is_tracccar_vehicle == True"/>
+                            <field name="traccar_id" readonly="create_traccer_vehicle == True" />
                             <field name="latest_device_update" readonly="1"/>
                             <field name="latest_event_update" readonly="1"/>
                         </group>
@@ -97,37 +97,37 @@
             <xpath expr="//field[@name='model_year']" position="attributes">
                 <attribute name="string">Year of Manufacture</attribute>
             </xpath>
-            <button name="return_action_to_open" position="after">
+            <xpath expr="//button[@name='return_action_to_open']" position="after">
                 <button name="%(fleet_traccar.vehicle_events_action)d" type="action" class="oe_stat_button"
                         icon="fa-calendar"
                         help="show the events of this vehicle"
-                        attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}" string="Events">
+                        invisible="is_tracccar_vehicle == False" string="Events">
                 </button>
                 <button name="%(fleet_traccar.vehicle_trips_action)d" type="action" class="oe_stat_button"
                         icon="fa-map-signs"
                         help="show the trips of this vehicle"
-                        attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}" string="Trips">
+                        invisible="is_tracccar_vehicle == False" string="Trips">
                 </button>
                 <button name="%(fleet_traccar.vehicle_stops_action)d" type="action" class="oe_stat_button"
                         icon="fa-map-pin"
                         help="show the stops of this vehicle"
-                        attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}" string="Stops">
+                        invisible="is_tracccar_vehicle == False" string="Stops">
                 </button>
                 <button name="%(fleet_traccar.vehicle_summary_action)d" type="action" class="oe_stat_button"
                         icon="fa-list"
                         help="show the current location of this vehicle"
-                        attrs="{'invisible': [('is_tracccar_vehicle', '=', False)]}" string="Summary">
+                        invisible="is_tracccar_vehicle == False" string="Summary">
                 </button>
-            </button>
+            </xpath>
 
         </field>
     </record>
 
-    <record id='fleet.fleet_vehicle_view_tree' model='ir.ui.view'>
-        <field name="name">fleet.vehicle.tree</field>
+    <record id='fleet_vehicle_view_list_inherit_traccar' model='ir.ui.view'>
+         <field name="name">fleet.vehicle.list.inherit.traccar</field>
         <field name="model">fleet.vehicle</field>
         <field name="arch" type="xml">
-            <tree string="Vehicle"
+            <list string="Vehicle"
                   decoration-warning="contract_renewal_due_soon and not contract_renewal_overdue"
                   decoration-danger="contract_renewal_overdue"
                   multi_edit="1"
@@ -148,11 +148,10 @@
                 <field name="state_id" widget="badge" readonly="1" optional="hide"/>
                 <field name="contract_renewal_due_soon" invisible="1"/>
                 <field name="contract_renewal_overdue" invisible="1"/>
-                <field name="contract_renewal_total" invisible="1"/>
                 <field name="contract_state" widget="badge" decoration-info="contract_state == 'open'"
                        decoration-danger="contract_state == 'expired'" optional="hide"/>
                 <field name="activity_exception_decoration" widget="activity_exception"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -161,7 +160,7 @@
     <record id='fleet.fleet_vehicle_action' model='ir.actions.act_window'>
         <field name="name">Vehicles</field>
         <field name="res_model">fleet.vehicle</field>
-        <field name="view_mode">tree,kanban,form,pivot,activity</field>
+        <field name="view_mode">list,kanban,form,pivot,activity</field>
     </record>
 </odoo>
 
