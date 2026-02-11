@@ -1,7 +1,7 @@
 from odoo import fields, api, models, _
 
 class FleetConfiguration(models.TransientModel):
-    _inherit = ['res.config.settings']
+    _inherit = 'res.config.settings'
 
     tracking_base_url = fields.Char('Traccer URL',config_parameter = 'fleet_traccar.tracking_base_url')
     api_user = fields.Char('Username',config_parameter = 'fleet_traccar.api_user')
