@@ -9,6 +9,11 @@ CHECKLIST_TYPES_SELECTION = [
 
 ]
 
+OWNERSHIP_TYPES = [
+    ("private", "Private"),
+    ("latra", "Latra"),
+]
+
 SERVICE_TYPE_SELECTION = [
     ("installation", "New Installation"),
     ("service-routine", "Service Routine"),
@@ -62,6 +67,7 @@ class VtsJobCard(models.Model):
     ticket_id = fields.Many2one('helpdesk.ticket', string='Ticket')
     sale_order_id = fields.Many2one('sale.order', string='Sale Order', readonly=True, copy=False)
     service_type = fields.Selection(SERVICE_TYPE_SELECTION, default='installation')
+    ownership_type = fields.Selection(OWNERSHIP_TYPES, string='Ownership Type', default='latra')
     # Bus Information
     name = fields.Char(
         "Job Card Number",
@@ -110,6 +116,7 @@ class VtsJobCard(models.Model):
     reported_problems_display = fields.Html(
         "Reported Problem", compute="_compute_reported_problems"
     )
+    reported_problems_text = fields.Text("Reported Problem", compute="_compute_reported_problems_text", store=False)
 
     problems_seen = fields.Json()
     problems_seen_display = fields.Html("Problems Seen", compute="_compute_problems_seen")
@@ -317,6 +324,14 @@ class VtsJobCard(models.Model):
             
             # Assign the HTML to the computed field
             record.inspection_html_table = table_html
+
+    def _compute_reported_problems_text(self):
+        for rec in self:
+            if rec.reported_problems:
+                checklist_items = self.env['vts.checklist.config'].search([('id', 'in', rec.reported_problems)])
+                rec.reported_problems_text = ', '.join(checklist_items.mapped('name'))
+            else:
+                rec.reported_problems_text = ''
 
     def _compute_reported_problems(self):
         for rec in self:
