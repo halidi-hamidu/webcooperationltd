@@ -6,10 +6,11 @@
 
 
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests.common import TransactionCase
+
+from odoo.addons.base.tests.common import BaseCommon
 
 
-class TestStockNoNegative(TransactionCase):
+class TestStockNoNegative(BaseCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -41,7 +42,8 @@ class TestStockNoNegative(TransactionCase):
             {
                 "name": name,
                 "categ_id": self.product_ctg.id,
-                "type": "product",
+                "is_storable": True,
+                "type": "consu",
                 "allow_negative_stock": False,
             }
         )
@@ -52,7 +54,8 @@ class TestStockNoNegative(TransactionCase):
             {
                 "name": name,
                 "categ_id": self.product_ctg.id,
-                "type": "product",
+                "is_storable": True,
+                "type": "consu",
                 "tracking": "lot",
                 "allow_negative_stock": False,
             }
@@ -85,7 +88,6 @@ class TestStockNoNegative(TransactionCase):
 
         self.stock_move = self.env["stock.move"].create(
             {
-                "name": "Test Move",
                 "product_id": self.product.id,
                 "product_uom_qty": 100.0,
                 "product_uom": self.product.uom_id.id,
@@ -93,7 +95,7 @@ class TestStockNoNegative(TransactionCase):
                 "state": "draft",
                 "location_id": self.location_id.id,
                 "location_dest_id": self.location_dest_id.id,
-                "quantity_done": 100.0,
+                "quantity": 100.0,
             }
         )
 
@@ -113,7 +115,6 @@ class TestStockNoNegative(TransactionCase):
 
         self.stock_move_with_lot = self.env["stock.move"].create(
             {
-                "name": "Test Move",
                 "product_id": self.product_with_lot.id,
                 "product_uom_qty": 100.0,
                 "product_uom": self.product_with_lot.uom_id.id,
@@ -131,6 +132,26 @@ class TestStockNoNegative(TransactionCase):
         self.stock_picking.action_confirm()
         with self.assertRaises(ValidationError):
             self.stock_picking.button_validate()
+
+    def test_check_constrains_with_lot(self):
+        """Assert that constraint is raised when user
+        tries to validate the stock operation which would
+        make the stock level of the product negative with
+        a product with lot"""
+        self.stock_picking_with_lot.action_confirm()
+        self.stock_move_line_with_lot = self.env["stock.move.line"].create(
+            {
+                "product_id": self.product_with_lot.id,
+                "quantity": 100.0,
+                "picking_id": self.stock_picking_with_lot.id,
+                "move_id": self.stock_move_with_lot.id,
+                "location_id": self.location_id.id,
+                "location_dest_id": self.location_dest_id.id,
+                "lot_id": self.lot1.id,
+            }
+        )
+        with self.assertRaises(ValidationError):
+            self.stock_picking_with_lot.button_validate()
 
     def test_true_allow_negative_stock_product(self):
         """Assert that negative stock levels are allowed when
@@ -166,11 +187,21 @@ class TestStockNoNegative(TransactionCase):
         the allow_negative_stock is set active in the product with lot"""
         self.product_with_lot.allow_negative_stock = True
         self.stock_picking_with_lot.action_confirm()
-        self.stock_picking_with_lot.move_ids.quantity_done = 100
         with self.assertRaises(UserError):
-            self.stock_picking_with_lot._action_done()
-        self.stock_picking_with_lot.move_ids.move_line_ids[0].lot_id = self.lot1.id
-        self.stock_picking_with_lot._action_done()
+            self.stock_picking_with_lot.button_validate()
+        # create Detail Operations (move line with lot)
+        self.stock_move_line_with_lot = self.env["stock.move.line"].create(
+            {
+                "product_id": self.product_with_lot.id,
+                "quantity": 100.0,
+                "picking_id": self.stock_picking_with_lot.id,
+                "move_id": self.stock_move_with_lot.id,
+                "location_id": self.location_id.id,
+                "location_dest_id": self.location_dest_id.id,
+                "lot_id": self.lot1.id,
+            }
+        )
+        self.stock_picking_with_lot.button_validate()
         quant = self.env["stock.quant"].search(
             [
                 ("product_id", "=", self.product_with_lot.id),
