@@ -602,7 +602,8 @@ class SaleOrderLine(models.Model):
                 'product_uom_id': line.product_uom_id.id,
                 'product_uom_qty': 0 if subscription_state == '7_upsell' else line.product_uom_qty,
                 'price_unit': line.price_unit,
-                'display_type': line.display_type
+                'display_type': line.display_type,
+                'is_optional': line.is_optional,
             }
             # If the line product is delivery product, set is_delivery=True to consider it as delivery line
             if line._is_delivery():

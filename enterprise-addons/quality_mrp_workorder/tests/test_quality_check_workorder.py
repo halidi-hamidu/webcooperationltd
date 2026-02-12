@@ -319,6 +319,93 @@ class TestQualityCheckWorkorder(TestMrpCommon):
         domain_sn_qc = ['|', ('lot_ids', 'in', finished_sn.ids), ('finished_lot_ids', 'in', finished_sn.ids)]
         self.assertEqual(list(finished_sn.action_open_quality_checks()['domain']), domain_sn_qc)
 
+    def test_merge_mo_from_orderpoints_2(self):
+        """
+        Ensure that triggering a manufacturing reordering rule:
+        - Updates an existing MO if none of its quality check has been performed yet
+        - Creates a new MO if the last MO's product_qty cannot be updated due to a performed quality check
+        """
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
+        warehouse_2 = self.env['stock.warehouse'].create({'name': 'WH 2', 'code': 'WH2'})
+        route_manufacture = warehouse.manufacture_pull_id.route_id
+        self.product_1.route_ids = [Command.set([route_manufacture.id])]
+        orderpoints = self.env['stock.warehouse.orderpoint'].create([{
+            'product_id': self.product_1.id,
+            'warehouse_id': warehouse.id,
+            'product_min_qty': 0,
+            'product_max_qty': 0,
+            'trigger': 'auto',
+        } for warehouse in (warehouse, warehouse_2)])
+
+        self.bom = self.env['mrp.bom'].create({
+            'product_id': self.product_1.id,
+            'product_tmpl_id': self.product_1.product_tmpl_id.id,
+            'product_uom_id': self.product_1.uom_id.id,
+            'product_qty': 1.0,
+            'consumption': 'flexible',
+            'operation_ids': [
+                Command.create({'name': 'Assembly', 'workcenter_id': self.workcenter_1.id, 'time_cycle': 15, 'sequence': 1}),
+                Command.create({'name': 'Assembly2', 'workcenter_id': self.workcenter_1.id})
+            ],
+            'type': 'normal',
+            'bom_line_ids': [
+                Command.create({'product_id': self.product_2.id, 'product_qty': 1})
+            ]
+        })
+        self.env['quality.point'].create([
+            {
+                'title': 'Operation QP',
+                'measure_on': 'operation',
+                'product_ids': [Command.link(self.product_1.id)],
+                'operation_id': self.bom.operation_ids[1].id,
+                'test_type_id': self.env.ref('quality.test_type_instructions').id,
+            },
+            {
+                'title': 'Production QP',
+                'measure_on': 'product',
+                'picking_type_ids': [(Command.link(warehouse_2.manu_type_id.id))],
+                'product_ids': [Command.link(self.product_1.id)],
+            }
+        ])
+        reference = self.env['stock.reference'].create({'name': "lovely reference"})
+        deliveries = self.env['stock.picking'].create([{
+            'name': f"Lovely {wh.code} Delivery {i}",
+            'location_id': wh.lot_stock_id.id,
+            'location_dest_id': self.ref('stock.stock_location_customers'),
+            'picking_type_id': wh.out_type_id.id,
+            'move_ids': [Command.create({
+                'location_id': wh.lot_stock_id.id,
+                'location_dest_id': self.ref('stock.stock_location_customers'),
+                'product_id': self.product_1.id,
+                'product_uom_qty': 1,
+                'reference_ids': [Command.set(reference.ids)],
+            })]
+        } for i in range(1, 4) for wh in (warehouse, warehouse_2)])
+
+        deliveries[:2].action_confirm()
+        mos = self.env['mrp.production'].search([('orderpoint_id', 'in', orderpoints.ids)], limit=2, order='warehouse_id.id')
+        self.assertRecordValues(mos, [
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse_2.id},
+        ])
+
+        deliveries[2:4].action_confirm()
+        self.assertRecordValues(mos, [
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse_2.id},
+        ])
+
+        mos[0].workorder_ids[1].current_quality_check_id.action_next()
+        mos[1].check_ids[0].do_pass()
+        deliveries[4:].action_confirm()
+        mos = self.env['mrp.production'].search([('orderpoint_id', 'in', orderpoints.ids)], limit=4, order='warehouse_id.id, id')
+        self.assertRecordValues(mos, [
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse_2.id},
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse_2.id},
+        ])
+
 
 @tagged('post_install', '-at_install')
 class TestPickingWorkorderClientActionQuality(test_tablet_client_action.TestWorkorderClientActionCommon, HttpCase):

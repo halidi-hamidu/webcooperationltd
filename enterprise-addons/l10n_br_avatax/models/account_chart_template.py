@@ -9,7 +9,7 @@ class AccountChartTemplate(models.AbstractModel):
     def _load(self, template_code, company, install_demo, force_create=True):
         res = super()._load(template_code, company, install_demo, force_create)
         if template_code == 'br':
-            self._l10n_br_init_avatax_code(company)
+            self.with_context(tracking_disable=True)._l10n_br_init_avatax_code(company)
         return res
 
     @template('br', 'account.tax')

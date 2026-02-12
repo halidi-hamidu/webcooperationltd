@@ -211,7 +211,7 @@ class ProjectProject(models.Model):
 
     def _update_action_context(self, action):
         if self.is_fsm:
-            action['context'].update({'create': False, 'edit': False})
+            action['context'].update({'create': False})
         return action
 
     def action_view_sols(self):

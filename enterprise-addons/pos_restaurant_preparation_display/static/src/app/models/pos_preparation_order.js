@@ -1,15 +1,11 @@
-import { deserializeDateTime } from "@web/core/l10n/dates";
+import { computeDurationSinceDate } from "@pos_enterprise/app/utils/utils";
 import { registry } from "@web/core/registry";
 import { Base } from "@point_of_sale/app/models/related_models";
 export class PosPrepOrder extends Base {
     static pythonModel = "pos.prep.order";
 
     getDurationSinceFireDate() {
-        const timeDiff = (
-            (luxon.DateTime.now().ts - deserializeDateTime(this.course.fired_date).ts) /
-            1000
-        ).toFixed(0);
-        return Math.round(timeDiff / 60);
+        return computeDurationSinceDate(this.pos_course_id.fired_date);
     }
 }
 

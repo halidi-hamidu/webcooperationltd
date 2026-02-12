@@ -191,14 +191,13 @@ class PosOrder(models.Model):
         AccountTax._round_base_lines_tax_details(base_lines, self.company_id)
         AccountTax._add_accounting_data_in_base_lines_tax_details(base_lines, self.company_id)
 
-        default_operation_type = self.env.ref("l10n_br_avatax.operation_type_1")
+        operation_type = self.env.ref("l10n_br_avatax.operation_type_1")
         res = []
         for line in base_lines:
-            product = line['record'].product_id
             res.append({
                 'base_line': line,
-                'description': product.name,
-                'operation_type': product.l10n_br_operation_type_pos_id or default_operation_type,
+                'description': line['record'].product_id.name,
+                'operation_type': operation_type,
             })
 
         return res
@@ -534,11 +533,13 @@ class PosOrder(models.Model):
         return self.id
 
     def _l10n_br_generate_access_key(self):
+        # If the database has been updated from pre 18.4, their vat may not be in the compacted mode.
+        compacted_vat = "".join(c for c in (self.company_id.partner_id.vat or '') if c.isdigit())
         access_key = "".join(
             [
                 f"{self._l10n_br_get_cuf(self.company_id.state_id):2.2}",
                 f"{self.date_order.strftime('%y%m'):4.4}",  # dhEmi
-                f"{self.company_id.partner_id.vat:14.14}",  # Emitter CNPJ
+                f"{compacted_vat:14.14}",  # Emitter CNPJ
                 f"{self.env.ref('l10n_br.dt_65').code:>02.2}",  # mod (NFC-e)
                 f"{self.config_id.l10n_br_invoice_serial:>03.3}",  # serie
                 self.l10n_br_edi_number,  # nNF (9 characters)

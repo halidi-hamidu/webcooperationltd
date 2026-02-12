@@ -2,9 +2,13 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
+import logging
 
 from odoo import models
 from odoo.http import request
+from odoo.tools import html_sanitize
+
+_logger = logging.getLogger(__name__)
 
 
 class IrHttp(models.AbstractModel):
@@ -42,4 +46,12 @@ class IrHttp(models.AbstractModel):
             result['warning'] = warn_enterprise
             result['expiration_date'] = ICP.get_param('database.expiration_date')
             result['expiration_reason'] = ICP.get_param('database.expiration_reason')
+            if ICP.get_param('sysadmin.message'):
+                try:
+                    sysadmin_message = json.loads(ICP.get_param('sysadmin.message'))
+                    if 'message' in sysadmin_message:
+                        sysadmin_message['message'] = html_sanitize(sysadmin_message['message'], sanitize_tags=False)
+                    result['sysadmin_message'] = sysadmin_message
+                except Exception:
+                    _logger.exception('Failed to load sysadmin.message in ir.config_parameter')
         return result

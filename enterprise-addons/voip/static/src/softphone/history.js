@@ -72,11 +72,11 @@ export class History extends Component {
                 return "text-danger";
             case "calling":
             case "ongoing":
-                return call.id === pendingCall?.id ? "text-muted" : "text-danger";
+                return call.id === pendingCall?.id ? "" : "text-danger";
             case "aborted":
             case "terminated":
             default:
-                return "text-muted";
+                return "";
         }
     }
 

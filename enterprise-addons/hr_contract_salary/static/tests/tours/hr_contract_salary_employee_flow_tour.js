@@ -230,13 +230,25 @@ export const salaryConfigTourSubmitAndSign = () => [
     },
 ];
 
+export const salaryConfigTourCheckPersonalInfo = () => [
+    {
+        content: "Country",
+        trigger: "select[name=private_country_id]:not(:visible) option:checked:contains('Belgium')"
+    },
+    {
+        content: "State",
+        trigger: "select[name=private_state_id]:not(:visible) option:checked:contains('Antwerp')"
+    },
+];
+
 registry.category("web_tour.tours").add("hr_contract_salary_employee_flow_tour", {
     url: "/odoo",
     wait_for: Promise.resolve(odoo.__TipTemplateDef),
     steps: () => [
         ...salaryConfigTourStart(),
+        ...salaryConfigTourCheckPersonalInfo(),
         ...salaryConfigTourPersonalInfo(),
-        ...salaryConfigTourSubmitAndSign(),        
+        ...salaryConfigTourSubmitAndSign(),
     ]
 });
 

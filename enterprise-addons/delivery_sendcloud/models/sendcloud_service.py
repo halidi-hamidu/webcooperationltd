@@ -588,8 +588,10 @@ class SendCloud:
 
         if picking.sale_id:
             currency_name = picking.sale_id.currency_id.name
+            shipping_cost = sum(sol.price_total for sol in picking.sale_id.order_line if sol.is_delivery)
         else:
             currency_name = picking.company_id.currency_id.name
+            shipping_cost = sum(ml.sale_price for ml in picking.move_line_ids)
 
         parcel_common = {
             'name': (to_partner_id.name or to_partner_id.parent_id.name or '')[:75],
@@ -608,9 +610,12 @@ class SendCloud:
             'is_return': is_return,
             'shipping_method_checkout_name': sendcloud_product_id.name,
             'order_number': picking.sale_id.name or picking.name,
-            'customs_shipment_type': 4 if is_return else 2,
-            'customs_invoice_nr': picking.origin or '',
-            'total_order_value_currency': currency_name
+            'total_order_value_currency': currency_name,
+            'customs_information': {
+                'customs_shipment_type': 4 if is_return else 2,
+                'customs_invoice_nr': picking.sale_id.invoice_ids[:1].name or picking.origin or '',
+                'freight_costs': float_repr(shipping_cost, 2),
+            },
         }
         if sender_id:
             # "sender_id" implies that "not is_return" (c.f. send_shipment())

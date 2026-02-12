@@ -32,7 +32,7 @@ class AccountChartTemplate(models.AbstractModel):
         # EXTEND account to setup mcc default data for the new company and sets the stripe journal (if present) as the default journal
         res = super()._post_load_data(template_code, company, template_data)
         company._create_stripe_issuing_journal()  # Needed with the generic package
-        if not company.stripe_journal_id.currency_id:
+        if company.stripe_currency_id and not company.stripe_journal_id.currency_id:
             company.stripe_journal_id.currency_id = company.stripe_currency_id
         company._stripe_issuing_setup_mcc()
         return res

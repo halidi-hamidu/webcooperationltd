@@ -30,7 +30,7 @@ patch(OrderSummary.prototype, {
         const selectedLine = order.getSelectedOrderline();
         // if newQuantity is the same sign as old quantity, then the product of the two will be
         // a positive number and thus will not change the sign of the selectedLine.get_display_price()
-        const newPriceSign = Math.sign(selectedLine.currencyDisplayPriceUnit * newQuantity);
+        const newPriceSign = Math.sign(selectedLine.displayPriceUnit * newQuantity);
         if (
             order.lines.some(
                 (l) => l.uuid != selectedLine.uuid && l.prices.total_included * newPriceSign < 0

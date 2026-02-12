@@ -1,5 +1,8 @@
 import { mailModels } from "@mail/../tests/mail_test_helpers";
-import { defineModels, mockService, onRpc } from "@web/../tests/web_test_helpers";
+import { mockWorker } from "@odoo/hoot-mock";
+import { VoipWorker } from "@voip/worker/voip_worker";
+import { defineModels, MockServer, mockService, onRpc } from "@web/../tests/web_test_helpers";
+import { patch } from "@web/core/utils/patch";
 
 import { MailActivity } from "./mock_server/mock_models/mail_activity";
 import { ResPartner } from "./mock_server/mock_models/res_partner";
@@ -28,6 +31,12 @@ export function setupVoipTests() {
         stopPlaying() {},
     });
     defineModels(voipModels);
+    patch(MockServer.prototype, {
+        start() {
+            setupVoipWorker();
+            return super.start(...arguments);
+        },
+    });
 }
 
 export const voipModels = {
@@ -38,3 +47,19 @@ export const voipModels = {
     VoipCall,
     VoipProvider,
 };
+
+let voipWorker = null;
+
+/** @param {SharedWorker|Worker} worker */
+function onWorkerConnected(worker) {
+    const client = worker._messageChannel.port2;
+    client.addEventListener("message", (ev) => {
+        voipWorker.handleMessage(ev);
+    });
+    client.start();
+}
+
+function setupVoipWorker() {
+    voipWorker = new VoipWorker();
+    mockWorker(onWorkerConnected);
+}

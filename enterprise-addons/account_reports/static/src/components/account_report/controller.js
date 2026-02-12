@@ -849,7 +849,7 @@ export class AccountReportController {
                 callOnSectionsSource,
             ],
             {
-                context: Object.assign({}, this.context, actionContext)
+                context: Object.assign({}, this.action.context, actionContext)
             }
         );
         if (dispatchReportAction?.help) {

@@ -7,15 +7,13 @@ from odoo.exceptions import RedirectWarning
 from odoo.tests import tagged
 from odoo.tools import file_open
 
-from odoo.addons.l10n_ar_reports.tests.test_reports import (
-    TestReports as TestARReportsCommon,
-)
+from odoo.addons.l10n_ar_reports.tests.test_reports import TestArReports
 
 _logger = logging.getLogger(__name__)
 
 
 @tagged('post_install_l10n', 'post_install', '-at_install')
-class TestSimpleReports(TestARReportsCommon):
+class TestArSimpleReports(TestArReports):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -62,14 +60,12 @@ class TestSimpleReports(TestARReportsCommon):
 
         self.tax_perc_iibb.active = True
         self.tax_perc_iibb.amount = 3
-        invoice = self._create_invoice_from_dict({
-            "move_type": 'out_invoice',
-            "partner_id": self.res_partner_servicios_globales,
-            "date": '2024-01-01',
-            "invoice_date": '2024-01-01',
-            "invoice_line_ids": [
-                {'product_id': self.product_iva_105_perc, 'price_unit': 10000.0, 'quantity': 1},
-            ],
-        })
-        invoice.action_post()
+        self._create_invoice_one_line(
+            product_id=self.product_iva_105_perc,
+            price_unit=10000.0,
+            partner_id=self.res_partner_servicios_globales,
+            date='2024-01-01',
+            invoice_date='2024-01-01',
+            post=True,
+        )
         self._test_csv_file('SaleInvoiceMixed.csv', 'sale_invoice')

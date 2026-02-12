@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models
-
 from datetime import datetime, time
+from dateutil.relativedelta import relativedelta
+
+from odoo import fields, models
 
 
 class HrVersion(models.Model):
@@ -23,6 +24,7 @@ class HrVersion(models.Model):
             'struct_id': self.structure_type_id.default_struct_id.id,
             'company_id': self.employee_id.company_id.id,
             'name': 'Payslip Simulation',
+            'date_from': self.contract_date_start + relativedelta(months=1, day=1),
         })
 
         # For hourly wage contracts generate the worked_days_line_ids manually
@@ -88,14 +90,7 @@ class HrVersion(models.Model):
             })
 
         else:
-            work_time_rate = payslip.version_id.work_time_rate
-            new_wage_on_payroll = old_wage_on_payroll * work_time_rate
-            new_wage = old_wage * work_time_rate
-            is_full_time = work_time_rate == 1.0
-            new_payslip_vals.update({
-                'wage_on_signature': new_wage_on_payroll,
-                'wage': new_wage,
-            })
+            is_full_time = True
 
         payslip = payslip.with_context(
             salary_simulation=True,

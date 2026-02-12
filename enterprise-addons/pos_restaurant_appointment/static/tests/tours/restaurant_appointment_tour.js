@@ -13,45 +13,47 @@ const ProductScreen = { ...ProductScreenPos, ...ProductScreenResto };
 registry.category("web_tour.tours").add("RestaurantAppointmentTour", {
     steps: () =>
         [
-            Chrome.startPoS(),
-            Dialog.confirm("Open Register"),
+            Chrome.withTimeFreeze(1769601600000, [
+                Chrome.startPoS(),
+                Dialog.confirm("Open Register"),
 
-            // Make sure there is a currently active order.
-            FloorScreen.clickTable("4"),
-            ProductScreen.clickDisplayedProduct("Coca-Cola", true),
+                // Make sure there is a currently active order.
+                FloorScreen.clickTable("4"),
+                ProductScreen.clickDisplayedProduct("Coca-Cola", true),
 
-            // Check that the booking gantt view is shown.
-            {
-                content:
-                    "Wait few ms before clicking on Booking to ensure gantt view will be shown",
-                isActive: ["auto"],
-                trigger: "body",
-                async run() {
-                    await delay(1000);
+                // Check that the booking gantt view is shown.
+                {
+                    content:
+                        "Wait few ms before clicking on Booking to ensure gantt view will be shown",
+                    isActive: ["auto"],
+                    trigger: "body",
+                    async run() {
+                        await delay(1000);
+                    },
                 },
-            },
-            {
-                trigger: ".pos-leftheader button:contains('Booking')",
-                run: "click",
-            },
-            RestaurantAppointment.isKanbanViewShown(),
-            refresh(),
-            RestaurantAppointment.isKanbanViewShown(),
-            Chrome.clickMenuButton(),
-            Chrome.clickMenuDropdownOption("Reload Data"),
-            Chrome.clickBtn("Limited", { expectUnloadPage: true }),
-            RestaurantAppointment.isKanbanViewShown(),
-            Chrome.clickMenuButton(),
-            Chrome.clickMenuDropdownOption("Reload Data"),
-            Chrome.clickBtn("Full", { expectUnloadPage: true }),
-            RestaurantAppointment.isKanbanViewShown(),
-            Chrome.clickPlanButton(),
-            RestaurantAppointment.appointmentLabel(5, "Test Lunch"),
-            RestaurantAppointment.checkAppointmentLabelNotPresent(4, "Tomorrow Appointment"),
+                {
+                    trigger: ".pos-leftheader button:contains('Booking')",
+                    run: "click",
+                },
+                RestaurantAppointment.isKanbanViewShown(),
+                refresh(),
+                RestaurantAppointment.isKanbanViewShown(),
+                Chrome.clickMenuButton(),
+                Chrome.clickMenuDropdownOption("Reload Data"),
+                Chrome.clickBtn("Limited", { expectUnloadPage: true }),
+                RestaurantAppointment.isKanbanViewShown(),
+                Chrome.clickMenuButton(),
+                Chrome.clickMenuDropdownOption("Reload Data"),
+                Chrome.clickBtn("Full", { expectUnloadPage: true }),
+                RestaurantAppointment.isKanbanViewShown(),
+                Chrome.clickPlanButton(),
+                RestaurantAppointment.appointmentLabel(5, "Test Lunch"),
+                RestaurantAppointment.checkAppointmentLabelNotPresent(4, "Tomorrow Appointment"),
 
-            // Going back to the table, it should still be possible to add items
-            FloorScreen.clickTable("4"),
-            ProductScreen.clickDisplayedProduct("Coca-Cola", true),
+                // Going back to the table, it should still be possible to add items
+                FloorScreen.clickTable("4"),
+                ProductScreen.clickDisplayedProduct("Coca-Cola", true),
+            ]),
         ].flat(),
 });
 

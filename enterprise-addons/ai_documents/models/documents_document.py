@@ -134,7 +134,7 @@ class DocumentsDocument(models.Model):
     @api.model
     def _get_search_panel_fields(self):
         panel_fields = super()._get_search_panel_fields()
-        if self.env.user._is_admin():
+        if self.env.user.has_group('base.group_system'):
             panel_fields.append("ai_sort_prompt")
         return panel_fields
 

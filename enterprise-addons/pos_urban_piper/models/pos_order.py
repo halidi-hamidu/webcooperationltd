@@ -1,3 +1,8 @@
+
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+import json
+
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 
@@ -34,3 +39,22 @@ class PosOrder(models.Model):
     def _load_pos_preparation_data_fields(self):
         res = super()._load_pos_preparation_data_fields()
         return res + ['delivery_status', 'delivery_provider_id', 'delivery_identifier', 'prep_time', 'config_id']
+
+    def mark_urbanpiper_prep_order_as_printed(self):
+        self.ensure_one()
+        # Lock the line
+        self.env.cr.execute(
+            'SELECT id FROM pos_order WHERE id = %s FOR UPDATE NOWAIT',
+            (self.id,)
+        )
+
+        lopc = json.loads(self.last_order_preparation_change) if self.last_order_preparation_change else {
+            'lines': {},
+            'metadata': {},
+        }
+        if lopc.get('urbanpiper_printed', False):
+            raise ValueError("This delivery order has already been printed automatically.")
+
+        lopc['urbanpiper_printed'] = True
+        self.last_order_preparation_change = json.dumps(lopc)
+        return True

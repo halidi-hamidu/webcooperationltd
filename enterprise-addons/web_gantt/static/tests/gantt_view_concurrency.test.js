@@ -51,7 +51,7 @@ test("concurrent range switches return in inverse order", async () => {
 
     let content = getGridContent();
     expect(content.groupHeaders.map((gh) => gh.title)).toEqual(["December 2018"]);
-    expect(content.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(content.range).toBe("12/01/2018 -> 02/28/2019");
     expect(model.data.records).toHaveLength(6);
 
     // switch to 'week' range (this rpc will be delayed)
@@ -122,7 +122,7 @@ test("concurrent range switches return with gantt unavailabilities", async () =>
     });
 
     let content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(content.range).toBe("12/01/2018 -> 02/28/2019");
     expect(content.groupHeaders.map((h) => h.title)).toEqual(["December 2018"]);
     expect(model.data.records).toHaveLength(6);
     expect(getCellColorProperties("08", "December 2018")).toEqual([]);
@@ -179,7 +179,7 @@ test("concurrent range selections", async () => {
         arch: `<gantt date_start="start" date_stop="stop"/>`,
     });
 
-    expect(getGridContent().range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(getGridContent().range).toBe("12/01/2018 -> 02/28/2019");
 
     reloadProm = new Deferred();
     firstReloadProm = reloadProm;
@@ -187,7 +187,7 @@ test("concurrent range selections", async () => {
     reloadProm = null;
     await selectCustomRange({ startDate: "2019-01-01", stopDate: "2019-01-31" });
     firstReloadProm.resolve();
-    expect(getGridContent().range).toBe("From: 01/01/2019 to: 01/31/2019");
+    expect(getGridContent().range).toBe("01/01/2019 -> 01/31/2019");
 });
 
 test("concurrent pill resize and groupBy change", async () => {
@@ -362,7 +362,7 @@ test("concurrent display mode change and fetch", async () => {
     });
 
     let content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(content.range).toBe("12/01/2018 -> 02/28/2019");
     const initialRows = [
         {
             pills: [
@@ -380,13 +380,13 @@ test("concurrent display mode change and fetch", async () => {
     def = new Deferred();
     await selectCustomRange({ startDate: "2018-12-01", stopDate: "2019-06-15" });
     content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 06/15/2019");
+    expect(content.range).toBe("12/01/2018 -> 06/15/2019");
     expect(content.rows).toEqual(initialRows);
 
     await click(SELECTORS.sparse);
     await animationFrame();
     content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 06/15/2019");
+    expect(content.range).toBe("12/01/2018 -> 06/15/2019");
     expect(content.rows).toEqual([
         {
             pills: [
@@ -413,7 +413,7 @@ test("concurrent display mode change and fetch", async () => {
     def.resolve();
     await animationFrame();
     content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 06/15/2019");
+    expect(content.range).toBe("12/01/2018 -> 06/15/2019");
     expect(content.rows).toEqual([
         {
             pills: [

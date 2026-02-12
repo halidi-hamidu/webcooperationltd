@@ -98,15 +98,16 @@ class AccountMove(models.Model):
         rslt = super(AccountMove, self)._get_refund_copy_fields()
         return rslt + ['l10n_es_reports_mod347_invoice_type', 'l10n_es_reports_mod349_invoice_type']
 
-    @api.depends('partner_id.country_code')
+    @api.depends('partner_id.country_code', 'invoice_line_ids.tax_ids')
     def _compute_l10n_es_reports_mod347_invoice_type(self):
         for record in self:
             # Here we check if the bill is from an employee by checking the parent ID. We do it this way
             # because of the expense module that modify the commercial_partner_id to not invoice the company itself.
             # See _compute_commercial_partner_id from account.move in hr_expense module
             not_a_bill_from_employee = record.company_id.partner_id != record.partner_id.parent_id.commercial_partner_id
+            withholding_taxes = record.invoice_line_ids.tax_ids.filtered(lambda tax: tax.l10n_es_type == 'retencion')
             regular = record.is_invoice(True) and record.partner_id.country_code == 'ES' and not_a_bill_from_employee
-            record.l10n_es_reports_mod347_invoice_type = 'regular' if regular else False
+            record.l10n_es_reports_mod347_invoice_type = 'regular' if regular and not withholding_taxes else False
 
     @api.depends('partner_id.country_code', 'move_type')
     def _compute_l10n_es_reports_mod349_invoice_type(self):

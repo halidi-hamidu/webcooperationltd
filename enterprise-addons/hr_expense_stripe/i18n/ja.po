@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * hr_expense_stripe
 #
-# "Junko Augias (juau)" <juau@odoo.com>, 2025.
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2025-12-24 10:24+0000\n"
+"POT-Creation-Date: 2026-02-06 18:42+0000\n"
+"PO-Revision-Date: 2026-02-04 02:29+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
 "Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense_stripe/ja/>\n"
@@ -1058,7 +1058,7 @@ msgstr "有効化"
 #: model:ir.model.fields.selection,name:hr_expense_stripe.selection__hr_expense_stripe_card__state__active
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.hr_expense_stripe_card_view_search
 msgid "Active"
-msgstr "アクティブ"
+msgstr "有効"
 
 #. module: hr_expense_stripe
 #: model:product.mcc.stripe.tag,name:hr_expense_stripe.advertising_services
@@ -1237,7 +1237,7 @@ msgstr "バンドオーケストラ"
 #. module: hr_expense_stripe
 #: model:ir.model,name:hr_expense_stripe.model_account_bank_statement_line
 msgid "Bank Statement Line"
-msgstr "銀行取引明細書内容"
+msgstr "銀行取引明細行"
 
 #. module: hr_expense_stripe
 #: model:ir.model.fields,field_description:hr_expense_stripe.field_hr_expense_stripe_topup_wizard__statement_description
@@ -1291,7 +1291,7 @@ msgstr "カードをブロックする"
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.hr_expense_stripe_card_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.view_hr_expense_stripe_card_kanban
 msgid "Blocked"
-msgstr "不許可"
+msgstr "ブロック中"
 
 #. module: hr_expense_stripe
 #: model:product.mcc.stripe.tag,name:hr_expense_stripe.boat_dealers
@@ -2566,7 +2566,7 @@ msgstr "チェックした場合は、新しいメッセージに注意が必要
 #: model:ir.model.fields,help:hr_expense_stripe.field_hr_expense_stripe_cardholder_wizard__message_has_error
 #: model:ir.model.fields,help:hr_expense_stripe.field_hr_expense_stripe_cardholder_wizard__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "選択されている場合、一部のメッセージで配信エラーが発生しています。"
+msgstr "有効にすると、一部のメッセージに配信エラーが発生します。"
 
 #. module: hr_expense_stripe
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.hr_expense_stripe_topup_wizard_form
@@ -3698,7 +3698,7 @@ msgstr "切手・コイン店"
 #. module: hr_expense_stripe
 #: model:ir.model.fields,field_description:hr_expense_stripe.field_hr_expense_stripe_cardholder_wizard__billing_state_id
 msgid "State"
-msgstr "状況"
+msgstr "ステータス"
 
 #. module: hr_expense_stripe
 #: model:product.mcc.stripe.tag,name:hr_expense_stripe.stationery_stores_office_and_school_supply_stores
@@ -3929,13 +3929,6 @@ msgid ""
 msgstr ""
 "この仕訳帳に関連付けられたStripeカード。経費の支払いやStripe Issuing残高の入"
 "金に使用できます。"
-
-#. module: hr_expense_stripe
-#. odoo-python
-#: code:addons/hr_expense_stripe/models/account_journal.py:0
-msgid "Stripe issuing is not supported for your localization"
-msgstr ""
-"お客様のローカリゼーション設定ではStripe Issuingはサポートされていません"
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4462,6 +4455,13 @@ msgstr "取引が承認されました"
 
 #. module: hr_expense_stripe
 #. odoo-python
+#: code:addons/hr_expense_stripe/utils.py:0
+msgid ""
+"Transaction amount exceeded the card daily/transaction hard limit of 50.000 €"
+msgstr ""
+
+#. module: hr_expense_stripe
+#. odoo-python
 #: code:addons/hr_expense_stripe/models/hr_expense_stripe_card.py:0
 msgid "Transaction amount exceeds the interval limit"
 msgstr "取引額がインターバル上限を超えています"
@@ -4562,7 +4562,7 @@ msgstr "不明なエラーコード"
 #. odoo-javascript
 #: code:addons/hr_expense_stripe/static/src/fields/monetary_blank_if_zero.xml:0
 msgid "Unlimited"
-msgstr ""
+msgstr "無制限"
 
 #. module: hr_expense_stripe
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.view_hr_expense_stripe_card_form
@@ -4842,8 +4842,8 @@ msgid ""
 "You can't change the employee of an active card. Please create a new card "
 "instead."
 msgstr ""
-"アクティブなカードの従業員を変更することはできません。代わりに新しいカードを"
-"作成してください。"
+"有効なカードの従業員を変更することはできません。代わりに新しいカードを作成し"
+"てください。"
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4867,8 +4867,7 @@ msgid ""
 "You cannot delete a payment method line that is used by an active/paused "
 "card."
 msgstr ""
-"アクティブまたは一時停止中のカードで使用されている支払い方法の行は削除できま"
-"せん。"
+"有効または一時停止中のカードで使用されている支払い方法の行は削除できません。"
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4876,6 +4875,14 @@ msgstr ""
 msgid ""
 "You cannot delete an expense that was created from a Stripe card transaction."
 msgstr "Stripeカード取引から作成された経費は削除できません。"
+
+#. module: hr_expense_stripe
+#. odoo-python
+#: code:addons/hr_expense_stripe/models/hr_expense.py:0
+msgid ""
+"You cannot duplicate an expense that was created from a Stripe card "
+"transaction."
+msgstr ""
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4907,6 +4914,8 @@ msgid ""
 "You cannot split an expense that is reserved. Please wait for the "
 "transaction to be captured."
 msgstr ""
+"予約状態の経費は分割できません。取引が確定(キャプチャ)されるまでお待ちくださ"
+"い。"
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4915,6 +4924,8 @@ msgid ""
 "You cannot submit an expense that is reserved. Please wait for the "
 "transaction to be captured."
 msgstr ""
+"予約状態の経費は提出できません。取引が確定(キャプチャ)されるまでお待ちくださ"
+"い。"
 
 #. module: hr_expense_stripe
 #. odoo-python
@@ -4924,9 +4935,9 @@ msgid ""
 "inactive Stripe cards. Please manually block all cards before uninstalling "
 "the module."
 msgstr ""
-"アクティブまたは非アクティブなStripeカードが存在する間は、「経費カード」モ"
-"ジュールをアンインストールできません。モジュールをアンインストールする前に、"
-"すべてのカードを手動でブロックしてください。"
+"有効または無効なStripeカードが存在する間は、「経費カード」モジュールをアンイ"
+"ンストールできません。モジュールをアンインストールする前に、すべてのカードを"
+"手動でブロックしてください。"
 
 #. module: hr_expense_stripe
 #. odoo-javascript
@@ -4990,7 +5001,7 @@ msgstr "経費カードが発送されました"
 #. module: hr_expense_stripe
 #: model:mail.template,subject:hr_expense_stripe.email_template_hr_expense_stripe_card_assigned
 msgid "Your Expense Card has been Assigned"
-msgstr ""
+msgstr "経費カードが割り当てられました"
 
 #. module: hr_expense_stripe
 #: model:mail.template,subject:hr_expense_stripe.email_template_hr_expense_stripe_card_ordered
@@ -5040,6 +5051,10 @@ msgstr "ID"
 #: model_terms:ir.ui.view,arch_db:hr_expense_stripe.res_config_settings_view_form
 msgid "terms and conditions"
 msgstr "利用規約"
+
+#~ msgid "Stripe issuing is not supported for your localization"
+#~ msgstr ""
+#~ "お客様のローカリゼーション設定ではStripe Issuingはサポートされていません"
 
 #~ msgid ""
 #~ "<span class=\"card_cvc w-50 text-end stripe_card_text_sm\" "

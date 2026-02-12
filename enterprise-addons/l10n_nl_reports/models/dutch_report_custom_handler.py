@@ -56,11 +56,16 @@ class L10n_Nl_ReportsTaxReportHandler(models.AbstractModel):
         date_to = fields.Date.to_date(options['date']['date_to'])
         if options['l10n_nl_is_correction']:
             template_xmlid = 'l10n_nl_reports.suppletie_tax_report_sbr'
+            if date_to.year == 2025:
+                template_xmlid = 'l10n_nl_reports.suppletie_tax_report_sbr_nt19'
         else:
             template_xmlid = 'l10n_nl_reports.tax_report_sbr'
             if date_to.year == 2024:
                 # We still need to support the NT18 taxonomy for 2024 until that declaration period is over.
                 template_xmlid = 'l10n_nl_reports.tax_report_sbr_nt18'
+            elif date_to.year == 2025:
+                # We still need to support the NT19 taxonomy for 2025 until that declaration period is over.
+                template_xmlid = 'l10n_nl_reports.tax_report_sbr_nt19'
 
         report_template = self.env.ref(template_xmlid, raise_if_not_found=False)
         if not report_template:

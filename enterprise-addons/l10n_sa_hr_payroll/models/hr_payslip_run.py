@@ -22,16 +22,13 @@ class HrPayslipRun(models.Model):
         return self.l10n_sa_wps_file_reference
 
     def action_payment_report(self, export_format='l10n_sa_wps'):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'hr.payroll.payment.report.wizard',
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'new',
+        action = super().action_payment_report()
+        if self.company_id.country_code != 'SA':
+            return action
+        action.update({
             'context': {
-                'default_payslip_ids': self.slip_ids.ids,
-                'default_payslip_run_id': self.id,
+                **action['context'],
                 'default_export_format': export_format,
             },
-        }
+        })
+        return action

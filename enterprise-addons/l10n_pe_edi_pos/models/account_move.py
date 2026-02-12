@@ -8,6 +8,6 @@ class AccountMove(models.Model):
 
     def _post(self, soft=True):
         posted = super()._post(soft=soft)
-        self.filtered(lambda am: am.sudo().pos_order_ids).edi_document_ids.filtered(
+        self.filtered(lambda am: am.sudo().pos_order_ids and am.company_id.country_code == 'PE').edi_document_ids.filtered(
                 lambda d: d.state == 'to_send')._process_documents_web_services(job_count=1)
         return posted

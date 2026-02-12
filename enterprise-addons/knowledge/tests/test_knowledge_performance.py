@@ -112,7 +112,7 @@ class KnowledgePerformanceCase(KnowledgeCommonWData):
     @warmup
     def test_article_move_to(self):
         before_id = self.workspace_children[0].id
-        with self.assertQueryCount(employee=25):  # knowledge: 24
+        with self.assertQueryCount(employee=25):
             writable_article = self.workspace_children[1].with_env(self.env)
             writable_article.move_to(parent_id=writable_article.parent_id.id, before_article_id=before_id)
 
@@ -190,7 +190,7 @@ class KnowledgePerformanceSidebarCase(KnowledgeCommonWData):
     @users('employee')
     @warmup
     def test_article_tree_panel(self):
-        with self.assertQueryCount(employee=23):
+        with self.assertQueryCount(employee=22):
             self.wkspace_grand_children[0].with_user(self.env.user.id).get_sidebar_articles([self.article_shared.id])
 
     @users('employee')
@@ -201,5 +201,5 @@ class KnowledgePerformanceSidebarCase(KnowledgeCommonWData):
             'article_id': article_id
         } for article_id in (self.workspace_children | self.wkspace_grand_children).ids])
 
-        with self.assertQueryCount(employee=20):
+        with self.assertQueryCount(employee=19):
             self.wkspace_grand_children[0].with_user(self.env.user.id).get_sidebar_articles([self.article_shared.id])

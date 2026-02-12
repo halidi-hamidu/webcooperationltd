@@ -24,7 +24,7 @@ class HrExpense(models.Model):
     @api.depends('state')
     def _compute_is_in_extractable_state(self):
         for expense in self:
-            expense.is_in_extractable_state = expense.state == 'draft'
+            expense.is_in_extractable_state = expense.state == 'draft' and not expense.split_expense_origin_id
 
     @api.depends('extract_state', 'state')
     def _compute_extract_state_processed(self):

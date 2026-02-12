@@ -1,5 +1,6 @@
 import {
     click,
+    contains,
     insertText,
     openDiscuss,
     start,
@@ -43,6 +44,7 @@ test("can create a ticket from the thread action after the conversation ends", a
     });
     await start();
     await openDiscuss(channel_id);
+    await contains(".o-livechat-ChannelInfoList"); // wait for auto-open of this panel
     await click(".o-mail-DiscussContent-header button[title='Create Ticket']");
     await insertText(".o-livechat-LivechatCommandDialog-form input", "test_ticket");
     await click(".o-mail-ActionPanel button", { text: "Create Ticket" });

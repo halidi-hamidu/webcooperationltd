@@ -74,7 +74,9 @@ patch(PosStore.prototype, {
             } finally {
                 this.setOrder(currentOrder);
                 this.clock_disabled = false;
-                this.ui.unblock();
+                if (this.ui.isBlocked) {
+                    this.ui.unblock();
+                }
             }
         }
     },

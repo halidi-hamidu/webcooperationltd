@@ -1,5 +1,6 @@
-from odoo import _, api, fields, models
-from odoo.fields import Domain
+from odoo import api, fields, models
+from dateutil.relativedelta import relativedelta
+from odoo.tools import split_every
 
 
 class SaleOrderLine(models.Model):
@@ -15,29 +16,51 @@ class SaleOrderLine(models.Model):
         store=False)
 
     def _search_deferred_revenue(self, operator, value):
-        if operator != '=' or not value:
-            raise NotImplementedError(_('Only a check to True is supported'))
-        so_lines = self.env['sale.order.line'].search(self._get_accrual_domain())
-        ids = [line.id for line in so_lines if line.qty_invoiced_at_date > line.qty_delivered_at_date]
-        return Domain([('id', 'in', ids)])
+        if operator != 'in':
+            return NotImplemented
+        return [('id', 'in', self._get_accrual_line_ids('deferred'))]
 
     def _search_invoice_to_be_issued(self, operator, value):
-        if operator != '=' or not value:
-            raise NotImplementedError(_('Only a check to True is supported'))
-        so_lines = self.env['sale.order.line'].search(self._get_accrual_domain())
-        ids = [line.id for line in so_lines if line.qty_invoiced_at_date < line.qty_delivered_at_date]
-        return Domain([('id', 'in', ids)])
+        if operator != 'in':
+            return NotImplemented
+        return [('id', 'in', self._get_accrual_line_ids('invoice_issued'))]
 
     @api.model
     def _read_group(self, domain, groupby=(), aggregates=(), having=(), offset=0, limit=None, order=None) -> list[tuple]:
         return self._read_group_for_accrual(domain, groupby, aggregates, having, offset, limit, order)
 
     @api.model
+    def _get_accrual_line_ids(self, mode):
+        result_ids = []
+        so_lines = self.env['sale.order.line'].search_fetch(
+            self._get_accrual_domain(),
+            ['qty_invoiced', 'qty_delivered'],
+            order='id',
+        )
+        for lines in split_every(5000, so_lines):
+            for line in lines:
+                if mode == 'deferred':
+                    if line.qty_invoiced_at_date > line.qty_delivered_at_date:
+                        result_ids.append(line.id)
+                elif mode == 'invoice_issued':
+                    if line.qty_invoiced_at_date < line.qty_delivered_at_date:
+                        result_ids.append(line.id)
+                else:
+                    raise ValueError('Invalid accrual mode')
+        return result_ids
+
+    @api.model
     def _get_accrual_domain(self):
-        return [
+        accrual_date = self.env.context.get('accrual_entry_date')
+        ref_date = (fields.Date.to_date(accrual_date) if accrual_date else fields.Date.today())
+        date_from = ref_date - relativedelta(years=1)
+        domain = [
             ('product_id', '!=', False),
             ('state', '=', 'sale'),
+            ('order_id.date_order', '>=', date_from),
+            ('order_id.date_order', '<=', ref_date),
         ]
+        return domain
 
     @api.model
     def _get_aggregates_to_skip_and_fields_to_patch(self):

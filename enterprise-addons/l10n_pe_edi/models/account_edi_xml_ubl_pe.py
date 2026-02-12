@@ -87,7 +87,7 @@ class AccountEdiXmlUbl_Pe(models.AbstractModel):
                 'listURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01',
             }
 
-        if document_node['cbc:Note']:
+        if (document_node['cbc:Note'] or {}).get('_text'):
             document_node['cbc:Note']['_text'] = re.sub(r'[^\s ]+', ' ', document_node['cbc:Note']['_text']).strip()[:200]
 
         if vals['document_type'] == 'invoice':

@@ -17,18 +17,12 @@ export class VoiceTranscription extends Component {
     static components = {};
     static props = {
         host: { type: Object },
-        resModel: { type: String },
-        resId: { type: Number, optional: true },
         firstRecordingDate: { type: Function },
         getTabContent: { type: Function },
         getTranscriptContent: { type: Function },
         onTranscriptionStarted: { type: Function },
         onTranscriptionUpdated: { type: Function },
         onRecorderStopped: { type: Function },
-    };
-
-    static defaultProps = {
-        resId: null,
     };
 
     setup() {
@@ -226,6 +220,8 @@ export class VoiceTranscription extends Component {
     }
 
     async openComposer() {
+        const model = this.env.model;
+        await model?.root.save();
         this.actionService.doAction(
             {
                 type: "ir.actions.act_window",
@@ -236,8 +232,8 @@ export class VoiceTranscription extends Component {
                 target: "new",
                 view_id: false,
                 context: {
-                    default_model: this.props.resModel,
-                    default_res_ids: [this.props.resId],
+                    default_model: model?.config.resModel,
+                    default_res_ids: model?.config.resIds,
                     default_subject: _t("Share transcript summary"),
                     default_body:
                         this.props.getTabContent(this.embeddedState.id, "summary").innerHTML ?? "",
@@ -245,10 +241,10 @@ export class VoiceTranscription extends Component {
                 },
             },
             {
-                onClose: async () => {
+                onClose: () => {
                     const thread = this.mailStore.Thread.get({
-                        model: this.props.resModel,
-                        id: this.props.resId,
+                        model: model?.config.resModel,
+                        id: model?.config.resId,
                     });
                     thread?.fetchNewMessages();
                 },

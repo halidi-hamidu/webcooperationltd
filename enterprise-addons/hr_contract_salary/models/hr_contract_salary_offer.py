@@ -169,7 +169,7 @@ class HrContractSalaryOffer(models.Model):
         base_url = self.env['hr.contract.salary.offer'].get_base_url()
         for offer in self:
             offer.url = base_url \
-                      + f"/salary_package/simulation/offer/{offer.id}" \
+                      + f"/salary_package/simulation/offer/{offer._origin.id}" \
                       + f"?final_yearly_costs={round(offer.final_yearly_costs, 2)}" \
                       + (f"&token={offer.access_token}" if offer.access_token else "")
 

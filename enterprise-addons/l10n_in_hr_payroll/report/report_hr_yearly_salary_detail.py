@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 
 from odoo import api, fields, models, _
-from odoo.tools import SQL
+from odoo.tools import format_date, SQL
 from odoo.exceptions import UserError
 
 
@@ -23,7 +23,7 @@ class ReportL10n_In_Hr_PayrollReport_Hryearlysalary(models.AbstractModel):
         # Get name of the months from integer
         month_name = []
         for month in range(1, 13):
-            month_name.append(date(year, month, 1).strftime('%b'))
+            month_name.append(format_date(self.env, date(year, month, 1), date_format='MMM'))
             months.append(f"{month:02d}-{year}")
         return [month_name], months
 

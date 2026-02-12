@@ -27,8 +27,6 @@ patch(PosStore.prototype, {
                     modelToAdd[model] = records;
                     continue;
                 }
-
-                this.models.replaceDataByKey(modelKey, { [model]: records });
             }
 
             this.models.connectNewData(modelToAdd);

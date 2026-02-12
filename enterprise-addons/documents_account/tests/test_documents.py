@@ -92,7 +92,7 @@ class TestCaseDocumentsBridgeAccount(DocumentsAccountTestCommon):
         """
         folder_test = self.env['documents.document'].create({'name': 'folder_test', 'type': 'folder'})
 
-        for invoice_type in ['in_invoice', 'out_invoice', 'in_refund', 'out_refund']:
+        for invoice_type in ['in_invoice', 'out_invoice', 'in_refund', 'out_refund', 'entry']:
             invoice_test = self.env['account.move'].with_context(default_move_type=invoice_type).create({
                 'name': 'invoice_test',
                 'move_type': invoice_type,
@@ -125,15 +125,18 @@ class TestCaseDocumentsBridgeAccount(DocumentsAccountTestCommon):
                     invoice_test,
                     [{"message_main_attachment_id": main_attachment.id}],
                 )
-                self.assertRecordValues(
-                    document,
-                    [
-                        {
-                            "attachment_id": doc_attachment.id,
-                            "previous_attachment_ids": previous_attachment_ids,
-                        }
-                    ],
-                )
+                self.env["documents.document"].flush_model()
+                if invoice_test.move_type == "entry":
+                    expected = {
+                        "attachment_id": attachments[0].id,
+                        "previous_attachment_ids": [],
+                    }
+                else:
+                    expected = {
+                        "attachment_id": doc_attachment.id,
+                        "previous_attachment_ids": previous_attachment_ids,
+                    }
+                self.assertRecordValues(document, [expected])
 
             # Ensure the main attachment is the first one and ensure the document is correctly linked
             check_main_attachment_and_document(attachments[0], attachments[0], [])
@@ -385,9 +388,31 @@ class TestCaseDocumentsBridgeAccount(DocumentsAccountTestCommon):
         self.assertEqual(misc_entry_action.get('res_model'), 'account.move')
         self.assertEqual(move.move_type, 'entry')
 
-    def test_workflow_create_bank_statement_raise(self):
-        with self.assertRaises(UserError): # Could not make sense of the given file.
-            (self.document_txt | self.document_gif).account_create_account_bank_statement()
+    def test_workflow_create_bank_statement_raise_content_parsing(self):
+        for document in self.document_txt, self.document_gif:
+            with self.subTest(document=document.name):
+                with self.assertRaises(UserError) as err:
+                    document.account_create_account_bank_statement()
+                self.assertEqual(
+                    err.exception.args[0],
+                    f"All or part of the following file(s) could not be imported:\n"
+                    f"- {document.name}: Could not make sense of the given file.\n"
+                    f"Did you install the module to support this type of file?",
+                )
+
+    def test_workflow_create_bank_statement_raise_no_journal(self):
+        new_company = self.env['res.company'].create({'name': 'new_company_without_journals'})
+        doc_in_new_company = self.document_txt.copy({'company_id': new_company.id})
+
+        for sudo in False, True:
+            # Running test with sudo similulates server actions that run with sudo rights
+            with self.subTest(sudo=sudo):
+                with self.assertRaises(UserError) as err:
+                    doc_in_new_company.with_company(new_company).sudo(sudo).account_create_account_bank_statement()
+                self.assertEqual(
+                    err.exception.args[0],
+                    "No journal could be found in company new_company_without_journals for any of those types: bank",
+                )
 
     def test_workflow_create_vendor_bill(self):
         vendor_bill_entry_action = self.document_txt.account_create_account_move('in_invoice')

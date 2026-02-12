@@ -17,7 +17,6 @@ from odoo.tools.image import image_process
 
 from odoo.addons.spreadsheet.utils.json import extend_serialized_json
 
-
 _logger = logging.getLogger(__name__)
 
 CollaborationMessage = Dict[str, Any]
@@ -33,6 +32,7 @@ class SpreadsheetMixin(models.AbstractModel):
         "spreadsheet.revision",
         "res_id",
         domain=lambda self: [('res_model', '=', self._name)],
+        copy=False,
         groups="base.group_system",
     )
     # The last revision id known by the current transaction.
@@ -61,12 +61,16 @@ class SpreadsheetMixin(models.AbstractModel):
 
     def copy(self, default=None):
         default = default or {}
+
+        revisions_to_copy = default.pop("spreadsheet_revision_ids", None)
         new_spreadsheets = super().copy(default)
+
         is_data_changed = bool(default.keys() & {"spreadsheet_data", "spreadsheet_binary_data"})
         if not is_data_changed:
-            if "spreadsheet_revision_ids" not in default:
+            if revisions_to_copy is None:
                 for old_spreadsheet, new_spreadsheet in zip(self, new_spreadsheets):
                     old_spreadsheet._copy_revisions_to(new_spreadsheet)
+
             new_spreadsheets = new_spreadsheets.with_context(preserve_spreadsheet_revisions=True)
             for old_spreadsheet, new_spreadsheet in zip(self, new_spreadsheets):
                 new_spreadsheet.spreadsheet_data = old_spreadsheet.spreadsheet_data
@@ -75,7 +79,7 @@ class SpreadsheetMixin(models.AbstractModel):
         return new_spreadsheets
 
     @api.model_create_multi
-    def create(self, vals_list):
+    def create(self, vals_list: List[Dict[str, Any]]):
         spreadsheets = super().create(vals_list)
         spreadsheets._copy_spreadsheet_image_attachments()
         return spreadsheets
@@ -306,7 +310,7 @@ class SpreadsheetMixin(models.AbstractModel):
         self.ensure_one()
         result = []
         for revision in self.spreadsheet_revision_ids:
-            server_revision_id = revision.parent_revision_id.revision_uuid or self._get_initial_revision_uuid()
+            server_revision_id = self._get_parent_uuid(revision)
             serialized = extend_serialized_json(
                 revision.commands,
                 [("serverRevisionId", f'"{server_revision_id}"'), ("nextRevisionId", f'"{revision.revision_uuid}"')]
@@ -422,7 +426,7 @@ class SpreadsheetMixin(models.AbstractModel):
                     id=rev.id,
                     name=rev.name,
                     user=(rev.author_id.id, rev.author_id.name),
-                    serverRevisionId=rev.parent_revision_id.revision_uuid or self._get_initial_revision_uuid(),
+                    serverRevisionId=self._get_parent_uuid(rev),
                     nextRevisionId=rev.revision_uuid,
                     timestamp=rev.revision_date,
                 )
@@ -445,7 +449,7 @@ class SpreadsheetMixin(models.AbstractModel):
         new_spreadsheet = self.copy(default)
         self.with_context(active_test=False)._copy_revisions_to(new_spreadsheet, revision_id)
         new_spreadsheet.spreadsheet_snapshot = base64.b64encode(json.dumps(spreadsheet_snapshot).encode())
-        new_spreadsheet.spreadsheet_revision_ids.active = False
+        new_spreadsheet.sudo().spreadsheet_revision_ids.active = False
         new_spreadsheet._delete_comments_from_data()
         return new_spreadsheet.action_open_spreadsheet()
 
@@ -537,9 +541,17 @@ class SpreadsheetMixin(models.AbstractModel):
             )
         )
 
-    def _get_initial_revision_uuid(self):
-        data = json.loads(self.spreadsheet_data)
-        return data.get("revisionId", "START_REVISION")
+    def _get_parent_uuid(self, revision):
+        parent_revision = revision.parent_revision_id
+        if parent_revision:
+            return parent_revision.revision_uuid
+        if revision.active:
+            # After snapshot: get revisionId from snapshot
+            data = self._get_spreadsheet_serialized_snapshot()
+        else:
+            # Before snapshot: get from initial data
+            data = self.spreadsheet_data
+        return json.loads(data).get("revisionId", "START_REVISION")
 
     def _delete_comments_from_data(self):
         """ Deletes comments data from the spreadsheet data and its snapshot """

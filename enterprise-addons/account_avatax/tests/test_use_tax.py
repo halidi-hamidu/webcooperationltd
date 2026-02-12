@@ -1,3 +1,4 @@
+from odoo import Command
 from odoo.tests.common import tagged
 from .common import TestAvataxCommon, TestAccountAvataxCommon
 
@@ -43,6 +44,31 @@ class TestAccountAvalaraUseTaxProductManagement(TestAccountAvataxCommon):
             invoice = self._create_invoice(post=False)
             invoice.button_external_tax_calculation()
         self.assertEqual(capture.val['json']['createTransactionModel']['lines'][0]['itemCode'], 'UPC:123456789')
+
+    def test_item_code_is_not_more_than_50_characters(self):
+        """Ensure that the item code passed to AvaTax is not more than 50 characters long.
+        """
+        product = self.env["product.product"].create({
+            'name': "Product",
+            'default_code': 100 * 'A',  # A very long default code
+            'barcode': 100 * '1',  # A very long barcode
+            'list_price': 15.00,
+            'standard_price': 15.00,
+            'supplier_taxes_id': None,
+            'avatax_category_id': self.env.ref('account_avatax.DC010000').id,
+        })
+
+        self.env.company.avalara_use_upc = False
+        with self._capture_request(return_value={'lines': [], 'summary': []}) as capture:
+            invoice = self._create_invoice(invoice_line_ids=[Command.create({'product_id': product.id, 'price_unit': 100})])
+            invoice.button_external_tax_calculation()
+        self.assertEqual(len(capture.val['json']['createTransactionModel']['lines'][0]['itemCode']), 50)
+
+        self.env.company.avalara_use_upc = True
+        with self._capture_request(return_value={'lines': [], 'summary': []}) as capture:
+            invoice = self._create_invoice(invoice_line_ids=[Command.create({'product_id': product.id, 'price_unit': 100})])
+            invoice.button_external_tax_calculation()
+        self.assertEqual(len(capture.val['json']['createTransactionModel']['lines'][0]['itemCode']), 50)
 
     def test_item_description(self):
         """Identify item/service/charge description to pass to the AvaTax service with a

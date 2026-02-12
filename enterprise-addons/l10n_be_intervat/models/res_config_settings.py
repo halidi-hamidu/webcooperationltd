@@ -13,3 +13,26 @@ class ResConfigSettings(models.TransientModel):
         related='company_id.l10n_be_intervat_mode',
         readonly=False,
     )
+    l10n_be_intervat_access_token = fields.Char(
+        related='company_id.l10n_be_intervat_access_token',
+    )
+    account_representative_id = fields.Many2one(
+        related='company_id.account_representative_id',
+        readonly=False,
+    )
+
+    def action_close_intervat_connection(self):
+        self.company_id.write({
+            'l10n_be_intervat_refresh_token': None,
+            'l10n_be_intervat_access_token': None,
+        })
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': self.env._("Intervat connection closed."),
+                'type': 'success',
+                'sticky': False,
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
+            },
+        }

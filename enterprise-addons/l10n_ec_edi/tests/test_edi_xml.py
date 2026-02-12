@@ -253,7 +253,7 @@ class TestEcEdiXmls(TestEcEdiCommon):
                 <totalSinImpuestos>852.580000</totalSinImpuestos>
             </xpath>
             <xpath expr="//totalDescuento" position="replace">
-                <totalDescuento>206.06</totalDescuento>
+                <totalDescuento>103.03</totalDescuento>
             </xpath>
             <xpath expr="//totalImpuesto/baseImponible" position="replace">
                 <baseImponible>852.580000</baseImponible>
@@ -278,7 +278,7 @@ class TestEcEdiXmls(TestEcEdiCommon):
                     <descripcion>product_a</descripcion>
                     <cantidad>5.000000</cantidad>
                     <precioUnitario>200.000000</precioUnitario>
-                    <descuento>200.00</descuento>
+                    <descuento>100.00</descuento>
                     <precioTotalSinImpuesto>800.00</precioTotalSinImpuesto>
                     <impuestos>
                         <impuesto>
@@ -312,7 +312,7 @@ class TestEcEdiXmls(TestEcEdiCommon):
                     <descripcion>product_b</descripcion>
                     <cantidad>120.000000</cantidad>
                     <precioUnitario>0.240000</precioUnitario>
-                    <descuento>6.06</descuento>
+                    <descuento>3.03</descuento>
                     <precioTotalSinImpuesto>22.76</precioTotalSinImpuesto>
                     <impuestos>
                         <impuesto>
@@ -409,21 +409,21 @@ class TestEcEdiXmls(TestEcEdiCommon):
                     <descripcion>product_a</descripcion>
                     <cantidad>1.000000</cantidad>
                     <precioUnitario>200.000000</precioUnitario>
-                    <descuento>100.00</descuento>
-                    <precioTotalSinImpuesto>100.00</precioTotalSinImpuesto>
+                    <descuento>160.00</descuento>
+                    <precioTotalSinImpuesto>40.00</precioTotalSinImpuesto>
                     <impuestos>
                         <impuesto>
                             <codigo>2</codigo>
                             <codigoPorcentaje>4</codigoPorcentaje>
                             <tarifa>15.000000</tarifa>
-                            <baseImponible>100.000000</baseImponible>
-                            <valor>15.00</valor>
+                            <baseImponible>40.000000</baseImponible>
+                            <valor>6.00</valor>
                         </impuesto>
                         <impuesto>
                             <codigo>2</codigo>
                             <codigoPorcentaje>0</codigoPorcentaje>
                             <tarifa>0.000000</tarifa>
-                            <baseImponible>100.000000</baseImponible>
+                            <baseImponible>40.000000</baseImponible>
                             <valor>0.00</valor>
                         </impuesto>
                     </impuestos>
@@ -433,21 +433,21 @@ class TestEcEdiXmls(TestEcEdiCommon):
                     <descripcion>product_a</descripcion>
                     <cantidad>1.000000</cantidad>
                     <precioUnitario>300.000000</precioUnitario>
-                    <descuento>300.00</descuento>
-                    <precioTotalSinImpuesto>0.00</precioTotalSinImpuesto>
+                    <descuento>240.00</descuento>
+                    <precioTotalSinImpuesto>60.00</precioTotalSinImpuesto>
                     <impuestos>
                         <impuesto>
                             <codigo>2</codigo>
                             <codigoPorcentaje>4</codigoPorcentaje>
                             <tarifa>15.000000</tarifa>
-                            <baseImponible>0.000000</baseImponible>
-                            <valor>0.00</valor>
+                            <baseImponible>140.000000</baseImponible>
+                            <valor>21.00</valor>
                         </impuesto>
                         <impuesto>
                             <codigo>2</codigo>
                             <codigoPorcentaje>0</codigoPorcentaje>
                             <tarifa>0.000000</tarifa>
-                            <baseImponible>0.000000</baseImponible>
+                            <baseImponible>140.000000</baseImponible>
                             <valor>0.00</valor>
                         </impuesto>
                     </impuestos>

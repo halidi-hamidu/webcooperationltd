@@ -9,7 +9,7 @@ import mimetypes
 
 from odoo import http, tools, Command, _, fields
 from odoo.http import request, content_disposition
-from odoo.tools import consteq, format_date, posix_to_ldml
+from odoo.tools import consteq, format_date, posix_to_ldml, email_normalize
 from odoo.tools.pdf import PdfFileWriter, PdfFileReader
 from odoo.tools.misc import babel_locale_parse
 from odoo.addons.iap.tools import iap_tools
@@ -89,7 +89,7 @@ class Sign(http.Controller):
                 'action': 'open',
             })
 
-        lang_code = sign_request.communication_company_id.partner_id.lang
+        lang_code = (sign_request.communication_company_id or sign_request.create_uid.company_id).partner_id.lang
         lang = request.env['res.lang']._lang_get(lang_code)
         locale = babel_locale_parse(lang_code)
         date_format = ""
@@ -494,7 +494,16 @@ class Sign(http.Controller):
         if not sign_request or len(sign_request.request_item_ids) != 1 or sign_request.request_item_ids.partner_id:
             return False
 
-        partner = self.env['mail.thread'].sudo()._partner_find_from_emails_single([mail], no_create=False)
+        normalize_email = email_normalize(mail)
+        partner = self.env['mail.thread'].sudo()._partner_find_from_emails_single(
+            [mail],
+            additional_values={
+                normalize_email: {
+                    'name': name,
+                }
+            },
+            no_create=False
+        )
 
         new_sign_request_sudo = sign_request.with_user(sign_request.create_uid).with_context(no_sign_mail=True).sudo().copy({
             'reference': sign_request.reference.replace('-%s' % _("Shared"), ''),
@@ -682,11 +691,12 @@ class Sign(http.Controller):
         """
         sign_request = request.env['sign.request'].browse(request_id).sudo()
         sign_item = request.env['sign.request.item'].browse(sign_item_id).sudo()
-        if not sign_request.exists() or not consteq(sign_request.access_token, token) or not sign_item.exists():
+        if not sign_request.exists() or not consteq(sign_request.access_token, token) or not sign_item.exists() or not sign_item.signer_email:
             return []
         uid = sign_request.create_uid.id
         items = request.env['sign.request.item'].sudo().search_read(
             domain=[
+                ('signer_email', '!=', False),
                 ('signer_email', '=', sign_item.signer_email),
                 ('state', '=', 'sent'),
                 ('sign_request_id.state', '=', 'sent'),

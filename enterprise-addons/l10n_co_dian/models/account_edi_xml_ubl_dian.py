@@ -303,9 +303,7 @@ class AccountEdiXmlUbl_Dian(models.AbstractModel):
         nsmap = super()._get_document_nsmap(vals)
         nsmap.update({
             'ds': "http://www.w3.org/2000/09/xmldsig#",
-            'sts': "dian:gov:co:facturaelectronica:Structures-2-1"
-                if vals['document_type'] == 'invoice'
-                else "http://www.dian.gov.co/contratos/facturaelectronica/v1/Structures",
+            'sts': self._get_sts_namespace(vals['invoice']),
             'xades': "http://uri.etsi.org/01903/v1.3.2#",
             'xades141': "http://uri.etsi.org/01903/v1.4.1#",
             'xsi': "http://www.w3.org/2001/XMLSchema-instance",
@@ -536,7 +534,6 @@ class AccountEdiXmlUbl_Dian(models.AbstractModel):
             'cbc:IssueTime': {'_text': invoice.l10n_co_dian_post_time.strftime("%H:%M:%S-05:00")},
             'cbc:InvoiceTypeCode': {'_text': self._dian_get_document_type_code(invoice)} if vals['document_type'] == 'invoice' else None,
             'cbc:CreditNoteTypeCode': {'_text': self._dian_get_document_type_code(invoice)} if vals['document_type'] == 'credit_note' else None,
-            'cbc:Note': None,
             'cbc:DocumentCurrencyCode': {
                 '_text': "COP",
                 'listAgencyID': "6",

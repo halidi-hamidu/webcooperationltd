@@ -5,6 +5,7 @@ from . import ai_agent_source
 from . import ai_embedding
 from . import ir_attachment
 from . import ir_http
+from . import ir_model_fields
 from . import mail_composer_mixin
 from . import mail_render_mixin
 from . import mail_template

@@ -3,9 +3,11 @@ from contextlib import contextmanager
 from unittest.mock import patch, DEFAULT
 import requests
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 from odoo import Command, _
+
+from ..models.sendcloud_service import SendCloud
 
 BALEARES_RANGE = {str(i) for i in range(7025, 7035)}
 CARRIER_CODE_BY_METHOD_ID = {
@@ -227,14 +229,14 @@ class TestDeliverySendCloud(TransactionCase):
                                 })
         # deco_art will be in europe
         cls.eu_partner = cls.env['res.partner'].create({
-            'name': 'Deco Addict',
+            'name': 'Acme Corporation',
             'is_company': True,
             'street': '77 Santa Barbara Rd',
             'city': 'Pleasant Hill',
             'country_id': cls.env.ref('base.nl').id,
             'zip': '1105AA',
             'state_id': False,
-            'email': 'deco.addict82@example.com',
+            'email': 'acme.corp82@example.com',
             'phone': '(603)-996-3829',
         })
         # partner in us (azure)
@@ -781,3 +783,40 @@ class TestDeliverySendCloud(TransactionCase):
             picking.action_assign()
             picking._action_done()
             self.assertTrue(picking.sendcloud_parcel_ref)
+
+    def test_customs_information(self):
+        '''
+        Ensure customs information is correctly transmitted in the parcel request
+        '''
+        original_send_request = SendCloud._send_request
+
+        def patched_send_request(self, endpoint, method='get', data=None, params=None, route="https://panel.sendcloud.sc/api/v2/"):
+            if endpoint == 'parcels' and not data['parcels'][0].get('customs_information', False):
+                raise (ValidationError("International shipment without customs information"))
+            return original_send_request(self, endpoint, method, data, params, route)
+
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.us_partner.id,
+            'order_line': [
+                Command.create({
+                    'product_id': self.product_to_ship1.id
+                }),
+            ]
+        })
+        wiz_action = sale_order.action_open_delivery_wizard()
+        choose_delivery_carrier = self.env[wiz_action['res_model']].with_context(wiz_action['context']).create({
+            'carrier_id': self.sendcloud.id,
+            'order_id': sale_order.id
+        })
+        with patch.object(SendCloud, '_send_request', side_effect=patched_send_request, autospec=True):
+            with _mock_sendcloud_call(self.warehouse_id):
+                choose_delivery_carrier.update_price()
+                choose_delivery_carrier.button_confirm()
+                sale_order.action_confirm()
+                self.assertGreater(len(sale_order.picking_ids), 0)
+
+                picking = sale_order.picking_ids[0]
+                self.assertEqual(picking.carrier_id.id, sale_order.carrier_id.id)
+                picking.action_assign()
+
+                picking._action_done()

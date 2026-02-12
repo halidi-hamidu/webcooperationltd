@@ -361,3 +361,25 @@ class TestHrAppraisal(TransactionCase):
 
         self.assertEqual(self._get_appraisal_count(admin_user), 1)
         self.assertEqual(self._get_appraisal_count(officer_user), 1)
+
+    def test_appraisal_departement_from_employee(self):
+        self.assertEqual(self.hr_employee.department_id, self.dep_rd)
+
+        with freeze_time(self.hr_employee.date_version + relativedelta(months=self.duration_after_recruitment)):
+            self.env['res.company']._run_employee_appraisal_plans()
+            appraisals = self.HrAppraisal.search([('employee_id', '=', self.hr_employee.id)])
+            self.assertEqual(appraisals.department_id, self.dep_rd)
+
+    def test_appraisal_template_computation(self):
+        # Delete all templates to prevent them from interacting with the test
+        for template in self.env['hr.appraisal.template'].search([]):
+            template.unlink()
+
+        test_template = self.env['hr.appraisal.template'].create({'description': 'Test appraisal template'})
+        test_template.company_id = self.env.company
+        self.hr_employee.department_id = False
+
+        with freeze_time(self.hr_employee.date_version + relativedelta(months=self.duration_after_recruitment)):
+            self.env['res.company']._run_employee_appraisal_plans()
+            appraisals = self.HrAppraisal.search([('employee_id', '=', self.hr_employee.id)])
+            self.assertEqual(appraisals.appraisal_template_id, test_template)

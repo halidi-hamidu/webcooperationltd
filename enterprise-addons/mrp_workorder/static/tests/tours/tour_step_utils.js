@@ -68,6 +68,15 @@ export const stepUtils = {
         return steps;
     },
     // Other utils.
+    openShopFloor() {
+        return [
+            {
+                content: "Open Shop Floor app",
+                trigger: "a.o_app:contains('Shop Floor')",
+                run: "click",
+            },
+        ];
+    },
     closeShopFloor() {
         return [
             { trigger: ".o_cp_burger_menu .o_btn_icon", run: "click" },

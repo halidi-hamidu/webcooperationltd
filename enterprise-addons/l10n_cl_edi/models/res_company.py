@@ -9,6 +9,7 @@ from odoo.tools.translate import _
 
 
 L10N_CL_SII_REGIONAL_OFFICES_ITEMS = [
+    ('ur_Alt', 'Alto Hospicio'),
     ('ur_Anc', 'Ancud'),
     ('ur_Ang', 'Angol'),
     ('ur_Ant', 'Antofagasta'),

@@ -255,6 +255,16 @@ def get_template_variables(article):
 
 
 class KnowledgeAuditReportController(http.Controller):
+
+    def _get_template_variables(self, article):
+        return get_template_variables(article)
+
+    def _get_html_template_variables(self, article):
+        return {}
+
+    def _get_front_cover_pdf(self, article):
+        return get_front_cover_pdf(article)
+
     @http.route(
         '/knowledge_accountant/article/<model("knowledge.article"):root_article>/audit_report',
         type='http', auth='user', methods=['GET'])
@@ -276,13 +286,23 @@ class KnowledgeAuditReportController(http.Controller):
         base_url = request.env['ir.qweb'].get_base_url()
 
         stack = [root_article]
-        template_variables = get_template_variables(root_article)
+        template_variables = self._get_template_variables(root_article)
+        html_template_variables = self._get_html_template_variables(root_article)
 
         def render_article_body(root, template_variables):
+            def render_html_placeholder(element, template_variables):
+                for to_replace, value in template_variables.items():
+                    if to_replace not in element.text:
+                        continue
+                    node = html.fragment_fromstring(value, create_parent='div')
+                    element.text = element.text.replace(to_replace, '')
+                    element.append(node)
+
             # Replace all the placeholder values:
             for element in root.iter():
                 if element.text:
                     element.text = render_placeholder(element.text, template_variables)
+                    render_html_placeholder(element, html_template_variables)
                 if element.tail:
                     element.tail = render_placeholder(element.tail, template_variables)
 
@@ -378,7 +398,7 @@ class KnowledgeAuditReportController(http.Controller):
                 stack.extend(article.child_ids.sorted(
                     lambda child: child.sequence, reverse=True))
 
-        front_cover_pdf = get_front_cover_pdf(root_article)
+        front_cover_pdf = self._get_front_cover_pdf(root_article)
         # Create the PDF output:
         writer = PdfFileWriter()
         writer.appendPagesFromReader(front_cover_pdf)

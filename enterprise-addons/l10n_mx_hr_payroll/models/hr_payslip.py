@@ -51,22 +51,17 @@ class HrPayslip(models.Model):
                 'data/salary_rules/hr_salary_rule_regular_pay_data.xml',
             ])]
 
-    def _get_schedule_timedelta(self):
-        if self.country_code == 'MX':
+    @api.model
+    def _schedule_timedelta(self, schedule, date_from, country_code=False):
+        if country_code == 'MX':
+            if schedule == '10_days':
+                return relativedelta(days=9)
+            elif schedule == '14_days':
+                return relativedelta(days=13)
+            elif schedule == 'bi-weekly':
+                days_in_month = calendar.monthrange(date_from.year, date_from.month)[1]
+                return relativedelta(day=15 if date_from.day <= 15 else days_in_month)
+            elif schedule == 'bi-monthly':
+                return relativedelta(months=2, days=-1)
 
-            if self.struct_id.code == "MX_REGULAR":
-                schedule = self.version_id.schedule_pay
-                if schedule == '10_days':
-                    return relativedelta(days=9)
-                elif schedule == '14_days':
-                    return relativedelta(days=13)
-                elif schedule == 'bi-weekly':
-                    days_in_month = calendar.monthrange(self.date_from.year, self.date_from.month)[1]
-                    return relativedelta(day=15 if self.date_from.day <= 15 else days_in_month)
-                elif schedule == 'bi-monthly':
-                    return relativedelta(months=2, days=-1)
-
-            elif self.struct_id.code in ["MX_CHRISTMAS", "MX_PTU"]:
-                return relativedelta(day=31, month=12)
-
-        return super()._get_schedule_timedelta()
+        return super()._schedule_timedelta(schedule, date_from, country_code)

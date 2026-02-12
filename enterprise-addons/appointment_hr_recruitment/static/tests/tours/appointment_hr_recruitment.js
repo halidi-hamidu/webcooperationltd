@@ -1,8 +1,6 @@
 import { registry } from "@web/core/registry";
 import { stepUtils } from "@web_tour/tour_utils";
 
-const oldWriteText = navigator.clipboard.writeText;
-
 registry.category("web_tour.tours").add('appointment_hr_recruitment_tour', {
     url: '/odoo',
     steps: () => [stepUtils.showAppsMenuItem(), {
@@ -24,6 +22,7 @@ registry.category("web_tour.tours").add('appointment_hr_recruitment_tour', {
         trigger: '.o_appointment_button_link:contains("Test AppointmentHrRecruitment")',
         async run(helpers) {
             // Patch write on clipboard -- go to the url (to then book an appointment from there
+            // No need to cleanup as it triggers an unload
             navigator.clipboard.writeText = (text) => {window.location.href = text};
             await helpers.click();
         },
@@ -47,10 +46,6 @@ registry.category("web_tour.tours").add('appointment_hr_recruitment_tour', {
         expectUnloadPage: true,
     }, {
         trigger: '.fa-check-circle',
-        async run(helpers) {
-            await helpers.click();
-            // Re-patch the function with the previous writeText
-            navigator.clipboard.writeText = oldWriteText;
-        },
+        run: 'click',
     }],
 });

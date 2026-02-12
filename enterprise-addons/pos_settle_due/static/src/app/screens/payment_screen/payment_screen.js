@@ -3,6 +3,7 @@ import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment
 import { patch } from "@web/core/utils/patch";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { ask } from "@point_of_sale/app/utils/make_awaitable_dialog";
+import { onWillUnmount } from "@odoo/owl";
 
 patch(PaymentScreen, {
     props: {
@@ -23,7 +24,28 @@ patch(PaymentScreen.prototype, {
                 (pm) => pm.type !== "pay_later"
             );
         }
+        onWillUnmount(this.onUnmount);
     },
+
+    onUnmount() {
+        /*
+         * When the settlement payment selection dialog is opened,
+         * `is_settling_account` is temporarily set to true.
+         *
+         * However, if the user exits the settlement process
+         * (without completing the payment) and returns to the previous screen,
+         * we must reset this flag to false.
+         *
+         * Failing to do so allows the same order to be used for
+         * non-settlement operations, which can cause inconsistencies—
+         * particularly in cases where invoices are mandatory
+         * for all payments except settlements.
+         */
+        if (this.currentOrder?.is_settling_account && this.currentOrder.state !== "paid") {
+            this.currentOrder.is_settling_account = false;
+        }
+    },
+
     toggleIsToInvoice() {
         if (
             !this.currentOrder.isToInvoice() &&

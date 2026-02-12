@@ -145,6 +145,8 @@ class PosSession(models.Model):
             move_parts = cash_move['name'].removeprefix(self.name).split('-')
             move_type, statement_type, move_reason = move_parts[1], move_parts[2], "-".join(move_parts[3:])
             statements.append({"type": statement_type.capitalize(), "name": f"Cash {move_type} - {move_reason}"[:40], "amounts_per_vat_id": [self._get_vat_details(5, cash_move['amount'], cash_move['amount'])]})
+        for case_type, vat_summaries in summary.items():
+            statements.append({"type": case_type, "amounts_per_vat_id": vat_summaries})
         return statements
 
     def _get_dsfinvk_cash_point_closing_data(
@@ -180,6 +182,11 @@ class PosSession(models.Model):
                 buyer = {"name": "Customer", "buyer_export_id": "null", "type": "Kunde"}
 
             lines_data, payment_types = o._prepare_lines_and_payments()
+            adjusted_order_total = self.currency_id.round(sum(
+                float(amount.get('incl_vat'))
+                for entry in lines_data
+                for amount in entry['business_case'].get('amounts_per_vat_id', [])
+            ))
             transaction = {
                 "head": {
                     "tx_id": f"{o.l10n_de_fiskaly_transaction_uuid}",
@@ -197,7 +204,7 @@ class PosSession(models.Model):
                     "buyer": buyer,
                 },
                 "data": {
-                    "full_amount_incl_vat": float_repr(o.amount_total, precision),
+                    "full_amount_incl_vat": float_repr(adjusted_order_total, precision),
                     "payment_types": payment_types,
                     "amounts_per_vat_id": o._l10n_de_amounts_per_vat(),
                     "lines": lines_data,
@@ -212,8 +219,8 @@ class PosSession(models.Model):
             "cash_point_closing_export_id": session.id,
             "head": {
                 "export_creation_date": int(session.write_date.timestamp()),
-                "first_transaction_export_id": f"{orders[0].id}",
-                "last_transaction_export_id": f"{orders[-1].id}",
+                "first_transaction_export_id": "1",  # default to 1 for each session
+                "last_transaction_export_id": f"{len(orders)}",  # number of orders in the session
             },
             "cash_statement": {
                 "business_cases": self.get_cash_statement_cases(transactions),
@@ -240,7 +247,7 @@ class PosSession(models.Model):
             self._l10n_de_create_fiskaly_cash_register()
         cash_point_closing_resp = self.company_id._l10n_de_fiskaly_dsfinvk_rpc('PUT', '/cash_point_closings/%s' % cash_point_closing_uuid, json)
         if cash_point_closing_resp.status_code != 200:
-            raise UserError(_('Cash point closing error with Fiskaly: \n %s', cash_point_closing_resp.json()))
+            raise UserError(_('Cash point closing error with Fiskaly: \n %s', cash_point_closing_resp.json().get('message')))
         self.write({'l10n_de_fiskaly_cash_point_closing_uuid': cash_point_closing_uuid})
 
     def _l10n_de_create_fiskaly_cash_register(self):

@@ -1,4 +1,5 @@
 from odoo import fields, models
+from odoo.fields import Domain
 
 
 class StockPickingType(models.Model):
@@ -24,7 +25,10 @@ class StockPickingType(models.Model):
     def get_action_picking_tree_ready_kanban(self):
         if self.code == 'mrp_operation':
             res = self._get_action('stock_barcode_mrp.mrp_action_kanban')
-            res['domain'] = [('picking_type_id.active', '=', True)]
+            res['domain'] = Domain.AND([
+                res['domain'],
+                [('picking_type_id.active', '=', True)],
+            ])
             return res
         return super().get_action_picking_tree_ready_kanban()
 

@@ -86,7 +86,7 @@ test("date navigation with timezone (1h)", async () => {
 
     expect.verifySteps(["&,start,<,2019-02-28 23:00:00,stop,>,2018-11-30 23:00:00"]);
 
-    expect(getGridContent().range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(getGridContent().range).toBe("12/01/2018 -> 02/28/2019");
 
     // switch to day view and check day navigation
     await selectRange("Day");
@@ -2780,7 +2780,7 @@ test("focus today with range change (in range & outside)", async () => {
     expect(".o_gantt_cell.o_gantt_today").toBeVisible();
     expect(queryOne(".o_gantt_cell.o_gantt_today")).toBe(getCell("20", "December 2018"));
     let gridContent = getGridContent();
-    expect(gridContent.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(gridContent.range).toBe("12/01/2018 -> 02/28/2019");
     expect(gridContent.columnHeaders).toHaveLength(29);
     expect(gridContent.columnHeaders[0].title).toBe("01"); // December
     expect(gridContent.columnHeaders.at(-1).title).toBe("29"); // December
@@ -2790,7 +2790,7 @@ test("focus today with range change (in range & outside)", async () => {
     expect(".o_gantt_cell.o_gantt_today").toBeVisible();
     expect(queryOne(".o_gantt_cell.o_gantt_today")).toBe(getCell("20", "December 2018"));
     gridContent = getGridContent();
-    expect(gridContent.range).toBe("From: 11/15/2018 to: 02/15/2019");
+    expect(gridContent.range).toBe("11/15/2018 -> 02/15/2019");
     expect(gridContent.columnHeaders).toHaveLength(32);
     expect(gridContent.columnHeaders[0].title).toBe("28"); // November
     expect(gridContent.columnHeaders.at(-1).title).toBe("29"); // December
@@ -2804,7 +2804,7 @@ test("focus today with range change (in range & outside)", async () => {
     expect(gridContent.columnHeaders.at(-1).title).toBe("17"); // January
 
     await selectCustomRange({ startDate: "2019-01-01", stopDate: "2019-02-28" });
-    expect(getGridContent().range).toBe("From: 01/01/2019 to: 02/28/2019");
+    expect(getGridContent().range).toBe("01/01/2019 -> 02/28/2019");
     expect.verifySteps(["get_gantt_data"]);
     expect(".o_gantt_cell.o_gantt_today").not.toHaveCount();
 
@@ -2812,7 +2812,7 @@ test("focus today with range change (in range & outside)", async () => {
     await ganttControlsChanges();
     expect.verifySteps(["get_gantt_data"]);
     expect(".o_gantt_cell.o_gantt_today").toBeVisible();
-    expect(getGridContent().range).toBe("From: 11/21/2018 to: 01/17/2019");
+    expect(getGridContent().range).toBe("11/21/2018 -> 01/17/2019");
 });
 
 test("set start/stop date: should keep focused date", async () => {
@@ -2870,7 +2870,7 @@ test("Select a range via the range menu", async () => {
         arch: '<gantt date_start="start" date_stop="stop"/>',
     });
     let content = getGridContent();
-    expect(content.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(content.range).toBe("12/01/2018 -> 02/28/2019");
 
     await selectRange("Day");
     content = getGridContent();

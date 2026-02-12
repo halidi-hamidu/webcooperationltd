@@ -798,6 +798,18 @@ class TestAccountBankStatement(TestBankRecWidgetCommon):
         st_line._retrieve_partner()
         self.assertFalse(st_line.partner_id)
 
+    def test_retrieve_partner_from_partner_name_odoobot(self):
+        """This test ensure that OdooBot is not set on a statement line with the retrieve partner"""
+        odoobot = self.env.ref('base.partner_root')
+        odoobot.company_id = self.env.company.id
+        st_line = self._create_st_line(
+            1000.0,
+            partner_id=None,
+            partner_name="ODOO",
+            update_create_date=False,
+        )
+        self.assertNotEqual(st_line.partner_id, odoobot)
+
     def test_retrieve_partner_from_previous_reconciled_st_line(self):
         """Test the retrieve partner from a previous reconciled st-line."""
         # Use 2 partner with the same name, so we can't retrieve it from the partner name
@@ -840,6 +852,22 @@ class TestAccountBankStatement(TestBankRecWidgetCommon):
         self.assertEqual(st_line_2.partner_id, partner_b)
         self.assertEqual(st_line_3.partner_id, bank_account.partner_id)
         self.assertEqual(st_line_4.partner_id, partner_c)
+
+    def test_retrieve_partner_with_multiple_matches(self):
+        """ Test if the retrieve partner from partner name doesn't erase the result of
+            the retrieve partner from bank account.
+        """
+        partner_a, _partner_b = self.env['res.partner'].create([
+            {'name': 'Bobybob'},
+            {'name': 'Turlututu'},
+        ])
+        bank_account = self.env['res.partner.bank'].create({
+            'acc_number': '123456789',
+            'partner_id': partner_a.id,
+        })
+        st_line = self._create_st_line(1000.0, partner_id=None, account_number="123456789", partner_name="Turlututu", update_create_date=False)
+        st_line._retrieve_partner()
+        self.assertEqual(st_line.partner_id, bank_account.partner_id)
 
     def test_res_partner_bank_find_create_when_archived(self):
         """ Test we don't get the "The combination Account Number/Partner must be unique." error with archived
@@ -2977,6 +3005,43 @@ class TestAccountBankStatement(TestBankRecWidgetCommon):
             {'account_id': bill_line_with_epd.account_id.id,            'balance': 100.0,   'reconciled': True},
             {'account_id': early_pay_acc.id,                            'balance': -10.0,    'reconciled': False},
             {'account_id': st_line.journal_id.suspense_account_id.id,   'balance': 110.0,  'reconciled': False},
+        ])
+
+    def test_line_computation_on_edit_line(self):
+        """ When editing a statement line, only the edited line, the suspense and
+            the not reconciled lines should be modified.
+        """
+        usd_currency = self.setup_other_currency('USD', rates=[('2017-01-01', 2.00)])
+        eur_currency = self.setup_other_currency('EUR', rates=[('2017-01-01', 1.00)])
+        eur_journal = self.env['account.journal'].create({
+            'name': 'Test Bank EUR',
+            'type': 'bank',
+            'code': 'TBEUR',
+            'currency_id': eur_currency.id,
+        })
+        st_line = self._create_st_line(5000, date='2017-01-10', update_create_date=False, journal_id=eur_journal.id)
+        eur_invoice_line = self._create_invoice_line(
+            'out_invoice',
+            invoice_date='2017-01-10',
+            invoice_line_ids=[{'price_unit': 1000.0}],
+            currency_id=eur_currency.id,
+        )
+        usd_invoice_line = self._create_invoice_line(
+            'out_invoice',
+            invoice_date='2017-01-10',
+            invoice_line_ids=[{'price_unit': 1000.0}],
+            currency_id=usd_currency.id,
+        )
+        st_line.set_line_bank_statement_line(usd_invoice_line.id)
+        st_line.set_line_bank_statement_line(eur_invoice_line.id)
+        st_line.set_account_bank_statement_line(st_line.line_ids[-1].id, self.account_revenue_1.id)
+        st_line.edit_reconcile_line(st_line.line_ids[-1].id, {'balance': -2000, 'amount_currency': -1000})
+        self.assertRecordValues(st_line.line_ids, [
+            {'amount_currency': 5000.0, 'balance': 10000.0, 'reconciled': False},
+            {'amount_currency': -1000.0, 'balance': -1000.0, 'reconciled': True},
+            {'amount_currency': -1000.0, 'balance': -2000.0, 'reconciled': True},
+            {'amount_currency': -1000.0, 'balance': -2000.0, 'reconciled': False},
+            {'amount_currency': -2500.0, 'balance': -5000.0, 'reconciled': False},
         ])
 
     def test_reconcile_partialed_amounts(self):

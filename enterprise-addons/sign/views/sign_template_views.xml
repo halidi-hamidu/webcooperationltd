@@ -47,16 +47,20 @@
                                     </em>
                                 </span>
                             </div>
-                            <div class="col-lg-1 col-sm-6 my-3 py-0">
-                                <span class="badge rounded-pill text-bg-success" title="Shared" invisible="not is_sharing">
+                            <div class="col-lg-1 col-sm-6 my-3 py-0" invisible="not is_sharing">
+                                <span class="badge rounded-pill text-bg-success" title="Shared">
                                     Shared
                                 </span>
                             </div>
-                            <div class="col-lg-2 col-sm-8 d-sm-block col-12 my-3 py-0">
+                            <!-- to keep the layout aligned and prevent extra space on mobile when the “Shared” badge are hidden -->
+                            <div class="col-lg-1 col-sm-6 my-0 py-0" invisible="is_sharing"/>
+                            <div class="col-lg-2 col-sm-8 d-sm-block col-12 my-3 py-0" invisible="not tag_ids">
                                 <div class="d-flex flex-column">
                                     <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                                 </div>
                             </div>
+                            <!-- to keep the layout aligned and prevent extra space on mobile when the tags are hidden -->
+                            <div class="col-lg-2 col-sm-8 d-sm-block py-0" invisible="tag_ids" />
                             <div t-attf-class="col-lg-1 col-sm-8 col-6 py-0 my-2">
                                 <div class="d-flex flex-column">
                                     <a type="object" name="get_action_in_progress_requests">
@@ -176,11 +180,11 @@
                             <field name="responsible_count" invisible="1"/>
                             <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" placeholder="Tags"/>
                             <field name="model_id"/>
-                            <field name="redirect_url" widget="url"/>
+                            <field name="redirect_url" widget="url" placeholder="Redirect signers to a page after signing"/>
                             <field name="redirect_url_text"  invisible="not redirect_url" required="bool(redirect_url)"/>
                         </group>
                         <group>
-                            <field name="authorized_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="authorized_ids" widget="many2many_tags" options="{'color_field': 'color'}" placeholder="Anyone"/>
                             <field name="group_ids" groups="sign.manage_template_access" widget="many2many_tags" />
                             <field name="user_id" domain="[('share', '=', False)]" groups="sign.manage_template_access" options="{'no_open': True}"/>
                             <label for="signature_request_validity" string="Valid for"/>
@@ -360,7 +364,7 @@
                             <field name="field_size" invisible="item_type not in ['text']"/>
                         </group>
                         <group>
-                            <field name="model_id" groups="base.group_system" invisible="item_type not in ['text', 'textarea']"/>
+                            <field name="model_id" groups="base.group_system" invisible="item_type not in ['text', 'textarea']"  placeholder="Autocomplete this field"/>
                             <field name="auto_field" widget="field_selector"
                                 options="{'model': 'model_name'}"
                                 invisible="item_type not in ['text', 'textarea'] or not model_name"
@@ -434,7 +438,7 @@
     </record>
 
     <record id="sign_report_green_savings_action" model="ir.actions.report">
-        <field name="name">Ecological Savings by using Electronic Signatures</field>
+        <field name="name">Green Savings</field>
         <field name="model">sign.template</field>
         <field name="report_type">qweb-html</field>
         <field name="report_name">sign.green_savings_report</field>

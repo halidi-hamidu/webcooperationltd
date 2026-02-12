@@ -304,15 +304,35 @@ class TestTimesheetValidation(TestCommonTimesheet, MockEmail):
 
     def test_timesheet_reminder(self):
         """ Reminder mail will be sent to both manager Administrator and User Officer to validate the timesheet """
-        date = datetime(2022, 3, 3, 8, 8, 15)
-        now = datetime(2022, 3, 1, 8, 8, 15)
-        self._test_next_date(now, date, -3, "weeks")
+        date = datetime(2022, 3, 2, 8, 8, 15)
+
         user = self.env.ref('base.user_admin')
+        self.user_employee.company_id.timesheet_mail_nextdate = date
+        self.user_employee.employee_id.timesheet_manager_id = self.user_manager.id
 
         with freeze_time(date), self.mock_mail_gateway():
             self.env['res.company']._cron_timesheet_reminder()
-            self.assertEqual(len(self._new_mails.filtered(lambda x: x.res_id == user.employee_id.id)), 1, "An email sent to the 'Administrator Manager'")
-            self.assertEqual(len(self._new_mails.filtered(lambda x: x.res_id == self.empl_manager.id)), 1, "An email sent to the 'User Empl Officer'")
+            self.assertEqual(
+                len(self._new_mails.filtered(lambda x: x.res_id == user.employee_id.id)), 0,
+                "No email should be sent to the 'Administrator Manager' since he has no timesheet to validate")
+            self.assertEqual(
+                len(self._new_mails.filtered(lambda x: x.res_id == self.empl_manager.id)), 0,
+                "No email should be sent to the 'User Empl Officer' since he has no timesheet to validate")
+
+            self.user_employee.company_id.timesheet_mail_nextdate = date
+            Timesheet = self.env['account.analytic.line']
+            timesheet_vals = {
+                'name': "my timesheet",
+                'project_id': self.project_customer.id,
+                'task_id': self.task1.id,
+                'date': datetime(2022, 2, 25, 8, 8, 15),
+                'unit_amount': 8.0,
+            }
+            Timesheet.with_user(self.user_employee).create({**timesheet_vals})
+            self.env['res.company']._cron_timesheet_reminder()
+            self.assertEqual(
+                len(self._new_mails.filtered(lambda x: x.res_id == self.empl_manager.id)), 1,
+                "An email should be sent to the 'User Empl Officer' since he has a timesheet to validate")
 
     def test_timesheet_employee_reminder(self):
         """ Reminder mail will be sent to each Users' Employee """

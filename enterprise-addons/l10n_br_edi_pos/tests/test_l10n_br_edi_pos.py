@@ -385,6 +385,18 @@ class TestL10nBREDIPOS(TestL10nBREDIPOSCommon, CommonPosBrEdiTest):
         order_2.write({'state': 'paid'})
         self.assertEqual(order_2.name, 'PoS Config USD - 6')
 
+    @freeze_time(TEST_DATETIME)
+    def test_10_refund_with_reference(self):
+        """
+        Tests that the refund has an invoice_refs, which is required to make a refund
+        """
+        refund_move = self.env['account.move'].create({
+            'move_type': 'out_refund',
+            'company_id': self.env.company.id,
+        })
+        res = refund_move._get_l10n_br_avatax_service_params()
+        self.assertTrue(res['invoice_refs'])
+
 
 @freeze_time(TEST_DATETIME)
 @tagged("post_install_l10n", "post_install", "-at_install")

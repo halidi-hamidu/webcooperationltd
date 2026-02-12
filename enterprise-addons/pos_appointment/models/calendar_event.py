@@ -64,7 +64,6 @@ class CalendarEvent(models.Model):
                 'default_total_capacity_reserved': 0,
                 'default_waiting_list_capacity': 2,
                 "search_default_appointment_type_id": self.env.context.get("appointment_type_id"),
-                "no_breadcrumbs": True,
                 'hide_no_content_helper': True,
                 'from_pos_booking': True,
                 "appointment_type_id": self.env.context.get("appointment_type_id"),

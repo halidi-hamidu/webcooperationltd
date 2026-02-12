@@ -134,11 +134,10 @@ export class SignTemplate extends Component {
         const duplicatedTemplateIds = await this.orm.call("sign.template", "copy", [
             [this.signTemplate.id],
         ]);
-
         this.action.doAction({
             type: "ir.actions.client",
             tag: "sign.Template",
-            name: _t("Edit Template"),
+            name: this.signTemplate.display_name,
             params: {
                 id: duplicatedTemplateIds[0],
             },
@@ -230,7 +229,7 @@ export class SignTemplate extends Component {
     }
 
     async pushNewSigner() {
-        const name = _t("Signer %s", this.state.signers.length + 1);
+        const name = _t("Signer ") + (this.state.nextId + 1).toString();
         const roleId = await this.orm.call('sign.template', 'create_item_and_role', [this.state.selectedDocumentId, name]);
         const colorId = this.getNextColor();
         this.state.signers.push({
@@ -510,13 +509,13 @@ export class SignTemplate extends Component {
         /* Update document by duplicating and archiving the current template. */
         new Promise((resolve) => {
             this.dialog.add(ConfirmationDialog, {
-                title: _t("Update Document"),
+                title: _t("Replace Document"),
                 body: _t(
                     "Updating a document generates a new template with the same sign items. " +
                     "The copied items will land in the same coordinates as their originals if the " +
                     "number of pages match with the previous PDF. Do you want to proceed?"
                 ),
-                confirmLabel: _t("Update Document"),
+                confirmLabel: _t("Replace Document"),
                 confirm: () => resolve(true),
                 cancelLabel: _t("Discard"),
                 cancel: () => resolve(false),

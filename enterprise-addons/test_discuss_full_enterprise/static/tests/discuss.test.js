@@ -4,6 +4,7 @@ import {
     click,
     contains,
     focus,
+    getChannelCommandsForThread,
     insertText,
     openDiscuss,
     start,
@@ -16,7 +17,7 @@ import { insertText as htmlInsertText } from "@html_editor/../tests/_helpers/use
 
 import { getService } from "@web/../tests/web_test_helpers";
 
-import { describe, test } from "@odoo/hoot";
+import { describe, expect, test } from "@odoo/hoot";
 
 describe.current.tags("desktop");
 defineTestDiscussFullEnterpriseModels();
@@ -30,6 +31,7 @@ test("[text composer] Can use channel command /who", async () => {
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "/who");
+    expect(getChannelCommandsForThread(channelId).map((command) => command.name)).toInclude("who");
     await click(".o-mail-Composer button[title='Send']:enabled");
     await contains(".o_mail_notification", { text: "You are alone in this channel." });
 });

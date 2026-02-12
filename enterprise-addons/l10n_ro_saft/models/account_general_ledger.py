@@ -230,6 +230,8 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
         for partner_vals in values['partner_detail_map'].values():
             partner = partner_vals['partner']
             partner_type = partner_vals.get('type')
+            if not partner.name:
+                faulty_partners['partner_missing_name'] |= partner
             # Partner addresses must include the City and Country.
             if not partner.city:
                 faulty_partners['partner_city_missing'] |= partner
@@ -262,19 +264,21 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                     faulty_partners['partner_vies_failed'] |= partner
 
         descriptions = {
-            "partner_city_missing": _("Partners should have their city."),
-            "partner_country_missing": _("Partners should have a country"),
-            "partner_vat_doesnt_match_country": _("Partners' VAT prefix should correspond to their country."),
-            "partner_registry_incorrect": _("Some partners have missing or invalid CUI numbers in `Company Registry`. Example of a valid CUI: 18547290"),
-            "partner_vat_missing": _("Some partners have missing VAT numbers."),
-            "partner_vat_incorrect": _("Some partners have invalid VAT numbers. Example of a valid VAT: RO18547290"),
-            "partner_vies_failed": _('The VAT numbers for the following partners failed the VIES check:'),
+            "partner_city_missing": (_("Partners should have their city."), "warning"),
+            "partner_country_missing": (_("Partners should have a country"), "warning"),
+            "partner_vat_doesnt_match_country": (_("Partners' VAT prefix should correspond to their country."), "warning"),
+            "partner_registry_incorrect": (_("Some partners have missing or invalid CUI numbers in `Company Registry`. Example of a valid CUI: 18547290"), "warning"),
+            "partner_vat_missing": (_("Some partners have missing VAT numbers."), "warning"),
+            "partner_vat_incorrect": (_("Some partners have invalid VAT numbers. Example of a valid VAT: RO18547290"), "warning"),
+            "partner_vies_failed": (_("The VAT numbers for the following partners failed the VIES check:"), "warning"),
+            "partner_missing_name": (_("These partners are missing a name:"), "danger"),
         }
         return {
             key: {
-                'message': descriptions[key],
+                'message': descriptions[key][0],
                 'action_text': self.env._('View Partners'),
                 'action': partners._get_records_action(name=self.env._("Invalid Partner(s)")),
+                'level': descriptions[key][1]
             }
             for key, partners in faulty_partners.items()
         }
@@ -322,7 +326,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                     # For individuals having a valid CNP or NIF, that should be used
                     return stdnum.ro.cnp.compact(partner.company_registry)
                 elif partner.country_code == 'RO' or not partner.country_code:
-                    return '04' + partner.country_code + str(partner.id)
+                    return '04' + (partner.country_code or '') + str(partner.id)
                 elif partner.country_id and 'EU' in partner.country_id.country_group_codes:
                     return '05' + partner.country_code + str(partner.id)
                 else:

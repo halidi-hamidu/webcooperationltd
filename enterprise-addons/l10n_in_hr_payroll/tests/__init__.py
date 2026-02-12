@@ -2,3 +2,4 @@
 
 from . import test_hr_contract
 from . import test_contract_template_whitelist
+from . import test_payment_report

@@ -782,3 +782,18 @@ class TestCFDIPosOrder(TestMxEdiPosCommon, TestPointOfSaleHttpCommon):
                 'l10n_mx_edi_payment_method_id': 1,
             }
         ])
+
+    def test_cancelled_refund_order_mx(self):
+        """ Test that cancelled refund order are not considered for global invoices. """
+        with self.mx_external_setup(self.frozen_today), self.with_pos_session():
+            order = self._create_order({
+                'pos_order_lines_ui_args': [
+                    (self.product, 1.0),
+                ],
+                'payments': [(self.bank_pm1, 1160)],
+            })
+            refund = self.env['pos.order'].browse(order.refund()['res_id'])
+            refund.action_pos_order_cancel()
+            with self.with_mocked_pac_sign_success():
+                order._l10n_mx_edi_cfdi_global_invoice_try_send()
+            self.assertEqual(refund.l10n_mx_edi_cfdi_state, False)

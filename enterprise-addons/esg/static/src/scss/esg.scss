@@ -8,12 +8,12 @@
         font-size: inherit;
     }
 
-    .o_carbon_fp_scopes_wrap {
-        min-width: map-get($container-max-widths, 'lg');
-    }
-
     .o_carbon_fp_scope {
-        clip-path: polygon(0 #{map-get($spacers, 3)}, 50% 0, 100% #{map-get($spacers, 3)}, 100% 100%, 0 100%);
+        clip-path: var(--CarbonFpScope-clip-path, polygon(0 #{map-get($spacers, 3)}, 50% 0, 100% #{map-get($spacers, 3)}, 100% 100%, 50% (calc(100% - #{map-get($spacers, 3)})), 0 100%));
+
+        @include media-breakpoint-up(md) {
+            --CarbonFpScope-clip-path: polygon(0 #{map-get($spacers, 3)}, 50% 0, 100% #{map-get($spacers, 3)}, 100% 100%, 0 100%);
+        }
     }
 
     .o_carbon_fp_icon_app {
@@ -49,32 +49,20 @@
             display: block;
             width: 50%;
             height: map-get($spacers, 3);
-            background: $gray-200;
+            background: $gray-300;
         }
     }
 
     .o_carbon_fp_activitie {
-        &::before, &::after {
-            @include o-position-absolute(0);
-            content: '';
-            display: block;
-            width: map-get($spacers, 2);
-            height: 100%;
-            background: $o-webclient-background-color;
-            clip-path: polygon(0 0, 100% 50%, 0 100%);
+        grid-row: 2;
+        clip-path: var(--CarbonFpActivitie-clip-path, polygon(0 0, 50% #{map-get($spacers, 3)}, 100% 0, 100% calc(100% - #{map-get($spacers, 3)}), 50% 100%, 0 #{ calc(100% - #{map-get($spacers, 3)})}));
+
+        @include media-breakpoint-up(md) {
+            --CarbonFpActivitie-clip-path: polygon(0 0, calc(100% - #{map-get($spacers, 2)}) 0, 100% 50%, calc(100% - #{map-get($spacers, 2)}) 100%, 0 100%, #{map-get($spacers, 2)} 50%);
         }
 
-        &::before {
-            left: 0;
-        }
-
-        &::after {
-            left: 100%;
-            background: inherit;
-        }
-
-        &.o_first:before, &:last-child:after {
-            display: none;
+        > * {
+            transform: translate(-50%, -50%) rotate(90deg);
         }
     }
 

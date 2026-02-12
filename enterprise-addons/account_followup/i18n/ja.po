@@ -8,14 +8,14 @@
 # Andy Yiu, 2023
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# "Junko Augias (juau)" <juau@odoo.com>, 2025.
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2025-12-10 10:25+0000\n"
+"PO-Revision-Date: 2026-02-02 13:39+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
 "Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
 "account_followup/ja/>\n"
@@ -41,7 +41,7 @@ msgstr "%(delay)s 日 (%(name)sのコピー)"
 #. module: account_followup
 #: model:ir.actions.report,print_report_name:account_followup.action_report_followup
 msgid "'Follow-up ' + object.display_name"
-msgstr "'フォローアップ ' + object.display_name"
+msgstr "'督促' + object.display_name"
 
 #. module: account_followup
 #: model:account_followup.followup.line,name:account_followup.demo_followup_line1
@@ -195,20 +195,21 @@ msgid ""
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "                    <p>\n"
-"                        <t t-if=\"object.id != "
-"object.commercial_partner_id.id\"><t t-out=\"object.name or ''\"/> (<t t-"
-"out=\"object.commercial_partner_id.name or ''\"/>)様、</t>\n"
-"                        <t t-else=\"\"><t t-out=\"object.name or ''\"/>様</"
-"t>\n"
+"                        <t t-if="
+"\"object.id != object.commercial_partner_id.id\"><t t-out="
+"\"object.name or ''\"/> "
+"(<t t-out=\"object.commercial_partner_id.name or ''\"/>)様、</t>\n"
+"                        <t t-else=\"\"><t t-out=\"object.name or ''\"/>様</t>"
+"\n"
 "                        <br/>\n"
 "                        いつもお世話になっております。これまで督促をお送りし"
-"たにもかかわらず、お客様のお支払いが長期に渡り延滞していること、大変残念に"
-"思っております。\n"
+"たにもかかわらず、お客様のお支払いが長期に渡り期限超過していること、大変残念"
+"に思っております。\n"
 "                        <br/>\n"
 "                        早急にお支払い頂きますようお願い申し上げます。お支払"
 "い頂けない場合、弊社はお客様のアカウント停止を検討せざるを得なくなり、御社へ"
-"の(商品/サービスの)ご提供ができなくなります。8日以内に支払いを完了できるよ"
-"う、適切な措置を講じて頂きますよう、お願い申し上げます。\n"
+"の(商品/サービスの)ご提供ができなくなります。8日以内に支払いを完了できるよう"
+"、適切な措置を講じて頂きますよう、お願い申し上げます。\n"
 "                        <br/>\n"
 "                        請求書のお支払いに関して、弊社で把握してない問題等ご"
 "ざいましたら、弊社の経理部宛にご連絡頂ければ、早急に対応させて頂きます。\n"
@@ -216,18 +217,18 @@ msgstr ""
 "                        お支払いの詳細は以下となります。\n"
 "                        <br/>\n"
 "                        何卒よろしくお願い致します。\n"
-"                        <t t-if=\"not "
-"is_html_empty(object._get_followup_responsible().signature)\">\n"
+"                        <t t-if="
+"\"not is_html_empty(object._get_followup_responsible().signature)\">\n"
 "                            <br/>\n"
-"                            <t t-"
-"out=\"object._get_followup_responsible().signature\"/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().signature\"/>\n"
 "                        </t>\n"
 "                        <t t-else=\"\">\n"
 "                            <br/>\n"
 "                            --\n"
 "                            <br/>\n"
-"                            <t t-"
-"out=\"object._get_followup_responsible().name\"/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().name\"/>\n"
 "                        </t>\n"
 "                    </p>\n"
 "                </div>\n"
@@ -365,7 +366,7 @@ msgstr "アカウントマネージャー"
 #. module: account_followup
 #: model:ir.actions.server,name:account_followup.ir_cron_follow_up_ir_actions_server
 msgid "Account Report Followup; Execute followup"
-msgstr "アカウントレポートフォローアップ；フォローアップを実施する"
+msgstr "会計レポート督促；督促処理"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
@@ -641,7 +642,7 @@ msgstr "フォローアップ %(partner)s - %(date)s.pdf"
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_followup_line
 msgid "Follow-up Criteria"
-msgstr "フォローアップ基準"
+msgstr "督促条件"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_move_line__followup_line_id
@@ -659,7 +660,7 @@ msgstr "フォローアップレベル"
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_report
 msgid "Follow-up Report"
-msgstr "フォローアップレポート"
+msgstr "督促レポート"
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__account_followup_followup_line__activity_default_responsible_type__followup
@@ -692,7 +693,7 @@ msgstr "フォローアップレターは生成されました"
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_missing_information_wizard
 msgid "Followup missing information wizard"
-msgstr "フォローアップ不足情報ウィザード"
+msgstr "督促に必要な情報の不足ウィザード"
 
 #. module: account_followup
 #: model_terms:ir.actions.act_window,help:account_followup.action_account_followup_line_definition_form
@@ -708,7 +709,7 @@ msgstr ""
 #. module: account_followup
 #: model:mail.template,name:account_followup.demo_followup_email_template_4
 msgid "Fourth reminder followup"
-msgstr "四回目のリマインダフォローアップ"
+msgstr "4回目の督促通知"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__has_moves
@@ -888,7 +889,7 @@ msgstr "移動元"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.customer_statements_search_view
 msgid "Overdue Customer Invoices"
-msgstr ""
+msgstr "未払いの顧客請求書"
 
 #. module: account_followup
 #. odoo-python
@@ -985,7 +986,7 @@ msgstr "フォローアップを検索"
 #. module: account_followup
 #: model:mail.template,name:account_followup.demo_followup_email_template_2
 msgid "Second reminder followup"
-msgstr "二回目のリマインダフォローアップ"
+msgstr "2回目の督促通知"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
@@ -1075,8 +1076,7 @@ msgstr ""
 msgid ""
 "The responsible assigned to manual followup activities, if defined in the "
 "level."
-msgstr ""
-"レベルで定義されている場合に手動フォローアップ活動に割り当てられた担当者。"
+msgstr "レベルで定義されている場合に、手動の督促活動を担当するユーザ。"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.customer_statements_tree_view
@@ -1093,7 +1093,7 @@ msgstr "合計全体未払金額"
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_all_overdue
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_all_overdue
 msgid "Total All Overdue"
-msgstr "合計全体延滞金額"
+msgstr "合計全体期限超過金額"
 
 #. module: account_followup
 #. odoo-python
@@ -1109,19 +1109,19 @@ msgstr "合計未払金額"
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_overdue
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_overdue
 msgid "Total Overdue"
-msgstr "合計延滞金額"
+msgstr "合計期限超過金額"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_overdue_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_overdue_followup
 msgid "Total Overdue Followup"
-msgstr "延滞フォローアップ数合計"
+msgstr "督促対象の期限超過合計"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__unpaid_invoice_ids
 #: model:ir.model.fields,field_description:account_followup.field_res_users__unpaid_invoice_ids
 msgid "Unpaid Invoice"
-msgstr "未払請求書"
+msgstr "未入金請求書"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__unpaid_invoices_count
@@ -1152,12 +1152,12 @@ msgstr ""
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__res_partner__followup_status__with_overdue_invoices
 msgid "With overdue invoices"
-msgstr "滞納請求書あり"
+msgstr "期限超過請求書あり"
 
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_manual_reminder
 msgid "Wizard for sending manual reminders to clients"
-msgstr "顧客に手動リマインダを送信するアシスタント"
+msgstr "顧客に手動で督促通知を送信するためのウィザード"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form

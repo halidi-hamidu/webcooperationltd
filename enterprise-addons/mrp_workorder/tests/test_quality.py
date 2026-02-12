@@ -155,3 +155,64 @@ class TestQuality(TransactionCase):
         self.assertEqual(quality_checks[1].next_check_id, new_check)
         self.assertEqual(new_check.previous_check_id, quality_checks[1])
         self.assertEqual(new_check.next_check_id, quality_checks[2])
+
+    def test_merge_mo_from_orderpoints(self):
+        """
+        Ensure that triggering a manufacturing reordering rule:
+        - Updates an existing MO if none of its quality check has been performed yet
+        - Creates a new MO if the last MO's product_qty cannot be updated due to a performed quality check
+        """
+        self.env['mrp.routing.workcenter'].create({
+            'name': 'Assembly2',
+            'workcenter_id': self.workcenter_1.id,
+            'bom_id': self.bom.id,
+        })
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
+        route_manufacture = warehouse.manufacture_pull_id.route_id
+        self.product_1.route_ids = [Command.set([route_manufacture.id])]
+        orderpoint = self.env['stock.warehouse.orderpoint'].create({
+            'product_id': self.product_1.id,
+            'warehouse_id': warehouse.id,
+            'product_min_qty': 0,
+            'product_max_qty': 0,
+            'trigger': 'auto',
+        })
+        self.env['quality.point'].create({
+            'title': 'QC',
+            'product_ids': [Command.link(self.product_1.id)],
+            'operation_id': self.bom.operation_ids[1].id,
+            'test_type_id': self.env.ref('quality.test_type_instructions').id,
+        })
+        reference = self.env['stock.reference'].create({'name': "lovely reference"})
+        deliveries = self.env['stock.picking'].create([{
+            'name': f"Lovely Delivery {i}",
+            'location_id': warehouse.lot_stock_id.id,
+            'location_dest_id': self.ref('stock.stock_location_customers'),
+            'picking_type_id': warehouse.out_type_id.id,
+            'move_ids': [Command.create({
+                'location_id': warehouse.lot_stock_id.id,
+                'location_dest_id': self.ref('stock.stock_location_customers'),
+                'product_id': self.product_1.id,
+                'product_uom_qty': 1,
+                'reference_ids': [Command.set(reference.ids)],
+            })]
+        } for i in range(1, 4)])
+
+        deliveries[0].action_confirm()
+        mo = self.env['mrp.production'].search([('orderpoint_id', '=', orderpoint.id)], limit=1)
+        self.assertRecordValues(mo, [
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+        ])
+
+        deliveries[1].action_confirm()
+        self.assertRecordValues(mo, [
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+        ])
+
+        mo.workorder_ids[1].current_quality_check_id.action_next()
+        deliveries[2].action_confirm()
+        mos = self.env['mrp.production'].search([('orderpoint_id', '=', orderpoint.id)], order='id', limit=2)
+        self.assertRecordValues(mos, [
+            {'product_qty': 2.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+            {'product_qty': 1.0, 'product_id': self.product_1.id, 'warehouse_id': warehouse.id},
+        ])

@@ -240,3 +240,91 @@ test("company_id field visibility for portal in multicompany", async function ()
     });
     expect("thead th[data-name='company_id']").toHaveCount(0);
 });
+
+test("file sharing via link with multiple subfolders", async function () {
+    let accessFolder1 = false;
+    let accessFolder2 = false;
+    let addFolder4 = false;
+    onRpc("/documents/touch/accessTokenFolder1", () => {
+        expect.step("touch 1");
+        accessFolder1 = true;
+        return { reload: true };
+    });
+    onRpc("/documents/touch/accessTokenFolder2", () => {
+        expect.step("touch 2");
+        accessFolder2 = true;
+        return { reload: true };
+    });
+    onRpc("/documents/touch/accessTokenFolder3", () => {
+        return { reload: true };
+    });
+    onRpc("/documents/touch/accessTokenFolder4", () => {
+        return { reload: true };
+    });
+
+    // Set active true/false to control the folders display
+    const folder2 = makeDocumentRecordData(2, "Folder 2", {
+        type: "folder",
+        is_folder: true,
+        folder_id: 1,
+        access_token: "accessTokenFolder2",
+        active: false,
+    });
+    const folder3 = makeDocumentRecordData(3, "Folder 3", {
+        type: "folder",
+        is_folder: true,
+        folder_id: 2,
+        access_token: "accessTokenFolder3",
+        active: false,
+    });
+    const folder4 = makeDocumentRecordData(4, "Folder 4", {
+        type: "folder",
+        is_folder: true,
+        folder_id: 2,
+        access_token: "accessTokenFolder4",
+        active: false,
+    });
+    const serverData = getDocumentsTestServerModelsData([folder2, folder3, folder4]);
+
+    const docEnv = await makeDocumentsMockEnv({ serverData });
+    const activateFolders = ({ args }) => {
+        folder2.active = accessFolder1;
+        folder3.active = accessFolder2;
+        if (addFolder4) {
+            folder4.active = accessFolder2;
+            // Ensure only one folder button available
+            folder3.active = false;
+        }
+    };
+    onRpc("search_panel_select_range", activateFolders);
+    onRpc("web_search_read", activateFolders);
+
+    const docService = docEnv.services["document.document"];
+    // Avoid logAccess 1000ms debounce timer
+    patchWithCleanup(docService, {
+        logAccess: (token) => docService._logAccess(token),
+        // Avoid duplicates due to focusRecord logAccess with no debounce
+        focusRecord: () => false,
+    });
+    await mountDocumentsListView();
+
+    await contains(`.o_search_panel_label[data-tooltip="Company"] .o_toggle_fold`).click();
+    expect(`.o_data_row .o_field_cell[name="name"]:contains("Folder 1")`).toHaveCount(1);
+    await contains(`.o_data_row .o_field_cell .o_field_documents_type_icon`).click();
+    expect(`.o_data_row .o_field_cell[name="name"]:contains("Folder 2")`).toHaveCount(1);
+    await contains(`.o_data_row .o_field_cell .o_field_documents_type_icon`).click();
+    expect(`.o_data_row .o_field_cell[name="name"]:contains("Folder 3")`).toHaveCount(1);
+    await contains(`.o_data_row .o_field_cell .o_field_documents_type_icon`).click();
+
+    expect.verifySteps(["touch 1", "touch 2"]);
+
+    expect(`.o_search_panel_label[data-tooltip="Folder 4"]`).toHaveCount(0);
+    // New sub-folder added without reloading
+    addFolder4 = true;
+    await contains(`.o_search_panel_label_title:contains("Folder 2")`).click();
+    expect(`.o_search_panel_label[data-tooltip="Folder 4"]`).toHaveCount(0);
+    expect(`.o_data_row .o_field_cell[name="name"]:contains("Folder 4")`).toHaveCount(1);
+    await contains(`.o_data_row .o_field_cell .o_field_documents_type_icon`).click();
+    expect(`.o_search_panel_label[data-tooltip="Folder 4"]`).toHaveCount(1);
+    expect.verifySteps(["touch 2"]);
+});

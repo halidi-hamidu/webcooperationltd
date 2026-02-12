@@ -2,6 +2,7 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import ormcache
 
 
 class IrActionsServer(models.Model):
@@ -111,3 +112,75 @@ class IrActionsServer(models.Model):
         elif self.documents_account_create_model == 'account.bank.statement':
             return documents.account_create_account_bank_statement(journal_id=journal_id)
         raise NotImplementedError
+
+    def _run_action_multi(self, eval_context=None):
+        """Override to ensure correct behaviour of the docs sync mechanism.
+
+        This is a stable-proof temporary solution to ensure a synced doc will end up
+        in the correct synced accounting journal folder. The issue is that there is
+        an unnecessary move action to a intermediate folder in some accounting multi-actions.
+
+        The solution is to ensure the move action happens *before* the record creation action.
+        This is done by modifying the order in which the multi-actions run.
+
+        Since the action is not naturally available on this intermediate folder, we
+        temporarily embed (pin) it there during execution to bypass permission checks.
+        """
+        account_actions = self._get_documents_account_actions_map()
+        if self.id not in account_actions:
+            return super()._run_action_multi(eval_context=eval_context)
+
+        folder_id = account_actions[self.id]
+        extra_folder = self.env['documents.document'].browse(folder_id)
+        new_embedding_folders = extra_folder._embed_action(self.id) if extra_folder.exists() else []
+
+        res = False
+        # Order as viewed in action's form view, simplest contained change for stable.
+        for act in self.child_ids.sorted('sequence,id'):
+            res = act.run() or res
+
+        for folder in new_embedding_folders:
+            # Restore embedding state
+            folder.action_folder_embed_action(folder.id, self.id)
+
+        return res
+
+    @ormcache()
+    @api.model
+    def _get_documents_account_actions_map(self):
+        """Map actions that need custom handling to ensure correct syncing behaviour.
+
+        This configuration defines which actions require a custom execution order
+        and temporary pinning in specific folders during execution.
+
+        It is cached because the mapping relies on global data (XML IDs) and is
+        independent of the current user.
+        """
+        taxes_folder = self.env.ref("documents.document_finance_taxes_folder", raise_if_not_found=False)
+        annual_closing_folder = self.env.ref("documents.document_finance_annual_closing_year_current_folder", raise_if_not_found=False)
+
+        allowed_actions_per_folder = {
+            taxes_folder: [
+                'create_vendor_bill',
+                'create_vendor_refund',
+                'create_customer_invoice',
+                'create_credit_note',
+            ],
+            annual_closing_folder: [
+                'create_misc_entry',
+                'bank_statement',
+            ],
+        }
+
+        return {
+            action.id: folder.id
+            for folder, actions_xml_ids in allowed_actions_per_folder.items()
+            for action_xmlid in actions_xml_ids
+            if folder
+            and (
+                action := self.env.ref(
+                    f"documents_account.ir_actions_server_{action_xmlid}",
+                    raise_if_not_found=False,
+                )
+            )
+        }

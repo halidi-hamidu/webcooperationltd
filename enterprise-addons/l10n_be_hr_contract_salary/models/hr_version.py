@@ -4,7 +4,7 @@ from markupsafe import Markup
 
 from odoo import api, fields, models, _
 from odoo.fields import Domain
-from odoo.tools.float_utils import float_compare
+from odoo.tools.float_utils import float_compare, float_round
 
 
 class HrVersion(models.Model):
@@ -52,8 +52,9 @@ class HrVersion(models.Model):
         mobility_budget_max = self.env['hr.rule.parameter']._get_parameter_from_code("mobility_budget_max", fields.Date.today(), raise_if_not_found=False) or 16875
         mobility_budget_min = self.env['hr.rule.parameter']._get_parameter_from_code("mobility_budget_min", fields.Date.today(), raise_if_not_found=False) or 3164
 
-        minimum_wage = self.env['hr.rule.parameter']._get_parameter_from_code('cp200_min_gross_wage', fields.Date.today(), raise_if_not_found=False)
+        minimum_wage = self.env['hr.rule.parameter']._get_parameter_from_code('cp200_min_gross_wage', fields.Date.today(), raise_if_not_found=False) or 0
         for version in self:
+            minimum_wage = float_round(minimum_wage * version.work_time_rate, precision_digits=2)
             if version.l10n_be_mobility_budget:
                 base = self.env.context.get(
                     'salary_simulation_full_time_wage_on_holidays',

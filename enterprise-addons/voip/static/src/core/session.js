@@ -24,6 +24,8 @@ export class Session {
      */
     static preferredInputDevice = "";
 
+    /** @type {string} */
+    controlHandle = "";
     /** @type {import("@voip/core/call_service").CallService} */
     callService;
     /**
@@ -41,6 +43,12 @@ export class Session {
      * @type {HTMLAudioElement|null}
      */
     remoteAudio = null;
+    /**
+     * Whether the session is responsible for playing the incoming ringtone.
+     *
+     * @type {boolean}
+     */
+    ringleader = false;
     /** @type {string|undefined} */
     transferTarget;
     /** @type {import("@voip/core/call_model").Call} */

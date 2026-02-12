@@ -80,7 +80,8 @@ class IoTDeviceController extends formView.Controller {
         const errorMessages = type === "printer" ? PRINTER_MESSAGES : FDM_MESSAGES;
         // Parse blackbonse response
         if (type === "fiscal_data_module") {
-            const errorCode = event.message ? event.message.substring(0, 3) : event.result?.error?.errorCode;
+            const fullErrorCode = event.message ?? event.result?.error?.errorCode;
+            const errorCode = fullErrorCode?.substring(0, 3);
             if (FDM_MESSAGES[errorCode] && !["000", "102"].includes(errorCode)) {
                 event.message = errorCode
                 event.status = "error";
@@ -90,6 +91,7 @@ class IoTDeviceController extends formView.Controller {
         const defaultMessage = type === "printer" ? _t("Test page printed") : _t('Fiscal Data Module is connected and operational');
         switch (event.status) {
             case "error":
+            case "timeout":
                 this.notification.add(errorMessage, { type: "danger" });
                 return;
             case "warning":

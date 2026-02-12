@@ -44,14 +44,17 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
         string="State",
         domain='[("country_id", "=", billing_country_id)]',
         tracking=True,
-   )  # US required
+    )  # US required
     billing_zip = fields.Char(string="Zip", tracking=True)
 
     @api.model
     def _create_from_card(self, employee, company, card):
-        employee_stripe_id = employee.sudo().private_stripe_id
+        card.check_access('write')
+        # Ensure access to the employee fields. The card manager should have a read access to the required employee fields
+        employee_sudo = employee.sudo()
+        employee_stripe_id = employee_sudo.private_stripe_id
         create_vals = {
-            'employee_id': employee.id,
+            'employee_id': employee_sudo.id,
             'company_id': company.id,
             'card_id': card.id,
         }
@@ -64,7 +67,7 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
                 route_params={'cardholder_id': employee_stripe_id},
                 payload={'account': company.sudo().stripe_id},
                 method='GET',
-             )
+            )
 
             tracked_create_vals['firstname'] = response['individual']['first_name']
             tracked_create_vals['lastname'] = response['individual']['last_name']
@@ -92,15 +95,15 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
 
         else:
             # Try prefill from Employee
-            private_first_name, *private_last_name = (employee.name or '').split(' ')
+            private_first_name, *private_last_name = (employee_sudo.name or '').split(' ')
             tracked_create_vals['firstname'] = private_first_name
             tracked_create_vals['lastname'] = ' '.join(private_last_name)
 
-            tracked_create_vals['email'] = employee.email
-            tracked_create_vals['phone_number'] = employee.work_phone
-            tracked_create_vals['birthday'] = employee.birthday and employee.birthday.isoformat()  # VERY IMPORTANT, the ORM will convert it but not the JSON
+            tracked_create_vals['email'] = employee_sudo.email
+            tracked_create_vals['phone_number'] = employee_sudo.work_phone
+            tracked_create_vals['birthday'] = employee_sudo.birthday and employee_sudo.birthday.isoformat()  # VERY IMPORTANT, the ORM will convert it but not the JSON
 
-            work_address = employee.address_id
+            work_address = employee_sudo.address_id
             tracked_create_vals['billing_country_id'] = work_address.country_id.id
             tracked_create_vals['billing_city'] = work_address.city
 
@@ -165,18 +168,19 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
 
     def action_save_cardholder(self):
         self.ensure_one()
-
+        self.card_id.check_access('write')
+        employee_sudo = self.employee_id.sudo()
         # Create the ordered list of user languages for the 3DSecure flow
         preferred_langs = OrderedSet()
-        user_lang = self.employee_id.user_id.lang and self.employee_id.user_id.lang.split('_')[0]
+        user_lang = employee_sudo.user_id.lang and employee_sudo.user_id.lang.split('_')[0]
         preferred_langs.add(user_lang)
-        employee_lang = self.employee_id.lang and self.employee_id.lang.split('_')[0]
+        employee_lang = employee_sudo.lang and employee_sudo.lang.split('_')[0]
         preferred_langs.add(employee_lang)
         preferred_langs.add('en')
         preferred_langs.discard(False)
         payload = {
             'account': self.company_id.sudo().stripe_id,
-            'lang': self.employee_id.user_id.lang or self.employee_id.lang or 'en_US',  # Default to en_US if no lang is set
+            'lang': employee_sudo.user_id.lang or employee_sudo.lang or 'en_US',  # Default to en_US if no lang is set
             'billing': {
                 'address': {
                     'country': self.billing_country_id.code,
@@ -198,7 +202,7 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
             },
             'preferred_locales': [lang for lang in preferred_langs if lang in STRIPE_3D_SECURE_LOCALES],
         }
-        phone_number = self.employee_id._phone_format(
+        phone_number = employee_sudo._phone_format(
             number=self.phone_number,
             country=self.billing_country_id,
             force_format='E164',
@@ -214,7 +218,7 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
         if self.billing_state_id:
             payload['billing']['address']['state'] = self.billing_state_id.name
 
-        employee_stripe_id = self.employee_id.sudo().private_stripe_id
+        employee_stripe_id = employee_sudo.private_stripe_id
         if employee_stripe_id:
             success_message = _("The Cardholder had been successfully updated.")
             route = 'cardholders/{cardholder_id}'
@@ -229,8 +233,8 @@ class HrExpenseStripeCardholderWizard(models.TransientModel):
         response = make_request_stripe_proxy(self.company_id.sudo(), route, route_params, payload=payload, method='POST')
 
         if not employee_stripe_id:
-            self.employee_id.sudo().private_stripe_id = response['id']
-            self.employee_id.flush_recordset(('private_stripe_id',))
+            employee_sudo.private_stripe_id = response['id']
+            employee_sudo.flush_recordset(('private_stripe_id',))
         self.env.cr.precommit.add(self._transfer_messages_to_card)
         self.env.user._bus_send('simple_notification', {
             'type': 'success',

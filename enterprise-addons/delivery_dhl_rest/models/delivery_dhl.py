@@ -220,6 +220,15 @@ class ProviderDHL(models.Model):
     def _convert_to_utc_string(self, datetime_object):
         return datetime_object.astimezone(tz=pytz.utc).strftime('%Y-%m-%dT%H:%M:%S GMT+00:00')
 
+    def _get_dhl_label_format(self):
+        match self.dhl_label_image_format:
+            case 'ZPL2':
+                return 'zpl'
+            case 'EPL2':
+                return 'epl'
+            case _:
+                return 'pdf'
+
     def _rate_shipment_vals(self, order=False, picking=False):
         if picking:
             warehouse_partner_id = picking.picking_type_id.warehouse_id.partner_id
@@ -353,7 +362,9 @@ class ProviderDHL(models.Model):
                 shipment_request['content']['exportDeclaration'] = srm._get_export_declaration_vals(self, picking)
                 shipment_request['content']['declaredValueCurrency'] = currency_name
             shipment_request['content']['packages'] = srm._get_shipment_vals(picking)
-            shipment_request['outputImageProperties'] = {}
+            shipment_request['outputImageProperties'] = {
+                'encodingFormat': self._get_dhl_label_format(),
+            }
             shipment_request['outputImageProperties']['imageOptions'] = [{
                 'typeCode': 'label',
                 'templateName': self.dhl_label_template,

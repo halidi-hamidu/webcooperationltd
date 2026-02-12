@@ -30,6 +30,13 @@ export class BankRecSelectCreateDialog extends SelectCreateDialog {
             this.state.resIds = resIds;
             this.changeInSelectedMoveLine(selectedLines);
         };
+
+        this.baseViewProps.bankRecInfo = {
+            date: this.formattedStatementLineDate,
+            reference: this.props.reference,
+            state: this.state,
+            currencyId: this.suspenseAccountLine.currency_id.id,
+        };
     }
 
     async changeInSelectedMoveLine(selectedLines) {
@@ -79,6 +86,9 @@ export class BankRecSelectCreateDialog extends SelectCreateDialog {
     }
 
     get formattedStatementLineDate() {
-        return this.props.date?.toLocaleString();
+        return this.props.date?.toLocaleString({
+            month: "short",
+            day: "2-digit",
+        });
     }
 }

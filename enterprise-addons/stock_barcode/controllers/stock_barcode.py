@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from odoo import fields, http, _
 from odoo.http import request
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import pdf, split_every
 from odoo.tools.misc import file_open
@@ -22,7 +22,10 @@ class StockBarcodeController(http.Controller):
         """
         barcode_type = None
         nomenclature = request.env.company.nomenclature_id
-        parsed_results = nomenclature.parse_barcode(barcode)
+        try:
+            parsed_results = nomenclature.parse_barcode(barcode)
+        except ValidationError:
+            parsed_results = False
         if parsed_results and nomenclature.is_gs1_nomenclature:
             # search with the last feasible rule
             for result in parsed_results[::-1]:
@@ -119,6 +122,7 @@ class StockBarcodeController(http.Controller):
         }
         quant_count = request.env['stock.quant'].search_count([
             '|', ('user_id', '=', user.id), ('user_id', '=', False),
+            ("company_id", "=", self._get_allowed_company_ids()[0]),
             ("location_id.usage", "in", ["internal", "transit"]),
             ("inventory_date", "<=", fields.Date.context_today(user)),
             ("inventory_quantity_set", "=", False),

@@ -27,7 +27,7 @@ class TestSubscriptionMultiCompany(TestSubscriptionCommon):
         cls.pricelist_new_currency = cls.env['product.pricelist'].create({
             'name': 'New Currency pricelist',
             'currency_id': cls.new_currency.id,
-            'sequence': 2,
+            'sequence': 4,
         })
         cls.partner_new_currency = cls.env['res.partner'].create({
             'name': 'New Currency partner',

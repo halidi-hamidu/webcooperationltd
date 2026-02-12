@@ -36,6 +36,7 @@ class TestHrPayslipPaymentReport(TestPayslipBase):
 
         wizard = self.env['hr.payroll.payment.report.wizard'].create({
             'payslip_ids': [self.payslip.id],
+            'payslip_run_id': self.payslip.payslip_run_id.id,
             'export_format': 'csv',
         })
         wizard.generate_payment_report()
@@ -83,7 +84,13 @@ class TestHrPayrunPaymentReport(TestHrPayslipPaymentReport):
         self.payslip_run.action_confirm()
         self.payslip_run.action_validate()
 
-        self.payslip_run.action_payment_report()
+        wizard = self.env['hr.payroll.payment.report.wizard'].create({
+            'payslip_ids': [self.payslip.id],
+            'payslip_run_id': self.payslip.payslip_run_id.id,
+            'export_format': 'csv',
+        })
+        wizard.generate_payment_report()
+
         attachment_count = self.env['ir.attachment'].search_count([
             ('res_model', '=', 'hr.payslip.run'),
             ('res_id', '=', self.payslip_run.id),

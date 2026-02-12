@@ -1083,3 +1083,96 @@ class TestDatevCSV(AccountTestInvoicingCommon):
             ['237,98', self.tax_19.l10n_de_datev_code],
             ['107,00', self.tax_7.l10n_de_datev_code],
         ], data)
+
+    def test_datev_out_invoice_in_foreign_currency_rate_set_manually(self):
+        report = self.env.ref('account_reports.general_ledger_report')
+        options = report.get_options(previous_options={'date': {
+            'date_from': '2020-01-01',
+            'date_to': '2020-12-31',
+        }})
+        foreign_currency = self.env['res.currency'].create({
+            'name': "XYZ",
+            'symbol': 'X',
+        })
+
+        move = self.env['account.move'].create([{
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_a.id,
+            'currency_id': foreign_currency.id,
+            'invoice_date': '2020-12-01',
+            'invoice_currency_rate': 0.5,
+            'invoice_line_ids': [
+                Command.create({
+                    'name': 'Line',
+                    'price_unit': 100.00,
+                    'account_id': self.account_3400.id,
+                    'tax_ids': [Command.set(self.tax_19.ids)],
+                }),
+            ]
+        }])
+        move.action_post()
+        f = StringIO(self.env[report.custom_handler_model_name]._l10n_de_datev_get_csv(options, move))
+        reader = csv.reader(f, delimiter=';', quotechar='"', quoting=2)
+        data = [[x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[13]] for x in reader][2:]
+        self.assertIn(['119,00', 'H', 'XYZ', '2,0', '238,00', 'EUR', '34000000', str(move.partner_id.id + 100000000),
+                       self.tax_19.l10n_de_datev_code, '112', move.name, move.invoice_line_ids[0].name], data)
+
+    def test_datev_expense_payment_with_tax(self):
+        """ Test that the tax code is exported from a payment move """
+        report = self.env.ref('account_reports.general_ledger_report')
+        options = report.get_options(previous_options={'date': {
+            'date_from': '2020-12-01',
+            'date_to': '2020-12-31'
+        }})
+        bank_journal = self.company_data['default_journal_bank']
+
+        account_1203 = self.env['account.account'].search([
+            ('code', '=', 1203),
+            ('company_ids', '=', self.company_data['company'].id)
+        ], limit=1)
+
+        tax_19_incl = self.tax_19.copy({'name': 'Tax 19% incl.', 'price_include': True})
+        tax_repartition_line = tax_19_incl.refund_repartition_line_ids.filtered(lambda line: line.repartition_type == 'tax')
+
+        skip_context = {
+            'skip_invoice_sync': True,
+            'skip_invoice_line_sync': True,
+            'skip_account_move_synchronization': True,
+        }
+        payment = self.env['account.payment'].with_context(**skip_context).create({
+            'amount': 150.00,
+            'payment_type': 'outbound',
+            'partner_type': 'supplier',
+            'date': '2020-12-01',
+            'journal_id': bank_journal.id,
+            'line_ids': [
+                Command.create({
+                    'name': 'Line 19% #1',
+                    'debit': 126.05,
+                    'credit': 0.0,
+                    'account_id': self.account_3400.id,
+                    'tax_ids': [Command.set(tax_19_incl.ids)],
+                }),
+                Command.create({
+                    'name': 'Line 19% tax',
+                    'debit': 23.95,
+                    'credit': 0.0,
+                    'account_id': self.account_1500.id,
+                    'tax_repartition_line_id': tax_repartition_line.id,
+                }),
+                Command.create({
+                    'name': 'expense line',
+                    'credit': 150.0,
+                    'debit': 0.0,
+                    'account_id': account_1203.id,
+                }),
+            ],
+        })
+        payment.action_post()
+
+        f = StringIO(self.env[report.custom_handler_model_name]._l10n_de_datev_get_csv(options, payment.move_id))
+        reader = csv.reader(f, delimiter=';', quotechar='"', quoting=2)
+        data = [[x[0], x[1], x[2], x[6], x[7], x[8]] for x in reader][2:]
+        self.assertEqual([
+            ['150,00', 'H', 'EUR', '12030000', '34000000', tax_19_incl.l10n_de_datev_code],
+        ], data)

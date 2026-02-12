@@ -28,14 +28,12 @@ class TestRentalSchedule(SaleRentingCommon):
     def test_warn_on_stock_quantity_inconsistency(self):
         # Get a time reference
         t = self.rental_order.rental_start_date
-        conflicting_order = self._create_rental_so(
-            order_line=[Command.create({
-                'product_id': self.projector.id,
-                'product_uom_qty': 4.0,  # 5 in stock but `self.rental_order` already asks for 2
-            })],
+        conflicting_order = self._create_rental_order(
             # Originally scheduled one week before
             rental_start_date=t - relativedelta(days=7),
             rental_return_date=t - relativedelta(days=6),
+            # 5 in stock but `self.rental_order` already asks for 2
+            order_line=[Command.create({'product_id': self.projector.id, 'product_uom_qty': 4})],
         )
 
         # Rescheduled for the next week but now conflicts with `self.rental_order`
@@ -49,13 +47,10 @@ class TestRentalSchedule(SaleRentingCommon):
         )
 
     def test_warn_on_lot_overbooking(self):
-        conflicting_order = self._create_rental_so(
-            order_line=[Command.create({
-                'product_id': self.projector.id,
-                'product_uom_qty': 1.0,
-            })],
+        conflicting_order = self._create_rental_order(
             rental_start_date=self.rental_order.rental_start_date,
             rental_return_date=self.rental_order.rental_return_date,
+            order_line=[Command.create({'product_id': self.projector.id})],
         )
         self.rental_order.order_line.reserved_lot_ids = self.projector_lots[:2]
 

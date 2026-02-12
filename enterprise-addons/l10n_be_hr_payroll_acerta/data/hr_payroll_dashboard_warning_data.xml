@@ -39,13 +39,21 @@ if missing_code_work_types:
 belgian_companies = self.env['res.company'].search([('partner_id.country_code', '=', 'BE')])
 missing_code_contracts = self.env['hr.version'].search([
     ('company_id', 'in',  belgian_companies.ids),
+    ('employee_id', '!=', False),
     ('active', '=', True),
     ('acerta_code', '=', False)
 ])
 
 if missing_code_contracts:
     warning_count = len(missing_code_contracts)
-    warning_records = missing_code_contracts
+    warning_action = {
+        'type': 'ir.actions.act_window',
+        'name': self.env._('Contracts without Acerta Code'),
+        'res_model': 'hr.version',
+        'domain': [('id', 'in', missing_code_contracts.ids)],
+        'views': [(self.env.ref('hr_payroll.hr_version_payroll_list_view').id, 'list'), (False, 'form')],
+        'view_mode': 'list,form',
+    }
             </field>
         </record>
 

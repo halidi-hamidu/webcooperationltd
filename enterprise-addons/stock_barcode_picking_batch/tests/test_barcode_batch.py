@@ -1065,7 +1065,7 @@ class TestBarcodeBatchClientAction(TestBarcodeClientAction):
         # Checks the receipts moves values.
         self.assertFalse(receipts.backorder_ids)
         packages = receipts[1].move_line_ids.sorted(lambda ml: ml.product_id.id).result_package_id
-        self.assertRecordValues(receipts.move_line_ids.sorted(lambda ml: (ml.picking_id, ml.product_id.id, ml.quantity)), [
+        self.assertRecordValues(receipts.move_line_ids.sorted(lambda ml: (ml.picking_id.id, ml.product_id.id, ml.quantity)), [
             {'picking_id': receipts.ids[0], 'result_package_id': packages.ids[1], 'product_id': products.ids[0], 'quantity': 1.0},
             {'picking_id': receipts.ids[0], 'result_package_id': packages.ids[0], 'product_id': products.ids[0], 'quantity': 1.0},
             {'picking_id': receipts.ids[0], 'result_package_id': packages.ids[1], 'product_id': products.ids[1], 'quantity': 2.0},

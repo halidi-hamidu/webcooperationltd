@@ -300,7 +300,7 @@ class L10n_VnTaxReportHandler(models.AbstractModel):
                 """,
                 balance_select=report._currency_table_apply_rate(SQL("account_move_line.balance")),
                 column_group_key=column_group_key,
-                account_tax_description=self.env['account.tax']._field_to_sql(tag_alias, 'description', query),
+                account_tax_description=self.env['account.tax']._field_to_sql('account_tax', 'description', query),
                 account_tag_name=self.env['account.account.tag']._field_to_sql(tag_alias, 'name', query),
                 balance_negate=self.env['account.account.tag']._field_to_sql(tag_alias, 'balance_negate', query),
                 table_references=query.from_clause,

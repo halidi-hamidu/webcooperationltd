@@ -10,7 +10,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import Command, _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tools import SQL
+from odoo.tools import SQL, date_utils
 from odoo.tools.misc import format_date
 from odoo.tools.translate import LazyTranslate, LazyGettext
 
@@ -26,6 +26,7 @@ PERIODS = [
     ('4_months', 'Every 4 months'),
     ('semester', 'Semi-annually'),
     ('year', 'Annually'),
+    ('fiscalyear', 'Fiscal Year'),
 ]
 
 MONTHS_PER_PERIOD = {
@@ -355,21 +356,15 @@ class AccountReturnType(models.Model):
         periods = []
         deadline_date = date_pointer
         type_xml_id = self.get_external_id()[self.id]
-        while date_pointer < date_to and (deadline_date <= next_year or bypass_period_check):
-            if type_xml_id == 'account_reports.annual_corporate_tax_return_type':
-                # Exception for this particular report
-                # When the fiscal year is not following the typical Jan - Dec,
-                # the code in the else is not working.
-                # By doing this, we are using the right values to compute the
-                # date_from/date_to and date_deadline
-                fy_dates = main_company.compute_fiscalyear_dates(date_pointer)
-                period_date_from, period_date_to = fy_dates['date_from'], fy_dates['date_to']
-            else:
+        if self.env.context.get('force_periodicity_violation'):
+            periods.append((date_from, date_to))
+        else:
+            while date_pointer < date_to and (deadline_date <= next_year or bypass_period_check):
                 period_date_from, period_date_to = self._get_period_boundaries(main_company, date_pointer)
-            deadline_date = self.env['account.return']._evaluate_deadline(main_company, self, type_xml_id, period_date_from, period_date_to)
-            if (main_company.account_opening_date or date.min) <= deadline_date <= next_year or bypass_period_check:
-                periods.append((period_date_from, period_date_to))
-            date_pointer = period_date_to + relativedelta(days=1)
+                deadline_date = self.env['account.return']._evaluate_deadline(main_company, self, type_xml_id, period_date_from, period_date_to)
+                if (main_company.account_opening_date or date.min) <= deadline_date <= next_year or bypass_period_check:
+                    periods.append((period_date_from, period_date_to))
+                date_pointer = period_date_to + relativedelta(days=1)
 
         existing_returns = self.env['account.return'].sudo().with_context(active_test=False).search([
             ('company_id', '=', main_company.id),  # We don't want to use the check_company_domain here
@@ -463,7 +458,6 @@ class AccountReturnType(models.Model):
 
     def _get_return_name(self, main_company, period_from=None, period_to=None, minimal=False, all_lang=False):
         main_company = main_company.sudo()
-        period_suffix = self._get_period_name(main_company, period_from, period_to, minimal)
         country_code = ""
         if self.report_id and self.report_id.country_id and main_company.account_fiscal_country_id != self.report_id.country_id:
             if self.report_id and self.report_id.country_id:
@@ -475,7 +469,7 @@ class AccountReturnType(models.Model):
             return self.env._(
                 "%(return_type_name)s %(period_suffix)s %(country_code)s",
                 return_type_name=self.name,
-                period_suffix=period_suffix,
+                period_suffix=self._get_period_name(main_company, period_from=period_from, period_to=period_to, minimal=minimal),
                 country_code=country_code,
             )
         else:
@@ -485,29 +479,56 @@ class AccountReturnType(models.Model):
                 return_dict[lang_code] = self.with_context(lang=lang_code).env._(
                     "%(return_type_name)s %(period_suffix)s %(country_code)s",
                     return_type_name=self.with_context(lang=lang_code).name,
-                    period_suffix=period_suffix,
+                    period_suffix=self._get_period_name(main_company, period_from=period_from, period_to=period_to, minimal=minimal, lang_code=lang_code),
                     country_code=country_code,
                 )
 
             return return_dict
 
-    def _get_period_name(self, main_company, period_from=None, period_to=None, minimal=False, lang_code=None):
-        periodicity = self._get_periodicity(main_company)
-        start_day, start_month = self._get_start_date_elements(main_company)
+    @api.model
+    def _get_period_name(self, main_company=None, period_from=None, period_to=None, start_day=1, start_month=1, minimal=False, lang_code=None):
+        def infer_periodicity(period_from, period_to):
+            def match(dt_from, dt_to):
+                return (dt_from, dt_to) == (period_from, period_to)
+
+            if match(fields.Date.start_of(period_from, 'year'), fields.Date.end_of(period_to, 'year')):
+                return 'year'
+            elif match(*date_utils.get_month(period_to)):
+                return 'monthly'
+            elif match(*date_utils.get_quarter(period_to)):
+                return 'trimester'
+            else:
+                return 'other'
+
+        if not start_day or not start_month:
+            if not main_company:
+                raise ValidationError(self.env._("Main company must be provided if start_day and start_month are not provided"))
+            start_day, start_month = self._get_start_date_elements(main_company)
+
         period_suffix = ""
         if period_from and period_to:
+            if isinstance(period_from, str):
+                period_from = fields.Date.to_date(period_from)
+
+            if isinstance(period_to, str):
+                period_to = fields.Date.to_date(period_to)
+
             if start_day != 1 or start_month != 1:
                 period_suffix = f"{format_date(self.env, period_from, lang_code=lang_code)} - {format_date(self.env, period_to, lang_code=lang_code)}"
-            elif periodicity == 'year':
-                period_suffix = f"{period_from.year}"
-            elif periodicity == 'trimester':
-                date_format = 'qqq yyyy' if not minimal else 'qqq'
-                period_suffix = format_date(self.env, period_from, date_format=date_format, lang_code=lang_code)
-            elif periodicity == 'monthly':
-                date_format = 'LLLL yyyy' if not minimal else 'LLL'
-                period_suffix = format_date(self.env, period_from, date_format=date_format, lang_code=lang_code)
             else:
-                period_suffix = f"{format_date(self.env, period_from, lang_code=lang_code)} - {format_date(self.env, period_to, lang_code=lang_code)}"
+                inferred_periodicity = infer_periodicity(period_from, period_to)
+                if inferred_periodicity == 'year':
+                    period_suffix = f"{period_from.year}"
+                elif inferred_periodicity == 'trimester':
+                    date_format = 'qqq yyyy' if not minimal else 'qqq'
+                    period_suffix = format_date(self.env, period_from, date_format=date_format, lang_code=lang_code)
+                elif inferred_periodicity == 'monthly':
+                    date_format = 'LLLL yyyy' if not minimal else 'LLL'
+                    period_suffix = format_date(self.env, period_from, date_format=date_format, lang_code=lang_code)
+                elif period_from == fields.Date.start_of(period_from, 'month') and period_to == fields.Date.end_of(period_to, 'month'):
+                    period_suffix = f"{format_date(self.env, period_from, date_format='LLL YYYY', lang_code=lang_code)} - {format_date(self.env, period_to, date_format='LLL YYYY', lang_code=lang_code)}"
+                else:
+                    period_suffix = f"{format_date(self.env, period_from, lang_code=lang_code)} - {format_date(self.env, period_to, lang_code=lang_code)}"
         return period_suffix
 
     def _get_periodicity(self, company):
@@ -519,11 +540,31 @@ class AccountReturnType(models.Model):
 
         return self.sudo().deadline_start_date or fields.Date.from_string('2025-01-01')
 
-    def _get_periodicity_months_delay(self, company):
+    def _get_periodicity_months_delay(self, company, date=None):
         """ Returns the number of months separating two returns
         """
         self.ensure_one()
-        return MONTHS_PER_PERIOD[self._get_periodicity(company)]
+        periodicity = self._get_periodicity(company)
+        if periodicity == 'fiscalyear':
+            if date:
+                fy_dates = company.compute_fiscalyear_dates(date)
+                start_date = fy_dates['date_from']
+                end_date = fy_dates['date_to']
+                delta = relativedelta(end_date + relativedelta(days=1), start_date)
+                return delta.years * 12 + delta.months
+
+            # Without a date, we cant know which fiscal year we are trying to get the length of
+            # To fallback, we find the longest fiscal year defined for this company
+            months = 12
+            fiscalyears = self.env['account.fiscal.year'].search([('company_id', '=', company.id)])
+            for fiscalyear in fiscalyears:
+                delta = relativedelta(fiscalyear.date_to + relativedelta(days=1), fiscalyear.date_from)
+                fiscal_year_months = delta.years * 12 + delta.months
+                if fiscal_year_months > months:
+                    months = fiscal_year_months
+            return months
+
+        return MONTHS_PER_PERIOD[periodicity]
 
     def _get_start_date_elements(self, main_company):
         start_date = self.with_company(main_company)._get_start_date()
@@ -536,7 +577,11 @@ class AccountReturnType(models.Model):
         This function needs to stay consistent with the one inside Javascript in the filters for the tax report
         """
         self.ensure_one()
-        period_months = override_period_months if override_period_months else self._get_periodicity_months_delay(company_id)
+        if self._get_periodicity(company_id) == 'fiscalyear':
+            fy_dates = company_id.compute_fiscalyear_dates(date)
+            return fy_dates['date_from'], fy_dates['date_to']
+
+        period_months = override_period_months if override_period_months else self._get_periodicity_months_delay(company_id, date=date)
 
         if override_start_date:
             start_day = override_start_date.day
@@ -587,7 +632,7 @@ class AccountReturn(models.Model):
     _order = "date_deadline, name, id"
     _check_company_domain = check_company_domain_account_return
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(string="Active", default=True, tracking=True)
     name = fields.Char(string="Name", required=True, translate=True)
     date_from = fields.Date(string="Date From", required=True)
     date_to = fields.Date(string="Date To", required=True)
@@ -693,10 +738,51 @@ class AccountReturn(models.Model):
     skipped_check_cycles = fields.Char(string="Skipped Check Cycles")
 
     def _update_translated_name(self):
+        specified_lang = self.env.context.get('update_returns_translation_lang')
+
         for account_return in self:
-            translated_name_dict = account_return.type_id._get_return_name(account_return.company_id, account_return.date_from, account_return.date_to, minimal=False, all_lang=True)
+            type_id = account_return.type_id
+            if specified_lang:
+                translated_name_dict = {specified_lang: type_id.with_context(lang=specified_lang)._get_return_name(
+                    account_return.company_id,
+                    account_return.date_from,
+                    account_return.date_to,
+                    minimal=False,
+                    all_lang=False,
+                )}
+
+            else:
+                translated_name_dict = type_id._get_return_name(
+                    account_return.company_id,
+                    account_return.date_from,
+                    account_return.date_to,
+                    minimal=False,
+                    all_lang=True,
+                )
+
             for lang_code, translated_name in translated_name_dict.items():
                 account_return.with_context(lang=lang_code).name = translated_name
+
+    def _create_embedded_actions_config(self, audit_action_id):
+        """ Create embedded action settings for this return if not already existing."""
+        user_setting_id = self.env.user.res_users_settings_id.id
+        if self.env['res.users.settings.embedded.action'].search(
+            [('user_setting_id', '=', user_setting_id), ('res_id', '=', self.id)],
+        ):
+            return
+
+        embedded_actions = self.env['ir.embedded.actions'].search(
+            [('parent_res_model', '=', 'account.return'), ('parent_action_id', '=', audit_action_id)],
+        )
+        user_actions = self.env['res.users.settings.embedded.action'].create({
+            'user_setting_id': user_setting_id,
+            'action_id': audit_action_id,
+            'res_id': self.id,
+            'embedded_visibility': True,
+            'res_model': self._name,
+            'embedded_actions_visibility': ','.join(['false'] + [str(a.id) for a in embedded_actions if not a.is_deletable]),
+        })
+        return user_actions._embedded_action_settings_format()
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -858,7 +944,7 @@ class AccountReturn(models.Model):
             current_state = record.state
             visible_states = []
             active = True
-            for state, label in self._fields[record.type_id.states_workflow].selection:
+            for state, label in self._fields[record.type_id.states_workflow]._description_selection(record.env):
                 if state == current_state:
                     active = False
 
@@ -1025,6 +1111,8 @@ class AccountReturn(models.Model):
                 'context': {
                     'dialog_size': 'medium',
                     'open_account_return_on_save': True,
+                    'additional_return_domain': additional_return_domain,
+                    'additional_return_context': additional_context,
                 },
             }
 
@@ -1040,8 +1128,10 @@ class AccountReturn(models.Model):
 
     def action_open_audit_return(self):
         self.ensure_one()
+        audit_action = self.with_context(active_id=self.id, active_model=self._name).env["ir.actions.act_window"]._for_xml_id('account_reports.action_view_account_audit_checks')
+        embedded_actions_config = self._create_embedded_actions_config(audit_action['id'])
         return {
-            **self.with_context(active_id=self.id, active_model=self._name).env["ir.actions.act_window"]._for_xml_id('account_reports.action_view_account_audit_checks'),
+            **audit_action,
             'domain': [('return_id', '=', self.id)],
             'context': {
                 'account_return_view_id': self.env.ref('account_reports.account_return_kanban_view').id,
@@ -1049,7 +1139,8 @@ class AccountReturn(models.Model):
                 'active_model': 'account.return',
                 'active_id': self.id,
                 'max_number_opened_groups': 100000,
-            }
+                'embedded_actions_config': embedded_actions_config,
+            },
         }
 
     def action_open_audit_balances(self):
@@ -1283,6 +1374,23 @@ class AccountReturn(models.Model):
     def action_archive(self):
         super(AccountReturn, self.filtered(lambda record: record.state == 'new')).action_archive()
 
+    def action_unarchive(self):
+        self.ensure_one()
+        if self.return_type_category == 'account_return':
+            domain = [
+                ('id', '!=', self.id),
+                ('company_id', '=', self.company_id.id),
+                ('type_id', '=', self.type_id.id),
+                ('date_from', '=', self.date_from),
+                ('date_to', '=', self.date_to),
+                ('return_type_category', '=', self.return_type_category),
+                ('active', '=', True),
+            ]
+            existing_active_return = self.env['account.return'].search(domain, limit=1)
+            if existing_active_return:
+                raise UserError(_("An active return already exists for the same period."))
+        super().action_unarchive()
+
     def _reset_checks_for_states(self, states):
         checks_to_reset = self.check_ids.filtered(lambda check: check.state in states)
         checks_to_reset.write({
@@ -1492,28 +1600,32 @@ class AccountReturn(models.Model):
 
     def _get_closing_report_options(self):
         report = self.type_id.report_id
-        start_day, start_month = self.type_id._get_start_date_elements(self.company_id)
+
+        date_filter = 'custom_return_period'
+        periodicity = self.type_id._get_periodicity(self.company_id)
+        if periodicity == 'fiscalyear' or not self._period_match_periodicity():
+            date_filter = 'custom'
+
         options = {
             'date': {
+                'date_from': fields.Date.to_string(self.date_from),
                 'date_to': fields.Date.to_string(self.date_to),
-                'filter': 'custom_return_period',
+                'filter': date_filter,
+                # use custom period in case of anormal dates
                 'mode': 'range',
             },
             'selected_variant_id': report.id,
             'sections_source_id': report.id,
             'tax_unit': 'company_only' if not self.tax_unit_id else self.tax_unit_id.id,
-            'return_periodicity': {
-                'periodicity': self.type_id._get_periodicity(self.company_id),
-                'months_per_period': self.type_id._get_periodicity_months_delay(self.company_id),
-                'start_day': start_day,
-                'start_month': start_month,
-                'return_type_id': self.type_id.id,
-                'report_id': report.id,
-            },
+            'selected_return_type_id': self.type_id.id,
         }
         current_company = self.env.company
         company_ids = self.company_ids.ids
         return report.sudo().with_context(allowed_company_ids=company_ids).with_company(current_company).get_options(previous_options=options)
+
+    def _period_match_periodicity(self):
+        aligned_date_from, aligned_date_to = self.type_id._get_period_boundaries(self.company_id, self.date_from)
+        return self.date_from == aligned_date_from and self.date_to == aligned_date_to
 
     def action_send_email_instructions(self, wizard, template):
         self.ensure_one()
@@ -1804,6 +1916,7 @@ class AccountReturn(models.Model):
                     ('date', '<=', self.date_to),
                     ('account_id', '=', account_id),
                     ('company_id', '=', self.company_id.id),
+                    ('parent_state', '=', 'posted'),
                 ],
                 aggregates=['balance:sum'],
             )[0][0]
@@ -2445,6 +2558,7 @@ such as using the wrong VAT rate, wrongly exempting transactions.
     def _check_match_all_bank_entries(self, code, name, message):
         domain = [
             ('is_reconciled', '=', False),
+            ('state', '!=', 'cancel'),
             ('company_id', 'in', self.company_ids.ids),
             ('date', '<=', fields.Date.to_string(self.date_to)),
             ('date', '>=', fields.Date.to_string(self.date_from)),
@@ -2530,6 +2644,35 @@ such as using the wrong VAT rate, wrongly exempting transactions.
             kanban_view_xml_id = 'account_reports.account_return_kanban_view'
             search_view_xml_id = 'account_reports.account_return_search_view'
         return (self.env.ref(kanban_view_xml_id).id, self.env.ref(search_view_xml_id).id)
+
+    @api.model
+    def _get_nth_working_day(self, from_date, n):
+        """
+        Calculate the date of the Nth working day starting from a given date.
+
+        A working day is defined as a weekday (Monday to Friday).
+        Weekends (Saturday and Sunday) are skipped.
+
+        :param from_date : The start date (inclusive).
+        :param n : The Nth working day to find (e.g., n=1 returns the first working day on or after `from_date`).
+
+        :returns: The date of the Nth working day after `from_date`.
+        :rtype: datetime.date
+        :raises UserError: if n is less than 1
+        """
+
+        def is_working_day(day):
+            return day.isoweekday() <= 5
+
+        if n <= 0:
+            raise UserError(self.env._("n must be a positive integer."))
+
+        current_date = from_date
+        n -= int(is_working_day(current_date))
+        while n > 0:
+            current_date += relativedelta(days=1)
+            n -= int(is_working_day(current_date))
+        return current_date
 
 
 class AccountReturnCheck(models.Model):
@@ -2725,6 +2868,8 @@ class AccountReturnCheck(models.Model):
             'internal_transfer_account_id': company.transfer_account_id.id,
             'currency_exhange_difference_account_ids': (company.income_currency_exchange_account_id.id, company.expense_currency_exchange_account_id.id),
             'company_currency_id': company.currency_id.id,
+            'company_country_code': company.account_fiscal_country_id.code,
+            'company_id': company.id,
             'cash_journal_options': generate_journals_options(),
         }
 
@@ -2752,6 +2897,15 @@ class AccountReturnCheck(models.Model):
         Therefore, we need to evaluate them with an additional context see: _get_evaluation_context.
         """
         self.ensure_one()
+
+        if self.code == '_account_return_check_template_intercompany_account_reconciliation':
+            other_companies = self.env['res.company'].search([]).filtered(lambda company: company not in self.return_id.company_ids)
+            other_companies_partners_ids = other_companies.sudo().mapped('partner_id').ids
+
+            return {
+                **self.action,
+                'domain': [('date', '>=', self.return_id.date_from), ('date', '<=', self.return_id.date_to), ('partner_id', 'in', other_companies_partners_ids)]
+            }
 
         if self.action:
             action = {

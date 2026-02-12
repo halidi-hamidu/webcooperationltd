@@ -103,7 +103,7 @@ class TestAppointmentNotificationsMicrosoftCalendar(MsftTestCommon, TestAppointm
             self.env.flush_all()
             self.cr.precommit.run()
             self.env.cr.postcommit.run()
-        mock_delete.assert_called_once_with('test_msft_id', token='some-token', timeout=3)
+        mock_delete.assert_called_once_with('test_msft_id', token='some-token', timeout=5)
         self.assertNotSentEmail()
 
     @freeze_time('2020-02-01 09:00:00')

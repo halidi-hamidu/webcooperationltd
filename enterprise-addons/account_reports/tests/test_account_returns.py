@@ -144,6 +144,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_day': 1,
                 'start_month': 1,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             },
         })
         start_day, start_month = self.basic_return_type._get_start_date_elements(self.env.company)
@@ -156,6 +158,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': start_month,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             }
         )
 
@@ -168,6 +172,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': 1,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 10,
             },
         })
         self.assertDictEqual(
@@ -179,6 +185,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': 1,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 10,
             }
         )
 
@@ -191,6 +199,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': 1,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             },
         })
         self.assertDictEqual(
@@ -202,6 +212,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': start_month,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             }
         )
 
@@ -218,6 +230,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': 1,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             },
         })
         self.assertFalse(options.get('return_periodicity'), "'return_periodicity' key should be absent as the report_id in the dict is different as the actual report generating the options.")
@@ -233,6 +247,8 @@ class TestAccountReturn(TestAccountReportsCommon):
                 'start_month': start_month,
                 'return_type_id': self.basic_return_type.id,
                 'report_id': self.basic_tax_report.id,
+                'fy_start_day': 1,
+                'fy_start_month': 1,
             }
         )
 
@@ -502,6 +518,41 @@ class TestAccountReturn(TestAccountReportsCommon):
             ]
         )
 
+    def test_return_fiscal_year_periodicity(self):
+        with self._patch_returns_generation():
+            self.env.company.fiscalyear_last_day = 31
+            self.env.company.fiscalyear_last_month = '12'
+            self.env['account.fiscal.year'].create([
+                {
+                    'name': "FY 2024_1",
+                    'date_from': '2024-01-01',
+                    'date_to': '2024-09-30',
+                    'company_id': self.env.company.id,
+                },
+                {
+                    'name': "FY 2024_2",
+                    'date_from': '2024-10-01',
+                    'date_to': '2024-12-31',
+                    'company_id': self.env.company.id,
+                },
+            ])
+            self.basic_return_type.deadline_periodicity = 'fiscalyear'
+
+            self.env['account.return.type']._generate_or_refresh_all_returns(self.env.company)
+
+        existing_returns = self.env['account.return'].search([
+            ('type_id', '=', self.basic_return_type.id),
+            ('company_id', '=', self.env.company.id)
+        ])
+        self.assert_return_dates_equal(
+            existing_returns,
+            [
+                ("2023-01-01", "2023-12-31"),
+                ("2024-01-01", "2024-09-30"),
+                ("2024-10-01", "2024-12-31"),
+            ]
+        )
+
     def test_period_boundaries_generation(self):
         def assert_period(input_date, expected_start, expected_end):
             period_start, period_end = self.basic_return_type._get_period_boundaries(self.env.company, input_date)
@@ -577,6 +628,29 @@ class TestAccountReturn(TestAccountReportsCommon):
         assert_period(date(2024, 12, 5), expected_start=date(2024, 11, 6), expected_end=date(2024, 12, 5))
         assert_period(date(2024, 12, 6), expected_start=date(2024, 12, 6), expected_end=date(2025, 1, 5))
         assert_period(date(2025, 1, 5), expected_start=date(2024, 12, 6), expected_end=date(2025, 1, 5))
+
+        # Fiscal year
+        self.basic_return_type.deadline_periodicity = 'fiscalyear'
+        self.env.company.fiscalyear_last_day = 31
+        self.env.company.fiscalyear_last_month = '12'
+        self.env['account.fiscal.year'].create([
+            {
+                'name': "FY 2024_1",
+                'date_from': '2024-01-01',
+                'date_to': '2024-09-30',
+                'company_id': self.env.company.id,
+            },
+            {
+                'name': "FY 2024_2",
+                'date_from': '2024-10-01',
+                'date_to': '2024-12-31',
+                'company_id': self.env.company.id,
+            },
+        ])
+
+        assert_period(date(2024, 5, 1), expected_start=date(2024, 1, 1), expected_end=date(2024, 9, 30))
+        assert_period(date(2024, 11, 5), expected_start=date(2024, 10, 1), expected_end=date(2024, 12, 31))
+        assert_period(date(2025, 5, 1), expected_start=date(2025, 1, 1), expected_end=date(2025, 12, 31))
 
     def test_vat_closing_moves_with_lock_date(self):
         """ Checks posting a closing entry after the tax lock date has been manually set is allowed.
@@ -789,6 +863,38 @@ class TestAccountReturn(TestAccountReportsCommon):
             ]
         )
 
+    def test_return_creation_for_archived_return_month(self):
+        existing_return = self.env['account.return'].search([
+            ('type_id', '=', self.basic_return_type.id),
+            ('company_id', '=', self.env.company.id),
+            ('active', '=', True),
+            ('date_from', '=', '2024-01-01'),
+            ('date_to', '=', '2024-01-31'),
+        ])
+        self.assertEqual(len(existing_return), 1)
+        existing_return.action_archive()
+        self.assertFalse(existing_return.active)
+
+        # Create a return for a period where a return already existed but is now archived
+        wizard = self.env['account.return.creation.wizard'].create([{
+            'date_from': '2024-01-01',
+            'date_to': '2024-01-31',
+            'return_type_id': self.basic_return_type.id,
+        }])
+        wizard.action_create_manual_account_returns()
+        domain = [
+            ('company_id', '=', self.env.company.id),
+            ('type_id', '=', self.basic_return_type.id),
+            ('date_from', '=', '2024-01-01'),
+            ('date_to', '=', '2024-01-31'),
+            ('active', '=', True),
+        ]
+        self.assertEqual(self.env['account.return'].search_count(domain), 1)
+
+        # Unarchiving old return should raise an error since a new return exists for same period
+        with self.assertRaises(UserError):
+            existing_return.action_unarchive()
+
     def test_return_manual_creation_wizard_wrong_dates(self):
         wizard = self.env['account.return.creation.wizard'].create([{
             'date_from': '2023-10-15',
@@ -800,6 +906,47 @@ class TestAccountReturn(TestAccountReportsCommon):
             'date_from': '2023-12-01',
         })
         self.assertEqual(wizard.show_warning_wrong_dates, False)
+
+    def test_return_manual_creation_force_wrong_dates(self):
+        wizard = self.env['account.return.creation.wizard'].create([{
+            'date_from': '2023-10-15',
+            'date_to': '2023-12-31',
+            'return_type_id': self.basic_return_type.id,
+        }])
+        self.assertEqual(wizard.show_warning_wrong_dates, True)
+        wizard.with_context(force_periodicity_violation=True).action_create_manual_account_returns()
+
+        generated_account_return = self.env['account.return'].search([
+            ('type_id', '=', self.basic_return_type.id),
+            ('company_id', '=', self.env.company.id),
+            ('date_from', '=', '2023-10-15'),
+            ('date_to', '=', '2023-12-31'),
+        ])
+        self.assertEqual(len(generated_account_return), 1)
+
+        options = generated_account_return._get_closing_report_options()
+        self.assertEqual(options['date']['filter'], 'custom')
+        self.assertEqual(options['date']['date_from'], '2023-10-15')
+        self.assertEqual(options['date']['date_to'], '2023-12-31')
+
+    def test_audit_manual_creation_allow_duplicates(self):
+        wizard = self.env['account.return.creation.wizard'].create([{
+            'category': 'audit',
+            'date_from': '2024-01-01',
+            'date_to': '2024-12-31',
+            'return_type_id': self.audit_return_type.id,
+        }])
+
+        wizard.action_create_manual_account_returns()
+
+        audits = self.env['account.return'].search([
+            ('type_id', '=', self.audit_return_type.id),
+            ('company_id', '=', self.env.company.id),
+            ('date_from', '=', '2024-01-01'),
+            ('date_to', '=', '2024-12-31'),
+        ])
+
+        self.assertEqual(len(audits), 2)
 
     def test_account_return_check_template_basic(self):
         # 1. Create audit return type

@@ -24,6 +24,14 @@ registry.category("web_tour.tours").add("test_01_website_barcodelookup_flow", {
             trigger: ".modal-dialog",
             run: "click",
         }, {
+            content: "Select category to publish product",
+            trigger: '.modal-dialog .o_field_widget[name="public_categ_ids"] input',
+            run: "edit Barcode",
+        }, {
+            content: "Select Barcode Category",
+            trigger: '.ui-autocomplete a:contains("Barcode Category")',
+            run: "click",
+        }, {
             content: "Click on save to create the product.",
             trigger: ".modal-footer button.btn-primary",
             run: "click",

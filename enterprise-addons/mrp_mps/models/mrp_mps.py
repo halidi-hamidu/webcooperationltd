@@ -229,7 +229,7 @@ class MrpProductionSchedule(models.Model):
                     ('product_id', 'in', product_ids)
                 ]).product_id.ids
                 product_ratio += [
-                    (l[0], l[0].product_qty * l[1]['qty'])
+                    (l[0], l[1]['qty'] / bom.product_qty)
                     for l in bom_lines if l[0].product_id.id not in product_ids_with_forecast
                 ]
 

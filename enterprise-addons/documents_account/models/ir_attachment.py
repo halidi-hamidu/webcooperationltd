@@ -26,3 +26,18 @@ class IrAttachment(models.Model):
             ):
                 move._update_or_create_document(attachment.id)
         return attachments
+
+    def write(self, vals):
+        res = super().write(vals)
+        res_model = vals.get('res_model')
+
+        if res_model == 'account.move':
+            valid_moves = self.env['account.move'].search([
+                ('id', 'in', self.mapped('res_id')),
+                ('move_type', '=', 'entry')
+            ])
+            for attachment in self.filtered(lambda a: a.res_id in valid_moves.ids):
+                move = self.env['account.move'].browse(attachment.res_id)
+                move._update_or_create_document(attachment.id)
+
+        return res

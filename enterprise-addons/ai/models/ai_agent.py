@@ -383,14 +383,8 @@ class AIAgent(models.Model):
     def action_refresh_sources(self):
         """
         Refresh the sources to show the new status if any was changed by the cron.
-        Run the cron if there are sources to process.
         """
         self.ensure_one()
-        cron = self.env.ref('ai.ir_cron_generate_embedding')
-        unprocessed_sources = self.sources_ids.filtered(lambda s: s.status == 'processing')
-        if unprocessed_sources:
-            cron._trigger()
-
         return {
             'type': 'ir.actions.client',
             'tag': 'soft_reload',

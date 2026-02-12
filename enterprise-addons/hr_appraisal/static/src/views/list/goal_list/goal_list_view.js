@@ -27,7 +27,7 @@ export class GoalListController extends AppraisalGoalDeleteListController {
 
     async onClickLibrary() {
         return this.actionService.doAction('hr_appraisal.action_hr_appraisal_goal_template_library', {
-            additionalContext: { default_employee_id: this.props.context.default_employee_id }
+            additionalContext: { default_employee_ids: this.props.context.default_employee_ids }
         });
     }
 };

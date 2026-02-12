@@ -13,7 +13,7 @@ export class PaymentSix extends PaymentInterfaceIot {
             currency: this.pos.currency.name,
             cid: uuid,
             posId: this.pos.session.id,
-            userId: this.pos.session.user_id.id,
+            userId: this.pos.user.id,
         };
     }
 

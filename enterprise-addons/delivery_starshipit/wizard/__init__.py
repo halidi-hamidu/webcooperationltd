@@ -2,3 +2,4 @@
 
 from . import starshipit_shipping_wizard
 from . import stock_return_picking
+from . import choose_delivery_carrier

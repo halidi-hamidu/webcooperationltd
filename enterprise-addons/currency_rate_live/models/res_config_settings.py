@@ -105,6 +105,7 @@ MAP_CURRENCIES = {
     'Uruguayan Peso': 'UYU',
     'Uzbekistani som': 'UZS',
     'Vietnam Dong': 'VND',
+    'Caribbean Guilder': 'XCG',
     'Yemen Rial': 'YER',
     'South Africa Rand': 'ZAR',
     'Zambian Kwacha': 'ZMW',
@@ -1065,7 +1066,7 @@ class ResCompany(models.Model):
 
     def _parse_bnb_data(self, available_currencies):
         """ This method is used to update the currencies by using BNB (Bulgaria National Bank) service API.
-            Rates are given against BGN in an XML file.
+            Rates are given against EUR in an XML file (since Bulgaria joined Eurozone in 2026).
             Source: https://www.bnb.bg/AboutUs/AUFAQ/Contr_Exchange_Rates_FAQ?toLang=_EN
 
             If a currency has no rate, it will be skipped.
@@ -1092,8 +1093,8 @@ class ResCompany(models.Model):
             if code in available_currency_names and rate:
                 result[code] = (float(rate), curr_date)
 
-        if result and 'BGN' in available_currency_names:
-            result['BGN'] = (1.0, curr_date)
+        if result and 'EUR' in available_currency_names:
+            result['EUR'] = (1.0, curr_date)
         return result
 
     def _parse_bot_data(self, available_currencies):

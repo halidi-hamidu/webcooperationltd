@@ -35,6 +35,9 @@
         "web.assets_backend_lazy": [
             "ai_documents/static/src/views/activity/**",
         ],
+        'web.assets_unit_tests': [
+            'ai_documents/static/tests/**/*',
+        ],
     },
     "auto_install": True,
 }

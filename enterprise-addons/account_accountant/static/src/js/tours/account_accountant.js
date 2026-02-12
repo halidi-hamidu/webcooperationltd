@@ -77,7 +77,7 @@
                 trigger: ".o_bank_rec_widget_kanban_view div[name=payment_ref] input[id=payment_ref_0]",
                 content: _t("Set the payment reference."),
                 tooltipPosition: "bottom",
-                run: "edit Payment Deco Adict",
+                run: "edit Payment Acme Corporation",
             }, {
                 trigger: ".o_bank_rec_widget_kanban_view button.o_kanban_edit",
                 content: _t("Confirm the transaction."),

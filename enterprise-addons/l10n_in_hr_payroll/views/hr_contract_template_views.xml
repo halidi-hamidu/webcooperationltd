@@ -6,19 +6,15 @@
         <field name="inherit_id" ref="hr.hr_contract_template_form_view"/>
         <field name="arch" type="xml">
 
-        <xpath expr="//field[@name='wage']" position="attributes">
-            <attribute name="context">{'skip_percentage_calc': True}</attribute>
-        </xpath>
             <group name="salary_info" position="after">
                 <group>
                     <group string="Salary Components" invisible="country_code != 'IN'">
                         <label for="l10n_in_basic_salary_amount"/>
                         <div class="o_row">
-                            <field name="l10n_in_basic_salary_amount" context="{'skip_percentage_calc': True}"
-                                class="o_hr_narrow_field"/>
+                            <field name="l10n_in_basic_salary_amount" class="o_hr_narrow_field"/>
                             <span>/ month</span>
                             <field name="l10n_in_basic_percentage" widget="percentage" digits="[1,2]" nolabel="1"
-                                class="o_hr_narrow_field ms-4" context="{'skip_percentage_calc': True}"/>
+                                class="o_hr_narrow_field ms-4"/>
                         </div>
                         <label for="l10n_in_hra"/>
                         <div class="o_row">
@@ -57,26 +53,23 @@
                     <group string="Benefits" invisible="country_code != 'IN'">
                         <label for="l10n_in_phone_subscription"/>
                         <div class="o_row">
-                            <field name="l10n_in_phone_subscription" class="o_hr_narrow_field"
-                                context="{'skip_percentage_calc': True}"/>
+                            <field name="l10n_in_phone_subscription" class="o_hr_narrow_field"/>
                             <span>/ month</span>
                         </div>
                         <label for="l10n_in_internet_subscription"/>
                         <div class="o_row">
                             <field name="l10n_in_internet_subscription" string="Internet Subscription"
-                                class="o_hr_narrow_field" context="{'skip_percentage_calc': True}"/>
+                                class="o_hr_narrow_field"/>
                             <span>/ month</span>
                         </div>
                         <label for="l10n_in_meal_voucher_amount"/>
                         <div class="o_row">
-                            <field name="l10n_in_meal_voucher_amount" string="Meal Vouchers" class="o_hr_narrow_field"
-                                context="{'skip_percentage_calc': True}"/>
+                            <field name="l10n_in_meal_voucher_amount" string="Meal Vouchers" class="o_hr_narrow_field"/>
                             <span>/ month</span>
                         </div>
                         <label for="l10n_in_company_transport"/>
                         <div class="o_row" name="company_transport">
-                            <field name="l10n_in_company_transport" class="o_hr_narrow_field"
-                                context="{'skip_percentage_calc': True}"/>
+                            <field name="l10n_in_company_transport" class="o_hr_narrow_field"/>
                             <span>/ month</span>
                         </div>
                     </group>

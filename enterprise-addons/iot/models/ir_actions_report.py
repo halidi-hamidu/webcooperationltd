@@ -59,10 +59,15 @@ class IrActionsReport(models.Model):
 
     def get_action_wizard(self, selected_device_ids=None):
         self.ensure_one()
-        wizard = self.env['select.printers.wizard'].create({
+        if selected_device_ids:
+            selected_device_ids = [
+                dev for dev in selected_device_ids
+                if dev in self.device_ids.ids
+            ]  # Filter out devices that are deleted/no longer linked to the report
+        wizard = self.env['select.printers.wizard'].create([{
             'display_device_ids': self.device_ids,
             'device_ids': selected_device_ids
-        })
+        }])
         return {
             'name': _("Select Printers for %s", self.name),
             'res_id': wizard.id,

@@ -3,17 +3,17 @@
 # * ai
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Bren Driesen <brdri@odoo.com>, 2025.
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2025.
+# Bren Driesen <brdri@odoo.com>, 2025, 2026.
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2025-12-06 10:09+0000\n"
-"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"POT-Creation-Date: 2026-01-09 18:45+0000\n"
+"PO-Revision-Date: 2026-01-23 18:05+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
 "Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/ai/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -97,6 +97,43 @@ msgid ""
 "Make 3 parallel calls.\n"
 "        "
 msgstr ""
+"\n"
+"            Geeft UITSLUITEND doorzoekbare velden voor één specifiek model "
+"die gebruikt kunnen worden in domeinfilters en groeperingen.\n"
+"            Essentieel voor het opbbouwen van geldige domains - als een veld "
+"hier noet wordt vermeld, KAN HET NIET worden gebruikt.\n"
+"\n"
+"            Antwoordformaat:\n"
+"            ```\n"
+"            field_name|display_name|type|sortable|groupable|description\n"
+"            partner_id|Customer|many2one(res.partner)|true|true|Customer for "
+"this order\n"
+"            date_order|Order Date|datetime|true|true|Date when order was "
+"placed\n"
+"            order_line|Order Lines|one2many(sale.order.line)|false|false|"
+"Lines in this order\n"
+"            state|Status|selection|true|true|Order status\n"
+"            ```\n"
+"\n"
+"            Belangrijke opmerkingen:\n"
+"            - ⚠️ Geeft enkel DOORZOEKBARE velden terug - andere vleden "
+"kunnen niet in domains worden gebruikt.\n"
+"            - Voor relaties: het gerelateerde model wordt tussen haakjes "
+"weergegeven (many2one, one2many, many2many)\n"
+"            - Enkel relatievelden kunnen worden gebruikt om naar andere "
+"modellen te navigeren\n"
+"            - Letterlijke velden zoals char/text/float KUNNEN NIET WORDEN "
+"gebruikt voor traversal\n"
+"            - 'sortable' geeft aan of het veld kan worden gebruikt in "
+"order_by parameter\n"
+"            - 'groupable' geeft aan of het veld kan worden gebruikt voor "
+"groepering wanneer het niet beschikbaar is in de zoekweergave\n"
+"\n"
+"            💡 Prestatietip: Als je meerdere modellen verkent, roep deze "
+"tool meerdere keren aan in EEN bericht\n"
+"            Voorbeeld: Verken je sale.order, product.product en res.partner? "
+"Maak dan 3 parallelle oproepen.\n"
+"        "
 
 #. module: ai
 #: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_compute_report_measures
@@ -125,6 +162,30 @@ msgid ""
 "            - Call multiple times in parallel if comparing different menus\n"
 "        "
 msgstr ""
+"\n"
+"            Geeft een lijst van numerieke velden (metingen) die beschikbaar "
+"zijn voor aggregatie in draaitabel- en grafiekweergaven.\n"
+"            MOET worden aangeroepen voor het gebruikk van metingen in "
+"open_menu_pivot() of open_menu_graph().\n"
+"\n"
+"            Geeft CSV with pipe (|)-scheidingsteken:\n"
+"            ```\n"
+"            field_name|display_name|type|aggregator|sortable\n"
+"            __count|Count|integer||true\n"
+"            amount_total|Total|monetary|sum|true\n"
+"            margin|Margin|float|sum|true\n"
+"            quantity|Quantity|float|sum|true\n"
+"            ```\n"
+"\n"
+"            Belangrijke opmerkingen:\n"
+"            - __count is altijd beschikbaar (telt records)\n"
+"            - Alleen numerieke velden met aggregators worden weergegeven\n"
+"            - Gebruik field_name in de parameter voor metingen\n"
+"            - Voor rangschikkingen in draaitabellen: Voeg sortering toe "
+"(bv. \"amount_total desc\")\n"
+"            - Roep meerdere keren parallel op wanneer je verschillende "
+"menu's vergelijkt\n"
+"        "
 
 #. module: ai
 #: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_open_menu_graph
@@ -352,6 +413,12 @@ msgstr ""
 #: code:addons/ai/models/ai_agent.py:0 code:addons/ai/models/ai_composer.py:0
 msgid "%s (copy)"
 msgstr "%s (kopie)"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/llm_providers.py:0
+msgid "%s is no longer available. Please select a newer model."
+msgstr "%s is niet langer beschikbaar. Selecteer een nieuwer model."
 
 #. module: ai
 #: model_terms:ir.ui.view,arch_db:ai.ai_log_action
@@ -916,7 +983,7 @@ msgstr "E-mail-discussie"
 #. module: ai
 #: model:ir.model.fields,field_description:ai.field_ai_embedding__embedding_model
 msgid "Embedding Model"
-msgstr ""
+msgstr "Embeddingmodel"
 
 #. module: ai
 #: model:ir.model.fields,field_description:ai.field_ai_embedding__embedding_vector
@@ -953,9 +1020,15 @@ msgstr "Mislukt"
 
 #. module: ai
 #. odoo-python
+#: code:addons/ai/utils/html_extractor.py:0
+msgid "Failed to fetch URL: %s"
+msgstr "URL ophalen mislukt: %s"
+
+#. module: ai
+#. odoo-python
 #: code:addons/ai/models/ai_agent_source.py:0
 msgid "Failed to fetch the content of the source."
-msgstr ""
+msgstr "Inhoud van de bron ophalen mislukt."
 
 #. module: ai
 #. odoo-python
@@ -1008,7 +1081,7 @@ msgstr "HTTP routing"
 #. module: ai
 #: model:ir.model.fields,field_description:ai.field_ai_embedding__has_embedding_generation_failed
 msgid "Has Embedding Generation Failed"
-msgstr ""
+msgstr "Heeft Embeddinggeneratie mislukt"
 
 #. module: ai
 #. odoo-javascript
@@ -1046,7 +1119,7 @@ msgstr ""
 #. module: ai
 #: model:ir.model.fields,help:ai.field_ai_agent_source__is_active
 msgid "If the source is active, it will be used in the RAG context."
-msgstr ""
+msgstr "Als de bron actief is, wordt deze gebruikt in de RAG-context."
 
 #. module: ai
 #: model:ir.model.fields,field_description:ai.field_ai_agent__image_128
@@ -1137,6 +1210,8 @@ msgid ""
 "JSON containing the values that can be returned by the LLM along with their "
 "properties (type, length, ...)"
 msgstr ""
+"JSON die de waarden bevat die door de LLM kunnen worden geretourneerd, samen "
+"met hun eigenschappen (type, lengte, ...)"
 
 #. module: ai
 #: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
@@ -1246,7 +1321,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/ai/utils/llm_providers.py:0
 msgid "No embedding configuration found for the provider"
-msgstr ""
+msgstr "Er is geen embeddingconfiguratie gevonden voor de provider"
 
 #. module: ai
 #. odoo-python
@@ -1269,7 +1344,7 @@ msgstr "Geen provider gevonden voor het geselecteerde model"
 #. module: ai
 #: model_terms:ir.ui.view,arch_db:ai.ai_log_action
 msgid "No tool was executed."
-msgstr ""
+msgstr "Er is geen tool uitgevoerd."
 
 #. module: ai
 #. odoo-javascript
@@ -1310,7 +1385,7 @@ msgstr "Alleen beheerders kunnen bronnen maken van URL's."
 #. odoo-python
 #: code:addons/ai/models/ai_agent.py:0
 msgid "Oops, it looks like our AI is unreachable"
-msgstr ""
+msgstr "Oeps, het lijkt erop dat onze AI onbereikbaar is"
 
 #. module: ai
 #: model:ir.model.fields.selection,name:ai.selection__ai_embedding__embedding_model__text-embedding-3-small
@@ -1337,7 +1412,7 @@ msgstr "Plak je links, één per regel"
 #. odoo-javascript
 #: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
 msgid "Pretty Edit"
-msgstr ""
+msgstr "Geavanceerde bewerking"
 
 #. module: ai
 #: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__status__processing
@@ -1582,7 +1657,7 @@ msgstr "De actie '%s' kan niet worden gebruikt als AI-tool."
 #. module: ai
 #: model:ir.model.fields,help:ai.field_ai_composer__name
 msgid "The identifier for the interface component to agent rule"
-msgstr ""
+msgstr "De identifier voor het onderdeel van de interface naar agentregel"
 
 #. module: ai
 #. odoo-javascript
@@ -1600,6 +1675,13 @@ msgstr "De partner die is gekoppeld aan een AI-agent kan niet worden gewijzigd"
 #: model:ir.model.fields,help:ai.field_ai_prompt_button__name
 msgid "The prompt sent to the AI when clicked on"
 msgstr "De prompt die naar AI wordt gestuurd als erop wordt geklikt"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/html_extractor.py:0
+msgid "The site's rules (robots.txt) prevent reading this page."
+msgstr ""
+"De regels van de site (robots.txt) verhinderen het lezen van deze pagina."
 
 #. module: ai
 #. odoo-python
@@ -1640,6 +1722,9 @@ msgid ""
 "This tool is automatically provided with `__end_message` param which when "
 "provided, the LLM processing loop is terminated."
 msgstr ""
+"Deze tool wordt automatisch voorzien van de parameter `__end_message`. "
+"Wanneer deze parameter wordt opgegeven, wordt de LLM-verwerkingslus "
+"beëindigd."
 
 #. module: ai
 #. odoo-javascript
@@ -1685,7 +1770,6 @@ msgstr "Onderwerpen"
 #. odoo-javascript
 #: code:addons/ai/static/src/editor/embedded_components/core/readonly_voice_transcription.xml:0
 #: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
-#, fuzzy
 msgid "Transcript"
 msgstr "Transcript"
 
@@ -1743,6 +1827,18 @@ msgstr ""
 #: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__type__url
 msgid "URL"
 msgstr "URL"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/html_extractor.py:0
+msgid "URL %(url)s returned non-HTML content: %(content_type)s"
+msgstr "URL %(url)s gaf niet-HTML-inhoud als resultaat: %(content_type)s"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/html_extractor.py:0
+msgid "URL %s returned empty content"
+msgstr "URL %s heeft lege inhoud als resultaat opgeleverd"
 
 #. module: ai
 #. odoo-javascript

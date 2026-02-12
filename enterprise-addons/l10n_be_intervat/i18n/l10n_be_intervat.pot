@@ -6,14 +6,35 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 19:05+0000\n"
-"PO-Revision-Date: 2025-12-30 19:05+0000\n"
+"POT-Creation-Date: 2026-01-30 19:05+0000\n"
+"PO-Revision-Date: 2026-01-30 19:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: l10n_be_intervat
+#. odoo-python
+#: code:addons/l10n_be_intervat/controllers/main.py:0
+msgid ""
+"\n"
+"                        Access error: Only the accounting firm can submit the VAT return to Intervat via the API.\n"
+"                        To submit it yourself, download the XML file and upload it on Intervat.\n"
+"                        If you no longer have an accounting firm, remove it from the Intervat setting to enable API submission.\n"
+"                    "
+msgstr ""
+
+#. module: l10n_be_intervat
+#. odoo-python
+#: code:addons/l10n_be_intervat/controllers/main.py:0
+msgid ""
+"\n"
+"                        Access error: You do not have permission to give consent for company %s. If you are an accounting firm,\n"
+"                        make sure the Accounting firm field is set in the Intervat settings. Otherwise, only the client can submit the VAT return through API.\n"
+"                    "
+msgstr ""
 
 #. module: l10n_be_intervat
 #: model:ir.model.fields,help:l10n_be_intervat.field_res_company__l10n_be_intervat_mode
@@ -24,6 +45,19 @@ msgid ""
 "            - Test: Connected to the Intervat API in test mode\n"
 "            - Disabled: Disconnected from the Intervat server\n"
 "        "
+msgstr ""
+
+#. module: l10n_be_intervat
+#: model_terms:ir.ui.view,arch_db:l10n_be_intervat.res_config_settings_view_form
+msgid ""
+"<i title=\"Close connection\" role=\"img\" aria-label=\"Close connection\" "
+"class=\"fa fa-fw fa-sign-out\"/>"
+msgstr ""
+
+#. module: l10n_be_intervat
+#: model:ir.model.fields,field_description:l10n_be_intervat.field_res_config_settings__account_representative_id
+#: model_terms:ir.ui.view,arch_db:l10n_be_intervat.res_config_settings_view_form
+msgid "Accounting Firm"
 msgstr ""
 
 #. module: l10n_be_intervat
@@ -47,12 +81,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_be_intervat/controllers/main.py:0
 msgid "Authentication Failed"
-msgstr ""
-
-#. module: l10n_be_intervat
-#. odoo-python
-#: code:addons/l10n_be_intervat/controllers/main.py:0
-msgid "Authentication Successful"
 msgstr ""
 
 #. module: l10n_be_intervat
@@ -160,6 +188,11 @@ msgid "Intervat"
 msgstr ""
 
 #. module: l10n_be_intervat
+#: model:ir.actions.server,name:l10n_be_intervat.cron_intervat_refresh_token_ir_actions_server
+msgid "Intervat (BE): Update refresh token"
+msgstr ""
+
+#. module: l10n_be_intervat
 #: model:ir.model.fields,field_description:l10n_be_intervat.field_res_company__l10n_be_intervat_client_id
 msgid "Intervat Client ID"
 msgstr ""
@@ -187,12 +220,19 @@ msgstr ""
 
 #. module: l10n_be_intervat
 #. odoo-python
+#: code:addons/l10n_be_intervat/models/res_config_settings.py:0
+msgid "Intervat connection closed."
+msgstr ""
+
+#. module: l10n_be_intervat
+#. odoo-python
 #: code:addons/l10n_be_intervat/models/res_company.py:0
 msgid "Intervat is not activated. You can activate it in the settings."
 msgstr ""
 
 #. module: l10n_be_intervat
 #: model:ir.model.fields,field_description:l10n_be_intervat.field_res_company__l10n_be_intervat_access_token
+#: model:ir.model.fields,field_description:l10n_be_intervat.field_res_config_settings__l10n_be_intervat_access_token
 msgid "L10N Be Intervat Access Token"
 msgstr ""
 
@@ -243,6 +283,12 @@ msgid "No VAT declaration found for this period."
 msgstr ""
 
 #. module: l10n_be_intervat
+#. odoo-python
+#: code:addons/l10n_be_intervat/models/res_company.py:0
+msgid "Only an accountant can perform this action."
+msgstr ""
+
+#. module: l10n_be_intervat
 #: model:ir.model.fields,field_description:l10n_be_intervat.field_l10n_be_vat_declaration__pdf_ref
 msgid "Pdf Ref"
 msgstr ""
@@ -286,12 +332,6 @@ msgid "Return"
 msgstr ""
 
 #. module: l10n_be_intervat
-#. odoo-python
-#: code:addons/l10n_be_intervat/controllers/main.py:0
-msgid "Send your declaration now."
-msgstr ""
-
-#. module: l10n_be_intervat
 #: model_terms:ir.ui.view,arch_db:l10n_be_intervat.res_config_settings_view_form
 msgid "Server Mode"
 msgstr ""
@@ -303,9 +343,10 @@ msgid "Set Intervat mode"
 msgstr ""
 
 #. module: l10n_be_intervat
-#. odoo-python
-#: code:addons/l10n_be_intervat/models/account_return.py:0
-msgid "Submission Error"
+#: model:ir.model.fields,help:l10n_be_intervat.field_res_config_settings__account_representative_id
+msgid ""
+"Specify an Accounting Firm that will act as a representative when exporting "
+"reports."
 msgstr ""
 
 #. module: l10n_be_intervat
@@ -376,6 +417,14 @@ msgstr ""
 #. module: l10n_be_intervat
 #. odoo-python
 #: code:addons/l10n_be_intervat/models/res_company.py:0
+msgid ""
+"Your authentication with Intervat was incomplete. Please authenticate again "
+"and make sure you grant consent to both of the following"
+msgstr ""
+
+#. module: l10n_be_intervat
+#. odoo-python
+#: code:addons/l10n_be_intervat/models/res_company.py:0
 msgid "Your database UUID does not exist."
 msgstr ""
 
@@ -389,18 +438,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_be_intervat/models/res_company.py:0
 msgid "Your database is not yet activated."
-msgstr ""
-
-#. module: l10n_be_intervat
-#. odoo-python
-#: code:addons/l10n_be_intervat/controllers/main.py:0
-msgid "Your declaration has been fetched."
-msgstr ""
-
-#. module: l10n_be_intervat
-#. odoo-python
-#: code:addons/l10n_be_intervat/controllers/main.py:0
-msgid "Your declaration has been sent."
 msgstr ""
 
 #. module: l10n_be_intervat

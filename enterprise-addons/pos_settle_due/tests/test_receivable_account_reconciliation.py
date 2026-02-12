@@ -183,3 +183,19 @@ class TestPOSCustomerAccountReconciliation(TestPoSCommon):
         session1.close_session_from_ui()
         invoice_lines_matching = self.env['account.move.line'].search([('matching_number', '=', invoice_a.line_ids[-1].matching_number)])
         self.assertEqual(len(invoice_lines_matching.partner_id), 1, "Only aml from same partner should be reconciled together")
+
+    def test_settlement_invoiced_later(self):
+        session = self.open_new_session()
+        order_dict = self._create_orders([{
+            "pos_order_lines_ui_args": [(self.product_a, 1)],
+            "payments": [(self.pay_later_pm, 1150)],
+            "customer": self.partner_a,
+            "is_invoiced": False,
+        }])
+        order = next(iter(order_dict.values()))
+        order.action_pos_order_paid()
+        self._create_settle_order(order, False)
+        session.close_session_from_ui()
+        order._generate_pos_order_invoice()
+        self.assertEqual(order.state, 'done')
+        self.assertEqual(order.account_move.payment_state, 'paid')

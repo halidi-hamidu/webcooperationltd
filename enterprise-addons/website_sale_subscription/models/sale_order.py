@@ -7,6 +7,19 @@ from odoo.exceptions import UserError
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    def set_open(self):
+        were_churned_subscriptions = self.filtered(lambda sub: sub.subscription_state == '6_churn')
+        super().set_open()
+        inprogress_subscriptions = self.filtered(lambda sub: sub.subscription_state == '3_progress')
+        reopened_subscriptions = inprogress_subscriptions & were_churned_subscriptions
+        # ensure fiscal position is up to date
+        orders_by_fpos = reopened_subscriptions.grouped('fiscal_position_id')
+        self.env.add_to_compute(reopened_subscriptions._fields['fiscal_position_id'], reopened_subscriptions)
+        if fpos_changed := reopened_subscriptions.filtered(
+            lambda so: so not in orders_by_fpos.get(so.fiscal_position_id, []),
+        ):
+            fpos_changed._recompute_taxes()
+
     def _cart_add(self, product_id, *args, plan_id=None, **kwargs):
         product = self.env['product.product'].browse(product_id)
         if product.recurring_invoice and not kwargs.get('allow_one_time_sale'):

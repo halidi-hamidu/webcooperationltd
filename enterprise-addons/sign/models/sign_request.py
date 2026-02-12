@@ -370,7 +370,7 @@ class SignRequest(models.Model):
         # check if frontend user or backend
         action = self.env["ir.actions.actions"]._for_xml_id("sign.sign_request_action")
         result = {"action": action, "label": _("Close"), "custom_action": False}
-        if self.reference_doc and self.reference_doc.exists():
+        if self.reference_doc and self.reference_doc.exists() and self.reference_doc.has_access('read'):
             action = self._get_linked_record_action(action)
             result = {"action": action, "label": _("Back to %s", self.reference_doc._description), "custom_action": True}
         return result

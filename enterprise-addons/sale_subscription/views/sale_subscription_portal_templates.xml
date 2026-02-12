@@ -240,7 +240,7 @@
         <div id="introduction" position="before">
             <div class="alert alert-danger text-center" role="alert" t-if="sale_order.subscription_state == '3_progress' and sale_order.next_invoice_date &lt; datetime.date.today()">
                 Your subscription is expired, will be closed soon.
-                <a t-if="(providers_sudo or tokens_sudo) and sale_order.amount_total> 0" href="#payment_message" class="alert-link">Pay now</a>
+                <a t-if="(providers_sudo or tokens_sudo) and sale_order.amount_total> 0 and display_payment_message" href="#payment_message" class="alert-link">Pay now</a>
                 <t t-else="">Pay now</t>
             </div>
             <div class="alert alert-warning"
@@ -331,7 +331,7 @@
                 <div t-if="company_mismatch">
                     <t t-call="payment.company_mismatch_warning"/>
                 </div>
-                <div class="clearfix" t-elif="(providers_sudo or tokens_sudo) and next_billing_details.get('next_invoice_amount')> 0">
+                <div class="clearfix" t-elif="next_billing_details.get('next_invoice_amount')> 0">
                     <p id="wc_warning_closed" t-if="sale_order.subscription_state == '6_churn'">
                         <h3 class="mb-1">Reopen your subscription</h3>
                         Your subscription is closed.
@@ -494,7 +494,7 @@
                     </div>
                     <!-- Reopen button if there is an option to reopen the closed subscription -->
                     <div t-if="(providers_sudo or tokens_sudo) and next_billing_details.get('next_invoice_amount')> 0 and
-                        sale_order.subscription_state == '6_churn'" class="d-flex flex-wrap flex-column gap-4">
+                        display_payment_message and sale_order.subscription_state == '6_churn'" class="d-flex flex-wrap flex-column gap-4">
                         <a class="btn btn-primary d-block" href="#payment_message" role="button">
                                 Reopen
                         </a>

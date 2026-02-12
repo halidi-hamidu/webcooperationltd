@@ -140,38 +140,52 @@ class L10nCHEmployeeYearlySnapshot(models.Model):
         return to_dict(root)
 
     def _toggle_pay_period_lock(self, lock=False):
-        paid_slips = self.env["hr.payslip"]._read_group(
-            domain=[("employee_id", 'in', self.employee_id.ids), ("state", "in", ["paid", "validated"]), ('struct_id.code', '=', 'CHMONTHLYELM')],
+        all_snapshots = self.monthly_value_ids
+
+        if not all_snapshots:
+            return
+
+        domain = [
+            ("employee_id", 'in', all_snapshots.mapped('employee_id').ids),
+            ("state", "in", ["paid", "validated"]),
+            ('struct_id.code', '=', 'CHMONTHLYELM')
+        ]
+
+        paid_slips_data = self.env["hr.payslip"]._read_group(
+            domain=domain,
             groupby=["employee_id", "date_to:year", "date_to:month"],
-            aggregates=["id:recordset"])
-        mapped_payslips = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: self.env["hr.payslip"])))
-        snapshots_to_toggle = self.env['l10n.ch.employee.monthly.values']
+            aggregates=["id:recordset"]
+        )
 
-        for emp, date_y, date_m, slip in paid_slips:
-            mapped_payslips[emp][date_y.year][date_m.month] += slip
+        max_month_per_year_map = defaultdict(int)
 
-        if lock:
-            for snapshot in self:
-                treated_months = []
-                for monthly_snapshot in snapshot.monthly_value_ids:
-                    if mapped_payslips[monthly_snapshot.employee_id][monthly_snapshot.year][monthly_snapshot.month]:
-                        treated_months.append(monthly_snapshot.month)
-                if treated_months:
-                    snapshots_to_toggle += snapshot.monthly_value_ids.filtered(lambda s: s.month <= max(treated_months))
-            if snapshots_to_toggle:
-                snapshots_to_toggle.write({
-                    "payroll_month_closed": True
-                })
-        else:
-            for snapshot in self:
-                treated_months = []
-                for monthly_snapshot in snapshot.monthly_value_ids:
-                    if not mapped_payslips[monthly_snapshot.employee_id][monthly_snapshot.year][monthly_snapshot.month]:
-                        snapshots_to_toggle += monthly_snapshot
+        for employee, date_year, date_month, slips in paid_slips_data:
+            year_val = date_year.year
+            month_val = date_month.month
 
-                snapshots_to_toggle.write({
-                    "payroll_month_closed": False
-                })
+            key = (employee.id, year_val)
+
+            if month_val > max_month_per_year_map[key]:
+                max_month_per_year_map[key] = month_val
+
+        snapshots_to_lock = self.env['l10n.ch.employee.monthly.values']
+        snapshots_to_unlock = self.env['l10n.ch.employee.monthly.values']
+
+        for snapshot in all_snapshots:
+            key = (snapshot.employee_id.id, snapshot.year)
+
+            cutoff_month = max_month_per_year_map.get(key, 0)
+
+            if snapshot.month <= cutoff_month:
+                snapshots_to_lock += snapshot
+            else:
+                snapshots_to_unlock += snapshot
+
+        if snapshots_to_lock:
+            snapshots_to_lock.write({"payroll_month_closed": True})
+
+        if snapshots_to_unlock:
+            snapshots_to_unlock.write({"payroll_month_closed": False})
 
     @api.depends("year", "employee_id")
     def _compute_monthly_value_ids(self):

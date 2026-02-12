@@ -23,12 +23,22 @@ def get_valid_pdf_data(pdf_bytes, strict=True):
     :return: A valid and non-encrypted PdfFileReader instance.
     :raises ValidationError: If cannot return non-encrypted PdfFileReader instance.
     """
-    try:
-        pdf_reader = PdfFileReader(BytesIO(pdf_bytes), strict)
-        if not pdf_reader.isEncrypted:
+    # If strict=True is explicitly requested, try strict first then fall back to lenient.
+    # By default we favor lenient parsing to cope with malformed yet readable PDFs.
+    # pypdf strict=False enables best-effort parsing for PDFs that don't follow the spec exactly.
+    # See https://pypdf.readthedocs.io/en/stable/user/robustness.html
+    strict_modes = (True, False) if strict else (False,)
+    for strict_flag in strict_modes:
+        try:
+            pdf_reader = PdfFileReader(BytesIO(pdf_bytes), strict_flag)
+            if pdf_reader.isEncrypted:
+                continue
+            if strict_flag is False and strict:
+                _logger.warning("Strict PDF parsing failed; falling back to lenient mode.")
             return pdf_reader
-    except (DependencyError, UnicodeDecodeError, PdfReadError):
-        _logger.warning("Failed to read PDF data.")
+        except (DependencyError, UnicodeDecodeError, PdfReadError, errors.PyPdfError):
+            _logger.warning("Failed to read PDF data (strict=%s).", strict_flag, exc_info=True)
+            continue
 
     raise ValidationError(_lt(
         "It seems that we're not able to process one of the uploaded pdf. It is either"
@@ -47,16 +57,30 @@ def flatten_pdf(base64_pdf):
     """
     try:
         pdf_bytes = base64.b64decode(base64_pdf)
-        pdf_reader = get_valid_pdf_data(pdf_bytes)
+        # Use lenient parsing to better handle malformed PDFs while still refusing encrypted ones.
+        # strict=False allows pypdf to apply best-effort recovery for non-spec-compliant PDFs.
+        pdf_reader = get_valid_pdf_data(pdf_bytes, strict=False)
         output_pdf = PdfFileWriter()
     except errors.PyPdfError as e:
         _logger.warning("Failed to parse PDF during flattening: %s", e)
         return base64_pdf
 
-    if not pdf_reader.getFormTextFields():
-        return base64_pdf  # No fields to flatten
+    try:
+        form_fields = pdf_reader.getFormTextFields()
+    except errors.PyPdfError as e:
+        _logger.warning("Failed to read PDF form fields during flattening: %s", e)
+        return base64_pdf
 
-    for page_num in range(pdf_reader.getNumPages()):
+    if not form_fields:
+        return base64_pdf
+
+    try:
+        page_count = pdf_reader.getNumPages()
+    except errors.PyPdfError as e:
+        _logger.warning("Failed to read PDF pages during flattening: %s", e)
+        return base64_pdf
+
+    for page_num in range(page_count):
         try:
             page = pdf_reader.getPage(page_num)
             annotations = page.get("/Annots")
@@ -80,7 +104,8 @@ def flatten_pdf(base64_pdf):
 
             # Read the overlay PDF we just created from memory
             # And place it on top of the original page to show the field values
-            overlay_pdf = PdfFileReader(packet)
+            # Use strict=False for lenient parsing of the generated overlay PDF.
+            overlay_pdf = PdfFileReader(packet, strict=False)
             page.mergePage(overlay_pdf.getPage(0))
 
             # Remove interactive annotations so the result is read-only

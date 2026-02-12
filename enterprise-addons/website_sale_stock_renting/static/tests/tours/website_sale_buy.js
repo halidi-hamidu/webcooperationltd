@@ -105,3 +105,35 @@ registry.category("web_tour.tours").add("website_availability_update", {
         },
     ],
 });
+
+registry.category("web_tour.tours").add("test_website_availability_while_continuing_selling", {
+    url: "/shop",
+    steps: () => [
+        ...tourUtils.searchProduct("Computer", { select: true }),
+        {
+            trigger:
+                "#threshold_message_renting:contains('Only 2 Units still available during the selected period.')",
+        },
+        {
+            trigger: ".o_website_sale_daterange_picker_input",
+            run: "click",
+        },
+        {
+            trigger: ".o_date_item_cell:contains(22)",
+            run: "click",
+        },
+        {
+            trigger: ".o_date_item_cell:contains(24)",
+            run: "click",
+        },
+        {
+            trigger: ".btn:contains(Apply)",
+            run: "click",
+        },
+        {
+            trigger:
+                "#threshold_message_renting:contains('Only 5 Units still available during the selected period.')",
+            run: () => {},
+        },
+    ],
+});

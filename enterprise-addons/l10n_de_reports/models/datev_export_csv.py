@@ -333,7 +333,8 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 for line in m.invoice_line_ids:
                     line_taxes = line.tax_ids.compute_all(line.amount_currency, line.currency_id, partner=line.partner_id, handle_price_include=False)
                     tax_amounts = {tax_data['id']: tax_data['amount'] for tax_data in line_taxes['taxes']}
-                    for tax in line.tax_ids:
+                    for tax_id in tax_amounts:
+                        tax = self.env['account.tax'].browse(tax_id)
                         original_values_by_group[tax.tax_group_id] += tax_amounts[tax.id]
                         amls_by_group[tax.tax_group_id].append(line)
                 # Compute deltas by tax group and assign the difference
@@ -354,6 +355,13 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
             move_balance = 0
             counterpart_amount = 0
             last_tax_line_index = 0
+            code_correction = ''
+
+            def _get_code_correction(taxes):
+                codes = set(taxes.mapped('l10n_de_datev_code'))
+                # there should be exactly one, else skip code
+                return len(codes) == 1 and codes.pop() or ''
+
             for aml in m.line_ids:
                 if aml.debit == aml.credit:
                     # Ignore debit = credit = 0
@@ -368,6 +376,9 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 # and replace bank account for outstanding payment/receipt for the other line
 
                 if aml.payment_id:
+                    # An expense may be encoded with a tax, we should report the corresponding tax code
+                    if not code_correction:
+                        code_correction = _get_code_correction(m.line_ids.tax_ids)
                     if payment_account == 0:
                         payment_account = account_code
                         counterpart_amount += aml.balance
@@ -380,6 +391,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                     if aml.statement_line_id and not aml.payment_id:
                         counterpart_amount += aml.balance
                     continue
+
                 # If line is a tax ignore it as datev requires single line with gross amount and deduct tax itself based
                 # on account or on the control key code
                 if aml.tax_line_id:
@@ -393,26 +405,18 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                     aml_taxes = aml.tax_ids.compute_all(aml.amount_currency, aml.currency_id, partner=aml.partner_id, handle_price_include=False)
                     line_amount_currency = aml_taxes['total_included']
                 # convert line_amount in company currency
-                if aml.currency_id != aml.company_id.currency_id:
-                    line_amount = aml.currency_id._convert(
-                        from_amount=line_amount_currency,
-                        to_currency=aml.company_id.currency_id,
-                        company=aml.company_id,
-                        date=aml.date
-                    )
+                if aml.currency_id != aml.company_id.currency_id and not aml.currency_id.is_zero(line_amount_currency):
+                    rate = m._get_product_base_line_currency_rate(aml)
+                    line_amount = line_amount_currency / rate
                 else:
                     line_amount = line_amount_currency
 
                 move_balance += line_amount
 
-                code_correction = ''
                 if aml.tax_ids:
                     last_tax_line_index = len(lines)
                     last_tax_line_amount = line_amount
-                    codes = set(aml.tax_ids.mapped('l10n_de_datev_code'))
-                    if len(codes) == 1:
-                        # there should only be one max, else skip code
-                        code_correction = codes.pop() or ''
+                    code_correction = _get_code_correction(aml.tax_ids)
 
                 # reference
                 receipt1 = ref = aml.move_id.name
@@ -438,7 +442,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 array[2] = aml.currency_id.name
                 if aml.currency_id != aml.company_id.currency_id:
                     # Column D: ratio is E/A if D !=0, else no rate.
-                    rate = line_amount / line_amount_currency if line_amount_currency != 0 else 1.0
+                    rate = line_amount / line_amount_currency if not aml.currency_id.is_zero(line_amount_currency) else 1.0
                     array[3] = str(rate).replace('.', ',')
                     # Column E: the amount converted in the company currency if the original record was in a foreign currency
                     array[4] = float_repr(line_amount, aml.company_id.currency_id.decimal_places).replace('.', ',')

@@ -7,7 +7,7 @@ from requests import RequestException
 
 from odoo import _
 from odoo.exceptions import ValidationError, UserError
-from odoo.tools import float_repr
+from odoo.tools import float_repr, remove_accents
 
 TEST_BASE_URL = "https://apis-sandbox.fedex.com"
 PROD_BASE_URL = "https://apis.fedex.com"
@@ -215,7 +215,7 @@ class FedexRequest:
     def _get_location_from_partner(self, partner, check_residential=False):
         res = {'countryCode': partner.country_id.code}
         if partner.city:
-            res['city'] = partner.city
+            res['city'] = remove_accents(partner.city)
         if partner.zip:
             res['postalCode'] = partner.zip
         if partner.state_id:
@@ -245,9 +245,9 @@ class FedexRequest:
 
     def _get_address_from_partner(self, partner, check_residential=False):
         res = self._get_location_from_partner(partner, check_residential)
-        res['streetLines'] = [partner.street]
+        res['streetLines'] = [remove_accents(partner.street)]
         if partner.street2:
-            res['streetLines'].append(partner.street2)
+            res['streetLines'].append(remove_accents(partner.street2))
         return res
 
     def _get_contact_from_partner(self, partner, company_partner=False):
@@ -481,7 +481,7 @@ class FedexRequest:
             details = shipment['completedShipmentDetail']
             pieces = shipment['pieceResponses']
             # Sometimes the shipment might be created but no pricing calculated, we just set to 0.
-            price = self._decode_pricing(details['shipmentRating']) if 'shipmentRating' in details else 0.0
+            price = self._decode_pricing(details['shipmentRating'], fedex_currency) if 'shipmentRating' in details else 0.0
         except KeyError:
             raise ValidationError(_('Could not decode response')) from None
 
@@ -591,8 +591,13 @@ class FedexRequest:
             'alert_message': self._process_alerts(shipment),
         }
 
-    def _decode_pricing(self, rating_result):
-        actual = next(filter(lambda d: d['rateType'] == rating_result['actualRateType'], rating_result['shipmentRateDetails']), {})
+    def _decode_pricing(self, rating_result, request_currency=False):
+        actual = next(filter(
+            lambda d:
+                d['rateType'] in [rating_result['actualRateType'], rating_result['actualRateType'].replace("PAYOR", "PREFERRED").replace("RATED", "PREFERRED")] and
+                (not request_currency or d['currency'] == request_currency),
+            rating_result['shipmentRateDetails']
+        ), {})
         if actual.get('totalNetChargeWithDutiesAndTaxes', False):
             return actual['totalNetChargeWithDutiesAndTaxes']
         return actual['totalNetCharge']

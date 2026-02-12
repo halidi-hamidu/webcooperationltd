@@ -123,12 +123,12 @@ class SaleCommissionAchievementReport(models.Model):
         date_from, date_to = self.env['sale.commission.achievement.report']._get_achievement_default_dates()
         today = fields.Date.today().strftime('%Y-%m-%d')
         date_from_condition = f"""AND date >= '{datetime.strftime(date_from, "%Y-%m-%d")}'""" if date_from else ""
-        achievement_view = self._get_report_view()
+        achievement_view = self._get_report_view(users=users, teams=teams)
         if not self._is_materialized_view() and achievement_view:
             self.env.cr.execute(achievement_view)
         query = f"""
         WITH {self._get_currency_rate()}
-        SELECT cl.id AS id,
+        SELECT cl.id,
                cl.target_id,
                cl.user_id,
                cl.team_id,
@@ -173,7 +173,7 @@ class SaleCommissionAchievementReport(models.Model):
     def _is_materialized_view(self):
         return False
 
-    def _get_report_view(self):
+    def _get_report_view(self, users=None, teams=None):
         # test the existance of the view. _get_report_view can be called twice in a single transaction by get_views and web_search_read for example.
         # To avoid `psycopg2.errors.DuplicateTable: relation already exists` errors, we only create the view on the first call.
         # Unfortunately tools.sql.table_exists can't be used here because the view is created in a temporary schema
@@ -189,9 +189,9 @@ class SaleCommissionAchievementReport(models.Model):
             return
         query = f"""
             CREATE {self._get_view_parameters()} VIEW sale_commission_achievement_report_view AS
-              WITH {self._commission_lines_query(users=None, teams=None)}
+              WITH {self._commission_lines_query(users=users, teams=teams)}
             SELECT
-                    (cl.plan_id *10^13 + cl.related_res_id * 10^5 + 10^3 * LENGTH(cl.related_res_model) + cl.user_id + TO_CHAR(entropy_date, 'YYYYMMDDHH24MISS')::bigint + TO_CHAR(cl.date, 'YYMMDD')::integer)::bigint  AS id,
+                    cl.id,
                     era.id AS target_id,
                     cl.user_id AS user_id,
                     cl.team_id AS team_id,
@@ -218,7 +218,7 @@ class SaleCommissionAchievementReport(models.Model):
 
     @api.model
     def _rate_to_case(self, rates):
-        case = "CASE WHEN scpa.type = '%s' THEN rate ELSE 0 END AS %s"
+        case = "CASE WHEN scpa.type::text = '%s'::text THEN rate ELSE 0::double precision END AS %s"
         return ",\n".join(case % (s, s + '_rate') for s in rates)
 
     @api.model
@@ -232,30 +232,29 @@ class SaleCommissionAchievementReport(models.Model):
     @api.model
     def _get_sale_rates_product(self):
         return """
-            rules.amount_sold_rate * sol.price_subtotal / fo.currency_rate +
-            rules.qty_sold_rate * sol.product_uom_qty
+            rules.amount_sold_rate * sol.price_subtotal::double precision / fo.currency_rate::double precision +
+            rules.qty_sold_rate * sol.product_uom_qty::double precision
         """
 
     @api.model
     def _get_filtered_orders_cte(self, users=None, teams=None):
         date_from, date_to = self._get_achievement_default_dates()
         today = fields.Date.today().strftime('%Y-%m-%d')
-        date_from_condition = f"""AND date_order >= '{datetime.strftime(date_from, "%Y-%m-%d")}'""" if date_from else ""
+        date_from_condition = f"""AND date_order >= '{datetime.strftime(date_from, "%Y-%m-%d")}'::timestamp without time zone""" if date_from else ""
         query = f"""
         filtered_orders AS (
             SELECT
-                    id,
-                    team_id,
-                    state,
-                    currency_rate,
-                    company_id,
-                    currency_id,
-                    user_id,
-                    date_order,
-                    write_date,
-                    partner_id
+                    sale_order.id,
+                    sale_order.team_id,
+                    sale_order.state,
+                    sale_order.currency_rate,
+                    sale_order.company_id,
+                    sale_order.currency_id,
+                    sale_order.user_id,
+                    sale_order.date_order,
+                    sale_order.partner_id
               FROM sale_order
-             WHERE state = 'sale'
+             WHERE sale_order.state::text = 'sale'::text
                {'AND user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
                {'AND team_id in (%s)' % ','.join(str(i) for i in teams.ids) if teams else ''}
                {date_from_condition}
@@ -273,19 +272,18 @@ class SaleCommissionAchievementReport(models.Model):
         query = f"""
         filtered_moves AS (
             SELECT
-                    id,
-                    team_id,
-                    move_type,
-                    state,
-                    invoice_currency_rate,
-                    company_id,
-                    currency_id,
-                    invoice_user_id,
-                    date,
-                    write_date,
-                    partner_id
+                    account_move.id::bigint,
+                    account_move.team_id,
+                    account_move.move_type,
+                    account_move.state,
+                    account_move.invoice_currency_rate,
+                    account_move.company_id,
+                    account_move.currency_id,
+                    account_move.invoice_user_id,
+                    account_move.date,
+                    account_move.partner_id
               FROM account_move
-             WHERE move_type IN ('out_invoice', 'out_refund')
+             WHERE account_move.move_type IN ('out_invoice', 'out_refund')
                AND state = 'posted'
              {'AND invoice_user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
              {'AND team_id in (%s)' % ','.join(str(i) for i in teams.ids) if teams else ''}
@@ -320,8 +318,7 @@ class SaleCommissionAchievementReport(models.Model):
           MAX(rules.company_id) AS plan_company_id,
           MAX(fm.company_id) AS achievement_company_id,
           fm.id AS related_res_id,
-          MAX(fm.partner_id) AS partner_id,
-          MAX(fm.write_date) as entropy_date
+          MAX(fm.partner_id) AS partner_id
         """
 
     @api.model
@@ -358,8 +355,7 @@ class SaleCommissionAchievementReport(models.Model):
     def _select_sales(self):
         return """
           fo.id AS related_res_id,
-          MAX(fo.partner_id) AS partner_id,
-          MAX(fo.write_date) as entropy_date
+          MAX(fo.partner_id) AS partner_id
         """
 
     @api.model
@@ -380,7 +376,7 @@ class SaleCommissionAchievementReport(models.Model):
         where = """
           AND sol.display_type IS NULL
           AND (fo.date_order BETWEEN rules.date_from AND rules.date_to)
-          AND fo.state = 'sale'
+          AND fo.state::TEXT = 'sale'::TEXT
           AND (rules.product_id IS NULL OR rules.product_id = sol.product_id)
           AND (rules.product_categ_id IS NULL OR rules.product_categ_id = pt.categ_id)
           AND COALESCE(sol.is_expense, false) = false
@@ -408,14 +404,13 @@ class SaleCommissionAchievementReport(models.Model):
         filtered_adjustments AS (
             SELECT
                     a.id,
-                    add_user_id,
-                    reduce_user_id,
-                    company_id,
-                    currency_id,
-                    currency_rate,
-                    achieved,
-                    date,
-                    write_date
+                    a.add_user_id,
+                    a.reduce_user_id,
+                    a.company_id,
+                    a.currency_id,
+                    a.currency_rate,
+                    a.achieved,
+                    a.date
               FROM sale_commission_achievement a
               WHERE 1=1
              {date_from_condition}
@@ -430,10 +425,11 @@ class SaleCommissionAchievementReport(models.Model):
 {self._get_filtered_achivement_cte(users=users, teams=teams)},
 achievement_commission_lines_add AS (
     SELECT
+        fa.id::bigint *10+8 as id,
         scpu.user_id AS user_id,
         scp.team_id AS team_id,
         scp.id AS plan_id,
-        fa.achieved / fa.currency_rate AS achieved,
+        fa.achieved::double precision / fa.currency_rate AS achieved,
         fa.currency_id AS currency_id,
         fa.date AS date,
         scp.company_id AS plan_company_id,
@@ -441,23 +437,13 @@ achievement_commission_lines_add AS (
         fa.id AS related_res_id,
         -- achievement don't involve a customer; needed to match UNION structure with other sources
         NULL::integer AS partner_id,
-        MAX(fa.write_date) +  INTERVAL '1 minute' + MAX(fa.id) * INTERVAL '1 minute' AS entropy_date,
-        'sale.commission.achievement' AS related_res_model
+        'sale.commission.achievement'::text AS related_res_model
     FROM filtered_adjustments fa
     JOIN sale_commission_plan_user scpu ON scpu.id = fa.add_user_id
     JOIN sale_commission_plan scp ON scpu.plan_id = scp.id
     WHERE scp.active
-      AND scp.state = 'approved'
+      AND scp.state::text = 'approved'::text
       {'AND scpu.user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
-    GROUP BY scpu.user_id,
-             scp.team_id,
-             scp.id,
-             fa.currency_id,
-             fa.currency_rate,
-             fa.achieved,
-             fa.date,
-             scp.company_id,
-             fa.id
 )
 """, "achievement_commission_lines_add"
 
@@ -466,10 +452,11 @@ achievement_commission_lines_add AS (
         return f"""
 achievement_commission_lines_rem AS (
     SELECT
+        fa.id::bigint *10+9 as id,
         scpu.user_id AS user_id,
         scp.team_id AS team_id,
         scp.id AS plan_id,
-        - fa.achieved / fa.currency_rate AS achieved,
+        (- fa.achieved)::double precision / fa.currency_rate AS achieved,
         fa.currency_id AS currency_id,
         fa.date AS date,
         scp.company_id AS plan_company_id,
@@ -477,23 +464,13 @@ achievement_commission_lines_rem AS (
         fa.id AS related_res_id,
         -- achievement don't involve a customer; needed to match UNION structure with other sources
         NULL::integer AS partner_id,
-        MAX(fa.write_date) -  INTERVAL '1 minute' + MAX(fa.id) * INTERVAL '1 minute' AS entropy_date,
-        'sale.commission.achievement' AS related_res_model
+        'sale.commission.achievement'::text AS related_res_model
     FROM filtered_adjustments fa
     JOIN sale_commission_plan_user scpu ON scpu.id = fa.reduce_user_id
     JOIN sale_commission_plan scp ON scpu.plan_id = scp.id
     WHERE scp.active
-      AND scp.state = 'approved'
+      AND scp.state::text = 'approved'::text
       {'AND scpu.user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
-    GROUP BY scpu.user_id,
-             scp.team_id,
-             scp.id,
-             fa.currency_rate,
-             fa.achieved,
-             fa.date,
-             scp.company_id,
-             fa.currency_id,
-             fa.id
 )
 """, "achievement_commission_lines_rem"
 
@@ -502,6 +479,7 @@ achievement_commission_lines_rem AS (
 {self._get_filtered_moves_cte(users=users, teams=teams)},
 invoices_rules AS (
     SELECT
+        scpa.id::bigint,
         COALESCE(scpu.date_from, scp.date_from) AS date_from,
         COALESCE(scpu.date_to, scp.date_to) AS date_to,
         scpu.user_id AS user_id,
@@ -511,19 +489,21 @@ invoices_rules AS (
         scpa.product_categ_id,
         scp.company_id,
         scp.currency_id AS currency_id,
-        scp.user_type = 'team' AS team_rule,
+        scp.user_type::text = 'team'::text AS team_rule,
         {self._rate_to_case(self._get_invoices_rates())}
         {self._select_rules()}
     FROM sale_commission_plan_achievement scpa
     JOIN sale_commission_plan scp ON scp.id = scpa.plan_id
     JOIN sale_commission_plan_user scpu ON scpa.plan_id = scpu.plan_id
     WHERE scp.active
-      AND scp.state = 'approved'
-      AND scpa.type IN ({','.join("'%s'" % r for r in self._get_invoices_rates())})
+      AND scp.state::text = 'approved'::text
+      AND scpa.type::text IN ({','.join("'%s'::character varying" % r for r in self._get_invoices_rates())})
     {'AND scpu.user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
 ),
 invoice_commission_lines_team AS (
     SELECT
+       (MAX(aml.id)::bigint <<20) | max(rules.id)::bigint <<10 | rules.user_id <<10 as id,
+       --max(aml.id)::bigint as id,
         {self._select_invoices()}
     FROM invoices_rules rules
          {self._join_invoices(join_type='team')}
@@ -540,6 +520,8 @@ invoice_commission_lines_team AS (
         rules.user_id
 ), invoice_commission_lines_user AS (
     SELECT
+       -- row_number is needed here because we have 3 integer (32 bits) to use to create a unique 64 bits integer --> not possible
+       row_number() over(order by fm.id, rules.plan_id, rules.user_id) as id,
           {self._select_invoices()}
     FROM invoices_rules rules
          {self._join_invoices(join_type='user')}
@@ -551,13 +533,42 @@ invoice_commission_lines_team AS (
       AND (rules.product_id IS NULL OR rules.product_id = aml.product_id)
       AND (rules.product_categ_id IS NULL OR rules.product_categ_id = pt.categ_id)
     GROUP BY
+--        aml.id,
         fm.id,
         rules.plan_id,
         rules.user_id
 ), invoice_commission_lines AS (
-    (SELECT *, 'account.move' AS related_res_model FROM invoice_commission_lines_team)
+    (
+        SELECT invoice_commission_lines_team.id*10+1 as id,
+               invoice_commission_lines_team.user_id,
+               invoice_commission_lines_team.team_id,
+               invoice_commission_lines_team.plan_id,
+               invoice_commission_lines_team.achieved,
+               invoice_commission_lines_team.currency_id,
+               invoice_commission_lines_team.date,
+               invoice_commission_lines_team.plan_company_id,
+               invoice_commission_lines_team.achievement_company_id,
+               invoice_commission_lines_team.related_res_id,
+               invoice_commission_lines_team.partner_id,
+               'account.move' AS related_res_model
+          FROM invoice_commission_lines_team
+    )
     UNION ALL
-    (SELECT *, 'account.move' AS related_res_model FROM invoice_commission_lines_user)
+    (
+        SELECT invoice_commission_lines_user.id*10+2 as id,
+               invoice_commission_lines_user.user_id,
+               invoice_commission_lines_user.team_id,
+               invoice_commission_lines_user.plan_id,
+               invoice_commission_lines_user.achieved,
+               invoice_commission_lines_user.currency_id,
+               invoice_commission_lines_user.date,
+               invoice_commission_lines_user.plan_company_id,
+               invoice_commission_lines_user.achievement_company_id,
+               invoice_commission_lines_user.related_res_id,
+               invoice_commission_lines_user.partner_id,
+               'account.move' AS related_res_model
+          FROM invoice_commission_lines_user
+    )
 )""", 'invoice_commission_lines'
 
     def _sale_lines(self, users=None, teams=None):
@@ -574,20 +585,21 @@ sale_rules AS (
         scpa.product_categ_id,
         scp.company_id,
         scp.currency_id AS currency_id,
-        scp.user_type = 'team' AS team_rule,
+        scp.user_type::text = 'team'::text AS team_rule,
         {self._rate_to_case(self._get_sale_rates())}
         {self._select_rules()}
     FROM sale_commission_plan_achievement scpa
     JOIN sale_commission_plan scp ON scp.id = scpa.plan_id
     JOIN sale_commission_plan_user scpu ON scpa.plan_id = scpu.plan_id
     WHERE scp.active
-      AND scp.state = 'approved'
-      AND scpa.type IN ({','.join("'%s'" % r for r in self._get_sale_rates())})
+      AND scp.state::text = 'approved'::text
+      AND scpa.type IN ({','.join("'%s'::character varying" % r for r in self._get_sale_rates())})
     {'AND scpu.user_id in (%s)' % ','.join(str(i) for i in users.ids) if users else ''}
 ), sale_commission_lines_team AS (
     SELECT
+        MAX(sol.id)::BIGINT *10+3 as id,
         rules.user_id,
-        MAX(rules.team_id),
+        MAX(rules.team_id) AS team_id,
         rules.plan_id,
         SUM({self._get_sale_rates_product()}) AS achieved,
         MAX(fo.currency_id) AS currency_id,
@@ -611,8 +623,9 @@ sale_rules AS (
         rules.user_id
 ), sale_commission_lines_user AS (
     SELECT
+        MAX(sol.id)::BIGINT *10+4 as id,
         rules.user_id,
-        MAX(fo.team_id),
+        MAX(fo.team_id) AS team_id,
         rules.plan_id,
         SUM({self._get_sale_rates_product()}) AS achieved,
         MAX(fo.currency_id) AS currency_id,
@@ -635,9 +648,37 @@ sale_rules AS (
         rules.plan_id,
         rules.user_id
 ), sale_commission_lines AS (
-    (SELECT *, 'sale.order' AS related_res_model FROM sale_commission_lines_team)
+    (
+    SELECT sale_commission_lines_team.id::bigint as id,
+           sale_commission_lines_team.user_id,
+           sale_commission_lines_team.team_id,
+           sale_commission_lines_team.plan_id,
+           sale_commission_lines_team.achieved,
+           sale_commission_lines_team.currency_id,
+           sale_commission_lines_team.date,
+           sale_commission_lines_team.plan_company_id,
+           sale_commission_lines_team.achievement_company_id,
+           sale_commission_lines_team.related_res_id,
+           sale_commission_lines_team.partner_id,
+           'sale.order'::text AS related_res_model
+      FROM sale_commission_lines_team
+    )
     UNION ALL
-    (SELECT *, 'sale.order' AS related_res_model FROM sale_commission_lines_user)
+    (
+    SELECT sale_commission_lines_user.id::bigint as id,
+           sale_commission_lines_user.user_id,
+           sale_commission_lines_user.team_id,
+           sale_commission_lines_user.plan_id,
+           sale_commission_lines_user.achieved,
+           sale_commission_lines_user.currency_id,
+           sale_commission_lines_user.date,
+           sale_commission_lines_user.plan_company_id,
+           sale_commission_lines_user.achievement_company_id,
+           sale_commission_lines_user.related_res_id,
+           sale_commission_lines_user.partner_id,
+           'sale.order'::text AS related_res_model
+      FROM sale_commission_lines_user
+    )
 )""", 'sale_commission_lines'
 
     def _commission_lines_cte(self, users=None, teams=None):

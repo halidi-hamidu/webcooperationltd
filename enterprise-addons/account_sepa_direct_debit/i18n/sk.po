@@ -9,13 +9,13 @@
 # Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
 # karolína schusterová <karolina.schusterova@vdp.sk>, 2022
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2025.
+# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2025-12-27 18:59+0000\n"
+"POT-Creation-Date: 2026-01-30 18:45+0000\n"
+"PO-Revision-Date: 2026-01-23 18:14+0000\n"
 "Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
 "Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
 "account_sepa_direct_debit/sk/>\n"
@@ -35,11 +35,15 @@ msgid ""
 "((object.partner_id.name).replace(' ', '_'), object.name)\n"
 "            "
 msgstr ""
+"\n"
+"                '%s_sdd_mandate_form_%s' % "
+"((object.partner_id.name).replace(' ', '_'), object.name)\n"
+"            "
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "(if applicable)"
-msgstr "(ak existuje)"
+msgstr "(ak je to relevantné)"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -53,6 +57,9 @@ msgid ""
 "                                Make sure the mandate isn't meant for the "
 "parent contact."
 msgstr ""
+".\n"
+"                                Uistite sa, že mandát nie je určený pre "
+"nadriadený kontakt."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
@@ -60,31 +67,33 @@ msgid ""
 ".\n"
 "                        SEPA requires a 5 days notice."
 msgstr ""
+".\n"
+"                        SEPA vyžaduje 5-dňové oznámenie."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "123456789"
-msgstr ""
+msgstr "123456789"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "2023-08-10"
-msgstr ""
+msgstr "10. 8. 2023"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "2023-09-10"
-msgstr ""
+msgstr "10. 9. 2023"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "380055"
-msgstr ""
+msgstr "380055"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "3956012345678"
-msgstr ""
+msgstr "3956012345678"
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,body_html:account_sepa_direct_debit.email_template_sdd_new_mandate
@@ -119,11 +128,40 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Vážený klient <t t-"
+"out=\"object.partner_id.display_name or ''\">Azure Interior</t>\n"
+"                        <br/>\n"
+"                        <br/>\n"
+"                        V prílohe je SEPA mandát priameho inkasa, ktorý je "
+"potrebné podpísať pre splnomocnenie spoločnosťi\n"
+"                        <t t-out=\"object.company_id.display_name or "
+"''\">YourCompany</t>,\n"
+"                        aby mohla zadávať pokyny vašej banke na inkasovanie "
+"platby z vášho účtu, v súladu s inštrukciami od\n"
+"                        <t t-out=\"object.company_id.display_name or "
+"''\">YourCompany</t>\n"
+"                         V prípade akýchkoľvek otázok nás neváhajte "
+"kontaktovať.\n"
+"                        <br/>\n"
+"                        S pozdravom,\n"
+"                        <t t-if=\"not is_html_empty(user.signature)\" data-o-"
+"mail-quote-container=\"1\">\n"
+"                            <br/><br/>\n"
+"                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
+"quote=\"1\"/><t t-out=\"user.signature\" data-o-mail-quote=\"1\">Mitchell "
+"Admin</t></div>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 msgid "<span> day(s)</span>"
-msgstr ""
+msgstr "<span> dni</span>"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -148,7 +186,7 @@ msgstr "<strong>Identifikátor veriteľa:</strong>"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "<strong>Email:</strong>"
-msgstr "<strong>Email:</strong>"
+msgstr "<strong>E-mail:</strong>"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -311,6 +349,134 @@ msgid ""
 "</table>\n"
 "            "
 msgstr ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
+"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
+"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
+"align=\"center\">\n"
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"padding: 16px; background-color: white; color: #454748; border-"
+"collapse:separate;\">\n"
+"<tbody>\n"
+"    <!-- HEADER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\">\n"
+"                    <t t-set=\"company\" t-value=\"object.company_id\"/>\n"
+"                    <span style=\"font-size: 10px;\">Oznámenie o platbe "
+"inkasom</span><br/>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not "
+"company.uses_default_logo\">\n"
+"                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" "
+"style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-"
+"alt=\"company.name\"/>\n"
+"                </td></tr>\n"
+"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"\n"
+"    <!-- CONTENT -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+"                    Vážený klient <t t-out=\"object.partner_id.name or "
+"''\">Azure Interior</t><br/>\n"
+"                    <br/>\n"
+"                    Žiadosť o platbu inkasom vo výške\n"
+"                    <span style=\"font-weight:bold;\" t-"
+"out=\"format_amount(object.amount, object.currency_id) or ''\">$ 0.00</"
+"span>\n"
+"                    bude zaslaná vašej banke.<br/>\n"
+"                    Z vášho účtu končiaceho na <t t-"
+"out=\"ctx.get('iban_last_4') or ''\">1234</t> bude automaticky strhnutá suma "
+"dňa\n"
+"                    <span style=\"font-weight:bold;\" t-"
+"out=\"format_date(ctx.get('collection_date'))\">2020-04-18</span>,\n"
+"                    alebo krátko potom.<br/>\n"
+"                    Uistite sa, že máte požadované finančné prostriedky.<br/"
+">\n"
+"                    <br/>\n"
+"                    <t t-if=\"ctx.get('creditor_iban') or "
+"ctx.get('mandate_ref')\">\n"
+"                        Údaje o obchodníkovi:<br/>\n"
+"                        <ul>\n"
+"                            <t t-if=\"ctx.get('creditor_iban')\">\n"
+"                                <li>IBAN: <t t-out=\"ctx['creditor_iban'] or "
+"''\">NO 93 8601 1117947</t></li>\n"
+"                            </t>\n"
+"                            <t t-if=\"ctx.get('mandate_ref')\">\n"
+"                                <li>REFERENČNÉ ČÍSLO MANDÁTU NA PRIAME "
+"INKASO SEPA: <t t-out=\"ctx['mandate_ref'] or ''\"/></li>\n"
+"                            </t>\n"
+"                        </ul>\n"
+"                    </t>\n"
+"                    <br/>\n"
+"                    V prípade akýchkoľvek otázok nás neváhajte kontaktovať.\n"
+"                </td></tr>\n"
+"                <tr><td style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- FOOTER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; font-size: "
+"11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\" align=\"left\">\n"
+"                    <t t-out=\"company.name or ''\">YourCompany</t>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
+"0.7;\">\n"
+"                    <t t-if=\"company.phone\">\n"
+"                        <t t-out=\"company.phone or ''\">+1 650-123-4567</t> "
+"|\n"
+"                    </t>\n"
+"                    <t t-if=\"company.email\">\n"
+"                        <a t-attf-href=\"'mailto:%s' % {{ company.email }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.email or "
+"''\">info@yourcompany.com</a> |\n"
+"                    </t>\n"
+"                    <t t-if=\"company.website\">\n"
+"                        <a t-attf-href=\"'%s' % {{ company.website }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.website or "
+"''\">http://www.example.com</a>\n"
+"                    </t>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"</tbody>\n"
+"</table>\n"
+"</td></tr>\n"
+"<!-- POWERED BY -->\n"
+"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
+"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
+"padding: 8px; border-collapse:separate;\">\n"
+"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
+"        Prinášané <a target=\"_blank\" href=\"https://www.odoo.com?"
+"utm_source=db&amp;utm_medium=mail\" style=\"color: #875A7B;\">Odoo</a>\n"
+"      </td></tr>\n"
+"    </table>\n"
+"</td></tr>\n"
+"</table>\n"
+"            "
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,body_html:account_sepa_direct_debit.email_template_sdd_mandate_expiring
@@ -420,6 +586,110 @@ msgid ""
 "                </table>\n"
 "            "
 msgstr ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
+"16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-serif; "
+"color: #454748; width: 100%; border-collapse:separate;\">\n"
+"                    <tr>\n"
+"                        <td align=\"center\">\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: "
+"#FFFFFF; color: #454748; border-collapse:separate;\">\n"
+"                                <tbody>\n"
+"                                    <!-- CONTENT -->\n"
+"                                    <tr>\n"
+"                                        <td align=\"center\" style=\"min-"
+"width: 590px;\">\n"
+"                                            <table border=\"0\" "
+"cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; "
+"background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;"
+"\">\n"
+"                                                <tr>\n"
+"                                                    <td valign=\"top\" "
+"style=\"font-size: 13px;\">\n"
+"                                                        <div>\n"
+"                                                            Dobrý deň,<br/"
+"><br/>\n"
+"                                                            Mandát na priamy "
+"inkasný príkaz SEPA dosiahne dátum vypršania platnosti dňa <span t-"
+"out=\"format_date(object._get_expiry_date_per_mandate()[object])\">18. 4. "
+"2020</span><br/>\n"
+"                                                            To môže byť "
+"spôsobené jedným z nasledujúcich dôvodov:\n"
+"                                                            <ul>\n"
+"                                                                <li>\n"
+"                                                                    Tento "
+"dátum je dátumom ukončenia mandátu dohodnutým pri podpise.\n"
+"                                                                </li>\n"
+"                                                                <li>\n"
+"                                                                    Od "
+"posledného použitia tohto mandátu by tak uplynulo viac ako 36 mesiacov.\n"
+"                                                                </li>\n"
+"                                                            </ul>\n"
+"                                                            <div "
+"style=\"margin: 16px 0px 16px 0px;\">\n"
+"                                                                <a t-attf-"
+"href=\"{{ website_url }}/odoo/sdd-mandates/{{ object.id }}\" "
+"style=\"background-color: #4caf50; padding: 8px 16px 8px 16px; text-"
+"decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+"                                                                    Prejsť "
+"na mandát\n"
+"                                                                </a>\n"
+"                                                            </div>\n"
+"                                                            Bezpečnostný "
+"tip: Skontrolujte, či doménové meno, na ktoré ste presmerovaní, je: <b><a t-"
+"att-href=\"object.get_base_url()\" t-out=\"object.get_base_url() or ''\">\n"
+"                                                            https://"
+"yourcompany.odoo.com</a></b>\n"
+"                                                        </div>\n"
+"                                                    </td>\n"
+"                                                </tr>\n"
+"                                                <tr>\n"
+"                                                    <td style=\"text-"
+"align:center;\">\n"
+"                                                        <hr width=\"100%\" "
+"style=\"background-color:rgb(204,204,204);border:medium "
+"none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; "
+"margin: 16px 0px 16px 0px;\"/>\n"
+"                                                    </td>\n"
+"                                                </tr>\n"
+"                                            </table>\n"
+"                                        </td>\n"
+"                                    </tr>\n"
+"                                </tbody>\n"
+"                            </table>\n"
+"                        </td>\n"
+"                    </tr>\n"
+"                    <!-- POWERED BY -->\n"
+"                    <tr>\n"
+"                        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: "
+"#F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
+"                                <tr>\n"
+"                                    <td style=\"text-align: center; font-"
+"size: 13px;\">\n"
+"                                        Prinášané <a target=\"_blank\" "
+"href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=auth\" "
+"style=\"color: #875A7B;\">Odoo</a>\n"
+"                                    </td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; color: #454748; "
+"padding: 8px; border-collapse:separate;\">\n"
+"                                <tr>\n"
+"                                    <td style=\"text-align: center; font-"
+"size: 11px;\">\n"
+"                                        PS: Toto je automatický e-mail "
+"zaslaný systémom Odoo Účtovníctvo, ktorý vás informuje, že mandát na priamy "
+"inkasný príkaz SEPA bude automaticky uzavretý.\n"
+"                                    </td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                        </td>\n"
+"                    </tr>\n"
+"                </table>\n"
+"            "
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -428,6 +698,8 @@ msgid ""
 "A SEPA direct debit version should be selected to generate the addresses in "
 "the export file."
 msgstr ""
+"Na generovanie adries v exportnom súbore je potrebné zvoliť verziu priameho "
+"inkasa SEPA."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -435,12 +707,16 @@ msgstr ""
 msgid ""
 "A SEPA direct debit version should be selected to generate the export file."
 msgstr ""
+"Na vytvorenie exportného súboru je potrebné zvoliť verziu priameho inkasa "
+"SEPA."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "A customer account is required to validate a SEPA Direct Debit mandate."
 msgstr ""
+"Na overenie mandátu na priamy inkasný príkaz SEPA je potrebný zákaznícky "
+"účet."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.actions.act_window,help:account_sepa_direct_debit.account_sepa_direct_debit_mandate_tree_act
@@ -448,13 +724,13 @@ msgid ""
 "A mandate represents the authorization you receive from a customer\n"
 "                    to automatically collect money on her account."
 msgstr ""
-"Mandát predstavuje autorizáciu, ktorú dostanete od zákazníka\n"
-"                   automaticky zbierať peniaze na jej účte."
+"Mandát predstavuje oprávnenie, ktoré dostanete od zákazníka,\n"
+"                    aby ste automaticky inkasovali peniaze z jeho účtu."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__partner_bank_id
 msgid "Account of the customer to collect payments from."
-msgstr "Účet zákazníka, z ktorého sa majú vyberať platby."
+msgstr "Účet zákazníka, z ktorého sa majú inkasovať platby."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_needaction
@@ -475,7 +751,7 @@ msgstr "Aktivity"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "Označenie výnimky v aktivite"
+msgstr "Označenie aktivity výnimky"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_state
@@ -485,18 +761,18 @@ msgstr "Stav aktivity"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "Ikona typ aktivity"
+msgstr "Ikona typu aktivity"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "All the payments in the batch must have the same SDD scheme."
-msgstr ""
+msgstr "Všetky platby v dávke musia mať rovnaký systém SDD."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Antwerp"
-msgstr ""
+msgstr "Košice"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -507,6 +783,10 @@ msgid ""
 "be claimed within 8 weeks starting from the date on which your account was "
 "debited."
 msgstr ""
+"V rámci svojich práv máte nárok na vrátenie peňazí od svojej banky podľa "
+"podmienok zmluvy s bankou. Vaše práva sú vysvetlené vo vyhlásení, ktoré "
+"môžete získať od svojej banky. O vrátenie peňazí je potrebné požiadať do 8 "
+"týždňov odo dňa, kedy bola suma odpísaná z vášho účtu."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_batch_booking
@@ -514,6 +794,8 @@ msgid ""
 "Ask the bank to group the bank transactions corresponding to these payments "
 "into a single transaction."
 msgstr ""
+"Požiadajte banku, aby zoskupila bankové transakcie zodpovedajúce týmto "
+"platbám do jednej transakcie."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_attachment_count
@@ -523,7 +805,7 @@ msgstr "Počet príloh"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__author_id
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_batch_payment__sdd_scheme__b2b
@@ -539,7 +821,7 @@ msgstr "Bankové účty"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
 msgid "Batch Booking"
-msgstr "Dávková rezervácia"
+msgstr "Dávkové spracovanie"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_account_batch_payment
@@ -549,17 +831,17 @@ msgstr "Hromadná platba"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Belgium"
-msgstr ""
+msgstr "Slovensko"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__body_has_template_value
 msgid "Body content is the same as the template"
-msgstr ""
+msgstr "Obsah tela je rovnaký ako šablóna"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Building C"
-msgstr ""
+msgstr "Budova C"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -575,29 +857,29 @@ msgstr "CORE"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "CREDIT-1234"
-msgstr ""
+msgstr "CREDIT-1234"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__can_edit_body
 msgid "Can Edit Body"
-msgstr ""
+msgstr "Môže upravovať telo"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_send_form
 msgid "Cancel"
-msgstr "Zrušené"
+msgstr "Zrušiť"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__sdd_mandate__state__cancelled
 msgid "Cancelled"
-msgstr ""
+msgstr "Zrušené"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/wizard/sdd_mandate_send.py:0
 msgid "Check Partner(s) Email(s)"
-msgstr ""
+msgstr "Skontrolujte e-maily partnerov"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
@@ -613,7 +895,7 @@ msgstr "Zavreté"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 msgid "Collections"
-msgstr ""
+msgstr "Výbery"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_res_company
@@ -629,7 +911,7 @@ msgstr "Spoločnosť"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__company_id
 msgid "Company for whose invoices the mandate can be used."
-msgstr "Spoločnosť, na ktorej faktúry je možné použiť splnomocnenie."
+msgstr "Spoločnosť, na ktorej faktúry je možné použiť mandát."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_res_config_settings
@@ -644,7 +926,7 @@ msgstr "Kontakt"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__body
 msgid "Contents"
-msgstr ""
+msgstr "Obsahy"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment__sdd_mandate_usable
@@ -654,7 +936,7 @@ msgstr "Môže sa použiť mandát SDD?"
 #. module: account_sepa_direct_debit
 #: model:ir.model,website_form_label:account_sepa_direct_debit.model_res_partner
 msgid "Create a Customer"
-msgstr ""
+msgstr "Vytvoriť zákazníka"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.actions.act_window,help:account_sepa_direct_debit.account_sepa_direct_debit_mandate_tree_act
@@ -664,7 +946,7 @@ msgstr "Vytvorte nový mandát zákazníka pre inkaso"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_payment_form
 msgid "Create it."
-msgstr ""
+msgstr "Vytvorte ho."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__create_uid
@@ -708,17 +990,17 @@ msgstr "Mandát zákazníka"
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__partner_id
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate_send__partner_id
 msgid "Customer whose payments are to be managed by this mandate."
-msgstr "Zákazník, ktorého platby sa majú spravovať na základe tohto poverenia."
+msgstr "Zákazník, ktorého platby sa majú spravovať na základe tohto mandátu."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "DEBT1234"
-msgstr ""
+msgstr "DEBT1234"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__start_date
 msgid "Date from which the mandate can be used (inclusive)."
-msgstr "Dátum, od ktorého je možné splnomocnenie využiť (vrátane)."
+msgstr "Dátum, od ktorého je možné mandát využiť (vrátane)."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__end_date
@@ -726,8 +1008,8 @@ msgid ""
 "Date until which the mandate can be used. It will automatically be closed "
 "after this date."
 msgstr ""
-"Dátum, do ktorého je možné splnomocnenie využiť. Po tomto dátume sa "
-"automaticky zatvorí."
+"Dátum, do ktorého je možné mandát využiť. Po tomto dátume sa automaticky "
+"zatvorí."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_required_collection_date
@@ -735,6 +1017,8 @@ msgid ""
 "Date when the company expects to receive the payments of this batch. It "
 "can't be inferior to the sending day + the minimum pre-notification period."
 msgstr ""
+"Dátum, kedy spoločnosť očakáva prijatia platieb z tejto dávky. Nemôže byť "
+"kratší ako deň odoslania + minimálna lehota na predbežné oznámenie."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -749,12 +1033,12 @@ msgstr "Identifikátor dlžníka"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_journal__debit_sepa_pain_version__pain_008_001_02
 msgid "Default (Pain 008.001.02)"
-msgstr ""
+msgstr "Predvolené (Pain 008.001.02)"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Demo@email.com"
-msgstr ""
+msgstr "Demo@email.com"
 
 #. module: account_sepa_direct_debit
 #: model:ir.actions.act_window,name:account_sepa_direct_debit.account_sepa_direct_debit_mandate_tree_act
@@ -798,7 +1082,7 @@ msgstr "Zobrazovaný názov"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__checkbox_download
 msgid "Download"
-msgstr ""
+msgstr "Stiahnuť"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__sdd_mandate__state__draft
@@ -816,21 +1100,28 @@ msgid ""
 "valid.\n"
 "Revoked: Fraudulent mandates. Previous invoices might need reimbursement.\n"
 msgstr ""
+"Návrh: Pred použitím potvrďte.\n"
+"Aktívne: Platný inkasný mandát.\n"
+"Zrušené: Mandáty, ktoré neboli nikdy potvrdené.\n"
+"Ukončené: Mandáty, ktorých platnosť vypršala alebo ktoré boli ručne "
+"ukončené. Predchádzajúce transakcie zostávajú platné.\n"
+"Zrušené: Podvodné mandáty. Predchádzajúce faktúry môžu vyžadovať "
+"refundáciu.\n"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__checkbox_send_mail
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,description:account_sepa_direct_debit.email_template_sdd_new_mandate
 msgid "Email requesting the customer to sign the mandate attached"
-msgstr ""
+msgstr "E-mail s požiadavkou, aby zákazník podpísal priložené mandát"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__template_id
 msgid "Email template"
-msgstr ""
+msgstr "Šablóna e-mailu"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__end_date
@@ -851,12 +1142,12 @@ msgstr "Každý mandát patriaci tomuto partnerovi."
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__expiration_warning_already_sent
 msgid "Expiration warning sent"
-msgstr ""
+msgstr "Upozornenie na vypršanie platnosti odoslané"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
 msgid "First-Time Payments"
-msgstr ""
+msgstr "Prvé platby"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_follower_ids
@@ -871,42 +1162,42 @@ msgstr "Odberatelia (partneri)"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "Úžasná ikona fronty napr. fa-tasks"
+msgstr "Ikona písma font awesome, napr. fa-tasks"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__debtor_id_code
 msgid "Free reference identifying the debtor in your company."
-msgstr "Bezplatná referencia identifikujúca dlžníka vo vašej spoločnosti."
+msgstr "Ľubovoľná referencia identifikujúca dlžníka vo vašej spoločnosti."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Go to journal"
-msgstr ""
+msgstr "Prejsť do denníka"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Go to mandates"
-msgstr ""
+msgstr "Prejsť na mandáty"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Go to payments"
-msgstr ""
+msgstr "Prejsť na platby"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Go to settings"
-msgstr ""
+msgstr "Prejsť do nastavení"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_payment_register_form_inherit_account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_payment_form
 msgid "Good news! A valid SEPA Mandate is available."
-msgstr ""
+msgstr "Dobrá správa! Platný mandát SEPA je k dispozícii."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__has_message
@@ -963,13 +1254,14 @@ msgstr "Ak označené, potom nové správy vyžadujú vašu pozornosť."
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__message_has_error
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Ak označené, potom majú niektoré správy chybu dodania."
+msgstr "Ak označené, potom majú niektoré správy chybu doručenia."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__payment_ids
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 msgid "In-process and completed payments generated under this mandate."
 msgstr ""
+"Platby v procese a dokončené platby generované na základe tohto mandátu."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1013,7 +1305,7 @@ msgstr "Faktúry platené týmto mandátom."
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__is_mail_template_editor
 msgid "Is Editor"
-msgstr ""
+msgstr "Je editor"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_is_follower
@@ -1033,7 +1325,7 @@ msgstr "Účtovný záznam"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__lang
 msgid "Language"
-msgstr ""
+msgstr "Jazyk"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__write_uid
@@ -1055,22 +1347,22 @@ msgstr "Hlavná príloha"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__mandate_id
 msgid "Mandate"
-msgstr ""
+msgstr "Mandát"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__mandate_pdf_file
 msgid "Mandate Form PDF"
-msgstr ""
+msgstr "Formulár mandátu PDF"
 
 #. module: account_sepa_direct_debit
 #: model:ir.actions.report,name:account_sepa_direct_debit.sdd_mandate_form_report_main
 msgid "Mandate form"
-msgstr "Formulár poverenia"
+msgstr "Formulár mandátu"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.constraint,message:account_sepa_direct_debit.constraint_sdd_mandate_name_unique
 msgid "Mandate identifier must be unique! Please choose another one."
-msgstr ""
+msgstr "Identifikátor poverenia musí byť jedinečný! Vyberte prosím iný."
 
 #. module: account_sepa_direct_debit
 #: model:ir.actions.server,name:account_sepa_direct_debit.sdd_mandate_state_cron_ir_actions_server
@@ -1080,12 +1372,12 @@ msgstr "Aktualizátor stavu mandátu"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Marc Demo"
-msgstr ""
+msgstr "Marc Demo"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_has_error
 msgid "Message Delivery error"
-msgstr "Chyba zobrazovania správ"
+msgstr "Chyba doručenia správy"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_ids
@@ -1100,12 +1392,12 @@ msgstr "Termín mojej aktivity"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "Kalendár ďalších aktivít eventu"
+msgstr "Ďalšia aktivita v kalendári udalostí"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Ďalší konečný termín aktivity"
+msgstr "Termín ďalšej aktivity"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_summary
@@ -1120,7 +1412,7 @@ msgstr "Typ ďalšej aktivity"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment_register__no_sdd_mandate_partner_ids
 msgid "No Sdd Mandate Partner"
-msgstr ""
+msgstr "Partner bez mandátu SDD"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.actions.act_window,help:account_sepa_direct_debit.action_sdd_payments_to_collect
@@ -1142,26 +1434,28 @@ msgstr "Počet chýb"
 msgid ""
 "Number of in-process and completed payments generated under this mandate."
 msgstr ""
+"Počet spracovaných a dokončených platieb generovaných na základe tohto "
+"poverenia."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__paid_invoices_nber
 msgid "Number of invoices paid with this mandate."
-msgstr ""
+msgstr "Počet faktúr zaplatených na základe tohto poverenia."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Počet správ vyžadujúcich akciu"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Počet doručených správ s chybou"
+msgstr "Počet správ s chybou doručenia"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Odoo PVT LTD"
-msgstr ""
+msgstr "Odoo PVT LTD"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.actions.act_window,help:account_sepa_direct_debit.account_sepa_direct_debit_mandate_tree_act
@@ -1175,6 +1469,13 @@ msgid ""
 "file containing this operation\n"
 "                    and send it to your bank to effectively get paid."
 msgstr ""
+"Akonáhle je v Odoo vytvorená faktúra \n"
+"                    pre zákazníka, ktorý má v deň vystavenia faktúry aktívny "
+"mandát,\n"
+"                    jej validácia spustí automatickú platbu a vy\n"
+"                    potom už len musíte vygenerovať XML súbor SEPA Direct "
+"Debit (SDD) obsahujúci túto operáciu\n"
+"                    a poslať ho do svojej banky, aby ste dostali zaplatené."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_account_payment__sdd_mandate_id
@@ -1182,7 +1483,8 @@ msgid ""
 "Once this invoice has been paid with Direct Debit, contains the mandate that "
 "allowed the payment."
 msgstr ""
-"Po zaplatení tejto faktúry inkasom obsahuje príkaz, ktorý umožnil platbu."
+"Po zaplatení tejto faktúry prostredníctvom priameho inkasa obsahuje mandát, "
+"ktoré umožnilo platbu."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__one_off
@@ -1197,34 +1499,37 @@ msgid ""
 "select a journal associated to one or add an IBAN bank account to the "
 "current journal"
 msgstr ""
+"Platby prostredníctvom priameho inkasa SEPA môžu prijímať iba čísla účtov "
+"IBAN. Vyberte denník spojený s jedným z nich alebo pridajte bankový účet "
+"IBAN do aktuálneho denníka"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Only mandates in draft state can be deleted."
-msgstr ""
+msgstr "Vymazať je možné iba mandáty v stave návrhu."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_payment_register_form_inherit_account_sepa_direct_debit
 msgid "Oops! No valid SEPA mandate for the following partner(s):"
-msgstr ""
+msgstr "Ups! Pre nasledujúcich partnerov neexistuje platný mandát SEPA:"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_payment_form
 msgid "Oops! No valid SEPA mandate for this customer."
-msgstr ""
+msgstr "Ups! Pre tohto zákazníka neexistuje platný mandát SEPA."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Open customer"
-msgstr ""
+msgstr "Otvoriť zákazníka"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Open customers"
-msgstr ""
+msgstr "Otvoriť klientov"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sdd_res_partner_view
@@ -1239,6 +1544,10 @@ msgid ""
 "usually be a placeholder expression that provides the appropriate language, "
 "e.g. {{ object.partner_id.lang }}."
 msgstr ""
+"Voliteľný jazyk prekladu (kód ISO), ktorý sa vyberie pri odosielaní e-mailu. "
+"Ak nie je nastavený, použije sa jazyk hlavného partnera. Zvyčajne by to mal "
+"byť zástupný výraz, ktorý poskytuje príslušný jazyk, napr. "
+"{{ object.partner_id.lang }}."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_payment_form
@@ -1265,24 +1574,24 @@ msgstr "Platené prostredníctvom inkasa"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__partner_parent_id
 msgid "Parent Partner"
-msgstr ""
+msgstr "Nadriadený partner"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/wizard/sdd_mandate_send.py:0
 msgid "Partner should have an email address."
-msgstr ""
+msgstr "Partner by mal mať e-mailovú adresu."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Partner's Parent"
-msgstr ""
+msgstr "Nadriadený partnera"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_account_payment_register
 msgid "Pay"
-msgstr ""
+msgstr "Zaplatiť"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_account_payment_method
@@ -1292,7 +1601,7 @@ msgstr "Platobné metódy"
 #. module: account_sepa_direct_debit
 #: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_pre_notification
 msgid "Payment notification {{ object.memo }}"
-msgstr ""
+msgstr "Notifikácia platby {{ object.memo }}"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_account_payment
@@ -1303,7 +1612,7 @@ msgstr "Platby"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_move_line_payment_filter
 msgid "Payments matching a valid SEPA Direct Debit Mandate"
-msgstr ""
+msgstr "Platby zodpovedajúce platnému mandátu na SEPA inkaso"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1315,7 +1624,7 @@ msgstr "Platby na inkaso"
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Payments without mandate"
-msgstr ""
+msgstr "Platby bez mandátu"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_report_invoice_document
@@ -1324,20 +1633,19 @@ msgid ""
 "processed\n"
 "                        automatically."
 msgstr ""
-"Neplaťte to prosím ručne, platba bude požiadaná o spracovanie do vašej "
-"banky\n"
-"                        automaticky."
+"Prosím, neplaťte, vaša banka bude požiadaná o automatické spracovanie \n"
+"                        inkasnej platby."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__pre_notification_period
 msgid "Pre-notification"
-msgstr ""
+msgstr "Predbežná notifikácia"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Problematic mandates"
-msgstr ""
+msgstr "Problémové mandáty"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__rating_ids
@@ -1347,7 +1655,7 @@ msgstr "Hodnotenia"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__recipient_ids
 msgid "Recipients"
-msgstr ""
+msgstr "Príjemcovia"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__render_model
@@ -1357,7 +1665,7 @@ msgstr ""
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_required_collection_date
 msgid "Required Collection Date"
-msgstr ""
+msgstr "Požadovaný dátum inkasa"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__activity_user_id
@@ -1382,34 +1690,34 @@ msgstr "Zrušený mandát SDD"
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "Rue de la Loi, 16"
-msgstr ""
+msgstr "Hlavná 27"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_payment_search
 msgid "SDD B2B"
-msgstr ""
+msgstr "SDD B2B"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_batch_booking
 msgid "SDD Batch Booking"
-msgstr "Dávková rezervácia SDD"
+msgstr "Dávkové spracovanie SDD"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_payment_search
 msgid "SDD CORE"
-msgstr ""
+msgstr "SDD CORE"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_sdd_mandate
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_invoice_filter
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_move_line_payment_filter
 msgid "SDD Mandate"
-msgstr " mandát SDD"
+msgstr "Mandát SDD"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model,name:account_sepa_direct_debit.model_sdd_mandate_send
 msgid "SDD Mandate Send"
-msgstr ""
+msgstr "Odoslanie mandátu SDD"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_scheme
@@ -1433,12 +1741,12 @@ msgstr "Identifikátor veriteľa SDD"
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "SDD scheme is set on the customer mandate."
-msgstr ""
+msgstr "Na mandátu zákazníka je nastavené schéma SDD."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "SEPA Business-to-Business Direct Debit Mandate"
-msgstr ""
+msgstr "SEPA Business to Business inkasný mandát"
 
 #. module: account_sepa_direct_debit
 #: model:account.payment.method,name:account_sepa_direct_debit.payment_method_sdd
@@ -1448,7 +1756,7 @@ msgstr "SEPA inkaso"
 #. module: account_sepa_direct_debit
 #: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_pre_notification
 msgid "SEPA Direct Debit Customer Pre-Notification mail"
-msgstr ""
+msgstr "Predbežné oznámenie zákazníkovi o priamom inkase SEPA"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -1458,24 +1766,24 @@ msgstr "Mandát SEPA inkasa"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_journal__debit_sepa_pain_version
 msgid "SEPA Direct Debit Pain Version"
-msgstr ""
+msgstr "SEPA Direct Debit Pain verzia"
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_new_mandate
 msgid "SEPA Direct Debit Sending"
-msgstr ""
+msgstr "Odoslanie SEPA inkasa"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_res_company__sdd_creditor_identifier
 msgid ""
 "SEPA Direct Debit creditor identifier of the company, given by the bank."
-msgstr "Identifikátor veriteľa SEPA inkasa uvedený bankou."
+msgstr "Identifikátor veriteľa SEPA inkasa, určené bankou."
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_mandate_expiring
 #: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_mandate_expiring
 msgid "SEPA Direct Debit mandate expiration warning"
-msgstr ""
+msgstr "Upozornenie na vypršanie platnosti SEPA Direct Debit mandátu"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1490,18 +1798,18 @@ msgstr ""
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_journal_form
 msgid "SEPA Pain Version"
-msgstr ""
+msgstr "SEPA Pain verzia"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_journal_form
 msgid "SEPA Pain version"
-msgstr ""
+msgstr "SEPA Pain verzia"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_payment_register_form_inherit_account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_payment_form
 msgid "SEPA Scheme operates in Euro."
-msgstr ""
+msgstr "Systém SEPA funguje v eurách."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1517,16 +1825,19 @@ msgid ""
 "days to allow enough time for the customer to check that their account is "
 "adequately funded."
 msgstr ""
+"Predpisy SEPA stanovujú minimálnu lehotu na predbežné oznámenie na minimálne "
+"%s dní, aby mal zákazník dostatok času na overenie, či má na svojom účte "
+"dostatočné finančné prostriedky."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "SEPA-CUST-001"
-msgstr ""
+msgstr "SEPA-CUST-001"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
 msgid "SEPA1234"
-msgstr ""
+msgstr "SEPA1234"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__message_has_sms_error
@@ -1537,42 +1848,42 @@ msgstr "Chyba doručenia SMS"
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_bank_statement_line__sdd_has_usable_mandate
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_move__sdd_has_usable_mandate
 msgid "Sdd Has Usable Mandate"
-msgstr "Sdd má použiteľný mandát"
+msgstr "SDD má použiteľný mandát"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment__sdd_mandate_id
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_partner__sdd_mandate_ids
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_users__sdd_mandate_ids
 msgid "Sdd Mandate"
-msgstr "Mandát Sdd"
+msgstr "Mandát SDD"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_payment.py:0
 msgid "Select a SEPA Direct Debit version before generating the XML."
-msgstr ""
+msgstr "Pred vytvorením súboru XML vyberte verziu priameho inkasa SEPA."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Send"
-msgstr ""
+msgstr "Odoslať"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_send_form
 msgid "Send & Print"
-msgstr ""
+msgstr "Odoslať a vytlačiť"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__is_sent
 msgid "Sent to the customer"
-msgstr ""
+msgstr "Odoslať zákazníkovi"
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,description:account_sepa_direct_debit.email_template_sdd_pre_notification
 msgid "Sent to the customer to indicate their account will be charged"
-msgstr ""
+msgstr "Poslané zákazníkovi s informáciou, že jeho účet bude inkasovaný"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1581,20 +1892,20 @@ msgid ""
 "Some draft payments could not be posted because of the lack of any active "
 "mandate."
 msgstr ""
-"Niektoré koncepty platieb nebolo možné zaúčtovať z dôvodu nedostatku "
+"Niektoré návrhy platieb nebolo možné zaúčtovať z dôvodu neexistencie "
 "aktívneho mandátu."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Some payments are linked to an inactive mandate."
-msgstr ""
+msgstr "Niektoré platby sú spojené s neaktívnym mandátom."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
 msgid "Some payments are not linked to any mandate."
-msgstr ""
+msgstr "Niektoré platby nie sú viazané na žiadny mandát."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__start_date
@@ -1604,7 +1915,7 @@ msgstr "Dátum začiatku"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__state
 msgid "State"
-msgstr "Štát"
+msgstr "Stav"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__activity_state
@@ -1614,16 +1925,16 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"Status založený na aktivitách\n"
-"Zmeškané: dátum už vypršal\n"
-"Dnes: dátum aktivity je dnes\n"
-"Plán: budúce aktivity"
+"Stav založený na aktivitách\n"
+"Zmeškané: termín vypršal\n"
+"Dnešné: termín aktivity je dnes\n"
+"Plánované: budúce aktivity."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__subject
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_send_form
 msgid "Subject"
-msgstr ""
+msgstr "Predmet"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_scheme
@@ -1635,7 +1946,7 @@ msgid ""
 "Some banks/businesses might not accept B2B SDD."
 msgstr ""
 "Schéma B2B je voliteľná schéma,\n"
-"ponúkané výlučne platiteľom firiem.\n"
+"ponúkané výlučne firemným platiteľom.\n"
 "Niektoré banky / podniky nemusia akceptovať B2B SDD."
 
 #. module: account_sepa_direct_debit
@@ -1645,7 +1956,7 @@ msgid ""
 "The SEPA Direct Debit mandate associated to the payment has been revoked and "
 "cannot be used anymore."
 msgstr ""
-"Mandát SEPA priameho debetu spojený s platbou bol zrušený a už ho nemožno "
+"Mandát SEPA priameho inkasa spojený s platbou bol zrušený a už ho nemožno "
 "použiť."
 
 #. module: account_sepa_direct_debit
@@ -1657,6 +1968,10 @@ msgid ""
 "the mandate is already known by them.\n"
 "The minimum collection date must be %(date)s."
 msgstr ""
+"Banka musí byť informovaná najmenej %(min_days_new)s dní vopred v prípade "
+"inkasných príkazov týkajúcich sa nového mandátu a %(min_days)s dní vopred, "
+"ak je jej poverenie už známe.\n"
+"Minimálny dátum inkasa musí byť %(date)s."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1668,7 +1983,7 @@ msgstr "Identifikátor veriteľa presahuje maximálnu dĺžku 35 znakov."
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "The customer must have a country"
-msgstr ""
+msgstr "Zákazník musí mať krajinu"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1677,6 +1992,8 @@ msgid ""
 "The debtor and creditor city name is a compulsary information when "
 "generating the SDD XML."
 msgstr ""
+"Názov mesta dlžníka a veriteľa je povinnou informáciou pri generovaní SDD "
+"XML."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1685,6 +2002,7 @@ msgid ""
 "The debtor and creditor country is a compulsary information when generating "
 "the SDD XML."
 msgstr ""
+"Krajina dlžníka a veriteľa je povinnou informáciou pri generovaní SDD XML."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1702,8 +2020,7 @@ msgstr ""
 msgid ""
 "The end date of the mandate must be posterior or equal to its start date."
 msgstr ""
-"Dátum ukončenia funkčného obdobia musí byť zadný alebo rovný dátumu jeho "
-"začiatku."
+"Dátum ukončenia mandátu musí byť zadný alebo rovný dátumu jeho začiatku."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -1714,6 +2031,11 @@ msgid ""
 "notification period for creditors\n"
 "                    to inform debtors about an upcoming collection is"
 msgstr ""
+"Mandát bude použitý iba na úhradu faktúr v stanovenom časovom období. Ak nie "
+"je stanovený koniec platnosti,\n"
+"                    budete nás musieť kontaktovať, aby sme jeho používanie "
+"zastavili. Minimálna lehota, v ktorej veritelia\n"
+"                    musia informovať dlžníkov o blížiacom sa inkasovaní, je"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__pre_notification_period
@@ -1721,6 +2043,8 @@ msgid ""
 "The minimum notice period in days, used to inform the customer prior to "
 "collection."
 msgstr ""
+"Minimálna lehota v dňoch, ktorá sa používa na informovanie zákazníka pred "
+"inkasom."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1729,23 +2053,23 @@ msgid ""
 "The payment must be linked to a SEPA Direct Debit mandate in order to "
 "generate a Direct Debit XML."
 msgstr ""
-"Aby bolo možné vygenerovať súbor XML s priamym debetom, musí byť platba "
+"Aby bolo možné vygenerovať súbor XML priameho inkasa, musí byť platba "
 "spojená s mandátom SEPA inkasa."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
 msgid "The selected customer is a child of"
-msgstr ""
+msgstr "Vybraný zákazník je podriadený"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__name
 msgid "The unique identifier of this mandate."
-msgstr "Jedinečný identifikátor tohto splnomocnenia."
+msgstr "Jedinečný identifikátor tohto mandátu."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
 msgid "This batch includes payments from mandates with no prior collections:"
-msgstr ""
+msgstr "Táto dávka obsahuje platby z mandátov bez predchádzajúcich inkás:"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_report_invoice_document
@@ -1754,7 +2078,7 @@ msgid ""
 "                        sent for informative purposes."
 msgstr ""
 "Táto faktúra bude uhradená prostredníctvom inkasa a je iba\n"
-"                       zaslané na informatívne účely."
+"                       zaslaná na informatívne účely."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -1764,6 +2088,10 @@ msgid ""
 "but you are entitled to request your bank not to debit your account up until "
 "the day on which the payment is due."
 msgstr ""
+"Tento mandát je určený iba pre transakcie medzi podnikateľskými subjektmi. "
+"Po zaúčtovaní platby na váš účet nemáte nárok na vrátenie peňazí od vašej "
+"banky, ale máte právo požiadať svoju banku, aby nezaúčtovala platbu na váš "
+"účet až do dňa splatnosti platby."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1772,8 +2100,8 @@ msgid ""
 "To solve that, you should create a mandate for each of the involved "
 "customers, valid at the moment of the payment date."
 msgstr ""
-"Aby ste to vyriešili, mali by ste vytvoriť mandát pre každého zo "
-"zúčastnených zákazníkov, platný v čase platby."
+"Aby ste to vyriešili, mali by ste vytvoriť mandát pre každého zo zahrnutých "
+"zákazníkov, platný v čase platby."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__one_off
@@ -1783,8 +2111,8 @@ msgid ""
 "payment if this option is set.\n"
 msgstr ""
 "Platí vtedy a len vtedy, ak je možné tento mandát použiť iba pre jednu "
-"transakciu. Ak je táto možnosť nastavená, po prvom použití v platbe "
-"automaticky prejde z „aktívneho“ do „zatvoreného“.\n"
+"transakciu. Ak je táto možnosť nastavená, po prvom použití automaticky "
+"prejde z „aktívneho“ do „zatvoreného“.\n"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1793,7 +2121,7 @@ msgid ""
 "Trying to generate a Direct Debit XML file containing payments from another "
 "company than that file's creditor."
 msgstr ""
-"Pokúšame sa vygenerovať súbor XML s priamym debetom, ktorý obsahuje platby "
+"Pokúšate sa vygenerovať súbor XML s priamym inkasom, ktorý obsahuje platby "
 "od inej spoločnosti ako od veriteľa tohto súboru."
 
 #. module: account_sepa_direct_debit
@@ -1803,7 +2131,7 @@ msgid ""
 "Trying to generate a Direct Debit XML for payments coming from another "
 "payment method than SEPA Direct Debit."
 msgstr ""
-"Pokúšame sa vygenerovať kód XML priameho debetu pre platby pochádzajúce z "
+"Pokúšate sa vygenerovať kód XML priameho inkasa pre platby pochádzajúce z "
 "iného spôsobu platby ako SEPA inkaso."
 
 #. module: account_sepa_direct_debit
@@ -1811,7 +2139,7 @@ msgstr ""
 #: code:addons/account_sepa_direct_debit/models/account_payment.py:0
 msgid ""
 "Trying to register a payment on a mandate belonging to a different partner."
-msgstr "Pokúšam sa zaregistrovať platbu na základe mandátu iného partnera."
+msgstr "Pokúšate sa zaregistrovať platbu na základe mandátu iného partnera."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__activity_exception_decoration
@@ -1822,12 +2150,12 @@ msgstr "Typ výnimočnej aktivity v zázname."
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
 msgid "Under B2B SDD Scheme, the customer must be a company."
-msgstr ""
+msgstr "V rámci schémy B2B SDD musí byť zákazník spoločnosťou."
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_journal__debit_sepa_pain_version__pain_008_001_08
 msgid "Updated 2023 (Pain 008.001.08)"
-msgstr ""
+msgstr "Aktualizovaná 2023 (Pain 008.001.08)"
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.account_sepa_direct_debit_mandate_form
@@ -1843,12 +2171,12 @@ msgstr "Platnosť"
 #. odoo-python
 #: code:addons/account_sepa_direct_debit/wizard/sdd_mandate_send.py:0
 msgid "View Partner(s)"
-msgstr ""
+msgstr "Zobraziť partnerov"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate_send__warnings
 msgid "Warnings"
-msgstr ""
+msgstr "Varovania"
 
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,field_description:account_sepa_direct_debit.field_sdd_mandate__website_message_ids
@@ -1858,7 +2186,7 @@ msgstr "Správy webstránok"
 #. module: account_sepa_direct_debit
 #: model:ir.model.fields,help:account_sepa_direct_debit.field_sdd_mandate__website_message_ids
 msgid "Website communication history"
-msgstr "História komunikácie webstránok"
+msgstr "História komunikácie na webstránke"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1867,6 +2195,8 @@ msgid ""
 "You can't pay any of the selected invoices using the SEPA Direct Debit "
 "method, as no valid mandate is available"
 msgstr ""
+"Žiadnu z vybraných faktúr nemôžete uhradiť prostredníctvom priameho inkasa "
+"SEPA, pretože nie je k dispozícii žiadny platný mandát"
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1875,7 +2205,7 @@ msgid ""
 "You cannot delete a bank account linked to an active SEPA Direct Debit "
 "mandate."
 msgstr ""
-"Nemôžete odstrániť bankový účet prepojený s aktívnym mandátom na inkaso SEPA."
+"Nemôžete odstrániť bankový účet prepojený s aktívnym mandátom na SEPA inkaso."
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1886,6 +2216,16 @@ msgid ""
 "(prenot_days)s days.\n"
 "The minimum required date should be %(minimum_date)s."
 msgstr ""
+"Nemôžete vytvoriť súbor SEPA priameho inkasa s požadovaným dátumom "
+"inkasovania, ktorý je skorší ako deň odoslania + minimálna lehota "
+"predbežného oznámenia %(prenot_days)s dní.\n"
+"Minimálny požadovaný dátum by mal byť %(minimum_date)s."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/sdd_mandate.py:0
+msgid "You don't have the rights to validate SDD mandates."
+msgstr ""
 
 #. module: account_sepa_direct_debit
 #. odoo-python
@@ -1895,7 +2235,7 @@ msgid ""
 "Debit payments requests. It can be defined in accounting module's settings."
 msgstr ""
 "Vaša spoločnosť musí mať identifikátor veriteľa, aby mohla vydávať žiadosti "
-"o platby SEPA priamym debetom. Môže byť definované v nastaveniach účtovného "
+"o platby SEPA priamym inkasom. Môže byť definované v nastaveniach účtovného "
 "modulu."
 
 #. module: account_sepa_direct_debit
@@ -1904,6 +2244,8 @@ msgid ""
 "day(s).\n"
 "                    It will be sent to the debtor's email."
 msgstr ""
+"deň (dni).\n"
+"                    Bude zaslaná na e-mailovú adresu dlžníka."
 
 #. module: account_sepa_direct_debit
 #: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
@@ -1911,13 +2253,13 @@ msgid ""
 "to send instructions to your bank to debit your account and (B) your bank to "
 "debit your account in accordance with the instructions from"
 msgstr ""
-"na odoslanie pokynov do vašej banky na odpísanie z vášho účtu a (B) vašej "
-"banky na odpísanie z vášho účtu v súlade s pokynmi z"
+"na odoslanie pokynov do vašej banky na inkaso z vášho účtu a (B) vašu banku "
+"na inkaso z vášho účtu v súlade s pokynmi z"
 
 #. module: account_sepa_direct_debit
 #: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_new_mandate
 msgid "{{ object.partner_id.display_name }} SEPA Direct Debit Mandate"
-msgstr ""
+msgstr "{{ object.partner_id.display_name }} SEPA Direct Debit mandát"
 
 #~ msgid ""
 #~ "<strong>Date and place of signature:</"

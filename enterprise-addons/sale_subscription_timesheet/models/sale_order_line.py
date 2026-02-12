@@ -44,3 +44,14 @@ class SaleOrderLine(models.Model):
             for line in lines:
                 delivered_qties[line] = mapping[line.id]
         return delivered_qties
+
+    def _compute_display_name(self):
+        subscriptions = self.filtered(lambda sol: sol.order_id.is_subscription)
+        super(SaleOrderLine, subscriptions.with_context(skip_remaining_hours=True))._compute_display_name()
+        super(SaleOrderLine, self - subscriptions)._compute_display_name()
+
+    def _compute_remaining_hours_available(self):
+        subscription_lines = self.filtered(lambda sol: sol.order_id.is_subscription)
+        super(SaleOrderLine, self - subscription_lines)._compute_remaining_hours_available()
+        for line in subscription_lines:
+            line.remaining_hours_available = False

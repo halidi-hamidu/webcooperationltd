@@ -809,3 +809,61 @@ class TestBudgetReport(TestAccountReportsCommon):
             {'amount': 100.0 - 75.00, 'date': fields.Date.to_date('2025-12-01')},
         ]
         self.assertRecordValues(budget.item_ids, expected_items)
+
+    def test_budget_filter_with_percentage_figure_type(self):
+        """
+        Test that budget filters don't crash when a report has lines with percentage
+        figure type that cannot be matched for budget comparison.
+        """
+        report_with_percentage = self.env['account.report'].create({
+            'name': "Report with Percentage Line",
+            'filter_date_range': True,
+            'filter_budgets': True,
+            'root_report_id': self.env.ref('account_reports.profit_and_loss').id,
+            'column_ids': [
+                Command.create({
+                    'name': "Balance",
+                    'expression_label': 'balance',
+                }),
+            ],
+            'line_ids': [
+                Command.create({
+                    'name': 'percentage_line',
+                    'expression_ids': [
+                        Command.create({
+                            'label': 'balance',
+                            'formula': '100',
+                            'engine': 'external',
+                            'figure_type': 'percentage',
+                        }),
+                    ],
+                }),
+                Command.create({
+                    'name': 'monetary_line',
+                    'groupby': 'account_id',
+                    'foldable': False,
+                    'expression_ids': [
+                        Command.create({
+                            'label': 'balance',
+                            'formula': "[('account_id.account_type', '=', 'income')]",
+                            'subformula': 'sum',
+                            'engine': 'domain',
+                        }),
+                    ],
+                }),
+            ],
+        })
+
+        self._create_moves(
+            {self.account_1.id: 100},
+            '2020-01-01',
+            '2020-01-01',
+        )
+        options = self._generate_options(
+            report_with_percentage,
+            '2020-01-01',
+            '2020-12-31',
+            default_options={'budgets': [{'id': self.budget_1.id, 'selected': True}]},
+        )
+        lines = report_with_percentage._get_lines(options)
+        self.assertTrue(lines)

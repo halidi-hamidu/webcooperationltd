@@ -8,16 +8,16 @@ export class AppraisalGoalListController extends ListController {
         super.setup(...arguments);
         this.orm = useService("orm");
         this.actionService = useService("action");
-        this.defaultEmployeeId = this.props.context.default_employee_id;
+        this.defaultEmployeeIds = this.props.context.default_employee_ids;
     }
     async onSelect() {
         const records = this.model.root.selection.map((record) => record.resId);
-        if (this.defaultEmployeeId){
+        if (this.defaultEmployeeIds?.length){
             await this.orm.call(
                 "hr.appraisal.goal",
                 "generate_goals",
                 [records],
-                { context: { default_employee_id: this.defaultEmployeeId } }
+                { context: { default_employee_id: this.defaultEmployeeIds[0] } }
             );
             await this.actionService.doAction({type: 'ir.actions.act_window_close'});
             await this.actionService.doAction({type: "ir.actions.client", tag: "soft_reload"});

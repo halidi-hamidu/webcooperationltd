@@ -2,6 +2,7 @@ import base64
 import hashlib
 import io
 import logging
+import re
 import requests
 import secrets
 import string
@@ -13,12 +14,12 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import Encoding
 from datetime import datetime, timedelta, timezone
-from dateutil.relativedelta import relativedelta
+from markupsafe import Markup, escape
 from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
 
 from odoo import fields, models, modules, tools
-from odoo.exceptions import RedirectWarning, UserError
+from odoo.exceptions import AccessError, RedirectWarning, UserError
 from odoo.http import request
 from odoo.tools import LazyTranslate
 
@@ -114,13 +115,16 @@ class ResCompany(models.Model):
             This certificate is supposed to be stored in the jwks url, to be retrieved by the government apis
             to check the jwt signature.
         """
+        if not self.env.user.has_group("account.group_account_user"):
+            raise AccessError(self.env._("Only an accountant can perform this action."))
+
         # We only generate a new certificate and a new key if nothing is set on the company yet.
         # Otherwise, we're using the same.
-        if not self.l10n_be_intervat_private_key or not self.l10n_be_intervat_certificate_id.is_valid:
+        if not self.l10n_be_intervat_private_key or not self.l10n_be_intervat_certificate_id.sudo().is_valid:
             if self.l10n_be_intervat_certificate_id:
-                self.l10n_be_intervat_certificate_id.unlink()
-                self.l10n_be_intervat_private_key.unlink()
-            self.l10n_be_intervat_private_key = self.env['certificate.key'].sudo()._generate_rsa_private_key(
+                self.l10n_be_intervat_certificate_id.sudo().unlink()
+                self.l10n_be_intervat_private_key.sudo().unlink()
+            self.sudo().l10n_be_intervat_private_key = self.env['certificate.key'].sudo()._generate_rsa_private_key(
                 company=self,
                 name='intervat_private_key_%s' % fields.Datetime.now().strftime("%Y%m%d_%H%M%S"),
             )
@@ -150,22 +154,22 @@ class ResCompany(models.Model):
                 private_key=private_key,
                 algorithm=hashes.SHA256(),
             )
-            self.l10n_be_intervat_certificate_id = self.env['certificate.certificate'].create([{
+            self.sudo().l10n_be_intervat_certificate_id = self.env['certificate.certificate'].sudo().create([{
                 'name': f"Intervat Certificate: {self.name}",
                 'content': base64.b64encode(certificate.public_bytes(encoding=serialization.Encoding.PEM)),
                 'private_key_id': self.l10n_be_intervat_private_key.id,
                 'company_id': self.id,
             }])
 
-        self.l10n_be_intervat_code_verifier = ''.join([secrets.choice(ALLOWED_CHARS) for _ in range(60)])
+        self.sudo().l10n_be_intervat_code_verifier = ''.join([secrets.choice(ALLOWED_CHARS) for _ in range(60)])
         sha256_hash = hashlib.sha256(self.l10n_be_intervat_code_verifier.encode()).digest()
         code_challenge = base64.urlsafe_b64encode(sha256_hash).rstrip(b'=').decode()
-        self.l10n_be_intervat_code_challenge = code_challenge
+        self.sudo().l10n_be_intervat_code_challenge = code_challenge
 
         jwk = self._l10n_be_generate_jwk()
         params = {
             **jwk,
-            'company_token': hashlib.sha256(self.l10n_be_intervat_certificate_id.l10n_be_intervat_jwk_token.encode()).hexdigest(),
+            'company_token': hashlib.sha256(self.l10n_be_intervat_certificate_id.sudo().l10n_be_intervat_jwk_token.encode()).hexdigest(),
             'db_uuid': self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
             'root_url': request.httprequest.root_url,
         }
@@ -185,7 +189,7 @@ class ResCompany(models.Model):
             return ''
 
         private_key = serialization.load_pem_private_key(
-            base64.b64decode(self.l10n_be_intervat_private_key.pem_key),
+            base64.b64decode(self.l10n_be_intervat_private_key.sudo().pem_key),
             None
         )
         expiration_time = datetime.now(timezone.utc) + timedelta(minutes=1)
@@ -193,7 +197,7 @@ class ResCompany(models.Model):
         header, payload = {
             'alg': 'RS256',
             'typ': 'JWT',
-            'kid': self.l10n_be_intervat_certificate_id.l10n_be_intervat_jwk_kid,
+            'kid': self.l10n_be_intervat_certificate_id.sudo().l10n_be_intervat_jwk_kid,
         }, {
             'iss': 'odoo',
             'sub': 'odoo',
@@ -210,17 +214,17 @@ class ResCompany(models.Model):
             raw = base64.b64decode(b64_str)
             return base64.urlsafe_b64encode(raw).rstrip(b'=').decode()
 
-        pem_certificate = base64.b64decode(self.l10n_be_intervat_certificate_id.pem_certificate)
+        pem_certificate = base64.b64decode(self.l10n_be_intervat_certificate_id.sudo().pem_certificate)
         cert = x509.load_pem_x509_certificate(pem_certificate, default_backend())
         cert_der = cert.public_bytes(encoding=Encoding.DER)
-        x5c_value = self.l10n_be_intervat_certificate_id._get_der_certificate_bytes().decode()
+        x5c_value = self.l10n_be_intervat_certificate_id.sudo()._get_der_certificate_bytes().decode()
         sha1_thumbprint = hashlib.sha1(cert_der).digest()
         x5t_value = base64.urlsafe_b64encode(sha1_thumbprint)
-        e, n = self.l10n_be_intervat_certificate_id._get_public_key_numbers_bytes()
+        e, n = self.l10n_be_intervat_certificate_id.sudo()._get_public_key_numbers_bytes()
 
         return {
             "key_type": 'RSA',
-            "key_id": self.l10n_be_intervat_certificate_id.l10n_be_intervat_jwk_kid,
+            "key_id": self.l10n_be_intervat_certificate_id.sudo().l10n_be_intervat_jwk_kid,
             "key_use": 'sig',
             "certificate_thumbprint": x5t_value.decode().rstrip('='),
             "certificate_chain": x5c_value.rstrip('\n'),
@@ -234,6 +238,9 @@ class ResCompany(models.Model):
 
             :return: True if tokens has been generated, else False.
         """
+        if not self.env.user.has_group("account.group_account_user"):
+            raise AccessError(self.env._("Only an accountant can perform this action."))
+
         if not self._l10n_be_intervat_is_authentication_valid():
             return False
 
@@ -256,8 +263,8 @@ class ResCompany(models.Model):
             raise UserError(error['error_message'])
 
         self._l10n_be_verify_id_token_signature(response_json['id_token'])
-        self.l10n_be_intervat_access_token = response_json['access_token']
-        self.l10n_be_intervat_refresh_token = response_json['refresh_token']
+        self.sudo().l10n_be_intervat_access_token = response_json['access_token']
+        self.sudo().l10n_be_intervat_refresh_token = response_json['refresh_token']
 
         # In case an error occurs, we need to commit the tokens in the db as they're about to be used in the calling request
         if not tools.config['test_enable'] and not modules.module.current_test:
@@ -328,7 +335,7 @@ class ResCompany(models.Model):
         url = f"{BASE_URL[self.l10n_be_intervat_mode]}/FineAPI/Generic/OAU/v2/documents/{document_uuid}/content"
         auth_url_params = urlencode({
             'ownerType': 'CBE',
-            'ownerIdentifier': self.company_registry,
+            'ownerIdentifier': re.sub(r'[^0-9]', '', self.vat),
         })
         if not self._l10n_be_refresh_token():
             return None
@@ -357,7 +364,7 @@ class ResCompany(models.Model):
             :return: Response from api with pdf and xml UUID, which can be used to fetch related documents from
                      MyMinFin API. Return None if refresh token is expired.
         """
-        url = f"{BASE_URL[self.l10n_be_intervat_mode]}/Intervat/api/OAU/v1/declaration/vat/{self.company_registry}"
+        url = f"{BASE_URL[self.l10n_be_intervat_mode]}/Intervat/api/OAU/v1/declaration/vat/{re.sub(r'[^0-9]', '', self.vat)}"
         if not self._l10n_be_refresh_token():
             return None
 
@@ -413,6 +420,20 @@ class ResCompany(models.Model):
                     error_message += "\n" + self.env._("If you just submitted your declaration, you might need to wait until tomorrow to fetch the documents. You can still retrieve them from the Intervat Portal.")
                 return {}, {'error_message': error_message, 'error_code': response.status_code}
 
+            if response_json.get('code') == 'InboundAuthorizationFailure':
+                # This error means the user didn't give the right consent, so we delete the access_token
+                # to close the connection
+                self.l10n_be_intervat_access_token = None
+                return {}, {'error_message': (Markup("""
+                    <p>%(msg)s:</p>
+                    <ul>
+                        <li>Documents-Read API (MMF-API)</li>
+                        <li>VAT-Manage API (INT-API)</li>
+                    </ul>
+                """) % {
+                    'msg': escape(self.env._("Your authentication with Intervat was incomplete. Please authenticate again and make sure you grant consent to both of the following"))
+                }), 'error_code': response.status_code}
+
             return {}, {'error_message': error.response.content.decode(), 'error_code': response.status_code}
 
     ########################################
@@ -420,8 +441,7 @@ class ResCompany(models.Model):
     ########################################
 
     def _l10n_be_intervat_is_authentication_valid(self):
-        return self.l10n_be_intervat_access_token \
-            and fields.Datetime.now() - relativedelta(hours=4) < self.l10n_be_intervat_last_call_date
+        return bool(self.l10n_be_intervat_access_token)
 
     def _l10n_be_intervat_check_activated(self):
         if self.l10n_be_intervat_mode == 'disabled':
@@ -430,3 +450,8 @@ class ResCompany(models.Model):
                 'account.action_account_config',
                 self.env._('Set Intervat mode'),
             )
+
+    def _cron_update_refresh_token(self):
+        for company in self.search([('l10n_be_intervat_access_token', '!=', False), ('l10n_be_intervat_mode', '!=', 'disabled')]):
+            company.lock_for_update()
+            company._l10n_be_refresh_token()

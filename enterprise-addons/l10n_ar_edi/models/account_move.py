@@ -103,7 +103,9 @@ class AccountMove(models.Model):
                     value = "Yes" if account.currency_id and account.currency_id != move.company_currency_id else "No"
                 move.l10n_ar_payment_foreign_currency = value
 
+    # -------------------------------------------------------------------------
     # Compute methods
+    # -------------------------------------------------------------------------
 
     @api.depends('l10n_ar_afip_result')
     def _compute_show_reset_to_draft_button(self):
@@ -175,7 +177,10 @@ class AccountMove(models.Model):
         remaining = self - available_to_verify
         remaining.l10n_ar_afip_verification_type = 'not_available'
 
+    # -------------------------------------------------------------------------
     # Buttons
+    # -------------------------------------------------------------------------
+
     def _is_dummy_afip_validation(self):
         self.ensure_one()
         return self.company_id._get_environment_type() == 'testing' and \
@@ -188,7 +193,8 @@ class AccountMove(models.Model):
         sale_ar_invoices = ar_invoices.filtered(lambda x: x.move_type in ['out_invoice', 'out_refund'])
 
         # Verify only Vendor bills (only when verification is configured as 'required')
-        (ar_invoices - sale_ar_invoices)._l10n_ar_check_afip_auth_verify_required()
+        if ar_bills := ar_invoices - sale_ar_invoices:
+            ar_bills._l10n_ar_check_afip_auth_verify_required()
 
         # Send invoices to ARCA and get the return info
         ar_edi_invoices = ar_invoices.filtered(lambda x: x.journal_id.l10n_ar_afip_ws)
@@ -246,44 +252,51 @@ class AccountMove(models.Model):
 
         return validated + super(AccountMove, self - ar_edi_invoices)._post(soft=soft)
 
+    def _l10n_ar_edi_get_request_data_verify(self):
+        self.ensure_one()
+
+        if not self.l10n_ar_afip_auth_mode or not self.l10n_ar_afip_auth_code:
+            raise UserError(_('Please set AFIP Authorization Mode and Code to continue!'))
+
+        # get Issuer and Receptor depending on the document type
+        issuer, receptor = (self.commercial_partner_id, self.company_id.partner_id) \
+            if self.move_type in ['in_invoice', 'in_refund'] else (self.company_id.partner_id, self.commercial_partner_id)
+        issuer_vat = issuer.ensure_vat()
+
+        receptor_identification_code = receptor.l10n_latam_identification_type_id.l10n_ar_afip_code or '99'
+        receptor_id_number = (receptor_identification_code and str(receptor._get_id_number_sanitize()))
+
+        if self.l10n_latam_document_type_id.l10n_ar_letter in ['A', 'M'] and receptor_identification_code != '80' or not receptor_id_number:
+            raise UserError(_('For type A and M documents the receiver identification is mandatory and should be VAT'))
+
+        document_parts = self._l10n_ar_get_document_number_parts(self.l10n_latam_document_number, self.l10n_latam_document_type_id.code)
+        if not document_parts['point_of_sale'] or not document_parts['invoice_number']:
+            raise UserError(_('Point of sale and document number are required!'))
+        if not self.l10n_latam_document_type_id.code:
+            raise UserError(_('No document type selected or document type is not available for validation!'))
+        if not self.invoice_date:
+            raise UserError(_('Invoice Date is required!'))
+
+        return {
+            'CbteModo': self.l10n_ar_afip_auth_mode,
+            'CuitEmisor': issuer_vat,
+            'PtoVta': document_parts['point_of_sale'],
+            'CbteTipo': self.l10n_latam_document_type_id.code,
+            'CbteNro': document_parts['invoice_number'],
+            'CbteFch': self.invoice_date.strftime('%Y%m%d'),
+            'ImpTotal': float_repr(self.amount_total, precision_digits=2),
+            'CodAutorizacion': self.l10n_ar_afip_auth_code,
+            'DocTipoReceptor': receptor_identification_code,
+            'DocNroReceptor': receptor_id_number,
+        }
+
     def l10n_ar_verify_on_afip(self):
         """ This method let us to connect to ARCA using WSCDC webservice to verify if a vendor bill is valid on ARCA """
         for inv in self:
-            if not inv.l10n_ar_afip_auth_mode or not inv.l10n_ar_afip_auth_code:
-                raise UserError(_('Please set ARCA Authorization Mode and Code to continue!'))
-
-            # get Issuer and Receptor depending on the document type
-            issuer, receptor = (inv.commercial_partner_id, inv.company_id.partner_id) \
-                if inv.move_type in ['in_invoice', 'in_refund'] else (inv.company_id.partner_id, inv.commercial_partner_id)
-            issuer_vat = issuer.ensure_vat()
-
-            receptor_identification_code = receptor.l10n_latam_identification_type_id.l10n_ar_afip_code or '99'
-            receptor_id_number = (receptor_identification_code and str(receptor._get_id_number_sanitize()))
-
-            if inv.l10n_latam_document_type_id.l10n_ar_letter in ['A', 'M'] and receptor_identification_code != '80' or not receptor_id_number:
-                raise UserError(_('For type A and M documents the receiver identification is mandatory and should be VAT'))
-
-            document_parts = self._l10n_ar_get_document_number_parts(inv.l10n_latam_document_number, inv.l10n_latam_document_type_id.code)
-            if not document_parts['point_of_sale'] or not document_parts['invoice_number']:
-                raise UserError(_('Point of sale and document number are required!'))
-            if not inv.l10n_latam_document_type_id.code:
-                raise UserError(_('No document type selected or document type is not available for validation!'))
-            if not inv.invoice_date:
-                raise UserError(_('Invoice Date is required!'))
-
+            verfiy_request_data = inv._l10n_ar_edi_get_request_data_verify()
             connection = self.company_id._l10n_ar_get_connection('wscdc')
             client, auth = connection._get_client()
-            response = client.service.ComprobanteConstatar(auth, {
-                'CbteModo': inv.l10n_ar_afip_auth_mode,
-                'CuitEmisor': issuer_vat,
-                'PtoVta': document_parts['point_of_sale'],
-                'CbteTipo': inv.l10n_latam_document_type_id.code,
-                'CbteNro': document_parts['invoice_number'],
-                'CbteFch': inv.invoice_date.strftime('%Y%m%d'),
-                'ImpTotal': float_repr(inv.amount_total, precision_digits=2),
-                'CodAutorizacion': inv.l10n_ar_afip_auth_code,
-                'DocTipoReceptor': receptor_identification_code,
-                'DocNroReceptor': receptor_id_number})
+            response = client.service.ComprobanteConstatar(auth, verfiy_request_data)
             inv.write({'l10n_ar_afip_verification_result': response.Resultado})
             if response.Observaciones or response.Errors:
                 inv.message_post(body=_('ARCA authorization verification result: %(observations)s%(errors)s', observations=response.Observaciones, errors=response.Errors))
@@ -323,7 +336,9 @@ class AccountMove(models.Model):
                     arca_date=arca_date,
                 ))
 
+    # -------------------------------------------------------------------------
     # Main methods
+    # -------------------------------------------------------------------------
 
     def _l10n_ar_do_afip_ws_request_cae(self, client, auth, transport):
         """ Submits the invoice information to ARCA and gets a response of ARCA in return.
@@ -476,7 +491,9 @@ class AccountMove(models.Model):
             if return_info:
                 inv.message_post(body=Markup('<p><b>%s%s</b></p>') % (_('ARCA Messages'), plaintext2html(return_info, 'em')))
 
+    # -------------------------------------------------------------------------
     # Helpers
+    # -------------------------------------------------------------------------
 
     def _dummy_afip_validation(self):
         """ Only when we want to skip ARCA validation in testing environment. Fill the ARCA fields with dummy values in
@@ -721,7 +738,9 @@ class AccountMove(models.Model):
         except Exception as error:
             raise UserError(repr(error))
 
+    # -------------------------------------------------------------------------
     # Prepare Request Data for webservices
+    # -------------------------------------------------------------------------
 
     def wsfe_get_cae_request(self, client=None):
         self.ensure_one()

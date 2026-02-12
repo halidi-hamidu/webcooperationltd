@@ -3,3 +3,4 @@
 from . import base_automation
 from . import documents_document
 from . import ir_actions_server
+from . import ir_http

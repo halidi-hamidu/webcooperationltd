@@ -86,4 +86,4 @@ class TestVoipResPartner(common.TransactionCase):
             limit=10,
             search_terms="1" * (self.min_length - 1),
         )
-        self.assertFalse(store_data)
+        self.assertIdNotInStoreData(self.partner1.id, store_data)

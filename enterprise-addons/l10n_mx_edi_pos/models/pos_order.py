@@ -581,6 +581,10 @@ class PosOrder(models.Model):
             )
             Document._add_tax_objected_cfdi_values(cfdi_values, base_lines)
             Document._add_base_lines_cfdi_values(cfdi_values, base_lines)
+            # Force description as this is required for refunds of global invoices
+            for base_line in cfdi_values['base_lines']:
+                base_line['l10n_mx_cfdi_values']['description'] = "Devoluciones, descuentos o bonificaciones"
+
             Document._add_payment_policy_cfdi_values(cfdi_values, payment_method=self.l10n_mx_edi_payment_method_id)
             cfdi_values['condiciones_de_pago'] = None
 
@@ -678,7 +682,10 @@ class PosOrder(models.Model):
 
         # == Check the config ==
         orders = self.filtered(lambda order: not order.refunded_order_id)
-        orders |= self.env['pos.order.line'].search([('refunded_orderline_id.order_id', 'in', orders.ids)]).order_id
+        orders |= self.env['pos.order.line'].search([
+            ('refunded_orderline_id.order_id', 'in', orders.ids),
+            ('order_id.state', '!=', 'cancel'),
+        ]).order_id
         pos_journal = self.config_id.invoice_journal_id
         errors = []
         for order in orders:

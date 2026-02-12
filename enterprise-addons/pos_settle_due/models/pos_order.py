@@ -49,3 +49,8 @@ class PosOrder(models.Model):
             'type': 'ir.actions.act_window',
             'domain': [('id', 'in', self.mapped('settled_order_line_ids.order_id').ids)],
         }
+
+    def _get_payments(self):
+        payments = super()._get_payments()
+        payments += self.settled_order_line_ids.order_id.payment_ids.sudo().with_company(self.company_id)
+        return payments

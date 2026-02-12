@@ -58,7 +58,7 @@ class PlanningSlotTemplate(models.Model):
 
     @api.model
     def formatted_read_group(self, domain, groupby=(), aggregates=(), having=(), offset=0, limit=None, order=None) -> list[dict]:
-        res = super().formatted_read_group(domain, groupby, aggregates, having, limit, offset, order)
+        res = super().formatted_read_group(domain, groupby, aggregates, having, offset, limit, order)
         for data in res:
             if 'start_time' in data:
                 data['start_time'] = float_to_time(data['start_time']).strftime('%H:%M')

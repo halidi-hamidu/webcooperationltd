@@ -43,7 +43,7 @@ class MrpWorkcenterProductivity(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         work_center_productivities = super().create(vals_list)
-        for work_order, productivities in work_center_productivities.grouped('workorder_id').items():
+        for work_order, productivities in work_center_productivities.sudo().grouped('workorder_id').items():
             if (
                 work_order.production_id.project_id.sudo()._get_analytic_distribution()
                 or work_order.employee_analytic_account_line_ids
@@ -60,9 +60,9 @@ class MrpWorkcenterProductivity(models.Model):
         res = super().write(vals)
         # if a value triggers a change of duration we adapt the aals
         if {'date_start', 'date_end'} & vals.keys():
-            for work_order, productivities in self.grouped('workorder_id').items():
+            for work_order, productivities in self.sudo().grouped('workorder_id').items():
                 if (
-                    work_order.production_id.project_id.sudo()._get_analytic_distribution()
+                    work_order.production_id.project_id._get_analytic_distribution()
                     or work_order.employee_analytic_account_line_ids
                 ):
                     for productivity in productivities:

@@ -854,7 +854,7 @@ class L10nCHEmployeeMonthlySnapshot(models.Model):
                 res_field = missing_dict.get("res_field")
                 employee_id = missing_dict.get("employee_id")
                 if res_model and res_id:
-                    field_description = self.env[res_model]._fields[res_field].string
+                    field_description = self.env[res_model]._fields[res_field].get_description(self.env, ["string"])["string"]
                     if res_model == 'hr.version' and employee_id:
                         record = self.env['hr.employee'].browse(employee_id)
                         action = record._get_records_action()

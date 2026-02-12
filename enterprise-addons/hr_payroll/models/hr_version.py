@@ -170,7 +170,7 @@ class HrVersion(models.Model):
                 lambda c:
                 c != version and
                 (c.date_start <= date_today or include_future_contracts)
-            )  # hr.version(29, 37, 38, 39, 41) -> hr.version(29, 37, 39, 41)
+            ).sorted('date_start', reverse=True)  # hr.version(29, 37, 38, 39, 41) -> hr.version(29, 37, 39, 41)
             before_versions = all_versions.filtered(lambda c: c.date_start < version.date_start)  # hr.version(39, 41)
             before_versions = remove_gap(version, before_versions, before=True)
             after_versions = all_versions.filtered(lambda c: c.date_start > version.date_start).sorted(key='date_start')  # hr.version(37, 29)
@@ -356,4 +356,6 @@ class HrVersion(models.Model):
 
     def action_configure_template_inputs(self):
         self.ensure_one()
-        return self.structure_id.action_get_structure_inputs()
+        action = self.structure_id.action_get_structure_inputs()
+        action['domain'].append(('input_usage_employee', '=', True))
+        return action

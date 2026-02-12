@@ -137,6 +137,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 account_move_line.price_unit,
                 account_move_line.product_id,
                 account_move_line.product_uom_id,
+                account_move_line.tax_base_amount,
                 account_move.id                             AS move_id,
                 account_move.name                           AS move_name,
                 account_move.move_type                      AS move_type,
@@ -254,7 +255,8 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 tax.amount AS tax_amount,
                 tax.create_date AS tax_create_date,
                 SUM(tax_detail.tax_amount) AS amount,
-                SUM(tax_detail.tax_amount) AS amount_currency
+                SUM(tax_detail.tax_amount) AS amount_currency,
+                SUM(tax_detail.base_amount) AS tax_base_amount
             FROM (%(tax_details_query)s) AS tax_detail
             JOIN account_move_line tax_line ON tax_line.id = tax_detail.tax_line_id
             JOIN account_tax tax ON tax.id = tax_detail.tax_id
@@ -267,6 +269,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 **tax_vals,
                 'rate': line_vals['rate'],
                 'currency_code': line_vals['currency_code'],
+                'tax_base_amount': tax_vals['tax_base_amount'],
             })
             tax_vals_map.setdefault(tax_vals['tax_id'], {
                 'id': tax_vals['tax_id'],

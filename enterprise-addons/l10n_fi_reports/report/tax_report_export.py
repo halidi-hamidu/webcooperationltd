@@ -16,6 +16,7 @@ class ReportL10nFiReportsTaxReportExport(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         options = data['options']
+        options['export_mode'] = 'file'
         report = self.env['account.report'].browse(docids)
         tax_period_length = PERIOD_LENGTH_CODE_PER_PERIOD_TYPE.get(options['date']['period_type'])
         date_to = fields.Date.to_date(options['date']['date_to'])

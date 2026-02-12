@@ -49,11 +49,3 @@ class TestHrContractSalaryOffer(TransactionCase):
         version = offer._get_version()
         self.assertEqual(version.resource_calendar_id, self.offer_calendar)
         self.assertAlmostEqual(offer.gross_wage, 2000.0, places=2)  # check gross salary computed in Salary Simulation Preview
-
-        # case 2: version calendar set -> version calendar is kept
-        self.version.resource_calendar_id = self.version_calendar
-        offer._compute_salary()
-        version = offer._get_version()
-        self.assertEqual(version.resource_calendar_id, self.version_calendar)
-        self.assertAlmostEqual(offer.gross_wage, 1900.0, places=2)
-        self.assertAlmostEqual(version.work_time_rate, 0.95, 2)

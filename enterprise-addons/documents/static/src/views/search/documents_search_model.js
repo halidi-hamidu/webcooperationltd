@@ -19,7 +19,7 @@ export class DocumentsSearchModel extends SearchModel {
     }
 
     async load(config) {
-        if (this.documentService.initData.documentId) {
+        if (this.documentService.initData.documentId || config.context.documents_init_document_id) {
             // Make sure target document is found (if accessible).
             config.irFilters.forEach((fil) => {
                 fil.is_default = false;
@@ -28,6 +28,11 @@ export class DocumentsSearchModel extends SearchModel {
                 // logic used in _extractSearchDefaultsFromGlobalContext, here to group with above
                 const searchDefaultMatch = /^search_default_(.*)$/.exec(key);
                 if (searchDefaultMatch) {
+                    delete config.context[key];
+                }
+                if (key === "documents_init_document_id") {
+                    this.documentService.documentIdToRestoreOnce =
+                        config.context.documents_init_document_id;
                     delete config.context[key];
                 }
             }
@@ -166,7 +171,7 @@ export class DocumentsSearchModel extends SearchModel {
      */
     getSelectedFolderAndParents() {
         const folderSection = this.getSections()[0];
-        const folder = folderSection.values.get(folderSection.activeValueId);
+        const folder = folderSection.values.get(folderSection.activeValueId || false);
         return this.getFolderAndParents(folder);
     }
 
@@ -197,7 +202,15 @@ export class DocumentsSearchModel extends SearchModel {
             this.documentService.updateDocumentURL(selectedFolder);
         }
         if (typeof valueId === "number") {
-            this.documentService.logAccess(selectedFolder.access_token);
+            if (selectedFolder.childrenIds && selectedFolder.childrenIds.length) {
+                this.documentService.logAccess(selectedFolder.access_token);
+            } else {
+                this.documentService.logAccess(selectedFolder.access_token).then((result) => {
+                    if (result && result?.reload) {
+                        this._reloadSearchModel(true);
+                    }
+                });
+            }
         }
     }
 
@@ -332,7 +345,13 @@ export class DocumentsSearchModel extends SearchModel {
         ) {
             return;
         }
-
+        if (
+            !this.documentService.initData.folder_id &&
+            this.context.documents_init_folder_id !== undefined
+        ) {
+            category.activeValueId = this.context.documents_init_folder_id || false;
+            return;
+        }
         // If not set in context, or set to an unknown value, set active value
         // from localStorage
         const storageItem = browser.localStorage.getItem("searchpanel_documents_document");
@@ -365,9 +384,8 @@ export class DocumentsSearchModel extends SearchModel {
             }
             browser.localStorage.setItem("searchpanel_documents_document", category.activeValueId);
         } else {
-            // If still not a valid value, default to All (id=false) for internal users
-            // or root folder for portal users
-            category.activeValueId = this.documentService.userIsInternal ? false : valueIds[0];
+            // If still not a valid value, default to All (id=false)
+            category.activeValueId = false;
         }
     }
 

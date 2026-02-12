@@ -87,7 +87,7 @@ class L10n_Be281_10(models.Model):
 
     @api.depends('xml_file')
     def _compute_validation_state(self):
-        xsd_schema_file_path = file_path('l10n_be_hr_payroll/data/Belcotax-2024.xsd')
+        xsd_schema_file_path = file_path('l10n_be_hr_payroll/data/Belcotax-2025.xsd')
         xsd_root = etree.parse(xsd_schema_file_path)
         schema = etree.XMLSchema(xsd_root)
 
@@ -233,7 +233,7 @@ class L10n_Be281_10(models.Model):
         line_codes = [
             'NET', 'PAY_SIMPLE', 'PPTOTAL', 'M.ONSS', 'ATN.INT', 'ATN.MOB', 'ATN.LAP', 'CYCLE',
             'ATN.CAR', 'REP.FEES', 'REP.FEES.VOLATILE', 'PUB.TRANS', 'CAR.PRIV', 'EmpBonus.1', 'GROSS',
-            'DOUBLE.DECEMBER.GROSS', 'DOUBLE.DECEMBER.P.P', 'ONSS', 'SALARY',
+            'DOUBLE.DECEMBER.GROSS', 'DOUBLE.DECEMBER.P.P', 'ONSS', 'SALARY', 'EmpBonus.A', 'EmpBonus.B',
         ]
         all_line_values = all_payslips._get_line_values(line_codes, vals_list=['total', 'quantity'])
 
@@ -245,6 +245,8 @@ class L10n_Be281_10(models.Model):
         holiday_n1_structure = self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_employee_departure_n1_holidays')
         termination_fees_structure = self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_employee_termination_fees')
         cct90_structure = self.env.ref('l10n_be_hr_payroll.hr_payroll_structure_cp200_structure_cct90')
+
+        other_transport_exemption_by_niss = defaultdict(lambda: 0)
 
         count = 0
         for employee in employee_payslips:
@@ -282,7 +284,7 @@ class L10n_Be281_10(models.Model):
 
             # 2021: Only private car
             # from 2022: private car / company car (from May)
-            max_other_transport_exemption = payslip.env['hr.rule.parameter']._get_parameter_from_code(
+            max_other_transport_exemption = self.env['hr.rule.parameter']._get_parameter_from_code(
                 'pricate_car_taxable_threshold',
                 date=date(int(self.year), 1, 1))
             start = first_contract_date
@@ -296,49 +298,33 @@ class L10n_Be281_10(models.Model):
                 other_transport_exemption = max_other_transport_exemption  # * number_of_month / 12.0
 
             cycle_days_amount = sum(all_line_values['CYCLE'][p.id]['total'] for p in payslips)
+            if cycle_days_amount:
+                cycle_km = sum(all_line_values['CYCLE'][p.id]['quantity'] * p.contract_id.km_home_work for p in payslips)
+            else:
+                cycle_km = 0
 
-            total_volet_A, total_volet_B = 0, 0
+            mobility_budget_total_amount = 0
+            mobility_budget_by_month = defaultdict(lambda: 0)
             for payslip in payslips:
-                if payslip.date_from < date(2024, 4, 1):
-                    total_volet_A += all_line_values['EmpBonus.1'][payslip.id]['total']
-                else:
-                    total_employment_bonus = all_line_values['EmpBonus.1'][payslip.id]['total']
-                    onss = -all_line_values['ONSS'][payslip.id]['total']
-                    if not total_employment_bonus:
-                        continue
-                    localdict = payslip._get_localdict()
-                    localdict['categories']['BRUT'] = all_line_values['SALARY'][payslip.id]['total']
-                    localdict['categories']['ONSS'] = all_line_values['ONSS'][payslip.id]['total']
-                    if payslip.credit_note:
-                        localdict['categories']['BRUT'] = -localdict['categories']['BRUT']
-                        localdict['categories']['ONSS'] = -localdict['categories']['ONSS']
-                        total_employment_bonus = -total_employment_bonus
-                        onss = -onss
-                    bonus_volet_A = payslip._get_employment_bonus_employees_volet_A(localdict)
-                    bonus_volet_B = payslip._get_employment_bonus_employees_volet_B(localdict)
-                    bonus_volet_A = min(bonus_volet_A, onss)
-                    bonus_volet_B = min(onss - bonus_volet_A, bonus_volet_B)
-                    if not bonus_volet_A and not bonus_volet_B and total_employment_bonus:
-                        bonus_volet_A = total_employment_bonus
-                    if round(abs(total_employment_bonus - (bonus_volet_A + bonus_volet_B)), 2) > 0.01:
-                        if bonus_volet_A < total_employment_bonus and payslip.edited:
-                            bonus_volet_B = total_employment_bonus - bonus_volet_A
-                        elif bonus_volet_A > total_employment_bonus and payslip.edited:
-                            bonus_volet_A = total_employment_bonus
-                            bonus_volet_B = 0
-                        else:
-                            raise UserError(_("Employment bonus: Volet A (%(bonus_volet_A)s €) + Volet B (%(bonus_volet_B)s €) not equal to total (%(total_employment_bonus)s) for payslip (id=%(payslip_id)s) of employee %(employee_name)s",
-                                bonus_volet_A=bonus_volet_A,
-                                bonus_volet_B=bonus_volet_B,
-                                total_employment_bonus=total_employment_bonus,
-                                payslip_id=payslip.id,
-                                employee_name=payslip.employee_id.name))
-                    if payslip.credit_note:
-                        total_volet_A -= bonus_volet_A
-                        total_volet_B -= bonus_volet_B
-                    else:
-                        total_volet_A += bonus_volet_A
-                        total_volet_B += bonus_volet_B
+                if not mobility_budget_by_month[payslip.date_from.month] and payslip.version_id.l10n_be_mobility_budget:
+                    mobility_budget_by_month[payslip.date_from.month] += payslip.version_id.l10n_be_mobility_budget_amount_monthly
+            mobility_budget_total_amount = sum(monthly_amount for monthly_amount in mobility_budget_by_month.values())
+
+            diff_to_atn = 0
+            private_car_to_atn = 0
+            if has_private_car:
+                other_transport_mean = max(0, mapped_total['CAR.PRIV'])
+            else:
+                other_transport_mean = min(mapped_total['CAR.PRIV'] + mapped_total['ATN.CAR'], other_transport_exemption)
+                # private car is not exempted
+                other_transport_mean = max(other_transport_mean, mapped_total['CAR.PRIV'])
+                other_transport_exemption_by_niss[employee.niss] += max(other_transport_mean - mapped_total['CAR.PRIV'], 0)
+                if mapped_total['CAR.PRIV'] and mapped_total['ATN.CAR']:
+                    private_car_to_atn += mapped_total['CAR.PRIV']
+                if other_transport_exemption_by_niss[employee.niss] > max_other_transport_exemption:
+                    diff_to_atn += other_transport_exemption_by_niss[employee.niss] - max_other_transport_exemption
+                other_transport_mean = other_transport_mean - diff_to_atn
+            private_car_to_atn = min(private_car_to_atn, max_other_transport_exemption)
 
             sheet_values = {
                 'employee': employee,
@@ -391,7 +377,7 @@ class L10n_Be281_10(models.Model):
                 'f10_2076_voordelenaardbedrag': _to_eurocent(
                     max(
                         0,
-                        round(sum(mapped_total[code] for code in ['ATN.INT', 'ATN.MOB', 'ATN.LAP', 'ATN.CAR']) - other_transport_exemption, 2) if has_company_car else round(sum(mapped_total[code] for code in ['ATN.INT', 'ATN.MOB', 'ATN.LAP', 'ATN.CAR']), 2))),
+                        round(sum(mapped_total[code] for code in ['ATN.INT', 'ATN.MOB', 'ATN.LAP', 'ATN.CAR']) + diff_to_atn - other_transport_exemption + private_car_to_atn, 2) if has_company_car else round(sum(mapped_total[code] for code in ['ATN.INT', 'ATN.MOB', 'ATN.LAP', 'ATN.CAR']), 2))),
                 # f10_2077_totaal
                 'f10_2078_compensationamountwithoutstandards': _to_eurocent(round(mapped_total['REP.FEES.VOLATILE'], 2)),
                 'f10_2079_covidovertimeremuneration2023': 0,
@@ -402,8 +388,8 @@ class L10n_Be281_10(models.Model):
                 'f10_2085_forfbezoldiging': 0,
                 'f10_2086_openbaargemeenschap': _to_eurocent(round(mapped_total['PUB.TRANS'], 2)),
                 'f10_2087_bedrag': 0,
-                # 14) Autre moyen de transport 
-                'f10_2088_andervervoermiddel': _to_eurocent(max(0, round(mapped_total['CAR.PRIV'] - other_transport_exemption, 2) if has_private_car else round(min(mapped_total['CAR.PRIV'] + mapped_total['ATN.CAR'], other_transport_exemption), 2))),
+                # 14) Autre moyen de transport
+                'f10_2088_andervervoermiddel': _to_eurocent(round(other_transport_mean, 2)),
                 'f10_2090_outborderdays': 0,
                 'f10_2092_othercode1': 0,
                 'f10_2094_othercode2': 0,
@@ -419,7 +405,7 @@ class L10n_Be281_10(models.Model):
                 'f10_2110_aantaloveruren360': 0,
                 'f10_2111_achterstalloveruren300horeca': 0,
                 'f10_2113_forfaitrsz': 0,
-                'f10_2115_bonus': _to_eurocent(round(total_volet_A, 2)),
+                'f10_2115_bonus': _to_eurocent(round(mapped_total['EmpBonus.A'], 2)),
                 'f10_2116_badweatherstamps': 0,
                 'f10_2117_nonrecurrentadvantages': _to_eurocent(round(cct90_gross, 2)),
                 'f10_2118_overtimehours180': 0,
@@ -438,7 +424,7 @@ class L10n_Be281_10(models.Model):
                 'f10_2131_bedrijfsvoorheffingvanwerkgever': _to_eurocent(round(mapped_total['PPTOTAL'] - mapped_total['DOUBLE.DECEMBER.P.P'], 2)),
                 'f10_2132_horeca': 0,
                 'f10_2133_bedrijfsvoorheffingbuitenlvenverbondenwerkgever': 0,
-                'f10_2134_totaalbedragmobiliteitsbudget': 0,
+                'f10_2134_totaalbedragmobiliteitsbudget': _to_eurocent(round(mobility_budget_total_amount, 2)),
                 'f10_2136_amountcontractofstudent': 0,
                 'f10_2137_amountstudentspecificperiod': 0,
                 'f10_2138_covidovertimehours2023': 0,
@@ -464,13 +450,9 @@ class L10n_Be281_10(models.Model):
                 'f10_2186_amountother2': 0,
                 'f10_2187_amountother3': 0,
                 'f10_2188_amountother4': 0,
-                'f10_2189_purchasingbonus': 0,
                 'f10_2195_relanceovertimeremuneration': 0,
                 'f10_2196_relanceovertimehours': 0,
-                'f10_2197_covidovertimeremuneration2022': 0,
-                'f10_2197_covidovertimeremuneration2022': 0,
                 'f10_2198_flexijobnotpension': 0,
-                'f10_2199_covidovertimehours2022': 0,
                 'f10_2200_compensationwithstandards': _to_eurocent(round(mapped_total['REP.FEES'], 2)),
                 'f10_2201_compensationwithdocuments': 0,
                 'f10_2202_amount': 0,
@@ -480,7 +462,10 @@ class L10n_Be281_10(models.Model):
                 'f10_2207_travelbicycleorspeedpedelec': _to_eurocent(round(cycle_days_amount, 2)),
                 'f10_2208_benefitprovisionbicycleorspeedpedelec': 0,
                 'f10_2209_overtimehours': 0,
-                'f10_2210_workbonus5254': _to_eurocent(max(round(total_volet_B, 2), 0)),
+                'f10_2210_workbonus5254': _to_eurocent(max(round(mapped_total['EmpBonus.B'], 2), 0)),
+                'f10_2226_kmzone2207': int(cycle_km),
+                'f10_2227_relanceovertimeremuneration2025': 0,
+                'f10_2228_relanceovertimehours2025': 0,
             }
             # Le code postal belge (2016) et le code postal étranger (2112) ne peuvent être
             # ni remplis, ni vides tous les deux.

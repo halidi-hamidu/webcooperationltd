@@ -31,7 +31,7 @@ class SaleRentingCommon(SaleCommon):
             'product_template_id': cls.projector.product_tmpl_id.id,
             'recurrence_id': cls.recurrence_hour.id,
         })
-        cls.rental_order = cls._create_rental_so()
+        cls.rental_order = cls._create_rental_order()
         cls.projector_sol = cls.rental_order.order_line[0]
         cls.rental_order.action_confirm()
 
@@ -42,18 +42,11 @@ class SaleRentingCommon(SaleCommon):
         return super()._create_product(**kwargs)
 
     @classmethod
-    def _create_rental_so(cls, **values):
-        default_values = {
+    def _create_rental_order(cls, **kwargs):
+        return cls.env['sale.order'].with_context(in_rental_app=True).create({
             'partner_id': cls.partner.id,
-            'order_line': [
-                Command.create({
-                    'product_id': cls.projector.id,
-                    'product_uom_qty': 2.0,
-                }),
-            ],
             'rental_start_date': datetime(2023, 1, 1, hour=9),
             'rental_return_date': datetime(2023, 1, 1, hour=18),
-            **values,
-        }
-
-        return cls.env['sale.order'].with_context(in_rental_app=True).create(default_values)
+            'order_line': [Command.create({'product_id': cls.projector.id, 'product_uom_qty': 2})],
+            **kwargs,
+        })

@@ -22,7 +22,7 @@ test("empty ungrouped gantt rendering", async () => {
     });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe(null);
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(8);
     expect(columnHeaders.at(0).title).toBe("01");
     expect(columnHeaders.at(-1).title).toBe("08");
@@ -48,7 +48,7 @@ test("ungrouped gantt rendering", async () => {
 
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe(null);
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(8);
     expect(columnHeaders.at(0).title).toBe("01");
     expect(columnHeaders.at(-1).title).toBe("08");
@@ -88,7 +88,7 @@ test("ordered gantt view", async () => {
     await contains(".o_content").scroll({ left: 850 });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe("Gantt View");
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(10);
     expect(columnHeaders.at(0).title).toBe("16");
     expect(columnHeaders.at(-1).title).toBe("25");
@@ -140,7 +140,7 @@ test("empty single-level grouped gantt rendering", async () => {
     });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe("Gantt View");
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(8);
     expect(columnHeaders.at(0).title).toBe("01");
     expect(columnHeaders.at(-1).title).toBe("08");
@@ -158,7 +158,7 @@ test("single-level grouped gantt rendering", async () => {
     expect(SELECTORS.expandCollapseButtons).not.toHaveCount();
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(10);
     expect(columnHeaders.at(0).title).toBe("16");

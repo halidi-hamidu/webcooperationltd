@@ -2,7 +2,6 @@ import { registry } from "@web/core/registry";
 import * as tourUtils from "@website_sale/js/tours/tour_utils";
 
 registry.category("web_tour.tours").add("shop_buy_rental_product_comparison", {
-    url: "/shop?search=Computer",
     steps: () => [
         {
             content: "hover on computer and click on add to comparison",
@@ -11,12 +10,12 @@ registry.category("web_tour.tours").add("shop_buy_rental_product_comparison", {
         },
         ...tourUtils.searchProduct("Color T-Shirt"),
         {
-            content: "add first product 'Color T-Shirt' in a comparison list",
-            trigger: '.oe_product_cart:contains("Color T-Shirt")',
+            trigger: ".o_wsale_comparison_bottom_bar .badge:contains(1)",
         },
         {
-            trigger: ".o_add_compare:hidden",
-            run: "click",
+            content: "add first product 'Color T-Shirt' in a comparison list",
+            trigger: `img[alt="Color T-Shirt"]`,
+            run: "hover && click .o_add_compare",
         },
         {
             content: "check the compare button contains two products",

@@ -226,11 +226,18 @@ class DMFAWorker(DMFANode):
         # Group contracts with the same occupation
         # as they should be declared together
         # Put termination fees in it's own occupation
-        occupation_data = contracts._get_occupation_dates()
+        occupation_data = contracts.employee_id.version_ids.sorted('date_start', reverse=True)._get_occupation_dates()
         termination_occupations = []
+        considered_payslips = self.env['hr.payslip']
+        inactive_version_payslips = self.payslips.filtered(lambda p: not p.version_id.active)
+        active_version_payslips = self.payslips - inactive_version_payslips
         for data in occupation_data:
             occupation_contracts, date_from, date_to = data
-            payslips = self.payslips.filtered(lambda p: p.version_id in occupation_contracts)
+            payslips = active_version_payslips.filtered(lambda p: p not in considered_payslips and p.version_id in occupation_contracts)
+            for slip in inactive_version_payslips:
+                if slip not in considered_payslips and slip.date_from <= (date_to or quarter_end) and slip.date_to >= date_from:
+                    payslips += slip
+            considered_payslips += payslips
             termination_payslips = payslips.filtered(lambda p: p.struct_id.code == 'CP200TERM')
             if termination_payslips:
                 # Le salaire et les données relatives aux prestations se rapportant à une indemnité
@@ -331,7 +338,8 @@ class DMFAWorker(DMFANode):
                     remun.percentage_paid = -1
             if not termination_payslips and date_to and date_to > quarter_end:
                 date_to = False
-            values.append((occupation_contracts, payslips - termination_payslips, date_from, date_to, quarter_start))
+            if payslips - termination_payslips:
+                values.append((occupation_contracts, payslips - termination_payslips, date_from, date_to, quarter_start))
         return DMFAOccupation.init_multi(values) + termination_occupations
 
     def _prepare_deductions(self):

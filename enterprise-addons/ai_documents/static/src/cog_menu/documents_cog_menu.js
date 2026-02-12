@@ -3,6 +3,7 @@ import { DocumentsCogMenu } from "@documents/views/cog_menu/documents_cog_menu";
 import { DocumentsCogMenuItemAiAutoSort } from "./documents_cog_menu_item_ai_auto_sort";
 import { STATIC_COG_GROUP_ACTION_PIN } from "@documents/views/cog_menu/documents_cog_menu_group";
 import { useService } from "@web/core/utils/hooks";
+import { user } from "@web/core/user";
 
 patch(DocumentsCogMenu.prototype, {
     setup() {
@@ -12,7 +13,7 @@ patch(DocumentsCogMenu.prototype, {
 
     async _registryItems() {
         const ret = await super._registryItems();
-        if (this.documentService.userIsErpManager) {
+        if (user.hasGroup("base.group_system")) {
             ret.push({
                 Component: DocumentsCogMenuItemAiAutoSort,
                 groupNumber: STATIC_COG_GROUP_ACTION_PIN,

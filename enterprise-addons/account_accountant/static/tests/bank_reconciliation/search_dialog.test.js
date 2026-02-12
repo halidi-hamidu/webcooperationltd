@@ -138,7 +138,7 @@ test("BankRecSelectCreateDialog footer with right information", async () => {
 
     const bankReconciliationInfoNode = queryOne("div[name='bank_reconciliation_info']").children;
     const bankReconciliationInfo = queryAllTexts(bankReconciliationInfoNode);
-    expect(bankReconciliationInfo[0]).toBe("4/22/2025");
+    expect(bankReconciliationInfo[0]).toBe("Apr 22");
     expect(bankReconciliationInfo[1]).toBe("A cool reference to display");
     expect(bankReconciliationInfo[2]).toBe("Balance: $ 233.33");
 });

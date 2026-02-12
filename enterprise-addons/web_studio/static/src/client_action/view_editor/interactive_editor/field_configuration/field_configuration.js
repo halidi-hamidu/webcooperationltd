@@ -156,7 +156,13 @@ export class RelatedChainBuilder extends Component {
     }
 
     filter(fieldDef, path) {
-        return fieldDef.type !== "properties";
+        if (fieldDef.type === "properties") {
+            return false;
+        }
+        if (["many2one", "one2many", "many2many"].includes(fieldDef.type)) {
+            return fieldDef.searchable;
+        }
+        return true;
     }
 
     async updateChain(path, fieldInfo) {

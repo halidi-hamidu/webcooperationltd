@@ -69,12 +69,13 @@ class SignDocument(models.Model):
             else:
                 attachment.res_model = self._name
         documents = super().create(vals_list)
+        default_name = self.env['sign.template'].default_get(fields=['name'])['name']
         for document, attachment in zip(documents, documents.attachment_id):
             attachment.write({
                 'res_model': self._name,
                 'res_id': document.id
             })
-            if document.template_id.name == self.env._('New Template'):
+            if document.template_id.name == default_name:
                 document.template_id.name = document.name
         documents.attachment_id.check_access('read')
         return documents

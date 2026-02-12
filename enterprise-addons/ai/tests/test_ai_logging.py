@@ -126,13 +126,15 @@ class TestAILoggingIntegration(TransactionCase):
         ])
         self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'DEBUG'], [
             "[AI Response] Starting generation for model '%s'",
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d - →] Received single tool call (%.2fs, %d tokens)',
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d - →] Received single tool call (%.2fs, %d tokens)',
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d] Completed (%.2fs, %d tokens)',
-            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d) | Batches: %d',
+        ])
+        self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'INFO'], [
+            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d, cached: %d) | Batches: %d',
         ])
 
     def test_parallel_tool_calls(self):
@@ -176,11 +178,13 @@ class TestAILoggingIntegration(TransactionCase):
 
         self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'DEBUG'], [
             "[AI Response] Starting generation for model '%s'",
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d - ⚡] Received Batch #%d, %d tool calls (%.2fs, %d tokens)',
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d] Completed (%.2fs, %d tokens)',
-            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d) | Batches: %d',
+        ])
+        self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'INFO'], [
+            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d, cached: %d) | Batches: %d',
         ])
         self.assertEqual([r.msg for r in mock_tool_logger.records if r.levelname == 'DEBUG'], [
             "[AI Tool - Batch #%d ⚡] '%s' with args (%s)",
@@ -243,13 +247,15 @@ class TestAILoggingIntegration(TransactionCase):
 
         self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'DEBUG'], [
             "[AI Response] Starting generation for model '%s'",
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d - ⚡] Received Batch #%d, %d tool calls (%.2fs, %d tokens)',
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d - →] Received single tool call (%.2fs, %d tokens)',
-            '[AI API Call #%d] Sending request with %d tokens',
+            '[AI API Call #%d] Sending request with estimated %d tokens',
             '[AI API Call #%d] Completed (%.2fs, %d tokens)',
-            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d) | Batches: %d',
+        ])
+        self.assertEqual([r.msg for r in mock_ai_logger.records if r.levelname == 'INFO'], [
+            '[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | Tokens: %d (in: %d, out: %d, cached: %d) | Batches: %d',
         ])
         self.assertEqual([r.msg for r in mock_tool_logger.records if r.levelname == 'DEBUG'], [
             "[AI Tool - Batch #%d ⚡] '%s' with args (%s)",

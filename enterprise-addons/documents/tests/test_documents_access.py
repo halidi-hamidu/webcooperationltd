@@ -474,12 +474,13 @@ class TestDocumentsAccess(TransactionCaseDocuments, MockEmail):
 
     @users('documents@example.com')
     def test_moving_documents(self):
-        """Check that documents can be moved to a new location and have their rights updated."""
+        """Check that documents can be moved to a new location and have their rights updated except discoverability."""
         self.folder_b.write({
             'access_internal': 'none',
             'access_via_link': 'none',
+            'is_access_via_link_hidden': True,
         })
-        self.folder_a.write({'access_via_link': 'view'})
+        self.folder_a.write({'access_via_link': 'view', 'is_access_via_link_hidden': False})
         self.folder_a_a.folder_id = self.folder_b.id
         self.assertEqual(self.folder_a_a.folder_id, self.folder_b)
 
@@ -488,6 +489,7 @@ class TestDocumentsAccess(TransactionCaseDocuments, MockEmail):
         self.assertEqual(self.folder_b.folder_id, self.folder_a)
         self.assertEqual(self.folder_b.access_internal, 'view', 'Internal access should have been updated.')
         self.assertEqual(self.folder_b.access_via_link, 'view', 'link access should have been updated.')
+        self.assertEqual(self.folder_b.is_access_via_link_hidden, True, 'Discoverability should not be updated')
 
         self.document_gif.folder_id = False
         shortcut = self.folder_b.with_user(self.doc_user).action_create_shortcut(location_user_folder_id='MY')
@@ -1681,6 +1683,53 @@ class TestDocumentsAccess(TransactionCaseDocuments, MockEmail):
         self.assertIn(
             (self.internal_user.partner_id, 'view'),
             self.document_txt.access_ids.mapped(lambda a: (a.partner_id, a.role)))
+
+    def test_members_invitation(self):
+        Access = self.env['documents.access']
+        internal_access = Access.create({
+            'document_id': self.folder_a.id,
+            'partner_id': self.internal_user.partner_id.id,
+            'last_access_date': fields.Datetime.now(),
+            'role': 'view',
+        })
+        with self.assertRaises(UserError):
+            internal_access._get_member_signup_token()
+
+        portal_access = Access.create({
+            'document_id': self.folder_a.id,
+            'partner_id': self.portal_user.partner_id.id,
+            'last_access_date': fields.Datetime.now(),
+            'role': 'view',
+        })
+        with self.assertRaises(UserError):
+            portal_access._get_member_signup_token()
+
+        public_access = Access.create({
+            'document_id': self.folder_a.id,
+            'partner_id': self.env["res.partner"].create({'name': 'Test'}).id,
+            'last_access_date': fields.Datetime.now(),
+            'role': 'view',
+        })
+        token = public_access._get_member_signup_token()
+        self.assertEqual(Access._get_member_from_token(public_access.id, token), public_access)
+        self.assertNotEqual(Access._get_member_from_token(public_access.id, 'invalid' + token), public_access)
+
+        public_access.expiration_date = fields.Datetime.now() + datetime.timedelta(days=1)
+        token = public_access._get_member_signup_token()
+        self.assertEqual(Access._get_member_from_token(public_access.id, token), public_access)
+
+        # use an old token
+        token = public_access._get_member_signup_token()
+        public_access.expiration_date = fields.Datetime.now() - datetime.timedelta(days=1)
+        self.assertFalse(Access._get_member_from_token(public_access.id, token))
+
+        public_access = Access.create({
+            'document_id': self.folder_a.id,
+            'partner_id': self.env["res.partner"].create({'name': 'Test'}).id,
+            'last_access_date': fields.Datetime.now(),
+        })
+        with self.assertRaises(UserError):
+            public_access._get_member_signup_token()
 
     def test_permissions_internal_propagation_on_folder_moves(self):
         not_secret_folder = self.env['documents.document'].create({

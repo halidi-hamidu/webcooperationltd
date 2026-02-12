@@ -36,8 +36,7 @@ class PosOrderLine(models.Model):
             "item": {
                 "number": str(self.product_id.id),
                 "quantity": float_repr(self.qty or 1, precision),  # for settlement products qty comes 0
-                "price_per_unit": float_repr(self.price_unit, precision),
-                "base_amounts_per_vat_id": line_vat_details,
+                "price_per_unit": float_repr(self.price_subtotal_incl, precision),
             },
         }
 

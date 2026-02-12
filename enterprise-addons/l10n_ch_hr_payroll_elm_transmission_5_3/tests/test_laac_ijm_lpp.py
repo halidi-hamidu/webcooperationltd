@@ -174,13 +174,13 @@ class TestSwissdecCommon(TestSwissdecMinorCommon):
     def test_03_lpp_in_percentage(self):
         slips = self._l10n_ch_create_batch(self.muster_ag_company, 1).slip_ids
         slip_by_sex = slips.grouped(lambda p: p.employee_id.sex)
-        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 7560, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -790, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 955.8, 2)
+        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 5355, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -559.6, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 677.05, 2)
 
-        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 7560, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -689.8, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 351, 2)
+        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 5355, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -488.6, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 248.65, 2)
 
     @freeze_time("2022-01-01")
     def test_04_lpp_negative_avs_salary(self):
@@ -193,14 +193,14 @@ class TestSwissdecCommon(TestSwissdecMinorCommon):
         slips = self._l10n_ch_create_batch(self.muster_ag_company, 1).slip_ids
         slip_by_sex = slips.grouped(lambda p: p.employee_id.sex)
         self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "AVSSALARY").total, -20000, 2)
-        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 7560.0, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -790, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 955.8, 2)
+        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 5355.0, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -559.6, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 677.05, 2)
 
         self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "AVSSALARY").total, -20000, 2)
-        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 7560.0, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -689.8, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 351, 2)
+        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 5355.0, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -488.6, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 248.65, 2)
 
     @freeze_time("2022-01-01")
     def test_05_lpp_lower_than_coordination(self):
@@ -211,14 +211,14 @@ class TestSwissdecCommon(TestSwissdecMinorCommon):
         slips = self._l10n_ch_create_batch(self.muster_ag_company, 1).slip_ids
         slip_by_sex = slips.grouped(lambda p: p.employee_id.sex)
         self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "AVSSALARY").total, 2500, 2)
-        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 295, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -30.85, 2)
-        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 37.30, 2)
+        self.assertEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 315, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -32.9, 2)
+        self.assertAlmostEqual(slip_by_sex['female'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 39.85, 2)
 
         self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "AVSSALARY").total, 2500, 2)
-        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 295, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -26.90, 2)
-        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 13.70, 2)
+        self.assertEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "LPPSALARY").total, 315, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE").total, -28.75, 2)
+        self.assertAlmostEqual(slip_by_sex['male'].line_ids.filtered(lambda l: l.code == "PP.PERCENTAGE.COMP").total, 14.65, 2)
 
     @freeze_time("2022-01-01")
     def test_06_family_allowances_logic(self):

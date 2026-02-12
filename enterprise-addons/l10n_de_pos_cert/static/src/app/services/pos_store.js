@@ -122,13 +122,13 @@ patch(PosStore.prototype, {
         if (difference) {
             const existingNullEntry = result.find((item) => item.vat_rate === "NULL");
             if (existingNullEntry) {
-                existingNullEntry.amount = this.currency.round(
-                    parseFloat(existingNullEntry.amount) + difference
-                );
+                existingNullEntry.amount = this.currency
+                    .round(parseFloat(existingNullEntry.amount) + difference)
+                    .toFixed(2);
             } else {
                 result.push({
                     vat_rate: "NULL",
-                    amount: `${this.currency.round(difference)}`,
+                    amount: this.currency.round(difference).toFixed(2),
                 });
             }
         }

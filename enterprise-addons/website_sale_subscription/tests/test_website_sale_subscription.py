@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo.fields import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 
@@ -216,3 +217,69 @@ class TestWebsiteSaleSubscription(WebsiteSaleSubscriptionCommon):
                 self.partner.country_id
             )
             self.assertTrue('country_id' in mandatory_fields)
+
+    def test_combination_info_skips_archived_plan(self):
+        # Archive the weekly subscription plan so the product has no active plan
+        self.plan_week.action_archive()
+        product = self.sub_product.with_context(website_id=self.website.id)
+
+        with MockRequest(self.env, website=self.website):
+            combination_info = product._get_combination_info()
+            self.assertTrue(combination_info['is_subscription'])
+            self.assertEqual(combination_info['pricings'], [])
+
+    def test_subscription_recompute_taxes_on_address_change(self):
+        self.env.company.country_id = self.env.ref('base.us')
+        fpos_be = self.env['account.fiscal.position'].create({
+            'name': "Fiscal Position BE",
+            'auto_apply': True,
+            'country_id': self.country_be.id,
+        })
+        tax_15_excl, tax_0 = self.env['account.tax'].create([
+            {
+                'name': "15% excl",
+                'amount': 15,
+                'price_include_override': 'tax_excluded',
+                'fiscal_position_ids': fpos_be.ids,
+            },
+            {
+                'name': "0%",
+                'amount': 0,
+                'fiscal_position_ids': fpos_be.ids,
+            },
+        ])
+        tax_0.original_tax_ids = tax_15_excl
+        self.sub_product.taxes_id = [Command.set(tax_15_excl.ids)]
+        self.partner.country_id = self.country_be
+
+        cart = self.empty_cart
+        cart.pricelist_id = self.pricelist
+        cart._cart_add(product_id=self.sub_product.product_variant_ids.id, quantity=1)
+        amount_untaxed = cart.amount_untaxed
+        self.assertEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(cart.order_line.tax_ids, tax_0)
+
+        cart.action_confirm()
+        self.assertEqual(cart.subscription_state, '3_progress')
+        self.partner.country_id = self.env.company.country_id
+        self.assertNotEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(
+            cart.order_line.tax_ids, tax_15_excl,
+            "Tax should have been updated on running subscriptions",
+        )
+        self.assertEqual(cart.amount_untaxed, amount_untaxed, "Untaxed amount should not change")
+
+        cart.set_close()
+        self.partner.country_id = self.country_be
+        self.assertNotEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(
+            cart.order_line.tax_ids, tax_15_excl,
+            "Tax should not have been updated on churned subscriptions",
+        )
+
+        cart.set_open()
+        self.assertEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(
+            cart.order_line.tax_ids, tax_0,
+            "Tax should have been updated when reopening a subscription",
+        )

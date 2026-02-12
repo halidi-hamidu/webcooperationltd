@@ -197,8 +197,8 @@ class HrPayslip(models.Model):
             return total + 0.05 - (total % 0.05)
         return total - (total % 0.05)
 
-    def _filter_out_of_versions_payslips(self):
-        return super()._filter_out_of_versions_payslips().filtered(lambda p: p.struct_id.country_id.code != "CH")
+    def _filter_not_in_contract_payslips(self):
+        return super()._filter_not_in_contract_payslips().filtered(lambda p: p.struct_id.country_id.code != "CH")
 
     def _get_contract_days_in_payslip_range(self, date_start, date_end):
         """
@@ -523,7 +523,30 @@ class HrPayslip(models.Model):
         swiss_payslips = self.filtered(lambda p: p.struct_id.code == "CHMONTHLYELM")
         if not swiss_payslips:
             return
-        mapped_snapshots = self.env['l10n.ch.employee.yearly.values']._get_mapped_snapshots(domain=[('employee_id', 'in', swiss_payslips.mapped('employee_id').ids)])
+
+        mapped_snapshots = self.env['l10n.ch.employee.yearly.values']._get_mapped_snapshots(
+            domain=[('employee_id', 'in', swiss_payslips.mapped('employee_id').ids)]
+        )
+
+        slips_grouped_by_date = swiss_payslips.grouped('date_to')
+        new_snapshots_created = False
+
+        for date_group, slips in slips_grouped_by_date.items():
+            year = date_group.year
+            month = date_group.month
+
+            employees_missing_snapshot = slips.employee_id.filtered(
+                lambda e: not mapped_snapshots[e][year][month]
+            )
+
+            if employees_missing_snapshot:
+                employees_missing_snapshot.with_context(l10n_ch_reference_date=date_group)._create_or_update_snapshot()
+                new_snapshots_created = True
+
+        if new_snapshots_created:
+            mapped_snapshots = self.env['l10n.ch.employee.yearly.values']._get_mapped_snapshots(
+                domain=[('employee_id', 'in', swiss_payslips.mapped('employee_id').ids)]
+            )
         for payslip in swiss_payslips:
             month = payslip.date_to.month
             year = payslip.date_to.year
@@ -640,6 +663,7 @@ class HrPayslip(models.Model):
         payslips._compute_l10n_ch_is_correction()
         payslips._compute_l10n_ch_is_code()
         payslips._compute_l10n_ch_is_model()
+        payslips._compute_issues()
 
         self.env.flush_all()
         today = fields.Date.today()
@@ -657,7 +681,11 @@ class HrPayslip(models.Model):
         if not swiss_payslips:
             return res
         swiss_payslips.l10n_ch_is_correction.action_done()
-        swiss_payslips.employee_id.with_context(update_salaries=True, lock_pay_period=True)._create_or_update_snapshot()
+        for ref_date, payslips_by_date in swiss_payslips.grouped('date_from').items():
+            payslips_by_date.employee_id.with_context(
+                update_salaries=True,
+                l10n_ch_reference_date=ref_date
+            )._create_or_update_snapshot()
         return res
 
     def action_payslip_cancel(self):
@@ -667,7 +695,12 @@ class HrPayslip(models.Model):
             return res
         swiss_payslips.l10n_ch_is_correction.action_pending()
         swiss_payslips.l10n_ch_is_log_line_ids.unlink()
-        swiss_payslips.employee_id.with_context(update_salaries=True, unlock_pay_period=True)._create_or_update_snapshot()
+        for ref_date, payslips_by_date in swiss_payslips.grouped('date_from').items():
+            payslips_by_date.employee_id.with_context(
+                update_salaries=True,
+                unlock_pay_period=True,
+                l10n_ch_reference_date=ref_date
+            )._create_or_update_snapshot()
         return res
 
     @api.depends('employee_id', 'l10n_ch_monthly_snapshot')
@@ -1094,3 +1127,15 @@ class HrPayslip(models.Model):
             raise ValidationError(self.env._("This feature is not available for payslips in Switzerland. If you wish to correct amounts please cancel the payslip or report corrections to the next month."))
         else:
             return super().action_adjust_payslip()
+
+    def action_payslip_payment_report(self, export_format='iso20022_ch'):
+        action = super().action_payslip_payment_report()
+        if self.company_id.country_code != 'CH':
+            return action
+        action.update({
+            'context': {
+                **action['context'],
+                'default_export_format': export_format,
+            },
+        })
+        return action

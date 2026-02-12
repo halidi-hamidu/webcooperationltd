@@ -192,14 +192,14 @@ class HrAppraisal(models.Model):
             appraisal.employee_feedback_template = appraisal._get_appraisal_template('employee')
             appraisal.manager_feedback_template = appraisal._get_appraisal_template('manager')
 
-    @api.depends('department_id')
+    @api.depends('department_id', 'company_id')
     def _compute_appraisal_template(self):
         all_department_template_ids = self.env['hr.appraisal.template'].search(
-            [('department_ids', '=', False), ('company_id', 'in', self.department_id.company_id.ids + [False])])
+            [('department_ids', '=', False), ('company_id', 'in', self.company_id.ids + [False])])
         for appraisal in self:
             appraisal.appraisal_template_id = appraisal.appraisal_template_id or \
                 appraisal.department_id.appraisal_template_ids[:1] or \
-                all_department_template_ids.filtered(lambda t: t.company_id.id in [appraisal.department_id.company_id.id, False])[:1]
+                all_department_template_ids.filtered(lambda t: t.company_id.id in [appraisal.company_id.id, False])[:1]
 
     @api.depends('employee_feedback_published', 'manager_feedback_published')
     def _compute_waiting_feedback(self):

@@ -48,7 +48,9 @@ class AccountJournal(models.Model):
         prefix_to_values = {}
         for range_node in root.iterfind(".//{*}NumberRangeResponse"):
             journal_prefix = range_node.findtext("./{*}Prefix")
-            prefix_to_values[journal_prefix] = self._l10n_co_dian_parse_numbering_range_node(range_node)
+            new_range = self._l10n_co_dian_parse_numbering_range_node(range_node)
+            if not prefix_to_values.get(journal_prefix) or int(new_range['l10n_co_edi_min_range_number']) > int(prefix_to_values[journal_prefix]['l10n_co_edi_min_range_number']):
+                prefix_to_values[journal_prefix] = new_range
         return prefix_to_values
 
     def _l10n_co_dian_update_journal(self, journal_values):

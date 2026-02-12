@@ -7,6 +7,7 @@ from odoo.fields import Command
 from odoo.tests import tagged
 
 from odoo.addons.sale_commission.tests.test_sale_commission_common import TestSaleCommissionCommon
+from odoo.exceptions import ValidationError
 
 
 @tagged('post_install', '-at_install')
@@ -505,3 +506,19 @@ class TestSaleCommissionUser(TestSaleCommissionCommon):
         self.commission_plan_user.date_from = datetime.date(year=2024, month=1, day=3)
         for user in self.commission_plan_user.user_ids:
             self.assertEqual(user.date_from, self.commission_plan_user.date_from)
+
+    @freeze_time('2024-02-02')
+    def test_commission_target_constraint(self):
+        self.commission_plan_user.write({
+            'periodicity': 'month',
+            'type': 'target',
+            'user_type': 'person',
+        })
+        self.commission_plan_user.flush_recordset()
+        with self.assertRaises(ValidationError):
+            self.commission_plan_user.target_ids |= self.env['sale.commission.plan.target'].create({
+                'name': 'Yearly Target',
+                'date_from': datetime.date(year=2024, month=1, day=1),
+                'date_to': datetime.date(year=2024, month=12, day=31),
+            })
+            self.commission_plan_user.flush_recordset()

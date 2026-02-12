@@ -173,6 +173,11 @@ export class BankRecKanbanRenderer extends KanbanRenderer {
         return _t("Current Balance");
     }
 
+    // hide no content helper if quick create is visible and there is no data either isGrouped or not
+    get showNoContentHelper() {
+        return !this.isQuickCreateVisible && !this.props.list.model.hasData();
+    }
+
     /**
     Prepares a list of statements based on the statement_id of the bank statement line records.
     Statements are only displayed above the first line of the statement (all lines might not be visible in the kanban)

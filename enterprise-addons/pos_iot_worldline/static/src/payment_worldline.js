@@ -34,7 +34,6 @@ export class PaymentWorldline extends PaymentInterfaceIot {
     }
 
     onTerminalMessageReceived(data, line) {
-        this._setCardAndReceipt(data, line);
         if (data.Stage === "Cancel") {
             // Result of a cancel request
             if (data.Error) {
@@ -65,6 +64,7 @@ export class PaymentWorldline extends PaymentInterfaceIot {
                 });
                 this._resolvePayment?.(false);
             } else if (data.Response === "Approved") {
+                this._setCardAndReceipt(data, line);
                 this._resolvePayment?.(true);
             } else if (["WaitingForCard", "WaitingForPin"].includes(data.Stage)) {
                 line.setPaymentStatus("waitingCard");

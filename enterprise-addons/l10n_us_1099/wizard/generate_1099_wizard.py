@@ -140,22 +140,25 @@ class L10n_Us_1099Wizard(models.TransientModel):
 
         curr_vendor = None
         curr_total = 0
+        curr_company = None
         lines = self.lines_to_export.sorted(lambda l: l.partner_id.id)
         for line in lines:
-            if curr_vendor != line.partner_id and curr_total != 0:
+            if (curr_vendor != line.partner_id or curr_company != line.company_id) and curr_total != 0:
                 curr_total = self.env.ref("base.USD").round(curr_total)
-                new_row = self._generate_row(line.company_id, curr_vendor, curr_total, boxes_1099)
+                new_row = self._generate_row(curr_company, curr_vendor, curr_total, boxes_1099)
                 writer.writerow(new_row)
 
                 curr_vendor = line.partner_id
                 curr_total = line.balance
+                curr_company = line.company_id
             else:
                 curr_vendor = line.partner_id
                 curr_total += line.balance
+                curr_company = line.company_id
 
         if curr_total != 0:
             curr_total = self.env.ref("base.USD").round(curr_total)
-            writer.writerow(self._generate_row(lines[-1].company_id, curr_vendor, curr_total, boxes_1099))
+            writer.writerow(self._generate_row(curr_company, curr_vendor, curr_total, boxes_1099))
 
         self.generated_csv_file = base64.b64encode(output.getvalue().encode())
 

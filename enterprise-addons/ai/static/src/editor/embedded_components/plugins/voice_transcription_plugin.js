@@ -65,10 +65,7 @@ export class TranscriptionPlugin extends Plugin {
 
     setupTranscriptionComponent({ name, props }) {
         if (name === "voice-transcription") {
-            const { resModel, resId } = this.config.getRecordInfo();
             Object.assign(props, {
-                resModel,
-                resId,
                 firstRecordingDate: (id) => this.getFirstRecordingDate(id),
                 getTabContent: (id, tabName) => this.getTabContent(id, tabName),
                 getTranscriptContent: (id) => this.getTranscriptContent(id),

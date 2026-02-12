@@ -4,4 +4,5 @@ PosConfig._records = PosConfig._records.map((record) => ({
     ...record,
     deposit_product_id: 205,
     payment_method_ids: [...record.payment_method_ids, 3],
+    company_id: 253,
 }));

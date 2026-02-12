@@ -46,7 +46,7 @@ test("empty ungrouped gantt rendering", async () => {
     });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe(null);
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([{}]);
     expect(SELECTORS.noContentHelper).toHaveCount(0);
@@ -73,7 +73,7 @@ test("ungrouped gantt rendering", async () => {
 
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe(null);
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(29);
     expect(SELECTORS.expandCollapseButtons).not.toBeVisible();
     expect(rows).toEqual([
@@ -134,7 +134,7 @@ test("ordered gantt view", async () => {
     });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe("Gantt View");
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(29);
     expect(SELECTORS.noContentHelper).toHaveCount(0);
     expect(rows).toEqual([
@@ -192,7 +192,7 @@ test("empty single-level grouped gantt rendering", async () => {
     });
     const { viewTitle, range, columnHeaders, rows } = getGridContent();
     expect(viewTitle).toBe("Gantt View");
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([{ title: "" }]);
     expect(SELECTORS.noContentHelper).toHaveCount(0);
@@ -207,7 +207,7 @@ test("single-level grouped gantt rendering", async () => {
     expect(SELECTORS.expandCollapseButtons).not.toBeVisible();
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([
@@ -291,7 +291,7 @@ test("single-level grouped gantt rendering with group_expand", async () => {
     expect(SELECTORS.expandCollapseButtons).not.toBeVisible();
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([
@@ -351,7 +351,7 @@ test("multi-level grouped gantt rendering", async () => {
     expect(SELECTORS.collapseButton).toHaveCount(1);
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([
@@ -477,7 +477,7 @@ test("many2many grouped gantt rendering", async () => {
     expect(SELECTORS.expandCollapseButtons).not.toBeVisible();
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([
@@ -535,7 +535,7 @@ test("multi-level grouped with many2many field in gantt view", async () => {
     expect(SELECTORS.collapseButton).toHaveCount(1);
 
     const { range, viewTitle, columnHeaders, rows } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(viewTitle).toBe("Tasks");
     expect(columnHeaders).toHaveLength(29);
     expect(rows).toEqual([
@@ -798,7 +798,7 @@ test("range switching", async () => {
     });
     expect(SELECTORS.expandCollapseButtons).not.toBeVisible();
     let gridContent = getGridContent();
-    expect(gridContent.range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(gridContent.range).toBe("12/01/2018 -> 02/28/2019");
     expect(gridContent.columnHeaders).toHaveLength(29);
     expect(gridContent.rows).toEqual([
         {
@@ -1001,7 +1001,7 @@ test("Day scale with 12-hours format", async () => {
         },
     });
     const { columnHeaders, range } = getGridContent();
-    expect(range).toBe("From: 12/20/2018 to: 12/20/2018");
+    expect(range).toBe("12/20/2018 -> 12/20/2018");
     expect(columnHeaders.slice(0, 4).map((h) => h.title)).toEqual(["12am", "1am", "2am", "3am"]);
     expect(columnHeaders.slice(12, 16).map((h) => h.title)).toEqual(["12pm", "1pm", "2pm", "3pm"]);
 });
@@ -1024,7 +1024,7 @@ test("Day scale with 24-hours format", async () => {
     });
 
     const { columnHeaders, range } = getGridContent();
-    expect(range).toBe("From: 12/20/2018 to: 12/20/2018");
+    expect(range).toBe("12/20/2018 -> 12/20/2018");
     expect(columnHeaders.slice(0, 4).map((h) => h.title)).toEqual(["0", "1", "2", "3"]);
     expect(columnHeaders.slice(12, 16).map((h) => h.title)).toEqual(["12", "13", "14", "15"]);
 });
@@ -1168,7 +1168,7 @@ test("initialization with default_start_date only", async (assert) => {
         context: { default_start_date: "2028-04-25" },
     });
     const { range, columnHeaders, groupHeaders } = getGridContent();
-    expect(range).toBe("From: 04/25/2028 to: 06/30/2028");
+    expect(range).toBe("04/25/2028 -> 06/30/2028");
     expect(columnHeaders.slice(0, 7).map((h) => h.title)).toEqual([
         "25",
         "26",
@@ -1189,7 +1189,7 @@ test("initialization with default_stop_date only", async (assert) => {
         context: { default_stop_date: "2028-04-25" },
     });
     const { range, columnHeaders, groupHeaders } = getGridContent();
-    expect(range).toBe("From: 02/01/2028 to: 04/25/2028");
+    expect(range).toBe("02/01/2028 -> 04/25/2028");
     expect(
         columnHeaders.slice(columnHeaders.length - 7, columnHeaders.length).map((h) => h.title)
     ).toEqual(["19", "20", "21", "22", "23", "24", "25"]);
@@ -1207,7 +1207,7 @@ test("initialization with default_start_date and default_stop_date", async (asse
         },
     });
     const { range, groupHeaders } = getGridContent();
-    expect(range).toBe("From: 01/29/2017 to: 05/26/2019");
+    expect(range).toBe("01/29/2017 -> 05/26/2019");
     expect(groupHeaders.map((h) => h.title)).toEqual(["2017", "2018", "2019"]);
     expect(`${SELECTORS.columnHeader}.o_gantt_today`).toHaveCount(1);
 });
@@ -1217,11 +1217,11 @@ test("switch startDate and stopDate if not in <= relation", async () => {
         resModel: "tasks",
         arch: `<gantt date_start="start" date_stop="stop"/>`,
     });
-    expect(getGridContent().range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(getGridContent().range).toBe("12/01/2018 -> 02/28/2019");
     await selectCustomRange({ startDate: "2019-03-01" });
-    expect(getGridContent().range).toBe("From: 03/01/2019 to: 03/01/2019");
+    expect(getGridContent().range).toBe("03/01/2019 -> 03/01/2019");
     await selectCustomRange({ stopDate: "2019-02-28" });
-    expect(getGridContent().range).toBe("From: 02/28/2019 to: 02/28/2019");
+    expect(getGridContent().range).toBe("02/28/2019 -> 02/28/2019");
 });
 
 test("range will not exceed 10 years", async () => {
@@ -1231,11 +1231,11 @@ test("range will not exceed 10 years", async () => {
             <gantt date_start="start" date_stop="stop"/>
         `,
     });
-    expect(getGridContent().range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(getGridContent().range).toBe("12/01/2018 -> 02/28/2019");
     await selectCustomRange({ startDate: "2006-02-28" });
-    expect(getGridContent().range).toBe("From: 02/28/2006 to: 02/27/2016");
+    expect(getGridContent().range).toBe("02/28/2006 -> 02/27/2016");
     await selectCustomRange({ stopDate: "2020-02-28" });
-    expect(getGridContent().range).toBe("From: 03/01/2010 to: 02/28/2020");
+    expect(getGridContent().range).toBe("03/01/2010 -> 02/28/2020");
 });
 
 test("range with identical startDate and stopDate", async () => {
@@ -1245,12 +1245,12 @@ test("range with identical startDate and stopDate", async () => {
             <gantt date_start="start" date_stop="stop"/>
         `,
     });
-    expect(getGridContent().range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(getGridContent().range).toBe("12/01/2018 -> 02/28/2019");
     await selectCustomRange({ startDate: "2019-03-28", stopDate: "2019-03-28" });
-    expect(getGridContent().range).toBe("From: 03/28/2019 to: 03/28/2019");
+    expect(getGridContent().range).toBe("03/28/2019 -> 03/28/2019");
     await focusToday();
     await ganttControlsChanges();
-    expect(getGridContent().range).toBe("From: 12/20/2018 to: 12/20/2018");
+    expect(getGridContent().range).toBe("12/20/2018 -> 12/20/2018");
 });
 
 test("popover-template with an added footer", async () => {

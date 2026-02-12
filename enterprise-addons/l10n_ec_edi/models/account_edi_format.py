@@ -9,7 +9,7 @@ from lxml import etree
 from markupsafe import Markup, escape
 
 from odoo import _, api, models
-from odoo.addons.l10n_ec_edi.models.account_move import L10N_EC_VAT_SUBTAXES
+from odoo.addons.l10n_ec_edi.models.account_move import L10N_EC_VAT_SUBTAXES, L10N_EC_VAT_RATES
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 from odoo.tools import float_compare, float_is_zero, float_repr, float_round, html_escape
 from odoo.tools.xml_utils import cleanup_xml_node
@@ -268,6 +268,7 @@ class AccountEdiFormat(models.Model):
         }
 
     def l10n_ec_merge_negative_and_positive_line(self, negative_line_tax_data, tax_data, precision_digits):
+        # To remove in master
         def merge_tax_datas(tax_data_to_add, tax_data_to_nullify):
             keys_to_merge = ['base_amount_currency', 'base_amount', 'tax_amount_currency', 'tax_amount']
             for key in keys_to_merge:
@@ -284,6 +285,7 @@ class AccountEdiFormat(models.Model):
                 merge_tax_datas(negative_line_tax_data['tax_details'][tax], tax_data['tax_details'][tax])
 
     def _l10n_ec_dispatch_negative_line_into_discounts(self, negative_line_tax_data, positive_tax_details_sorted, precision_digits):
+        # To remove in master
         def is_same_taxes(taxes_1, taxes_2):
             def tax_dict_to_tuple(tax_dict):
                 return (tax_dict['code'], tax_dict['code_percentage'], tax_dict['rate'], tax_dict['tax_group_id'])
@@ -301,6 +303,7 @@ class AccountEdiFormat(models.Model):
             return [_("Failed to dispatch negative lines into discounts.")]
 
     def _l10n_ec_remove_negative_lines_from_move_info(self, move_info):
+        # To remove in master
         precision_digits = move_info['move'].company_id.currency_id.decimal_places
 
         tax_details_per_line = move_info['taxes_data']['tax_details_per_record']
@@ -325,6 +328,76 @@ class AccountEdiFormat(models.Model):
 
         return []
 
+    def _l10n_ec_get_base_lines(self, move_info):
+
+        AccountTax = self.env['account.tax']
+        base_lines, _tax_lines = move_info['move']._get_rounded_base_and_tax_lines()
+        company = self.env.company
+        for base_line in base_lines:
+            is_negative = base_line['tax_details']['raw_total_excluded_currency'] < 0.0
+            if is_negative and not base_line['special_type']:
+                base_line['special_type'] = 'global_discount'
+
+        # Return of merchandise.
+        # The negative lines will try to reduce the 'quantity' instead of be added as a discount.
+        base_lines = AccountTax._dispatch_return_of_merchandise_lines(base_lines, company)
+        AccountTax._squash_return_of_merchandise_lines(base_lines, company)
+
+        # Global discount.
+        # Let's spread the global discount equally across the others lines instead of adding the full amount
+        # on the biggest lines.
+        base_lines = AccountTax._dispatch_global_discount_lines(base_lines, company)
+        AccountTax._squash_global_discount_lines(base_lines, company)
+
+        for base_line in base_lines:
+            discount = base_line['discount']
+            price_unit = base_line['price_unit']
+            quantity = base_line['quantity']
+            tax_details = base_line['tax_details']
+            price_subtotal = tax_details['raw_total_excluded_currency'] - sum(
+                discount_base_line['tax_details']['raw_total_excluded_currency']
+                for discount_base_line in base_line['discount_base_lines']
+            )
+
+            if discount == 100.0:
+                raw_gross_price_subtotal = price_unit * quantity
+            else:
+                raw_gross_price_subtotal = price_subtotal / (1 - discount / 100.0)
+            base_line['raw_gross_price_subtotal'] = raw_gross_price_subtotal
+            base_line['discount_amount'] = raw_gross_price_subtotal - tax_details['raw_total_excluded_currency']
+
+        # Update tax_details with l10n_ec info needed for the xml
+        for line_items in base_lines:
+            for tax_data in line_items['tax_details']['taxes_data']:
+                code_percentage = L10N_EC_VAT_SUBTAXES[tax_data['tax'].tax_group_id.l10n_ec_type]
+                tax_data.update({
+                    'code': self.env['account.move']._l10n_ec_map_tax_groups(tax_data['tax']),
+                    'code_percentage': code_percentage,
+                    'rate': L10N_EC_VAT_RATES[code_percentage],
+                })
+
+        results = {
+            'base_lines': [],
+            'remaining_negative_base_lines': [],
+            'nullified_base_lines': [],
+        }
+        for base_line in base_lines:
+            compare_results = base_line['currency_id'].compare_amounts(base_line['raw_gross_price_subtotal'], 0)
+            if compare_results > 0.0:
+                results['base_lines'].append(base_line)
+            elif compare_results < 0.0:
+                results['remaining_negative_base_lines'].append(base_line)
+            else:
+                results['nullified_base_lines'].append(base_line)
+
+        errors = []
+        if not base_lines and not results['nullified_base_lines']:
+            errors.append(_("The invoice must contain at least one positive line to generate the XML."))
+        if results['remaining_negative_base_lines']:
+            errors.append(_("Failed to dispatch negative lines into discounts."))
+
+        return results, errors
+
     def _l10n_ec_generate_xml(self, move):
         # Gather XML values
         move_info = self._l10n_ec_get_xml_common_values(move)
@@ -345,7 +418,18 @@ class AccountEdiFormat(models.Model):
         # Generate XML document
         errors = []
         if move_info.get('taxes_data'):
-            errors += self._l10n_ec_remove_negative_lines_from_move_info(move_info)
+            # To remove in master: use the old code if the template was not updated
+            template_tree = self.env['ir.qweb']._get_template('l10n_ec_edi.common_details_info_template')[0]
+            if template_tree.findall('.//t')[0].attrib.get('t-value', '') != "taxes_data['base_lines']":
+                errors += self._l10n_ec_remove_negative_lines_from_move_info(move_info)
+            else:
+                dispatched_lines, dispatching_errors = self._l10n_ec_get_base_lines(move_info)
+                errors += dispatching_errors
+
+                base_lines = dispatched_lines['base_lines']
+                move_info['taxes_data']['base_lines'] = base_lines
+                move_info['discount_total'] = sum(base_line['discount_amount'] for base_line in base_lines)
+
         xml_content = self.env['ir.qweb']._render(template, move_info)
         xml_content = cleanup_xml_node(xml_content)
 

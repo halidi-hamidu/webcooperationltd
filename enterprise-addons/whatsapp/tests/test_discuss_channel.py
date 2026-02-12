@@ -72,42 +72,66 @@ We're always happy to assist!""",
                 self.assertFalse(member_of_operator.is_pinned)
 
     def test_post_with_audio_attachment(self):
-        message_vals_all = (
-            {'body': '', 'attachment_ids': self.audio_attachment_wa_admin.ids},
-            {'body': 'TestBody', 'attachment_ids': self.audio_attachment_wa_admin.ids},
-            {'body': 'TestBody', 'attachment_ids': (self.image_attachment_wa_admin + self.audio_attachment_wa_admin).ids},
+        test_cases = (
+            {
+                'body': '',
+                'attachment_ids': self.audio_attachment_wa_admin.ids,
+                'expected_message_count': 1,
+                'is_body_empty': True,
+            },
+            {
+                'body': Markup('<p><br></p>'),
+                'attachment_ids': self.audio_attachment_wa_admin.ids,
+                'expected_message_count': 1,
+                'is_body_empty': True,
+            },
+            {
+                'body': 'TestBody',
+                'attachment_ids': self.audio_attachment_wa_admin.ids,
+                'expected_message_count': 2,
+                'is_body_empty': False,
+            },
+            {
+                'body': 'TestBody',
+                'attachment_ids': (self.image_attachment_wa_admin + self.audio_attachment_wa_admin).ids,
+                'expected_message_count': 2,
+                'is_body_empty': False,
+            },
         )
-        for message_vals in message_vals_all:
-            expected_body = message_vals['body']
-            expect_audio_attachment = self.audio_attachment_wa_admin.id in message_vals['attachment_ids']
-            expect_image_attachment = self.image_attachment_wa_admin.id in message_vals['attachment_ids']
+        for test_case in test_cases:
+            body = test_case['body']
+            attachment_ids = test_case['attachment_ids']
+            expected_message_count = test_case['expected_message_count']
+            is_body_empty = test_case['is_body_empty']
+            expect_audio_attachment = self.audio_attachment_wa_admin.id in attachment_ids
+            expect_image_attachment = self.image_attachment_wa_admin.id in attachment_ids
+
             with self.subTest(
-                body=expected_body, image_attachment=expect_image_attachment, audio_attachment=expect_audio_attachment
+                body=body, image_attachment=expect_image_attachment, audio_attachment=expect_audio_attachment
             ):
                 with self.mockWhatsappGateway(), self.mock_mail_app():
                     return_message = self.test_channel_wa.message_post(
                         author_id=self.test_channel_wa.whatsapp_partner_id.id,
                         message_type='whatsapp_message',
                         subtype_xmlid='mail.mt_comment',
-                        **message_vals,
+                        body=body,
+                        attachment_ids=attachment_ids,
                     )
                     self.assertEqual(len(return_message), 1, "We expect one returned message when posting.")
-                    if expected_body:
+                    if body:
                         self.assertIn(
-                            expected_body, return_message.body,
+                            body, return_message.body,
                             "Should return the message containing the body if two are created."
                         )
                 messages = self._new_msgs
-
-                expected_message_count = bool(message_vals['body']) + bool(expect_audio_attachment)
 
                 self.assertEqual(len(messages), expected_message_count)
                 self.assertEqual(len(self._wa_msg_sent), expected_message_count)
                 self.assertEqual(messages.wa_message_ids.mapped('msg_uid'), self._wa_msg_sent)
 
-                if expected_body:
+                if not is_body_empty:
                     body_message = messages[0]
-                    self.assertIn(expected_body, body_message.body)
+                    self.assertIn(body, body_message.body)
                     if expect_image_attachment:
                         self.assertEqual(len(body_message.attachment_ids), 1)
                         self.assertEqual(body_message.attachment_ids.mimetype, 'image/jpeg')
@@ -115,6 +139,8 @@ We're always happy to assist!""",
                     audio_message = messages[expected_message_count - 1]
                     self.assertEqual(len(audio_message.attachment_ids), 1)
                     self.assertEqual(audio_message.attachment_ids.mimetype, 'audio/mpeg')
+                    if is_body_empty:
+                        self.assertNotIn('caption', self._wa_msg_sent_vals[expected_message_count - 1])
 
     @users('user_wa_admin')
     def test_post_with_outbound(self):
@@ -178,6 +204,26 @@ We're always happy to assist!""",
             self._new_msgs.body,
             "<p>Hello there,<br>Just a quick note to let you know that we're here to help with anything you might need. "
             "If you have any questions, please don't hesitate to send us a message.<br>We're always happy to assist!</p>")
+
+    @users('user_wa_admin')
+    def test_post_with_url_body_cleanup_for_duplicated_urls(self):
+        """ Test that the we won't send the same URL twice in the body of a message to whatsapp."""
+        test_channel = self.test_channel_wa.with_env(self.env)
+
+        input_body = Markup('<p>I love <a href="https://shin.com">https://shin.com</a> and <a href="https://chan.com">https://chan.com</a></p>')
+        expected_body = "I love https://shin.com and https://chan.com"
+
+        with self.mockWhatsappGateway():
+            test_channel.message_post(
+                author_id=self.user_wa_admin.partner_id.id,
+                body=input_body,
+                message_type='whatsapp_message',
+                subtype_xmlid='mail.mt_comment',
+            )
+
+        self.assertEqual(len(self._wa_msg_sent_vals), 1, "One message should have been sent.")
+        sent_body = self._wa_msg_sent_vals[0].get('body')
+        self.assertEqual(sent_body, expected_body, "The body should not contain duplicated urls.")
 
     @users('user_wa_admin')
     def test_post_with_whatsapp_inbound_msg_uid(self):

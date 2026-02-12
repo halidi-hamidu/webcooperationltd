@@ -31,8 +31,7 @@ class HrAppraisalCampaignWizard(models.TransientModel):
         help="'Employee's Manager': Each appraisal will be conducted by the direct manager of the employee"
         "\n'Specific Person': All appraisals will be conducted by the specified employees")
     manager_ids = fields.Many2many("hr.employee", string="Managers", relation="managers")
-    appraisal_template_id = fields.Many2one('hr.appraisal.template', string="Appraisal Template", required=True,
-        domain=[('company_id', 'in', [company_id, False])])
+    appraisal_template_id = fields.Many2one('hr.appraisal.template', string="Appraisal Template", required=True, check_company=True)
     appraisal_date = fields.Date(default=fields.Date.today() + relativedelta(months=1), required=True)
     warning = fields.Char(compute="_compute_warning")
 

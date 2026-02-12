@@ -41,12 +41,16 @@ registry.category("web_tour.tours").add("databases_tour", {
         {
             content: 'set the database URL',
             trigger: '.o_field_widget[name="database_url"] input',
-            run: 'edit http://my.database.tld',
+            run: 'edit my.database.tld',
         },
         {
             content: 'set the database name',
             trigger: '.o_field_widget[name="database_name"] input',
             run: 'edit my-database',
+        },
+        {
+            content: 'check that the URL has been prefixed with the https scheme',
+            trigger: '.o_field_widget[name="database_url"] input:value("https://my.database.tld")',
         },
         {
             content: 'set the database API login',
@@ -135,6 +139,10 @@ registry.category("web_tour.tours").add("databases_tour", {
             content: 'set the database name',
             trigger: '.modal-body .o_field_widget[name="database_name"] input',
             run: 'edit other-database',
+        },
+        {
+            content: 'check that the URL has not been prefixed with the https scheme',
+            trigger: '.o_field_widget[name="database_url"] input:value("http://other.database.tld")',
         },
         {
             content: 'set the database API login',

@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2026-01-02 11:37+0000\n"
+"POT-Creation-Date: 2026-02-06 18:42+0000\n"
+"PO-Revision-Date: 2026-02-06 13:05+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "account_reports/ar/>\n"
@@ -415,19 +415,13 @@ msgstr ""
 #. module: account_reports
 #: model_terms:ir.ui.view,arch_db:account_reports.return_creation_wizard_form
 msgid ""
-"<span invisible=\"not show_warning_wrong_dates\" class=\"fa fa-exclamation-"
-"triangle text-danger pb-2\" title=\"The selected range doesn't match any "
-"fiscal period.\"/>\n"
-"                            <span invisible=\"not "
-"show_warning_existing_return\" class=\"fa fa-exclamation-triangle text-"
-"danger pb-2\" title=\"A return already exists for the selected period.\"/>"
+"<span invisible=\"not show_warning_existing_return\" class=\"fa fa-"
+"exclamation-triangle text-danger pb-2\" title=\"A return already exists for "
+"the selected period.\"/>\n"
+"                            <span invisible=\"not show_warning_overlap\" "
+"class=\"fa fa-exclamation-triangle text-danger pb-2\" title=\"Another return "
+"already covers part of this period.\"/>"
 msgstr ""
-"<span invisible=\"not show_warning_wrong_dates\" class=\"fa fa-exclamation-"
-"triangle text-danger pb-2\" title=\"The selected range doesn't match any "
-"fiscal period.\"/>\n"
-"                            <span invisible=\"not "
-"show_warning_existing_return\" class=\"fa fa-exclamation-triangle text-"
-"danger pb-2\" title=\"A return already exists for the selected period.\"/>"
 
 #. module: account_reports
 #: model_terms:ir.ui.view,arch_db:account_reports.account_return_type_form_view
@@ -949,6 +943,11 @@ msgstr ""
 "المُعرِّف الضريبي للشركات المحددة."
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_allocation_of_prior_year_result_to_equity
+msgid "Allocation of prior-year result to equity"
+msgstr ""
+
+#. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_report__allow_account_audit_status_on_lines
 msgid "Allow Account Audit Status On Lines"
 msgstr "السماح بحالة تدقيق الحساب في البنود"
@@ -1010,6 +1009,12 @@ msgstr "المبالغ بالملايين"
 #: code:addons/account_reports/models/account_report.py:0
 msgid "Amounts in Thousands"
 msgstr "المبالغ بالآلاف"
+
+#. module: account_reports
+#. odoo-python
+#: code:addons/account_reports/models/account_return.py:0
+msgid "An active return already exists for the same period."
+msgstr ""
 
 #. module: account_reports
 #. odoo-javascript
@@ -1678,10 +1683,25 @@ msgstr ""
 "مسجلة بشكل صحيح."
 
 #. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_allocation_of_prior_year_result_to_equity
+msgid ""
+"Check how the prior year's result (N-1) was allocated, especially if "
+"reclassified into share capital or reserves."
+msgstr ""
+
+#. module: account_reports
 #. odoo-javascript
 #: code:addons/account_reports/static/src/components/tax_report/warnings.xml:0
 msgid "Check them"
 msgstr "تفقدهم"
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_legal_reserve_and_dividend_eligibility
+msgid ""
+"Check whether the legal reserve is properly funded and if dividend "
+"distributions meet legal conditions, especially in case of unamortized "
+"formation expenses."
+msgstr ""
 
 #. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_return__check_ids
@@ -1940,6 +1960,12 @@ msgid ""
 msgstr ""
 "قم بتأكيد التصنيف الصحيح، وقياس القيمة العادلة، ومعالجة التصرف في الأوراق "
 "المالية القابلة للتداول."
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_dividend_payment_verification
+msgid ""
+"Confirm that the declared dividends were actually paid to the shareholders."
+msgstr ""
 
 #. module: account_reports
 #. odoo-javascript
@@ -2472,6 +2498,7 @@ msgstr "عرض أداة إنشاء البريد الإلكتروني"
 #: model:ir.model.fields,field_description:account_reports.field_account_tax_unit__display_name
 #: model:ir.model.fields,field_description:account_reports.field_account_trial_balance_report_handler__display_name
 #: model:ir.model.fields,field_description:account_reports.field_ir_actions_account_report_download__display_name
+#: model:ir.model.fields,field_description:account_reports.field_ir_module_module__display_name
 #: model:ir.model.fields,field_description:account_reports.field_ir_ui_menu__display_name
 #: model:ir.model.fields,field_description:account_reports.field_kpi_provider__display_name
 #: model:ir.model.fields,field_description:account_reports.field_mail_activity__display_name
@@ -2495,6 +2522,11 @@ msgid ""
 msgstr ""
 "يعرض قيمة الحقل المحدد كتلميح نصي. إذا كان الحقل المحدد فارغًا، يتم عرض سمة "
 "العنصر النائب الثابت عوضاً عن ذلك."
+
+#. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_dividend_payment_verification
+msgid "Dividend payment verification"
+msgstr ""
 
 #. module: account_reports
 #. odoo-python
@@ -2645,6 +2677,11 @@ msgid ""
 msgstr "لا يُسمح بتحرير تقرير يدوي عندما يتم تحديد عدة شركات."
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_eligibility_tax_reductions_and_credits
+msgid "Eligibility for tax reductions and credits"
+msgstr ""
+
+#. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_report_send__checkbox_send_mail
 msgid "Email"
 msgstr "البريد الإلكتروني"
@@ -2717,6 +2754,25 @@ msgid "Engine"
 msgstr "المحرك"
 
 #. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_vat_rate_compliance
+msgid "Ensure VAT rates applied are consistent with the company's activity."
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_minutes_of_the_agm_on_profit_allocation
+msgid ""
+"Ensure a signed copy of the AGM minutes allocating prior-year profit has "
+"been obtained and archived."
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_equity_account_movements_legal_documents
+msgid ""
+"Ensure accounting entries in capital accounts are consistent with supporting "
+"legal documents."
+msgstr ""
+
+#. module: account_reports
 #: model:account.return.check.template,description:account_reports.account_return_check_template_clear_internal_transfer_account
 msgid ""
 "Ensure all intercompany or internal bank transfer accounts are cleared and "
@@ -2769,6 +2825,11 @@ msgstr "القيود التي بها شركاء بلا ضريبة القيمة �
 #: model:ir.model.fields.selection,name:account_reports.selection__account_return_check_template__cycle__equity
 msgid "Equity"
 msgstr "رأس المال"
+
+#. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_equity_account_movements_legal_documents
+msgid "Equity account movements vs legal documents"
+msgstr ""
 
 #. module: account_reports
 #. odoo-python
@@ -2997,6 +3058,13 @@ msgid ""
 msgstr "يجب أن تنطبق الأوضاع المالية على كافة الشركات لوحدة الضريبة. ربما عليك"
 
 #. module: account_reports
+#: model:ir.model.fields.selection,name:account_reports.selection__account_return_type__deadline_periodicity__fiscalyear
+#: model:ir.model.fields.selection,name:account_reports.selection__account_return_type__default_deadline_periodicity__fiscalyear
+#: model:ir.model.fields.selection,name:account_reports.selection__res_company__account_return_periodicity__fiscalyear
+msgid "Fiscal Year"
+msgstr ""
+
+#. module: account_reports
 #: model:account.return.check.template,name:account_reports.account_return_check_template_fixed_assets_review
 msgid "Fixed Assets Review"
 msgstr ""
@@ -3075,6 +3143,11 @@ msgid "Foreign currencies adjustment entry as of %s"
 msgstr "قيد تعديل العملات الأجنبية اعتباراً من %s"
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_foreign_operations
+msgid "Foreign operations"
+msgstr ""
+
+#. module: account_reports
 #. odoo-javascript
 #: code:addons/account_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
 msgid "Formula"
@@ -3130,6 +3203,11 @@ msgstr "المعالج المخصص لدفتر الأستاذ العام"
 #: model_terms:ir.ui.view,arch_db:account_reports.return_creation_wizard_form
 msgid "Generate Return"
 msgstr "إنشاء إقرار"
+
+#. module: account_reports
+#: model_terms:ir.ui.view,arch_db:account_reports.return_creation_wizard_form
+msgid "Generate Return Anyway"
+msgstr ""
 
 #. module: account_reports
 #. odoo-python
@@ -3387,6 +3465,7 @@ msgstr "IBAN"
 #: model:ir.model.fields,field_description:account_reports.field_account_tax_unit__id
 #: model:ir.model.fields,field_description:account_reports.field_account_trial_balance_report_handler__id
 #: model:ir.model.fields,field_description:account_reports.field_ir_actions_account_report_download__id
+#: model:ir.model.fields,field_description:account_reports.field_ir_module_module__id
 #: model:ir.model.fields,field_description:account_reports.field_ir_ui_menu__id
 #: model:ir.model.fields,field_description:account_reports.field_kpi_provider__id
 #: model:ir.model.fields,field_description:account_reports.field_mail_activity__id
@@ -3423,6 +3502,13 @@ msgstr ""
 msgid ""
 "Identify and verify any cash payments made to suppliers. Ensure all are "
 "properly justified."
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_eligibility_tax_reductions_and_credits
+msgid ""
+"Identify applicable tax credit schemes, verify eligibility, compute "
+"benefits, validate supporting documentation, and monitor refund claims."
 msgstr ""
 
 #. module: account_reports
@@ -3584,6 +3670,19 @@ msgid "Integer Rounding"
 msgstr "تقريب العدد الصحيح"
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_intercompany_account_reconciliation
+msgid "Intercompany account reconciliation"
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_intercompany_account_reconciliation
+msgid ""
+"Intercompany reconciliation is vital for accurate group accounting. It "
+"ensures reciprocal balances between related entities match precisely, which "
+"is necessary for eliminating internal transactions during consolidation."
+msgstr ""
+
+#. module: account_reports
 #. odoo-javascript
 #: code:addons/account_reports/static/src/components/aged_partner_balance/filters.js:0
 msgid "Intervals cannot be smaller than 1"
@@ -3681,6 +3780,11 @@ msgstr "تقرير تغطية الحسابات متاح"
 #: model:ir.model.fields,field_description:account_reports.field_account_return__is_completed
 msgid "Is Completed"
 msgstr "مكتملة"
+
+#. module: account_reports
+#: model:ir.model.fields,field_description:account_reports.field_account_return_creation_wizard__is_create_disabled
+msgid "Is Create Disabled"
+msgstr ""
 
 #. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_return__message_is_follower
@@ -3920,6 +4024,11 @@ msgid "Ledgers"
 msgstr ""
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_legal_reserve_and_dividend_eligibility
+msgid "Legal reserve and dividend eligibility"
+msgstr ""
+
+#. module: account_reports
 #: model:account.report.line,name:account_reports.account_financial_report_allocations_withdrawals0
 msgid "Less Allocations and Plus Withdrawals"
 msgstr ""
@@ -3994,6 +4103,13 @@ msgstr "المرفق الرئيسي"
 #: model:ir.model.fields,field_description:account_reports.field_account_tax_unit__main_company_id
 msgid "Main Company"
 msgstr "الشركة الرئيسية"
+
+#. module: account_reports
+#. odoo-python
+#: code:addons/account_reports/models/account_return.py:0
+msgid ""
+"Main company must be provided if start_day and start_month are not provided"
+msgstr ""
 
 #. module: account_reports
 #: model:ir.model.fields,help:account_reports.field_account_tax_unit__main_company_id
@@ -4109,6 +4225,16 @@ msgid "Method '%(method_name)s' must start with the '%(prefix)s' prefix."
 msgstr "يجب أن تبدأ الطريقة '%(method_name)s' بالبادئة '%(prefix)s'."
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_minimum_share_capital_compliance
+msgid "Minimum share capital compliance"
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_minutes_of_the_agm_on_profit_allocation
+msgid "Minutes of the AGM on profit allocation"
+msgstr ""
+
+#. module: account_reports
 #: model:account.report.line,name:account_reports.misc_operations
 msgid "Misc. operations"
 msgstr "العمليات المتنوعة"
@@ -4128,8 +4254,8 @@ msgid ""
 "such as using the wrong VAT rate, wrongly exempting transactions.\n"
 "                "
 msgstr ""
-"يمكن أن تتسبب تفاصيل الشركة المفقودة (مثل رقم ضريبة القيمة المضافة أو الدولة)"
-" في حدوث أخطاء في تقريرك، \n"
+"يمكن أن تتسبب تفاصيل الشركة المفقودة (مثل رقم ضريبة القيمة المضافة أو "
+"الدولة) في حدوث أخطاء في تقريرك، \n"
 "مثل استخدام معدل خاطئ لضريبة القيمة المضافة، وإعفاء المعاملات بشكل خاطئ.\n"
 "                "
 
@@ -4144,6 +4270,11 @@ msgstr "الوضع"
 #: model:ir.model.fields,field_description:account_reports.field_account_return_check_template__model
 msgid "Model"
 msgstr "النموذج"
+
+#. module: account_reports
+#: model:ir.model,name:account_reports.model_ir_module_module
+msgid "Module"
+msgstr ""
 
 #. module: account_reports
 #. odoo-javascript
@@ -4558,6 +4689,7 @@ msgstr "فتح المستند"
 
 #. module: account_reports
 #: model:ir.actions.server,name:account_reports.action_server_open_view_account_return
+#: model:ir.actions.server,name:account_reports.action_server_open_view_account_return_with_additional_params
 msgid "Open Tax Return"
 msgstr "فتح الإقرار الضريبي"
 
@@ -4982,11 +5114,20 @@ msgid "Posted Entries"
 msgstr "القيود المُرحّلة"
 
 #. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_risk_provisioning_and_provision_movement_schedule
+msgid ""
+"Prepare a detailed provision schedule and ensure all risks are identified "
+"and properly provisioned."
+msgstr ""
+
+#. module: account_reports
 #: model:account.return.check.template,description:account_reports.account_return_check_template_subsidaries_and_investments_summary
 msgid ""
 "Prepare a summary of subsidiaries and investments including ownership "
 "percentages, acquisition values, net equity, earnings, and dividends paid."
 msgstr ""
+"قم بإعداد ملخص للشركات التابعة والاستثمارات بما في ذلك نسب الملكية وقيم "
+"الاستحواذ وصافي حقوق الملكية والأرباح والأرباح الموزعة."
 
 #. module: account_reports
 #: model:account.report.line,name:account_reports.account_financial_report_prepayements0
@@ -5159,6 +5300,19 @@ msgstr "تم تأكيده"
 #: code:addons/account_reports/models/account_return.py:0
 msgid "Reconcile all bank account transactions up to year-end."
 msgstr "تسوية كافة معاملات الحساب البنكي حتى نهاية العام."
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_reconcile_payable_with_fillings
+msgid ""
+"Reconcile all tax-related payables with the latest official filings.\n"
+"Analyze discrepancies, verify post-period payments, and document the status "
+"of any unresolved amounts or ongoing disputes."
+msgstr ""
+
+#. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_reconcile_payable_with_fillings
+msgid "Reconcile tax payables with tax filings"
+msgstr ""
 
 #. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_return_check__records_count
@@ -5404,6 +5558,8 @@ msgid ""
 "Review FX rates used at year-end, compare with prior year, and verify "
 "appropriate recognition and presentation of currency adjustments."
 msgstr ""
+"قم بمراجعة أسعار صرف العملات الأجنبية المستخدمة في نهاية العام، ومقارنتها "
+"بالعام السابق، والتحقق من الاعتراف المناسب بتعديلات العملة وعرضها."
 
 #. module: account_reports
 #. odoo-python
@@ -5424,6 +5580,13 @@ msgid ""
 msgstr ""
 "قم بمراجعة وترحيل مسودات فواتير الموردين وفواتير العملاء والقيود خلال "
 "الفترة، أو قم بتغيير تاريخ المحاسبة."
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_foreign_operations
+msgid ""
+"Review and reconcile intra-EU and international (export/import) operations "
+"for compliance and completeness."
+msgstr ""
 
 #. module: account_reports
 #: model:account.return.check.template,name:account_reports.account_return_check_template_review_for_capitalizable_expenses
@@ -5470,6 +5633,8 @@ msgid ""
 "Review petty cash accounts to ensure they do not have credit balances. "
 "Investigate and justify any anomalies."
 msgstr ""
+"مراجعة حسابات المصروفات النثرية للتأكد من عدم وجود أرصدة دائنة فيها. التحقيق "
+"في أي حالات شاذة وتبريرها."
 
 #. module: account_reports
 #. odoo-python
@@ -5515,6 +5680,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account_reports.account_return_check_search_view
 msgid "Reviewed"
 msgstr "تمت مراجعته"
+
+#. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_risk_provisioning_and_provision_movement_schedule
+msgid "Risk provisioning and provision movement schedule"
+msgstr ""
 
 #. module: account_reports
 #: model_terms:ir.ui.view,arch_db:account_reports.view_account_report_search
@@ -5705,6 +5875,11 @@ msgstr "إظهار تحذير بأن الإقرار موجود بالفعل"
 #: model:ir.model.fields,field_description:account_reports.field_account_multicurrency_revaluation_wizard__show_warning_move_id
 msgid "Show Warning Move"
 msgstr "إظهار حركة تحذير"
+
+#. module: account_reports
+#: model:ir.model.fields,field_description:account_reports.field_account_return_creation_wizard__show_warning_overlap
+msgid "Show Warning Overlap"
+msgstr ""
 
 #. module: account_reports
 #: model:ir.model.fields,field_description:account_reports.field_account_return_creation_wizard__show_warning_wrong_dates
@@ -6154,6 +6329,7 @@ msgstr ""
 #. module: account_reports
 #. odoo-python
 #: code:addons/account_reports/wizard/return_creation_wizard.py:0
+#: model_terms:ir.ui.view,arch_db:account_reports.return_creation_wizard_form
 msgid "The selected range doesn't match any fiscal period."
 msgstr "لا يطابق النطاق المحدد أي فترة مالية."
 
@@ -6631,6 +6807,11 @@ msgid "VAT Numbers"
 msgstr "أرقام ضريبة القيمة المضافة"
 
 #. module: account_reports
+#: model:account.return.check.template,name:account_reports.account_return_check_template_vat_rate_compliance
+msgid "VAT rate compliance"
+msgstr ""
+
+#. module: account_reports
 #. odoo-python
 #: code:addons/account_reports/models/account_return.py:0
 msgid "Valid VAT Numbers"
@@ -6674,27 +6855,20 @@ msgstr "بطاقة عنوان ضريبة القيمة المضافة"
 msgid ""
 "Verify that cash and card receipts recorded at period-end are actually "
 "settled in the following period. Also check the correct accounting treatment "
-"of Dailly* assignments, discounting operations, and factoring contracts**.\n"
+"of discounting operations and factoring contracts*.\n"
 "\n"
-"* The \"\"Dailly Law\"\" is a French law that allows businesses to assign "
-"commercial receivables (like invoices) to a credit institution (like a bank) "
-"in exchange for financing.\n"
-"\n"
-"**Factoring contracts involve a business selling its unpaid invoices "
+"*Factoring contracts involve a business selling its unpaid invoices "
 "(accounts receivable) to a third-party company, known as a factor, in "
 "exchange for immediate cash.\n"
 "            "
 msgstr ""
-"تحقق من أن الإيصالات النقدية والبطاقات المسجلة في نهاية الفترة قد تمت "
-"تسويتها بالفعل في الفترة التالية. تحقق أيضًا من صحة المعالجة المحاسبية "
-"لعمليات التنازل عن الديون* وعمليات الخصم وعقود التخصيم**.\n"
-"\n"
-"* ”قانون Dailly“ هو قانون فرنسي يسمح للشركات بتحويل الذمم التجارية (مثل "
-"الفواتير) إلى مؤسسة ائتمانية (مثل البنك) مقابل تمويل.\n"
-"\n"
-"**تتضمن عقود التخصيم بيع شركة لفواتيرها غير المسددة (الذمم المدينة) إلى شركة "
-"طرف ثالث، تُعرف باسم ”الفاكتور“، مقابل نقد فوري.\n"
-"            "
+
+#. module: account_reports
+#: model:account.return.check.template,description:account_reports.account_return_check_template_minimum_share_capital_compliance
+msgid ""
+"Verify that the company’s share capital meets or exceeds the legal minimum "
+"for its corporate form."
+msgstr ""
 
 #. module: account_reports
 #. odoo-python
@@ -6943,7 +7117,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_reports/models/account_report.py:0
 msgid "You cannot update this value as it's locked by: %s"
-msgstr ""
+msgstr "لا يمكنك تحديث هذه القيمة لأنها مقفلة بواسطة: %s"
 
 #. module: account_reports
 #. odoo-python
@@ -7059,6 +7233,12 @@ msgstr "ملايين"
 
 #. module: account_reports
 #. odoo-python
+#: code:addons/account_reports/models/account_return.py:0
+msgid "n must be a positive integer."
+msgstr ""
+
+#. module: account_reports
+#. odoo-python
 #: code:addons/account_reports/models/account_report.py:0
 msgid "n/a"
 msgstr "غير منطبق"
@@ -7079,7 +7259,7 @@ msgstr "قبل هذه الفترة أو مشمول فيها."
 #. odoo-python
 #: code:addons/account_reports/models/account_report.py:0
 msgid "report.%(file_extension)s"
-msgstr ""
+msgstr "report.%(file_extension)s"
 
 #. module: account_reports
 #. odoo-python
@@ -7172,6 +7352,9 @@ msgid ""
 "object._get_followup_responsible().company_id).name }} Follow Up - "
 "{{ object.commercial_company_name }}"
 msgstr ""
+"{{ (object.company_id or "
+"object._get_followup_responsible().company_id).name }} المتابعة - "
+"{{ object.commercial_company_name }}"
 
 #. module: account_reports
 #: model:mail.template,subject:account_reports.email_template_customer_statement
@@ -7189,6 +7372,47 @@ msgstr ""
 #: code:addons/account_reports/static/src/components/multicurrency_revaluation_report/warnings.xml:0
 msgid "⇒ Reset to Odoo’s Rate"
 msgstr "-> إعادة التعيين لأسعار أودو"
+
+#~ msgid ""
+#~ "Verify that cash and card receipts recorded at period-end are actually "
+#~ "settled in the following period. Also check the correct accounting "
+#~ "treatment of Dailly* assignments, discounting operations, and factoring "
+#~ "contracts**.\n"
+#~ "\n"
+#~ "* The \"\"Dailly Law\"\" is a French law that allows businesses to assign "
+#~ "commercial receivables (like invoices) to a credit institution (like a "
+#~ "bank) in exchange for financing.\n"
+#~ "\n"
+#~ "**Factoring contracts involve a business selling its unpaid invoices "
+#~ "(accounts receivable) to a third-party company, known as a factor, in "
+#~ "exchange for immediate cash.\n"
+#~ "            "
+#~ msgstr ""
+#~ "تحقق من أن الإيصالات النقدية والبطاقات المسجلة في نهاية الفترة قد تمت "
+#~ "تسويتها بالفعل في الفترة التالية. تحقق أيضًا من صحة المعالجة المحاسبية "
+#~ "لعمليات التنازل عن الديون* وعمليات الخصم وعقود التخصيم**.\n"
+#~ "\n"
+#~ "* ”قانون Dailly“ هو قانون فرنسي يسمح للشركات بتحويل الذمم التجارية (مثل "
+#~ "الفواتير) إلى مؤسسة ائتمانية (مثل البنك) مقابل تمويل.\n"
+#~ "\n"
+#~ "**تتضمن عقود التخصيم بيع شركة لفواتيرها غير المسددة (الذمم المدينة) إلى "
+#~ "شركة طرف ثالث، تُعرف باسم ”الفاكتور“، مقابل نقد فوري.\n"
+#~ "            "
+
+#~ msgid ""
+#~ "<span invisible=\"not show_warning_wrong_dates\" class=\"fa fa-"
+#~ "exclamation-triangle text-danger pb-2\" title=\"The selected range "
+#~ "doesn't match any fiscal period.\"/>\n"
+#~ "                            <span invisible=\"not "
+#~ "show_warning_existing_return\" class=\"fa fa-exclamation-triangle text-"
+#~ "danger pb-2\" title=\"A return already exists for the selected period.\"/>"
+#~ msgstr ""
+#~ "<span invisible=\"not show_warning_wrong_dates\" class=\"fa fa-"
+#~ "exclamation-triangle text-danger pb-2\" title=\"The selected range "
+#~ "doesn't match any fiscal period.\"/>\n"
+#~ "                            <span invisible=\"not "
+#~ "show_warning_existing_return\" class=\"fa fa-exclamation-triangle text-"
+#~ "danger pb-2\" title=\"A return already exists for the selected period.\"/>"
 
 #~ msgid "Currencies"
 #~ msgstr "العملات"

@@ -9,7 +9,8 @@ import {
     insertPivotInSpreadsheet,
 } from "@spreadsheet/../tests/helpers/pivot";
 import * as dsHelpers from "@web/../tests/core/tree_editor/condition_tree_editor_test_helpers";
-import { contains, onRpc } from "@web/../tests/web_test_helpers";
+import { contains, onRpc, MockServer } from "@web/../tests/web_test_helpers";
+import { updatePivot } from "@spreadsheet/../tests/helpers/commands";
 
 defineDocumentSpreadsheetModels();
 describe.current.tags("desktop");
@@ -70,6 +71,34 @@ test("Deleting the pivot open the side panel with all pivots", async function ()
     model.dispatch("REMOVE_PIVOT", { pivotId });
     await animationFrame();
     expect(".o-sidePanel").toHaveCount(0);
+});
+
+test("Pivot with missing dimension does not crash when opening side panel", async function () {
+    const { model, env } = await createSpreadsheetFromPivotView({
+        mockRPC: async function (route, { model, method, kwargs }) {
+            if (model === "res.currency" && method === "fields_get") {
+                const fields = MockServer.env["res.currency"].fields_get();
+                delete fields["name"];
+                return fields;
+            }
+        },
+    });
+    await insertPivotInSpreadsheet(model, "pivot2", {
+        arch: `<pivot string="Product">
+                    <field name="name" type="col"/>
+                    <field name="currency_id" type="row"/>
+                    <field name="__count" type="measure"/>
+                </pivot>`,
+        resModel: "product",
+        id: "pivot2",
+    });
+    updatePivot(model, "pivot2", {
+        rows: [{ fieldName: "currency_id.name", order: "asc" }],
+        columns: [],
+    });
+    env.openSidePanel("PivotSidePanel", { pivotId: "pivot2" });
+    await animationFrame();
+    expect(".o-sidePanelTitle").toHaveText("Pivot #2");
 });
 
 test("Undo a pivot insertion open the side panel with all pivots", async function () {

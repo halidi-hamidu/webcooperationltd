@@ -11,6 +11,7 @@ and submit your Intracommunity Services to the Dutch tax authorities.
     'depends': ['l10n_nl_reports', 'account_intrastat'],
     'data': [
         'views/res_company_view.xml',
+        'data/account_return_data.xml',
     ],
     'auto_install': True,
     'author': 'Odoo S.A.',

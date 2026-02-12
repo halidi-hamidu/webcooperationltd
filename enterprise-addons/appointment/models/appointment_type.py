@@ -322,14 +322,15 @@ class AppointmentType(models.Model):
     @api.onchange('category_slot_scheduling')
     def _onchange_category_slot_scheduling(self):
         for apt in self.filtered(lambda apt: apt.category != 'anytime'):
+            previous_category = apt.category
             apt.category = (
                 'custom' if apt.category_slot_scheduling == 'flexible' else
                 'punctual' if apt.start_datetime or apt.end_datetime else
                 'recurring'
             )
-            if apt.category != 'custom':
+            if previous_category == 'custom' and apt.category != 'custom':
                 apt.slot_ids = apt._get_default_slots(apt.category)
-            else:
+            elif apt.category == 'custom':
                 apt.slot_ids = False
 
     @api.depends('category')
@@ -1040,7 +1041,7 @@ class AppointmentType(models.Model):
 
             months.append({
                 'id': len(months),
-                'month': format_datetime(start, 'MMMM Y', locale=get_lang(self.env).code),
+                'month': format_datetime(start, 'LLLL Y', locale=get_lang(self.env).code),
                 'weeks': dates,
                 'has_availabilities': has_availabilities,
             })
@@ -1548,7 +1549,7 @@ class AppointmentType(models.Model):
 
         slot_start_dt_utc_l, slot_end_dt_utc_l = pytz.utc.localize(slot_start_dt_utc), pytz.utc.localize(slot_end_dt_utc)
         for i_start, i_stop in availability_values.get('resource_unavailabilities', {}).get(resource, []):
-            if i_start != i_stop and i_start < slot_end_dt_utc_l and i_stop > slot_start_dt_utc_l:
+            if (i_stop - i_start) > timedelta(microseconds=1) and i_start < slot_end_dt_utc_l and i_stop > slot_start_dt_utc_l:
                 return False
 
         return True

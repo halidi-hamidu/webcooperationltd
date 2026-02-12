@@ -134,12 +134,13 @@ class Base_ImportImport(models.TransientModel):
         return super().parse_preview(options, count=count)
 
     def execute_import(self, fields, columns, options, dryrun=False):
-        if options.get('bank_stmt_import'):
+        if options.get('bank_stmt_import') or self.res_model == 'account.bank.statement.line':
             savepoint = self.env.cr.savepoint()
-            res = super(Base_ImportImport, self.with_context(bank_stmt_import=True)).execute_import(fields, columns, options, dryrun=dryrun)
+            res = super(Base_ImportImport, self.with_context(bank_stmt_import=True, auto_statement_processing=not dryrun)).execute_import(fields, columns, options, dryrun=dryrun)
             if not 'statement_id' in fields:
                 self.env['account.bank.statement'].with_context(
-                    auto_statement_processing=not dryrun and res.get('ids')
+                    import_file=True,
+                    auto_statement_processing=not dryrun and res.get('ids'),
                 ).create({
                     'reference': self.file_name,
                     'line_ids': [Command.set(res.get('ids', []))],

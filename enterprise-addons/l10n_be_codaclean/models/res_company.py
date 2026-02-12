@@ -1,3 +1,5 @@
+import re
+
 from odoo import api, fields, models
 from odoo.addons.l10n_be_codaclean.tools.iap_api import contact
 
@@ -63,6 +65,14 @@ class ResCompany(models.Model):
 
         return result
 
+    def _l10n_be_codaclean_get_formatted_vat(self):
+        if self.vat and self.vat != "/":
+            vat = self.vat
+        else:
+            vat = self.company_registry
+        digits = re.sub(r"[^0-9]", "", vat or "")
+        return re.sub(r"(\d{4})(\d{3})(\d{3})", r"\1.\2.\3", digits)
+
     def _l10n_be_codaclean_check_status(self):
         self.ensure_one()
         params = {"iap_token": self.sudo().l10n_be_codaclean_iap_token}
@@ -83,6 +93,7 @@ class ResCompany(models.Model):
     def _l10n_be_codaclean_fetch_coda_files(self, date_from, ibans):
         params = {
             "iap_token": self.sudo().l10n_be_codaclean_iap_token,
+            "enterprise_number": self._l10n_be_codaclean_get_formatted_vat(),
             "from_date": date_from,
             "ibans": ibans,  # dict: iban → date_from
         }

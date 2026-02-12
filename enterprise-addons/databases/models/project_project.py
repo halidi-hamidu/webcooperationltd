@@ -98,6 +98,23 @@ class ProjectProject(models.Model):
             value = (value,)
         return fields.Domain.TRUE if database_kpi_base_definition_id in value else fields.Domain.FALSE
 
+    @api.onchange('database_url')
+    def _onchange_database_url(self):
+        self.database_url = self._normalize_user_url(self.database_url)
+
+    def _normalize_user_url(self, url):
+        if not url:
+            return False
+
+        url = url.strip()
+        if not url or url.startswith(('http://', 'https://')):
+            return url
+
+        if url.startswith('//'):
+            return 'https:' + url
+
+        return 'https://' + url
+
     @api.model_create_multi
     def create(self, vals_list):
         parent = self.env['properties.base.definition'] \

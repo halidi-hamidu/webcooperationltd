@@ -107,7 +107,7 @@ class L10n_Be281_45(models.Model):
 
     @api.depends('xml_file')
     def _compute_validation_state(self):
-        xsd_schema_file_path = file_path('l10n_be_hr_payroll/data/Belcotax-2024.xsd')
+        xsd_schema_file_path = file_path('l10n_be_hr_payroll/data/Belcotax-2025.xsd')
         xsd_root = etree.parse(xsd_schema_file_path)
         schema = etree.XMLSchema(xsd_root)
 

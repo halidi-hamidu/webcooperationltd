@@ -126,3 +126,33 @@ class TestStockBarcodeController(HttpCase):
         )
         result = response.json()
         self.assertIn("result", result)
+
+    def test_main_menu_returns_product_location_action(self):
+        """Test that calling main_menu with a product barcode that does not respect
+        the GS1 nomenclature does not block the flow. The GS1 parsing error is
+        ignored and the standard main menu resolution logic continues, resulting
+        in an action opening the product location view.
+        """
+        product = self.env['product.product'].create({
+            'name': 'Test Product',
+            'barcode': '15099590483921',
+        })
+        self.env.company.nomenclature_id = self.env.ref('barcodes_gs1_nomenclature.default_gs1_nomenclature')
+        self.authenticate('admin', 'admin')
+        barcode_value = "15099590483921"
+        payload = json.dumps({
+            'jsonrpc': '2.0',
+            'method': 'call',
+            'id': 0,
+            'params': {
+                "barcode": barcode_value,
+            }
+        })
+        response = self.url_open(
+            '/stock_barcode/scan_from_main_menu',
+            data=payload,
+            headers={'Content-Type': 'application/json'},
+        )
+        result = response.json()['result']
+        self.assertEqual(result['action']['res_model'], 'stock.quant')
+        self.assertIn(['product_id', '=', product.id], result['action']['domain'])

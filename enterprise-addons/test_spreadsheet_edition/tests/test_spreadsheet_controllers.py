@@ -9,7 +9,7 @@ class SpreadsheetMixinControllerTest(SpreadsheetTestCase, HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.raoul = new_test_user(cls.env, login='raoul')
+        cls.raoul = new_test_user(cls.env, login='raoul', groups="base.group_user,test_spreadsheet.group_spreadsheet_test")
 
     def test_company_currency(self):
         self.authenticate(self.raoul.login, self.raoul.password)
@@ -68,3 +68,25 @@ class SpreadsheetMixinControllerTest(SpreadsheetTestCase, HttpCase):
         response = self.url_open(f'/spreadsheet/data/spreadsheet.test/{spreadsheet.id}')
         data = response.json()
         self.assertEqual(data['company_colors'], ['#aa0000', '#aa1111', '#FFFFFF', '#875A7B', '#bb0000', '#bb1111'])
+
+    def test_can_delete_archived_revisions(self):
+        self.authenticate(self.raoul.login, self.raoul.password)
+        spreadsheet = self.env['spreadsheet.test'].create({})
+        commands = self.new_revision_data(spreadsheet)
+        spreadsheet.dispatch_spreadsheet_message(commands)
+        snapshot_uuid = "snapshot-revision-id"
+        self.snapshot(
+            spreadsheet,
+            spreadsheet.current_revision_uuid, snapshot_uuid, {"sheets": [], "revisionId": snapshot_uuid},
+        )
+        archived_revisions = spreadsheet.with_context(active_test=False).spreadsheet_revision_ids
+        self.assertEqual(len(archived_revisions), 2)
+        archived_revisions.unlink()
+
+        # new revision
+        commands = self.new_revision_data(spreadsheet)
+        spreadsheet.dispatch_spreadsheet_message(commands)
+
+        response = self.url_open(f'/spreadsheet/data/spreadsheet.test/{spreadsheet.id}')
+        data = response.json()
+        self.assertEqual(data['revisions'][0]['serverRevisionId'], snapshot_uuid)

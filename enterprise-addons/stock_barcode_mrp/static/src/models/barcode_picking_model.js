@@ -4,7 +4,7 @@ import { patch } from "@web/core/utils/patch";
 import { _t } from "@web/core/l10n/translation";
 
 patch(BarcodePickingModel.prototype, {
-    async validate() {
+    async _validate() {
         if (this.currentState.lines.some((line) => line.product_id.is_kits)) {
             await this.save();
             const move_ids = this.currentState.lines.reduce(
@@ -18,7 +18,7 @@ patch(BarcodePickingModel.prototype, {
             );
             return this.notification(message, { type: "danger" });
         } else {
-            return await super.validate();
+            return await super._validate();
         }
     },
     groupKey(line) {

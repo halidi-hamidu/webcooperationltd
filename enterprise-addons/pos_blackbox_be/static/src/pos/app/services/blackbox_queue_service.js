@@ -7,14 +7,15 @@ import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { logPosMessage } from "@point_of_sale/app/utils/pretty_console_log";
 
 export const blackboxQueueService = {
-    dependencies: ["hardware_proxy", "dialog", "pos_data", "bus_service", "iot_http"],
-    start(env, { hardware_proxy, dialog, pos_data, bus_service, iot_http }) {
+    dependencies: ["hardware_proxy", "dialog", "pos_data", "bus_service", "iot_http", "ui"],
+    start(env, { hardware_proxy, dialog, pos_data, bus_service, iot_http, ui }) {
         return new BlackboxQueueService(env, {
             hardware_proxy,
             dialog,
             pos_data,
             bus_service,
             iot_http,
+            ui,
         });
     },
 };
@@ -22,12 +23,13 @@ export class BlackboxQueueService {
     constructor(...args) {
         this.setup(...args);
     }
-    setup(env, { hardware_proxy, dialog, pos_data, bus_service, iot_http }) {
+    setup(env, { hardware_proxy, dialog, pos_data, bus_service, iot_http, ui }) {
         this.hardwareProxy = hardware_proxy;
         this.dialog = dialog;
         this.data = pos_data;
         this.bus = bus_service;
         this.iotHttp = iot_http;
+        this.ui = ui;
         this.queue = JSON.parse(localStorage.getItem(this.key)) || [];
         this.waitForNextRequest = false;
         this.isFlushing = false;
@@ -83,6 +85,9 @@ export class BlackboxQueueService {
                 result?.error?.errorCode.startsWith("001")
             ) {
                 return this.callbacks[callbackName](result, ...args);
+            }
+            if (this.ui.isBlocked) {
+                this.ui.unblock();
             }
             if (err.errorCode?.startsWith("202") || err.errorCode?.startsWith("204")) {
                 const num = await makeAwaitable(this.dialog, NumberPopup, {

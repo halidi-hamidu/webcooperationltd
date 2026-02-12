@@ -110,11 +110,13 @@
                     <button name="confirm_measure" type="object" class="btn-primary" string="Confirm Measure"
                         invisible="test_type != 'measure'" data-hotkey="w"/>
                     <button name="confirm_fail" type="object" class="btn-primary" string="Confirm"
-                            invisible="test_type == 'measure'" data-hotkey="w"/>
+                            invisible="test_type == 'measure' or context.get('from_shopfloor')" data-hotkey="w"/>
                     <button name="correct_measure" type="object" class="btn-secondary" string="Correct Measure"
                         invisible="test_type != 'measure'" data-hotkey="q"/>
                     <button name="action_generate_previous_window" type="object" class="btn-secondary" string="Back"
-                        invisible="test_type == 'measure'" data-hotkey="q"/>
+                        invisible="test_type == 'measure' or context.get('from_shopfloor')" data-hotkey="q"/>
+                    <button string="OK" special="cancel" class="oe_highlight"
+                        invisible="test_type == 'measure' or not context.get('from_shopfloor')" data-hotkey="x"/>
                 </footer>
             </form>
         </field>

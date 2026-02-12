@@ -25,3 +25,7 @@ class TestSepaDirectDebitMandate(SepaDirectDebitCommon):
         result_tx = self.mandate._get_source_transaction()
 
         self.assertEqual(result_tx, source_tx, "Expected the source transaction of this mandate")
+
+    def test_user_with_bank_account_validation_role_can_validate_mandates(self):
+        """All users with SDD creation rights should be able to validate SDD mandates."""
+        self.mandate.with_user(self.user).action_validate_mandate()

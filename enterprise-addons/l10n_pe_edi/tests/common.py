@@ -181,9 +181,8 @@ class TestPeEdiCommon(AccountEdiTestCommon):
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product.id,
                 'product_uom_id': self.env.ref('uom.product_uom_kgm').id,
-                'price_unit': 2000.0,
+                'price_unit': 1600.0,
                 'quantity': 5,
-                'discount': 20.0,
                 'tax_ids': [(6, 0, self.tax_18.ids)],
             })],
         }
@@ -206,9 +205,8 @@ class TestPeEdiCommon(AccountEdiTestCommon):
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product.id,
                 'product_uom_id': self.env.ref('uom.product_uom_kgm').id,
-                'price_unit': 2000.0,
+                'price_unit': 1600.0,
                 'quantity': 5,
-                'discount': 20.0,
                 'tax_ids': [(6, 0, self.tax_18.ids)],
             })],
         }

@@ -309,6 +309,8 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
             for col_group_key in col_group_keys
         })
         for col_group_key in col_group_keys:
+            if 'balance' not in colname_to_idx[col_group_key]:
+                continue
             for line in processed_lines:
                 line_balance = line['columns'][colname_to_idx[col_group_key]['balance']]['no_format']
                 accumulated_balance_by_colgroup[col_group_key] += line_balance

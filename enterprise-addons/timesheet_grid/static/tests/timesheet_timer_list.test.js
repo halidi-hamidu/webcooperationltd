@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "@odoo/hoot";
 import { waitFor, click } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 
+import { SampleServer } from "@web/model/sample_server";
 import {
     contains,
     fieldInput,
@@ -251,4 +252,46 @@ test("timesheet.grid (list)(time): retain edited time after focus change", async
     await click(`${targetRow} .o_list_char`);
     await animationFrame();
     expect(`${targetRow} .o_list_number input`).toHaveValue("45:00");
+});
+
+test("hr.timesheet (list)(timer): render list view without messing with timer", async () => {
+    const server = new SampleServer(HRTimesheet._name, HRTimesheet._fields);
+    const { records } = await server.mockRpc({
+        method: "web_search_read",
+        model: HRTimesheet._name,
+        specification: { is_timer_running: {} },
+    });
+    expect(records.every((rec) => !rec.is_timer_running)).toBe(true);
+
+    HRTimesheet._records = [];
+    await mountView({
+        type: "list",
+        resModel: "account.analytic.line",
+    });
+
+    expect(".timesheet-timer .btn_start_timer").toHaveCount(1);
+    expect(".timesheet-timer .o_stop_timer_button").toHaveCount(0);
+});
+
+test("hr.timesheet (list)(timer): timer default task when context is present", async () => {
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction({
+        res_model: "account.analytic.line",
+        type: "ir.actions.act_window",
+        views: [
+            [false, "list"],
+            [false, "form"],
+        ],
+        context: { 
+            default_project_id: 2,
+            default_task_id: 2,
+        },
+    });
+
+    await clickTimerButton("start");
+    expect(timerHeaderSelectors.start).toHaveCount(0, {
+        message: "Timer should be running",
+    });
+    expect(".timesheet-timer .o_field_widget[name=project_id] input").toHaveValue("P1");
+    expect(".timesheet-timer .o_field_widget[name=task_id] input").toHaveValue("Another BS task");
 });

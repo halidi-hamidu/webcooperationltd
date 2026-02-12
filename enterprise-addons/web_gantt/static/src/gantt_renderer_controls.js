@@ -2,7 +2,6 @@ import { Component, useState } from "@odoo/owl";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { formatDate } from "@web/core/l10n/dates";
-import { _t } from "@web/core/l10n/translation";
 import { pick } from "@web/core/utils/objects";
 import { debounce } from "@web/core/utils/timing";
 import { diffColumn } from "./gantt_helpers";
@@ -40,10 +39,8 @@ export class GanttRendererControls extends Component {
             scales: {
                 ...this.model.metaData.ranges,
                 custom: {
-                    description: _t("From: %(from_date)s to: %(to_date)s", {
-                        from_date: formatDate(this.state.startDate),
-                        to_date: formatDate(this.state.stopDate),
-                    }),
+                    from_date: formatDate(this.state.startDate),
+                    to_date: formatDate(this.state.stopDate),
                 },
             },
             currentScale: this.state.rangeId,

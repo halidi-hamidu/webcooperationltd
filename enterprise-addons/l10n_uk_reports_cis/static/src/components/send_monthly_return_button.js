@@ -22,8 +22,8 @@ export class SendCISMonthlyReturnButton extends Component {
         this.env.services.ui.block();
         try {
             await this.orm.call("cis.monthly.return.wizard", "action_send_montlhy_return", [
-                this.props.record.data.date_from,
-                this.props.record.data.date_to,
+                this.props.record.data.date_from.toISODate(),
+                this.props.record.data.date_to.toISODate(),
                 this.props.record.data.employment_status,
                 this.props.record.data.subcontractor_verification,
                 this.props.record.data.inactivity_indicator,

@@ -32,9 +32,9 @@ class HrPayslip(models.Model):
                     if not input:
                         continue
                     total = 0
-                    for commissions in coms:
-                        total += commissions.currency_id._convert(
-                            coms.commission, to_currency=slip_sudo.currency_id,
+                    for commission in coms:
+                        total += commission.currency_id._convert(
+                            commission.commission, to_currency=slip_sudo.currency_id,
                             date=slip_sudo.date_to, company=slip_sudo.company_id
                         )
                     if total:

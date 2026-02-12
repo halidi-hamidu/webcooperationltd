@@ -3,6 +3,7 @@ from urllib.parse import urlencode, quote
 
 from odoo.http import request, route
 
+from odoo.addons.base.models.ir_qweb import keep_query
 from odoo.addons.web.controllers import home as web_home
 from odoo.addons.web.controllers.utils import ensure_db
 from .documents import ShareRoute
@@ -47,7 +48,7 @@ class Home(web_home.Home):
         # Public/Portal users use the /documents/<access_token> route
         if not request.env.user._is_internal():
             return request.redirect(
-                f'/documents/{quote(access_token, safe="")}',
+                f'/documents/{quote(access_token, safe="")}?{keep_query("*")}',
                 HTTPStatus.TEMPORARY_REDIRECT,
             )
 
@@ -57,7 +58,7 @@ class Home(web_home.Home):
             Redirect = request.env['documents.redirect'].sudo()
             if document_sudo := Redirect._get_redirection(access_token):
                 return request.redirect(
-                    f'/odoo/documents/{quote(document_sudo.access_token, safe="")}',
+                    f'/odoo/documents/{quote(document_sudo.access_token, safe="")}?{keep_query("*")}',
                     HTTPStatus.MOVED_PERMANENTLY,
                 )
 

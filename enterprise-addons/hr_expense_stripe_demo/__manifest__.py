@@ -12,6 +12,7 @@
     'depends': ['hr_expense_stripe'],
     'data': [
         'views/hr_expense_stripe_card_views.xml',
+        'views/res_config_settings.xml',
 
         'wizard/hr_expense_stripe_topup_wizard.xml',
         'wizard/hr_expense_stripe_test_purchase_wizard.xml',

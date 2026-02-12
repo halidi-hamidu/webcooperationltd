@@ -200,7 +200,7 @@ test("default_range omitted, scales provided", async () => {
         arch: `<gantt date_start="start" date_stop="stop" scales="day,week"/>`,
     });
     const { columnHeaders, range } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(9);
 
     await contains(SELECTORS.scaleSelectorToggler).click();
@@ -209,7 +209,7 @@ test("default_range omitted, scales provided", async () => {
     expect(queryAllTexts(`${SELECTORS.scaleSelectorMenu} .dropdown-item`)).toEqual([
         "Day",
         "Week",
-        "From\n12/01/2018\nto\n02/28/2019\nApply",
+        "12/01/2018\n02/28/2019\nApply",
     ]);
 });
 
@@ -219,7 +219,7 @@ test("scales attribute", async () => {
         arch: `<gantt date_start="start" date_stop="stop" scales="month,day,trololo"/>`,
     });
     const { columnHeaders, range } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(columnHeaders).toHaveLength(29);
 
     await contains(SELECTORS.scaleSelectorToggler).click();
@@ -227,7 +227,7 @@ test("scales attribute", async () => {
     expect(queryAllTexts(`${SELECTORS.scaleSelectorMenu} .dropdown-item`)).toEqual([
         "Day",
         "Month",
-        "From\n12/01/2018\nto\n02/28/2019\nApply",
+        "12/01/2018\n02/28/2019\nApply",
     ]);
 });
 
@@ -455,7 +455,7 @@ test("consolidation feature (single level)", async () => {
     });
 
     const { rows, range } = getGridContent();
-    expect(range).toBe("From: 12/01/2018 to: 02/28/2019");
+    expect(range).toBe("12/01/2018 -> 02/28/2019");
     expect(SELECTORS.expandButton).toHaveCount(0);
     expect(SELECTORS.collapseButton).toHaveCount(1);
     expect(rows).toEqual([
@@ -1563,7 +1563,7 @@ test("default_range not in scales", async () => {
     expect(queryAllTexts(`${SELECTORS.scaleSelectorMenu} .dropdown-item`)).toEqual([
         "Month",
         "Year",
-        "From\n01/01/2017\nto\n12/31/2019\nApply",
+        "01/01/2017\n12/31/2019\nApply",
     ]);
 });
 

@@ -358,6 +358,45 @@ class TestAccountFollowupReports(TestAccountFollowupCommon, MailCommon):
         with freeze_time('2022-01-13'):
             self.assertPartnerFollowup(self.partner_a, 'no_action_needed', self.followup_line)
 
+    def test_followup_status_residual(self):
+        """
+            Payments for partially paid invoices should contribute their residual to the due amount.
+            This is required because the paid invoice's receivable line is reconciled, and thus is
+            not considered in the query calculating followup_status.
+        """
+
+        self.followup_line = self.create_followup(delay=10)
+
+        with freeze_time('2022-01-02'):
+            invoice_1 = self.create_invoice('2022-01-02')
+            self.create_invoice('2022-01-02')
+
+            misc_payment_1 = self.env['account.move'].create({
+                'move_type': 'entry',
+                'date': fields.Date.from_string('2022-01-02'),
+                'partner_id': self.partner_a.id,
+                'invoice_line_ids': [
+                    Command.create({
+                        'name': 'line1',
+                        'account_id': self.company_data['default_account_revenue'].id,
+                        'debit': 600.0,
+                        'credit': 0.0,
+                    }),
+                    Command.create({
+                        'name': 'counterpart line',
+                        'account_id': self.company_data['default_account_receivable'].id,
+                        'debit': 0.0,
+                        'credit': 600.0,
+                    })
+                ]
+            })
+            misc_payment_1.action_post()
+
+            (invoice_1 + misc_payment_1).line_ids.filtered(lambda l: l.account_type == 'asset_receivable').reconcile()
+
+        with freeze_time('2022-01-13'):
+            self.assertPartnerFollowup(self.partner_a, 'in_need_of_action', self.followup_line)
+
     def test_followup_contacts(self):
         followup_contacts = self.partner_a._get_all_followup_contacts()
         billing_contact = self.env['res.partner'].browse(self.partner_a.address_get(['invoice'])['invoice'])

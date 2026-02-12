@@ -113,11 +113,8 @@ class BlackBoxDriver(SerialDriver):
         Sends a status request to the blackbox and stores the result status in self.data['message']
         """
         blackbox_response = self._send_to_blackbox("S", data, self._connection)
-        parsed_response = self._parse_blackbox_response(blackbox_response) if blackbox_response else {}
-        if not parsed_response:
-            self.data['message'] = self.data['result']['error']['errorCode']
-        else:
-            self.data['message'] = parsed_response.get('error', {}).get('errorCode', '301')
+        if blackbox_response:
+            self.data['result'] = self._parse_blackbox_response(blackbox_response)
 
     @classmethod
     def _wrap_low_level_message_around(cls, high_level_message):

@@ -6,11 +6,11 @@
                 <div class="btn-group col-12">
                     <Dropdown t-if="available_services">
                         <button class="btn btn-primary o-dropdown-caret">
-                            <t t-out="activeService.carrier_name"/> - <t t-out="activeService.service_name"/>
+                            <t t-out="activeService.carrier_name"/> - <t t-out="activeService.service_name"/> (<t t-out="activeService.service_code"/>)
                         </button>
                         <t t-set-slot="content">
                             <t t-foreach="available_services" t-as="service" t-key='service.service_code'>
-                                <DropdownItem onSelected="() => this._onSelected(service.service_code)"><t t-out="service.carrier_name"/> - <t t-out="service.service_name"/></DropdownItem>
+                                <DropdownItem onSelected="() => this._onSelected(service.service_code)"><t t-out="service.carrier_name"/> - <t t-out="service.service_name"/> (<t t-out="service.service_code"/>)</DropdownItem>
                             </t>
                         </t>
                     </Dropdown>

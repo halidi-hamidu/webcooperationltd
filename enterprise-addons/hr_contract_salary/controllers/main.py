@@ -247,6 +247,11 @@ class HrContractSalary(http.Controller):
             if not has_access:
                 return error_page
 
+            if offer.state == 'full_signed':
+                return request.render('http_routing.http_error', {
+                    'status_code': _('Oops'),
+                    'status_message': _('This offer has been fully signed, you can not sign it again..')})
+
             if offer.applicant_id:
                 version = version.with_context(is_applicant=True)
 
@@ -312,7 +317,9 @@ class HrContractSalary(http.Controller):
         initial_values = {}
         dropdown_options = {}
         targets = {
-            'version_personal': version,
+            'version_personal': version.with_context(active_test=False).employee_id.version_ids.sorted(
+                'create_date', reverse=True
+            )[0],  # force prefill from the employee's last created version to get last up-to-date info
             'employee': version.employee_id,
             'bank_account': version.employee_id.primary_bank_account_id,
         }
@@ -592,7 +599,7 @@ class HrContractSalary(http.Controller):
             if existing_bank_account:
                 bank_account = existing_bank_account
                 if bank_account_vals.get('acc_holder_name'):
-                    bank_account.acc_holder_name = bank_account_vals['acc_holder_name']
+                    bank_account.sudo().acc_holder_name = bank_account_vals['acc_holder_name']
             else:
                 bank_account = request.env['res.partner.bank'].sudo().create(bank_account_vals)
 

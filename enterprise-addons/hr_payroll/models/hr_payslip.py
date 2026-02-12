@@ -95,7 +95,7 @@ class HrPayslip(models.Model):
         default=lambda self: self.env.company)
     country_id = fields.Many2one(
         'res.country', string='Country',
-        related='company_id.country_id', readonly=True
+        related='company_id.country_id', readonly=True, search='_search_country_id'
     )
     country_code = fields.Char(related='country_id.code', depends=['country_id'], readonly=True)
     worked_days_line_ids = fields.One2many(
@@ -543,6 +543,10 @@ class HrPayslip(models.Model):
             'hr_payroll.mail_template_new_payslip', raise_if_not_found=False
         )
 
+    def _check_send_payslip_mail(self):
+        self.ensure_one()
+        return True
+
     def _generate_pdf(self):
         mapped_reports = self._get_pdf_reports()
         attachments_vals_list = []
@@ -567,11 +571,17 @@ class HrPayslip(models.Model):
         for payslips in mapped_reports.values():
             for payslip in payslips:
                 template = payslip._get_email_template()
-                if template:
+                if template and payslip._check_send_payslip_mail():
                     template.send_mail(payslip.id, email_layout_xmlid='mail.mail_notification_light')
 
-    def _filter_out_of_versions_payslips(self):
-        return self.filtered(lambda p:  p.version_id and p.date_from and p.date_to and not p.version_id._is_overlapping_period(p.date_from, p.date_to) and not p.is_refund_payslip)
+    def _filter_not_in_contract_payslips(self):
+        return self.filtered(
+            lambda p:
+            not p.is_refund_payslip and p.version_id and p.date_from and p.date_to and
+            (
+                not p.version_id.contract_date_start or p.version_id.contract_date_start > p.date_to or
+                (p.version_id.contract_date_end and p.version_id.contract_date_end < p.date_from)
+            ))
 
     def action_payslip_done(self):
         if any(slip.state == 'cancel' for slip in self):
@@ -634,6 +644,7 @@ class HrPayslip(models.Model):
         if len(self.payslip_run_id) > 1:
             raise UserError(_('The selected payslips should be linked to the same batch'))
         return {
+            'name': self.env._('Generate a Payment Report'),
             'type': 'ir.actions.act_window',
             'res_model': 'hr.payroll.payment.report.wizard',
             'view_mode': 'form',
@@ -774,7 +785,7 @@ class HrPayslip(models.Model):
     def compute_sheet(self):
         payslips = self.filtered(lambda slip: slip.state == 'draft')
         if payslips.filtered('error_count'):
-            self._get_error_message()
+            raise ValidationError(self._get_error_message())
         # delete old payslip lines
         payslips.line_ids.unlink()
         # this guarantees consistent results
@@ -1216,6 +1227,9 @@ class HrPayslip(models.Model):
             slip.struct_id = slip.version_id.structure_type_id.default_struct_id\
                 or slip.employee_id.version_id.structure_type_id.default_struct_id
 
+    def _search_country_id(self, operator, value):
+        return [('company_id.partner_id.country_id', operator, value)]
+
     def _get_period_name(self, cache):
         self.ensure_one()
         period_name = '%s - %s' % (
@@ -1292,7 +1306,7 @@ class HrPayslip(models.Model):
         by_state = self.grouped('state')
         draft_slips = by_state.get('draft', self.env['hr.payslip'])
         errors_by_slip = {slip: [] for slip in self}
-        for slip in draft_slips._filter_out_of_versions_payslips():
+        for slip in draft_slips._filter_not_in_contract_payslips():
             errors_by_slip[slip].append({
                 'message': _('No running contract over payslip period'),
                 'action_text': _("Contract"),
@@ -2169,7 +2183,9 @@ class HrPayslip(models.Model):
 
     def action_configure_payslip_inputs(self):
         self.ensure_one()
-        return self.struct_id.action_get_structure_inputs()
+        action = self.struct_id.action_get_structure_inputs()
+        action['domain'].append(('input_usage_payslip', '=', True))
+        return action
 
     def compute_salary_allocations(self, total_amount=None):
         self.ensure_one()

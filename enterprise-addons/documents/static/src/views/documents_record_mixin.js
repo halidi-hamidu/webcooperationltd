@@ -3,6 +3,13 @@ import { user } from "@web/core/user";
 
 export const DocumentsRecordMixin = (component) =>
     class extends component {
+        setup(config, data, options = {}) {
+            super.setup(...arguments);
+            if (data.id === this.model.documentService.documentIdToRestore) {
+                this.selected = true;
+            }
+        }
+
         async update(changes, options = {}) {
             if ("name" in changes && !changes.name) {
                 this.model.notification.add(_t("Name cannot be empty."), {
@@ -158,13 +165,21 @@ export const DocumentsRecordMixin = (component) =>
             const section = this.model.env.searchModel.getSections()[0];
             const target = this.isShortcut() ? this.shortcutTarget : this;
             const folderId = target.data.active ? target.data.id : "TRASH";
-            this.model.env.searchModel.toggleCategoryValue(section.id, folderId);
-            this.model.originalSelection = [this.shortcutTarget.resId];
-            this.model.env.documentsView.bus.trigger("documents-expand-folder", {
-                folderId: folderId,
+            this._ensureSearchPanelHasFolder(folderId).then(() => {
+                this.model.env.searchModel.toggleCategoryValue(section.id, folderId);
+                this.model.originalSelection = [this.shortcutTarget.resId];
+                this.model.env.documentsView.bus.trigger("documents-expand-folder", {
+                    folderId: folderId,
+                });
             });
         }
 
+        async _ensureSearchPanelHasFolder(folderId) {
+            const folderInPanel = this.model.env.searchModel.getFolderById(folderId);
+            if (!folderInPanel) {
+                return this.model.env.searchModel._reloadSearchModel(true);
+            }
+        }
         /**
          * Jump to shortcut targeted file / open targeted folder.
          */

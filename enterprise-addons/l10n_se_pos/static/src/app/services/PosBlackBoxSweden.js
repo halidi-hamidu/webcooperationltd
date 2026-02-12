@@ -27,15 +27,16 @@ patch(PosStore.prototype, {
                 order.sequence_number = await this.getOrderSequenceNumber();
             }
             try {
-                order.blackbox_tax_category_a = order.getSpecificTax("A");
-                order.blackbox_tax_category_b = order.getSpecificTax("B");
-                order.blackbox_tax_category_c = order.getSpecificTax("C");
-                order.blackbox_tax_category_d = order.getSpecificTax("D");
+                order.sweden_blackbox_tax_category_a = order.getSpecificTax("A");
+                order.sweden_blackbox_tax_category_b = order.getSpecificTax("B");
+                order.sweden_blackbox_tax_category_c = order.getSpecificTax("C");
+                order.sweden_blackbox_tax_category_d = order.getSpecificTax("D");
                 const data = await this.pushOrderToSwedenBlackbox(order);
-                if (data.value.error && data.value.error.errorCode != "000000") {
-                    throw data.value.error;
+                const result = data.result ?? data;
+                if (result.error && result.error.errorCode != "000000") {
+                    throw result.error;
                 }
-                this.setDataForPushOrderFromSwedenBlackBox(order, data);
+                this.setDataForPushOrderFromSwedenBlackBox(order, result);
             } catch (err) {
                 order.state = "draft";
                 throw new SwedenBlackboxError(err?.status?.message_title ?? err?.status ?? err);
@@ -55,22 +56,24 @@ patch(PosStore.prototype, {
                     ? Math.abs(order.totalDue).toFixed(2).toString().replace(".", ",")
                     : "0,00",
             receipt_type: order.receipt_type,
-            vat1: order.blackbox_tax_category_a
-                ? "25,00;" + order.blackbox_tax_category_a.toFixed(2).replace(".", ",")
+            vat1: order.sweden_blackbox_tax_category_a
+                ? "25,00;" + order.sweden_blackbox_tax_category_a.toFixed(2).replace(".", ",")
                 : " ",
-            vat2: order.blackbox_tax_category_b
-                ? "12,00;" + order.blackbox_tax_category_b.toFixed(2).replace(".", ",")
+            vat2: order.sweden_blackbox_tax_category_b
+                ? "12,00;" + order.sweden_blackbox_tax_category_b.toFixed(2).replace(".", ",")
                 : " ",
-            vat3: order.blackbox_tax_category_c
-                ? "6,00;" + order.blackbox_tax_category_c.toFixed(2).replace(".", ",")
+            vat3: order.sweden_blackbox_tax_category_c
+                ? "6,00;" + order.sweden_blackbox_tax_category_c.toFixed(2).replace(".", ",")
                 : " ",
-            vat4: order.blackbox_tax_category_d
-                ? "0,00;" + order.blackbox_tax_category_d.toFixed(2).replace(".", ",")
+            vat4: order.sweden_blackbox_tax_category_d
+                ? "0,00;" + order.sweden_blackbox_tax_category_d.toFixed(2).replace(".", ",")
                 : " ",
         };
 
         return new Promise((resolve, reject) => {
-            fdm.addListener((data) => (data.status === "ok" ? resolve(data) : reject(data)));
+            fdm.addListener((data) =>
+                data.status === "ok" || data.status === "success" ? resolve(data) : reject(data)
+            );
             fdm.action({
                 action: "registerReceipt",
                 high_level_message: data,
@@ -84,8 +87,8 @@ patch(PosStore.prototype, {
         });
     },
     setDataForPushOrderFromSwedenBlackBox(order, data) {
-        order.blackbox_signature = data.signature_control;
-        order.blackbox_unit_id = data.unit_id;
+        order.sweden_blackbox_signature = data.signature_control;
+        order.sweden_blackbox_unit_id = data.unit_id;
     },
     async getOrderSequenceNumber() {
         return await this.data.call("pos.config", "get_order_sequence_number", [this.config.id]);

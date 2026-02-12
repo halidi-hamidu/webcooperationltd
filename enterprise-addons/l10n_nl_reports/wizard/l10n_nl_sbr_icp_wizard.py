@@ -52,7 +52,10 @@ class L10n_Nl_ReportsSbrIcpWizard(models.TransientModel):
         # The wsdl address points to a wsdl file on the government server.
         # It contains the definition of the 'aanleveren' function, which actually sends the message.
         options = self.env.context['options']
-        account_return = self.env['account.return']._get_return_from_report_options(options)
+        # Need to change report because there is no ICP report return
+        tax_report = self.env.ref('l10n_nl.tax_report')
+        tax_report_options = tax_report.get_options(previous_options=options)
+        account_return = self.env['account.return']._get_return_from_report_options(tax_report_options)
         closing_move = account_return.closing_move_ids if account_return else None
         if not self.is_test:
             if not closing_move:

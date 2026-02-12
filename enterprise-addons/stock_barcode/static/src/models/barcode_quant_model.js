@@ -12,7 +12,7 @@ export default class BarcodeQuantModel extends BarcodeModel {
         this.deleteLineMethod = this.validateMethod;
     }
 
-    async validate() {
+    async _validate() {
         return this.apply({ shouldConfirm: true });
     }
 
@@ -93,7 +93,7 @@ export default class BarcodeQuantModel extends BarcodeModel {
     async _apply(context = {}) {
         await this.save();
         const quantIds = this.pageLines.map((quant) => quant.id);
-        const action = await this.orm.call("stock.quant", "action_validate", [quantIds]);
+        const action = await this.orm.call("stock.quant", "action_validate", [quantIds], {context});
         const notifyAndGoAhead = (res) => {
             if (res && res.special) {
                 // Do nothing if come from a discarded wizard.

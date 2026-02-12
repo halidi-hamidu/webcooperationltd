@@ -1298,3 +1298,41 @@ class AppointmentResourceBookingTest(AppointmentCommon):
         available_resources = [resource['id'] for resource in resource_slots[0]['available_resources']]
         self.assertListEqual(available_resources, resource_2.ids,
             "The first resource should now be unavailable and the second one is chosen")
+
+    @users('apt_manager')
+    def test_generate_slots_until_midnight_resources(self):
+        """ Check end of day slot, e.g. 23:00-00:00 for a 1h duration """
+
+        self.apt_type_resource.appointment_duration = 1
+        self.apt_type_resource.max_schedule_days = 1
+        # 22:00-23:00 range in UTC will correspond to 23:00-00:00 in UTC+1.
+        # So, this matches the attendance ending at midnight in the resource calendar.
+        # The corresponding interval bound ends up as 22.59.999999 in UTC unavailabilities.
+        self.env.ref('appointment.appointment_default_resource_calendar').sudo().tz = "Europe/Brussels"
+        self.apt_type_resource.slot_ids.write({
+            'start_hour': 22,
+            'end_hour': 23,
+        })
+
+        self.env['appointment.resource'].create({
+            'appointment_type_ids': self.apt_type_resource.ids,
+            'name': 'Resource',
+            'resource_calendar_id': self.env.ref('appointment.appointment_default_resource_calendar').id,
+        })
+
+        with freeze_time(self.reference_now):
+            slots = self.apt_type_resource._get_appointment_slots('UTC')
+        self.assertSlots(
+            slots,
+            [{'name_formated': 'February 2022',
+              'month_date': datetime(2022, 2, 1),
+              'weeks_count': 5,  # 31/01 -> 28/02 (06/03)
+              }
+             ],
+            {'enddate': self.global_slots_enddate,
+             'startdate': self.reference_now_monthweekstart,
+             'slots_start_hours': [22],
+             'slots_startdate': self.reference_monday.date(),
+             'slots_enddate': self.reference_monday.date(),
+             }
+        )

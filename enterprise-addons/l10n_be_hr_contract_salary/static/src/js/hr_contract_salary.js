@@ -57,6 +57,22 @@ patch(SalaryPackage.prototype, {
         });
     },
 
+    setUpBenefits() {
+        super.setUpBenefits(...arguments);
+        const fuelCardSlider = $("input[name='fuel_card_slider']");
+        if (fuelCardSlider.length > 0) {
+            const mandatoryBenefits = fuelCardSlider.data('benefit_ids-mandatory');
+            if (mandatoryBenefits) {
+                const anyMandatorySelected = mandatoryBenefits.trim().split(' ').some(adv => this.checkInputSelected(adv));
+
+                if (!anyMandatorySelected) {
+                    fuelCardSlider.attr("disabled", "disabled");
+                    fuelCardSlider.parent().addClass('o_disabled');
+                }
+            }
+        }
+    },
+
     getBenefits() {
         var res = super.getBenefits();
         res.version.l10n_be_canteen_cost = parseFloat(

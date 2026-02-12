@@ -335,7 +335,7 @@ class L10n_AuStp(models.Model):
             reportable_gross = all_line_values["ETP.TAXABLE"]['sum']['total'] + all_line_values["ETP.LEAVE.GROSS"]['sum']['total'] \
                 + all_line_values["GROSS"]['sum']['total'] + all_line_values["ALW.TAXFREE"]['sum']['total']
             extra_data.update({
-                "PayAsYouGoWithholdingTaxWithheldA": abs(all_line_values["WITHHOLD.TOTAL"]['sum']['total']),
+                "PayAsYouGoWithholdingTaxWithheldA": abs(float_round(all_line_values["WITHHOLD.TOTAL"]['sum']['total'], precision_rounding=rounding)),
                 "TotalGrossPaymentsWithholdingA": float_round(reportable_gross, precision_rounding=rounding),
                 "ChildSupportGarnisheeA": abs(float_round(all_line_values["CHILD.SUPPORT.GARNISHEE"]['sum']['total'], precision_rounding=rounding)),
                 "ChildSupportWithholdingA": abs(float_round(all_line_values["CHILD.SUPPORT"]['sum']['total'] - all_line_values["CHILD.SUPPORT.GARNISHEE"]['sum']['total'], precision_rounding=rounding)),
@@ -387,7 +387,7 @@ class L10n_AuStp(models.Model):
                         precision_rounding=rounding
                     )
                 # == PAYG ==
-                Remuneration["IncomeTaxPayAsYouGoWithholdingTaxWithheldA"] = abs(employee_ytd['slip_lines']['WITHHOLD.TOTAL']['WITHHOLD.TOTAL'])
+                Remuneration["IncomeTaxPayAsYouGoWithholdingTaxWithheldA"] = abs(float_round(employee_ytd['slip_lines']['WITHHOLD.TOTAL']['WITHHOLD.TOTAL'], precision_rounding=rounding))
                 # == Paid Leave ==
                 leave_lines = filter(lambda item: item[1]['is_leave'], employee_ytd["worked_days"].items())
                 Remuneration["PaidLeaveCollection"] = []

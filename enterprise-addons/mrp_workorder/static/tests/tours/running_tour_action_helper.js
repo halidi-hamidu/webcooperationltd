@@ -78,12 +78,13 @@ export function assertSearchFacets(facetsVals = []) {
  * @param {HTMLElement} [values.step] the check line, must be used if `index` not given
  */
 export function assertStep(values) {
-    const { index, label, value } = values;
+    const { index, label, value, workcenter } = values;
     const recordEl = values.record || getRecord();
     const headerEl = recordEl.querySelector("&>.card-header");
     const moName = headerEl.querySelector(".o_record_name h4").innerText;
     const lineEl = values.step || recordEl.querySelectorAll("&>ul>li")[index];
-    const lineLabel = lineEl.querySelector(".o_line_label").innerText;
+    const lineLabelSelector = workcenter ? ".o_mrp_operation_name" : ".o_line_label";
+    const lineLabel = lineEl.querySelector(lineLabelSelector).innerText;
     const lineQty = lineEl.querySelector(".o_mrp_record_line_qty")?.innerText;
     const lineUom = lineEl.querySelector(".o_mrp_record_line_uom")?.innerText;
     const lineValue = lineQty ? `${lineQty} ${lineUom}` : undefined;
@@ -92,6 +93,14 @@ export function assertStep(values) {
         assert(lineValue, value, `"${moName}" line "${lineLabel}" has wrong value`);
     } else if (lineValue) {
         fail(`"${moName} line "${lineLabel}" should have no value: got "${lineValue}" instead.`);
+    }
+    if (workcenter) {
+        const workcenterTagEl = lineEl.querySelector("span.o_tag.badge");
+        assert(
+            workcenterTagEl.innerText,
+            workcenter,
+            `"${moName}" line "${lineLabel}" is not linked to the workcenter "${workcenter}"`
+        );
     }
 }
 
@@ -160,8 +169,8 @@ export function assertWorkOrderValues(values) {
     // Check every record's line label and value.
     assert(linesEl.length, steps.length, `Record "${name}" should have ${steps.length} line(s)`);
     for (let i = 0; i < steps.length; i++) {
-        const { label, value } = steps[i];
+        const { label, value, workcenter } = steps[i];
         const step = linesEl[i];
-        assertStep({ record: recordEl, step, label, value });
+        assertStep({ record: recordEl, step, label, value, workcenter });
     }
 }

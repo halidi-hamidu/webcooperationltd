@@ -1,3 +1,5 @@
+/* global posmodel */
+
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as PartnerList from "@point_of_sale/../tests/pos/tours/utils/partner_list_util";
@@ -290,3 +292,38 @@ registry.category("web_tour.tours").add("pos_settle_open_invoice_with_credit_not
             Chrome.endTour(),
         ].flat(),
 });
+
+registry
+    .category("web_tour.tours")
+    .add("test_pos_settling_account_resets_on_payment_screen_unmount", {
+        steps: () =>
+            [
+                Chrome.startPoS(),
+                Dialog.confirm("Open Register"),
+                {
+                    content: "Set the pos_settle_due to True and open payment screen",
+                    trigger: "body",
+                    run: () => {
+                        posmodel.selectedOrder.is_settling_account = true;
+                        posmodel.navigate("PaymentScreen", {
+                            orderUuid: posmodel.selectedOrderUuid,
+                        });
+                    },
+                },
+                PaymentScreen.clickBackToProductScreen(),
+                {
+                    isActive: ["auto"],
+                    content: "Check is_settling_account set to true",
+                    trigger: "body",
+                    run: () => {
+                        const order = posmodel.selectedOrder;
+                        if (order.is_settling_account) {
+                            throw new Error(
+                                "Expected order.is_settling_account to be false, but got true"
+                            );
+                        }
+                    },
+                },
+                Chrome.endTour(),
+            ].flat(),
+    });

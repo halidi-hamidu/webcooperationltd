@@ -30,7 +30,9 @@ patch(Order.prototype, {
         );
     },
     _getOrderDuration() {
-        if (this.isInFirstStage() && this.order?.course?.fired) {
+        const course = this.order.pos_course_id;
+        // Legacy data may have fired=true without a fired_date, so we check fired_date to avoid a blank preparation display.
+        if (this.isInFirstStage() && course?.fired && course?.fired_date) {
             return this.order.getDurationSinceFireDate();
         }
         return super._getOrderDuration();

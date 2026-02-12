@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:41+0000\n"
-"PO-Revision-Date: 2026-01-02 16:49+0000\n"
+"POT-Creation-Date: 2026-02-06 18:41+0000\n"
+"PO-Revision-Date: 2026-02-02 13:41+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "databases/fi/>\n"
@@ -124,7 +124,7 @@ msgstr "Luotu tietokanta"
 #: model:ir.model.fields,field_description:databases.field_databases_synchronization_wizard__create_uid
 #: model:ir.model.fields,field_description:databases.field_databases_user__create_uid
 msgid "Created by"
-msgstr "Tekijä:"
+msgstr "Luonut"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__create_date
@@ -140,6 +140,12 @@ msgstr "Luotu"
 #: model_terms:ir.ui.view,arch_db:databases.edit_project
 msgid "Database"
 msgstr "Tietokanta"
+
+#. module: databases
+#. odoo-python
+#: code:addons/databases/api.py:0
+msgid "Database \"%s\" not found"
+msgstr "Tietokantaa \"%s\" ei löydy"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_api_key
@@ -198,17 +204,17 @@ msgstr "Tietokannan käyttäjä"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_user_ids
 msgid "Database Users"
-msgstr ""
+msgstr "Tietokannan käyttäjät"
 
 #. module: databases
 #: model:ir.model,name:databases.model_databases_manage_users_wizard
 msgid "Database Users Invitation Wizard"
-msgstr ""
+msgstr "Ohjattu tietokannan käyttäjien kutsumistoiminto"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_version
 msgid "Database Version"
-msgstr ""
+msgstr "Tietokannan versio"
 
 #. module: databases
 #. odoo-python
@@ -217,6 +223,8 @@ msgid ""
 "Database synchronization is running in the background. You will be notified "
 "upon completion."
 msgstr ""
+"Tietokannan synkronointi suoritetaan taustalla. Saat ilmoituksen, kun "
+"synkronointi on valmis."
 
 #. module: databases
 #: model:ir.actions.act_window,name:databases.action_view_databases_all
@@ -230,12 +238,12 @@ msgstr "Tietokannat"
 #. module: databases
 #: model:ir.actions.server,name:databases.ir_cron_synchronize_databases_with_odoocom_ir_actions_server
 msgid "Databases: pull databases from Odoo.com and synchronize"
-msgstr ""
+msgstr "Tietokannat: hae tietokantoja Odoo.com -sivustolta ja synkronoi"
 
 #. module: databases
 #: model:ir.actions.server,name:databases.ir_cron_synchronize_databases_ir_actions_server
 msgid "Databases: synchronize"
-msgstr ""
+msgstr "Tietokannat: synkronoi"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.databases_manage_users_wizard_view_form
@@ -267,7 +275,7 @@ msgstr "Luonnos"
 #. odoo-javascript
 #: code:addons/databases/static/src/views/databases_project_list/databases_project_list_renderer.js:0
 msgid "Draft entries in journal %(journal_name)s"
-msgstr ""
+msgstr "Luonnoskirjaukset päiväkirjassa %(journal_name)s"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__error_message
@@ -283,23 +291,20 @@ msgid ""
 "Error while connecting to %(url)s: We are missing the database name, the api "
 "login or the api key\n"
 msgstr ""
+"Virhe yhdistäessä osoitteeseen %(url)s: Puuttuu tietokannan nimi, API-"
+"kirjautumistunnus tai API-avain\n"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "Error while creating users on %(dbname)s: %(message)s\n"
-msgstr ""
+msgstr "Virhe käyttäjien luomisessa osoitteessa %(dbname)s: %(message)s\n"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_synchronization_wizard.py:0
-msgid "Error while getting KPIs from %(dbname)s: %(message)s\n"
-msgstr ""
-
-#. module: databases
-#. odoo-python
-#: code:addons/databases/wizard/databases_synchronization_wizard.py:0
-msgid "Error while getting users from %(dbname)s: %(message)s\n"
+msgid ""
+"Error while fetching information from %(host_names)s on %(ip)s: %(message)s\n"
 msgstr ""
 
 #. module: databases
@@ -307,40 +312,53 @@ msgstr ""
 #: code:addons/databases/wizard/databases_synchronization_wizard.py:0
 msgid "Error while listing databases from %(dbname)s: %(message)s\n"
 msgstr ""
+"Virhe luetteloitaessa tietokantoja osoitteesta %(dbname)s: %(message)s\n"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "Error while removing users from %(dbname)s: %(message)s\n"
+msgstr "Virhe poistettaessa käyttäjiä osoitteesta %(dbname)s: %(message)s\n"
+
+#. module: databases
+#. odoo-python
+#: code:addons/databases/wizard/databases_synchronization_wizard.py:0
+msgid "Error while resolving %(url)s: %(exception)s\n"
+msgstr ""
+
+#. module: databases
+#. odoo-python
+#: code:addons/databases/wizard/databases_synchronization_wizard.py:0
+msgid "Error while resolving %(url)s: found no IP\n"
 msgstr ""
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__everywhere_user_ids
 msgid "Everywhere User"
-msgstr ""
+msgstr "Kaikkialla-käyttäjä"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_fetch_documents
 #: model:ir.model.fields,field_description:databases.field_project_template_create_wizard__database_fetch_documents
 msgid "Fetch Documents"
-msgstr ""
+msgstr "Hae asiakirjat"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_fetch_draft_entries
 #: model:ir.model.fields,field_description:databases.field_project_template_create_wizard__database_fetch_draft_entries
 msgid "Fetch Draft Journal Entries"
-msgstr ""
+msgstr "Hae päiväkirjan luonnoskirjaukset"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_fetch_tax_returns
 #: model:ir.model.fields,field_description:databases.field_project_template_create_wizard__database_fetch_tax_returns
 msgid "Fetch Tax Returns"
-msgstr ""
+msgstr "Hae veroilmoitukset"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_synchronization_wizard__fetched_values
 msgid "Fetched Values"
-msgstr ""
+msgstr "Haetut arvot"
 
 #. module: databases
 #: model_terms:ir.actions.act_window,help:databases.action_view_databases_all
@@ -348,11 +366,13 @@ msgid ""
 "Get all your Odoo databases summarized, and perform mass action like "
 "inviting users."
 msgstr ""
+"Saat yhteenvedon kaikista Odoo-tietokannoistasi ja voit suorittaa "
+"joukkotoimintoja, kuten kutsua käyttäjiä."
 
 #. module: databases
 #: model:ir.model.constraint,message:databases.constraint_project_project_database_url_unique
 msgid "Hey, this URL is already hooked up to a database!"
-msgstr ""
+msgstr "Hei, tämä URL on jo kytketty tietokantaan!"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_hosting
@@ -389,7 +409,7 @@ msgstr "Kutsu"
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "Invitation is done"
-msgstr ""
+msgstr "Kutsu on valmis"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.databases_manage_users_wizard_view_form
@@ -434,7 +454,7 @@ msgstr "Viimeisin todennus"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_user__local_user_id
 msgid "Local User"
-msgstr ""
+msgstr "Paikallinen käyttäjä"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_user__login
@@ -444,7 +464,7 @@ msgstr "Kirjaudu"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_kpi_properties
 msgid "Metrics"
-msgstr ""
+msgstr "Mittarit"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__mode
@@ -464,12 +484,12 @@ msgstr "Uusi"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_synchronization_wizard__new_properties
 msgid "New KPIs to add:"
-msgstr ""
+msgstr "Uudet KPI:t lisättäväksi:"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.res_config_settings_view_form
 msgid "New databases will be based on the selected project template."
-msgstr ""
+msgstr "Uudet tietokannat perustuvat valittuun projektipohjaan."
 
 #. module: databases
 #: model_terms:ir.actions.act_window,help:databases.action_view_tasks_all
@@ -490,12 +510,12 @@ msgstr "Odoo Online"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_res_config_settings__databases_apikey
 msgid "Odoo.com API Key"
-msgstr ""
+msgstr "Odoo.com API-avain"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_res_config_settings__databases_apiuser
 msgid "Odoo.com API User"
-msgstr ""
+msgstr "Odoo.com API-käyttäjä"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.res_config_settings_view_form
@@ -503,11 +523,12 @@ msgid ""
 "Odoo.com API keys are managed in the <em>Developer API Keys</em> section of "
 "your"
 msgstr ""
+"Odoo.com API-avaimia hallitaan <em>Kehittäjän API-avaimet</em> kohdassa:"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.res_config_settings_view_form
 msgid "Odoo.com Connection &amp; Security page"
-msgstr ""
+msgstr "Odoo.com Yhteys &amp; Turvallisuus -sivu"
 
 #. module: databases
 #: model:ir.model.fields.selection,name:databases.selection__project_project__database_hosting__paas
@@ -528,18 +549,20 @@ msgid ""
 "                Collaborate efficiently by chatting in real-time or via "
 "email."
 msgstr ""
+"Järjestä tehtäväsi jakamalla ne eri vaiheisiin.\n"
+"Tee tehokasta yhteistyötä keskustelemalla reaaliajassa tai sähköpostitse."
 
 #. module: databases
 #: model:ir.model.fields.selection,name:databases.selection__project_project__database_hosting__other
 #: model:ir.model.fields.selection,name:databases.selection__project_template_create_wizard__database_hosting__other
 msgid "Outside of Odoo"
-msgstr ""
+msgstr "Odoon ulkopuolella"
 
 #. module: databases
 #. odoo-javascript
 #: code:addons/databases/static/src/views/databases_project_list/databases_project_list_renderer.js:0
 msgid "Planned activities of type %(return_name)s"
-msgstr ""
+msgstr "Suunnitellut %(return_name)s -tyyppiset toimenpiteet"
 
 #. module: databases
 #: model:ir.model,name:databases.model_project_project
@@ -559,22 +582,22 @@ msgstr "Projektin mallipohjan ohjattu luomistoiminto"
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_res_config_settings__databases_project_template_id
 msgid "Project template"
-msgstr ""
+msgstr "Projektipohja"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_synchronization_wizard__property_definition
 msgid "Property Definition"
-msgstr ""
+msgstr "Ominaisuuden määritelmä"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.edit_project
 msgid "Regular Project"
-msgstr ""
+msgstr "Perusprojekti"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__removable_user_ids
 msgid "Removable User"
-msgstr ""
+msgstr "Poistettava käyttäjä"
 
 #. module: databases
 #: model:ir.model.fields.selection,name:databases.selection__databases_manage_users_wizard__mode__remove
@@ -589,7 +612,7 @@ msgstr "Poista"
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.edit_project
 msgid "Remove User"
-msgstr ""
+msgstr "Poista käyttäjä"
 
 #. module: databases
 #: model:ir.actions.server,name:databases.action_remove_users
@@ -614,12 +637,14 @@ msgid ""
 "Select the users you want to invite to the %(nb_databases)s selected "
 "databases."
 msgstr ""
+"Valitse käyttäjät, jotka haluat kutsua %(nb_databases)s valittuihin "
+"tietokantoihin."
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "Select the users you want to invite to the database %(database_name)s."
-msgstr ""
+msgstr "Valitse käyttäjät, jotka haluat kutsua tietokantaan %(database_name)s."
 
 #. module: databases
 #. odoo-python
@@ -628,6 +653,8 @@ msgid ""
 "Select the users you want to remove from the %(nb_databases)s selected "
 "databases."
 msgstr ""
+"Valitse käyttäjät, jotka haluat poistaa %(nb_databases)s valituista "
+"tietokannoista."
 
 #. module: databases
 #. odoo-python
@@ -635,6 +662,7 @@ msgstr ""
 msgid ""
 "Select the users you want to remove from the database %(database_name)s."
 msgstr ""
+"Valitse käyttäjät, jotka haluat poistaa tietokannasta %(database_name)s."
 
 #. module: databases
 #: model:ir.actions.act_window,name:databases.action_databases_configuration
@@ -651,25 +679,19 @@ msgstr "Osavaltio"
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__summary_message
 #: model:ir.model.fields,field_description:databases.field_databases_synchronization_wizard__summary_message
 msgid "Summary Message"
-msgstr ""
+msgstr "Yhteenvetoviesti"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_project_project__database_nb_synchro_errors
 msgid "Synchronization Errors Count"
-msgstr ""
-
-#. module: databases
-#. odoo-python
-#: code:addons/databases/wizard/databases_synchronization_wizard.py:0
-msgid "Synchronization done successfully!"
-msgstr ""
+msgstr "Synkronointivirheiden määrä"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/models/project_project.py:0
 #: code:addons/databases/wizard/databases_synchronization_wizard.py:0
 msgid "Synchronization of %d databases"
-msgstr ""
+msgstr "%d tietokantojen synkronointi"
 
 #. module: databases
 #: model:ir.actions.server,name:databases.action_synchronize_database
@@ -681,7 +703,7 @@ msgstr "Synkronoi"
 #. module: databases
 #: model:ir.actions.server,name:databases.action_synchronize_all_databases
 msgid "Synchronize all the Databases"
-msgstr ""
+msgstr "Synkronoi kaikki tietokannat"
 
 #. module: databases
 #: model_terms:ir.actions.act_window,help:databases.action_view_databases_all
@@ -689,6 +711,8 @@ msgid ""
 "Synchronize to automatically fetch Odoo Online databases, or set an API Key "
 "to connect to On Premise or Odoo.sh ones."
 msgstr ""
+"Synkronoi hakeaksesi Odoo Online -tietokannat automaattisesti tai aseta API-"
+"avain yhdistääksesi On Premise- tai Odoo.sh-tietokantoihin."
 
 #. module: databases
 #: model:ir.actions.act_window,name:databases.action_view_tasks_all
@@ -701,7 +725,7 @@ msgstr "Tehtävät"
 #. odoo-javascript
 #: code:addons/databases/static/src/views/databases_project_list/databases_project_list_renderer.js:0
 msgid "Tax return %(return_name)s"
-msgstr ""
+msgstr "Veroilmoitus %(return_name)s"
 
 #. module: databases
 #. odoo-python
@@ -710,23 +734,27 @@ msgid ""
 "The database %(url)s is registered as a saas database in odoo.com. As it "
 "seems to be configured we have left it as is.\n"
 msgstr ""
+"Tietokanta %(url)s on rekisteröity saas-tietokantana osoitteessa odoo.com. "
+"Koska se näyttää olevan konfiguroitu, olemme jättäneet sen ennalleen.\n"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "These users were successfully invited to %(nb_databases)s databases."
 msgstr ""
+"Nämä käyttäjät kutsuttiin onnistuneesti %(nb_databases)s tietokantoihin."
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "These users were successfully removed from %(nb_databases)s databases."
 msgstr ""
+"Nämä käyttäjät poistettiin onnistuneesti %(nb_databases)s tietokannoista."
 
 #. module: databases
 #: model:ir.model.constraint,message:databases.constraint_project_project_database_url_required
 msgid "Uh-oh! It seems we are missing a url for a database!"
-msgstr ""
+msgstr "Voi ei! Näyttää siltä, että meiltä puuttuu tietokannan URL-osoite!"
 
 #. module: databases
 #: model:ir.model.fields,field_description:databases.field_databases_manage_users_wizard__user_ids
@@ -737,18 +765,18 @@ msgstr "Käyttäjä"
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.edit_project
 msgid "User Management"
-msgstr ""
+msgstr "Käyttäjähallinta"
 
 #. module: databases
 #: model:res.groups,comment:databases.group_databases_user
 msgid "User can access the client databases"
-msgstr ""
+msgstr "Käyttäjällä on pääsy asiakastietokantoihin"
 
 #. module: databases
 #. odoo-python
 #: code:addons/databases/wizard/databases_manage_users_wizard.py:0
 msgid "User removal is done"
-msgstr ""
+msgstr "Käyttäjän poistaminen on suoritettu"
 
 #. module: databases
 #: model_terms:ir.ui.view,arch_db:databases.view_databases_list
@@ -766,3 +794,13 @@ msgid ""
 "Whether the user should be notified once the cron has finished synchronizing "
 "the databases"
 msgstr ""
+"Ilmoitetaanko käyttäjälle, kun cron on lopettanut tietokantojen synkronoinnin"
+
+#~ msgid "Error while getting KPIs from %(dbname)s: %(message)s\n"
+#~ msgstr "Virhe haettaessa KPI-tietoja osoitteesta %(dbname)s: %(message)s\n"
+
+#~ msgid "Error while getting users from %(dbname)s: %(message)s\n"
+#~ msgstr "Virhe haettaessa käyttäjiä osoitteesta %(dbname)s: %(message)s\n"
+
+#~ msgid "Synchronization done successfully!"
+#~ msgstr "Synkronointi onnistui!"

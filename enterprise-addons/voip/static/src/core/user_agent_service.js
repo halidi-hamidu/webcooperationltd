@@ -108,14 +108,6 @@ export class UserAgent extends Reactive {
         return Boolean(dndUntil) && dndUntil > luxon.DateTime.now();
     }
 
-    async shouldPlayIncomingCallRingtone() {
-        return (
-            this.hasCallInvitation &&
-            !this.isInDoNotDisturbMode &&
-            (await this.multiTabService.isOnMainTab())
-        );
-    }
-
     async acceptIncomingCall() {
         this.ringtoneService.stopPlaying();
         this.voip.triggerError(_t("Please accept the use of the microphone."));
@@ -371,6 +363,12 @@ export class UserAgent extends Reactive {
         }
     }
 
+    requestIncomingRingtone() {
+        if (this.hasCallInvitation && !this.isInDoNotDisturbMode && this.activeSession.ringleader) {
+            this.ringtoneService.incoming.play();
+        }
+    }
+
     /**
      * Determines if the SDP contains the attributes required by DTLS.
      *
@@ -463,15 +461,16 @@ export class UserAgent extends Reactive {
             phone_number: phoneNumber,
         });
         const session = new Session(call, inviteSession);
+        session.controlHandle = inviteSession.request.getHeader("Call-ID");
         inviteSession.incomingInviteRequest.delegate = {
             onCancel: (message) => session._onIncomingInviteCanceled(message),
         };
         this.activeSession = this.mainSession = session;
+        if (navigator.userActivation.hasBeenActive) {
+            this.env.services["voip.worker"].send("VOIP:RING?", session.controlHandle);
+        }
         if (!this.isInDoNotDisturbMode) {
             this.softphone.show();
-        }
-        if (await this.shouldPlayIncomingCallRingtone()) {
-            this.ringtoneService.incoming.play();
         }
     }
 

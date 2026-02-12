@@ -1047,7 +1047,7 @@ services reception has been received as well.
         if file_data['import_file_type'] != 'l10n_cl.dte':
             return super()._unwrap_attachment(file_data, recurse)
 
-        embedded = self._split_xml_into_new_attachments(file_data, tag='DTE')
+        embedded = self._split_xml_into_new_attachments(file_data, tag='{*}DTE')
         if embedded and recurse:
             embedded.extend(self._unwrap_attachments(embedded, recurse=True))
         return embedded
@@ -1199,7 +1199,8 @@ services reception has been received as well.
         """
         gross_amount = xml_tree.findtext('.//ns0:MntBruto', namespaces=XML_NAMESPACES) is not None
         use_default_tax = xml_tree.findtext('.//ns0:TasaIVA', namespaces=XML_NAMESPACES) is not None
-        default_purchase_tax = self.company_id.account_purchase_tax_id or self.env['account.chart.template'].ref('OTAX_19')
+        default_purchase_tax = (self.company_id.account_purchase_tax_id or
+                                self.env['account.chart.template'].with_company(self.company_id).ref('OTAX_19'))
         currency = vals['currency_id']
         lines_vals_list = []
         for dte_line in xml_tree.findall('.//ns0:Detalle', namespaces=XML_NAMESPACES):

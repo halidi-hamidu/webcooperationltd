@@ -34,8 +34,16 @@ class BudgetReport(models.Model):
         """,
         precision_digits=precision_digits
         )
-        return SQL(
-            """
+
+        company_conditions = [
+            SQL('po.company_id = bl.company_id'),
+            SQL('bl.company_id IS NULL'),
+        ]
+
+        queries = []
+        for company_condition in company_conditions:
+            queries.append(SQL(
+                """
             SELECT (pol.id::TEXT || '-' || ROW_NUMBER() OVER (PARTITION BY pol.id ORDER BY pol.id)) AS id,
                    bl.budget_analytic_id AS budget_analytic_id,
                    bl.id AS budget_line_id,
@@ -61,23 +69,26 @@ class BudgetReport(models.Model):
          LEFT JOIN (%(qty_invoiced_table)s) qty_invoiced_table ON qty_invoiced_table.pol_id = pol.id
               JOIN purchase_order po ON pol.order_id = po.id AND po.state = 'purchase'
         CROSS JOIN JSONB_TO_RECORDSET(pol.analytic_json) AS a(rate FLOAT, %(field_cast)s)
-         LEFT JOIN budget_line bl ON (bl.company_id IS NULL OR po.company_id = bl.company_id)
+         LEFT JOIN budget_line bl ON %(company_condition)s
                                  AND po.date_order >= bl.date_from
                                  AND date_trunc('day', po.date_order) <= bl.date_to
                                  AND %(condition)s
          LEFT JOIN budget_analytic ba ON ba.id = bl.budget_analytic_id
              WHERE pol.product_qty > COALESCE(qty_invoiced_table.qty_invoiced, 0)
                AND ba.budget_type != 'revenue'
-            """,
-            analytic_fields=SQL(', ').join(self.env['account.analytic.line']._field_to_sql('a', fname) for fname in plan_fnames),
-            qty_invoiced_table=qty_invoiced_table,
-            field_cast=SQL(', ').join(SQL('%s FLOAT', SQL.identifier(fname)) for fname in plan_fnames),
-            condition=SQL(' AND ').join(SQL(
-                "(%(bl)s IS NULL OR %(a)s = %(bl)s)",
-                bl=self.env['budget.line']._field_to_sql('bl', fname),
-                a=self.env['budget.line']._field_to_sql('a', fname),
-            ) for fname in plan_fnames)
-        )
+                """,
+                company_condition=company_condition,
+                analytic_fields=SQL(', ').join(self.env['account.analytic.line']._field_to_sql('a', fname) for fname in plan_fnames),
+                qty_invoiced_table=qty_invoiced_table,
+                field_cast=SQL(', ').join(SQL('%s FLOAT', SQL.identifier(fname)) for fname in plan_fnames),
+                condition=SQL(' AND ').join(SQL(
+                    "(%(bl)s IS NULL OR %(a)s = %(bl)s)",
+                    bl=self.env['budget.line']._field_to_sql('bl', fname),
+                    a=self.env['budget.line']._field_to_sql('a', fname),
+                ) for fname in plan_fnames)
+            ))
+
+        return SQL(' UNION ALL ').join(queries)
 
     @property
     def _table_query(self):

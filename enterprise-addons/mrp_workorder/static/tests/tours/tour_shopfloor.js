@@ -343,8 +343,10 @@ registry.category("web_tour.tours").add("test_shop_floor_auto_select_workcenter"
         ...stepUtils.clickOnWorkcenterButton("Furnace"),
         { trigger: ".o_mrp_display_record .card-footer button.o_btn_icon", run: "click" },
         { trigger: 'button[name="openMO"]', run: "click" },
+        // In the MO form view, click the breadcrumb “Shop Floor”, to go back to ShopFloor
         { trigger: ".o_breadcrumb a:contains('Shop Floor')", run: "click" },
         {
+            content: "Check the active Work-Center is Furnace",
             trigger: ".o_work_centers",
             run: () => {
                 helper.assertWorkcenterButtons([
@@ -489,58 +491,46 @@ registry.category("web_tour.tours").add("test_shop_floor_my_wo_filter_with_pin_u
 
 registry.category("web_tour.tours").add("test_generate_serials_in_shopfloor", {
     steps: () => [
+        ...stepUtils.openWorkcentersSelector(),
+        ...stepUtils.addWorkcenterToDisplay("Assembly Line"),
+        ...stepUtils.confirmWorkcentersSelection(),
+        ...stepUtils.clickOnWorkcenterButton("Assembly Line"),
         {
-            content: "Make sure workcenter is available",
-            trigger: '.form-check:has(input[name="Assembly Line"])',
+            content: "Start the workorder",
+            trigger: ".o_mrp_display_record:not(o_active) .card-header",
             run: "click",
         },
+        { trigger: ".o_mrp_display_record.o_active" },
         {
-            trigger: '.form-check:has(input[name="Assembly Line"]:checked)',
-        },
-        {
-            content: "Confirm workcenter",
-            trigger: 'button:contains("Confirm")',
-            run: "click",
-        },
-        {
-            content: "Select workcenter",
-            trigger: 'button.btn-light:contains("Assembly Line")',
-            run: "click",
-        },
-        {
-            content: "Open the wizard",
-            trigger: '.o_mrp_record_line .text-truncate:contains("Register byprod")',
-            run: "click",
-        },
-        {
-            content: "Open the serials generation wizard",
-            trigger: ".o_widget_generate_serials button",
+            content: "Open the by-product wizard",
+            trigger: ".o_mrp_record_line:contains('By-product: byprod')",
             run: "click",
         },
         {
             content: "Input a serial",
-            trigger: "#next_serial_0",
+            trigger: ".o_field_many2one[name='lot_id'] input",
             run: "edit 00001",
         },
         {
             content: "Generate the serials",
-            trigger: 'button.btn-primary:contains("Generate")',
+            trigger: "li.o_m2o_dropdown_option_create a",
             run: "click",
         },
         {
             content: "Save and close the wizard",
-            trigger: '.o_form_button_save:contains("Save")',
+            trigger: ".modal-footer button.o_form_button_save",
             run: "click",
         },
         {
             trigger:
-                ".o_mrp_display_record:first .o_mrp_record_line.text-muted:contains(Register byprod)",
+                ".o_mrp_display_record .o_mrp_record_line .o_line_label.text-decoration-line-through:contains('By-product: byprod')",
         },
         {
             content: "Set production as done",
-            trigger: 'button.btn-primary:contains("Close Production")',
+            trigger: ".card-footer button.btn-primary[barcode_trigger='CLMO']",
             run: "click",
         },
+        { trigger: ".o_view_nocontent" },
     ],
 });
 
@@ -977,8 +967,12 @@ registry.category("web_tour.tours").add("test_product_consumption", {
         ...stepUtils.clickOnWorkcenterButton("Workcenter1"),
         {
             content: "Click on consumption button",
-            trigger: '.o_mrp_record_line button.btn .fa-plus',
+            trigger: ".o_mrp_record_line button.btn .fa-plus",
             run: "click",
+        },
+        {
+            content: "Check lot from TWH2 warehouse is not visible in the list",
+            trigger: "table.o_list_table:not(:has([data-tooltip='TWH2/Stock']))",
         },
         {
             content: "Select first lot",
@@ -994,5 +988,5 @@ registry.category("web_tour.tours").add("test_product_consumption", {
             content: "Check that there are no open work orders",
             trigger: ".o_nocontent_help",
         },
-    ]
-})
+    ],
+});

@@ -115,12 +115,12 @@ class WhatsappMessage(models.Model):
                 try:
                     if message_string in self._get_opt_out_message():
                         self.env['phone.blacklist'].sudo().add(
-                            number=f'+{message.mobile_number_formatted}',  # from WA to E164 format
+                            number=wa_phone_validation.wa_phone_format_for_blacklist(message.mobile_number_formatted),
                             message=_("User has been opt out of receiving WhatsApp messages"),
                         )
                     else:
                         self.env['phone.blacklist'].sudo().remove(
-                            number=f'+{message.mobile_number_formatted}',  # from WA to E164 format
+                            number=wa_phone_validation.wa_phone_format_for_blacklist(message.mobile_number_formatted),
                             message=_("User has opted in to receiving WhatsApp messages"),
                         )
                 except UserError:
@@ -268,11 +268,13 @@ class WhatsappMessage(models.Model):
             msg_uid = False
             try:
                 parent_message_id = False
-                body = html2plaintext(whatsapp_message.body)
+                # body would always come from plaintext2html hence the url text is already the url and references are redundant
+                body = html2plaintext(whatsapp_message.body, include_references=False)
                 number = whatsapp_message.mobile_number_formatted
                 if not number:
                     raise WhatsAppError(failure_type='phone_invalid')
-                if self.env['phone.blacklist'].sudo().search_count([('number', 'ilike', number), ('active', '=', True)], limit=1):
+                blacklist_number = wa_phone_validation.wa_phone_format_for_blacklist(number)
+                if self.env['phone.blacklist'].sudo().search_count([('number', 'ilike', blacklist_number), ('active', '=', True)], limit=1):
                     raise WhatsAppError(failure_type='blacklisted')
 
                 # based on template
@@ -319,7 +321,7 @@ class WhatsappMessage(models.Model):
                     attachment_vals = whatsapp_message._prepare_attachment_vals(whatsapp_message.mail_message_id.attachment_ids[0], wa_account_id=whatsapp_message.wa_account_id)
                     message_type = attachment_vals.get('type')
                     send_vals = attachment_vals.get(message_type)
-                    if whatsapp_message.body:
+                    if body:
                         send_vals['caption'] = body
                 else:
                     message_type = 'text'

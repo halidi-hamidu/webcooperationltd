@@ -262,6 +262,7 @@ class TestDeliveryShiprocketPostInstall(TestDeliveryShiprocket):
             'name': 'Basic 15% tax',
             'amount': 15,
         })
+        empty_pricelist = self.env['product.pricelist'].create({'name': 'Empty Pricelist'})
         sale_order = self.env['sale.order'].create({
             'partner_id': self.in_partner.id,
             'order_line': [Command.create({
@@ -272,6 +273,7 @@ class TestDeliveryShiprocketPostInstall(TestDeliveryShiprocket):
                 'price_unit': self.product_to_ship1.lst_price,
                 'tax_ids': basic_tax,
             })],
+            'pricelist_id': empty_pricelist.id,
         })
         self.env['choose.delivery.carrier'].with_context({
             'default_order_id': sale_order.id,

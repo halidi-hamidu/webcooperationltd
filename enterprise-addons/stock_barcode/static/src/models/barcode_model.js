@@ -421,7 +421,17 @@ export default class BarcodeModel extends EventBus {
             } else {
                 // If it still exist, selects the record's line.
                 const line = this.currentState.lines.find((line) => line.id === lineId);
-                this.selectLine(line);
+                if (
+                    this.lineCanBeSelected(line) &&
+                    (!line.virtual_ids || !line.virtual_ids.includes(this.selectedLineVirtualId))
+                ) {
+                    this._selectLine(line);
+                } else if (
+                    this.config.restrict_scan_source_location &&
+                    this.lastScanned.sourceLocation.id !== line.location_id.id
+                ) {
+                    this._clearScanData();
+                }
             }
         }
     }
@@ -523,7 +533,7 @@ export default class BarcodeModel extends EventBus {
     }
 
     async updateLine(line, args) {
-        let { location_id, lot_id, owner_id, package_id } = args;
+        let { location_id, lot_id, owner_id, package_id, reserved_uom_qty } = args;
         if (!line) {
             throw new Error("No line found");
         }
@@ -565,6 +575,9 @@ export default class BarcodeModel extends EventBus {
         if (args.lot_name && line.product_id.tracking !== "none") {
             await this.updateLotName(line, args.lot_name);
         }
+        if (reserved_uom_qty) {
+            line.reserved_uom_qty = reserved_uom_qty;
+        }
         this._updateLineQty(line, args);
         this._markLineAsDirty(line);
     }
@@ -599,6 +612,10 @@ export default class BarcodeModel extends EventBus {
     }
 
     async validate() {
+        return this.actionMutex.exec(async () => this._validate());
+    }
+
+    async _validate() {
         await this.save();
         const context = this.validateContext;
         context["barcode_trigger"] = true;

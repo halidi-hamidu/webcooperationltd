@@ -3350,3 +3350,15 @@ class TestAccountAsset(TestAccountReportsCommon):
         })
         invoice.action_post()
         self.assertEqual(invoice.asset_ids.original_value, 204.2)
+
+    def test_non_deductible_tax_value_empty_ids(self):
+        """Test that _compute_non_deductible_tax_value doesn't crash on unsaved records."""
+        move = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_a.id,
+        })
+        with Form(move) as move_form:
+            with move_form.invoice_line_ids.new() as line_form:
+                line_form.product_id = self.product_a
+                line_form.tax_ids.clear()
+                line_form.tax_ids.add(self.tax_armageddon)

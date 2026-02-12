@@ -14,7 +14,7 @@ patch(PosStore.prototype, {
             totalDue: 0,
             posOrdersAmountDue: 0,
             invoicesAmountDue: 0,
-            totalWithCart: order?.amount_total ?? 0,
+            totalWithCart: order ? this.currency.round(order.priceIncl) : 0,
             creditLimit: 0,
             useLimit: false,
             overDue: false,

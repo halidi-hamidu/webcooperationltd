@@ -1,6 +1,7 @@
 from lxml import etree
 
 from odoo import api, models
+from odoo.tools import float_repr
 
 
 class AccountJournal(models.Model):
@@ -94,6 +95,35 @@ class AccountJournal(models.Model):
                 bank_code, _acc_num, _checksum = bank_account._se_get_acc_number_data(bank_account.acc_number)
             MmbId.text = bank_code
         return FinInstnId
+
+    def _get_RmtInf(self, payment_method_code, payment):
+        RmtInf = super()._get_RmtInf(payment_method_code, payment)
+        if RmtInf is False or not self._is_se_bban(payment_method_code):
+            return RmtInf
+
+        strd = RmtInf.find('Strd')
+        if strd is not None:
+            partner_bank_id = payment.get('partner_bank_id')
+            if partner_bank_id:
+                partner_bank = self.env['res.partner.bank'].browse(partner_bank_id)
+                if partner_bank and partner_bank.acc_type == 'bankgiro':
+                    # if we got structured reference and the recipient has an account of type bankgiro, we need RfdDocAmt.
+                    currency_id = payment.get('currency_id')
+                    if currency_id:
+                        ccy = self.env['res.currency'].browse(currency_id)
+                        RfrdDocAmt = etree.Element('RfrdDocAmt')
+                        if payment['payment_type'] == 'inbound':
+                            CdtNoteAmt = etree.SubElement(RfrdDocAmt, 'CdtNoteAmt', Ccy=ccy.name)
+                            CdtNoteAmt.text = float_repr(ccy.round(payment['amount']), 2)
+                            RmtdAmt = etree.SubElement(RfrdDocAmt, 'RmtdAmt', Ccy=ccy.name)
+                            RmtdAmt.text = '0.00'
+                        elif payment['payment_type'] == 'outbound':
+                            CdtNoteAmt = etree.SubElement(RfrdDocAmt, 'CdtNoteAmt', Ccy=ccy.name)
+                            CdtNoteAmt.text = '0.00'
+                            RmtdAmt = etree.SubElement(RfrdDocAmt, 'RmtdAmt', Ccy=ccy.name)
+                            RmtdAmt.text = float_repr(ccy.round(payment['amount']), 2)
+                        strd.insert(0, RfrdDocAmt)
+        return RmtInf
 
     def _get_cleaned_bic_code(self, bank_account, payment_method_code):
         """

@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.tools import  date_utils
+from odoo.tools import date_utils, SQL
 
 L10N_MA_CUSTOMS_VAT_ICE = '20727020'
 
@@ -21,7 +21,7 @@ class L10n_MaTaxReportHandler(models.AbstractModel):
         })
 
     @api.model
-    def _l10n_ma_prepare_vat_report_header_values(self, company, bills, period_type, date_from):
+    def _l10n_ma_prepare_vat_report_header_values(self, company, bill_data_list, period_type, date_from):
         template_vals = {
             'errors': {},
             'year': str(date_from.year),
@@ -36,8 +36,8 @@ class L10n_MaTaxReportHandler(models.AbstractModel):
         template_vals['vat_id'] = company.vat
 
         #  Check for different errors in the report
-        errored_vendors = bills.partner_id.filtered(lambda p: (not p.vat or not p.company_registry) and p.country_code == 'MA')
-        self._check_l10n_ma_report_errors(errored_vendors, period_type, template_vals, company)
+        incomplete_vendor_ids = [data['partner_id'] for data in bill_data_list if data['partner_from_ma'] and (not data['partner_vat'] or not data['partner_ice'])]
+        self._check_l10n_ma_report_errors(self.env['res.partner'].browse(incomplete_vendor_ids), period_type, template_vals, company)
         return template_vals
 
     def _check_l10n_ma_report_errors(self, errored_vendors, period_type, template_vals, company):
@@ -64,79 +64,117 @@ class L10n_MaTaxReportHandler(models.AbstractModel):
             }
 
     @api.model
-    def _l10n_ma_prepare_vat_report_bill_values(self, bills, prorata_value):
+    def _l10n_ma_prepare_vat_report_bill_values(self, bill_data_list, prorata_value):
         template_vals = {
             'bills': [],
         }
 
-        if prorata_value:
-            template_vals['prorata'] = prorata_value.value
-
-        def group_taxes_ma(base_line, tax_data):
-            tax = tax_data['tax']
-            return {
-                'amount': tax.amount,
-                'amount_type': tax.amount_type,
-            }
+        if int(prorata_value):
+            template_vals['prorata'] = prorata_value
 
         index = 1
-        for bill in bills:
-            # In the case of a foreign partner we will fall back to the default value, if he is from morocco, he needs
-            # to have a vat and ice number otherwise the move is ignored
-            if not ((bill.partner_id.vat and bill.partner_id.company_registry) or bill.partner_id.country_code != 'MA'):
+        for bill_data in bill_data_list:
+            if bill_data['partner_from_ma'] and not (bill_data['partner_vat'] and bill_data['partner_ice']):
                 continue
 
-            tax_aggregates = bill._prepare_invoice_aggregated_taxes(grouping_key_generator=group_taxes_ma)
-            bill_payments = bill._get_reconciled_payments()
-            sign = -1 if bill.is_inbound() else 1
-            payment_date = ''
-            if bill_payments:
-                payment_date = bill_payments.sorted(lambda p: p.date)[-1].date.strftime('%Y-%m-%d')
+            sign = -1 if bill_data['is_inbound'] else 1
 
-            for amount_details, tax_values in tax_aggregates['tax_details'].items():
-                if amount_details['amount_type'] != 'percent':
-                    continue
-                template_vals['bills'].append({
-                    'name': bill.name,
-                    'sequence': index,
-                    'base_amount': tax_values['base_amount'] * sign,
-                    'tax_amount': tax_values['tax_amount'] * sign,
-                    'total_amount': (tax_values['tax_amount'] + tax_values['base_amount']) * sign,
-                    'partner_vat': bill.partner_id.vat if bill.partner_id.country_code == 'MA' else bill.partner_id.l10n_ma_customs_vat or L10N_MA_CUSTOMS_VAT_ICE,
-                    'partner_name': bill.partner_id.name,
-                    'partner_ice': bill.partner_id.company_registry or L10N_MA_CUSTOMS_VAT_ICE,
-                    'tax_rate': amount_details['amount'] * sign,
-                    'payment_method': bill.l10n_ma_reports_payment_method or '7',
-                    'payment_date':  payment_date,
-                    'invoice_date': bill.invoice_date.strftime('%Y-%m-%d'),
-                })
-                index += 1
+            payment_methods = [method for method in (bill_data['payment_method'] or []) if method is not None]
+            base_amount = self.env.company.currency_id.round(bill_data['tax_amount'] / (bill_data['tax_rate'] / 100))
+
+            template_vals['bills'].append({
+                'name': bill_data['move_name'],
+                'sequence': index,
+                'base_amount': base_amount * sign,
+                'tax_amount': bill_data['tax_amount'] * sign,
+                'total_amount': self.env.company.currency_id.round((bill_data['tax_amount'] + base_amount) * sign),
+                'partner_vat': bill_data['partner_vat'] or L10N_MA_CUSTOMS_VAT_ICE,
+                'partner_name': bill_data['partner_name'],
+                'partner_ice': bill_data['partner_ice'] or L10N_MA_CUSTOMS_VAT_ICE,
+                'tax_rate': bill_data['tax_rate'] * sign,
+                'payment_method': payment_methods[0] if len(payment_methods) == 1 else '7',
+                'payment_date':  bill_data['payment_date'] or '',
+                'invoice_date': bill_data['invoice_date'],
+            })
+
+            index += 1
+
         return template_vals
 
     @api.model
     def _l10n_ma_prepare_vat_report_values(self, options):
+        report = self.env['account.report'].browse(options['report_id'])
+
+        deductions_expr = self.env.ref('l10n_ma.tax_report_part_d_tax_sum')
+        tags = deductions_expr._expand_aggregations()._get_matching_tags()
+        report_query = report._get_report_query(options, 'strict_range', domain=[('tax_tag_ids', 'in', tags.ids)])
+
+        if 'account_move_line__move_id' not in report_query._joins:
+            report_query.join('account_move_line', 'move_id', 'account_move', 'id', 'move_id')
+        if 'account_move_line__partner_id' not in report_query._joins:
+            report_query.left_join('account_move_line', 'partner_id', 'res_partner', 'id', 'partner_id')
+
+        self.env.cr.execute(SQL(
+            """
+            SELECT
+                COALESCE(MIN(caba_origin_move.name), MIN(account_move_line__move_id.name)) AS move_name,
+                SUM(CASE WHEN account_move_line.display_type = 'tax' THEN account_move_line.balance ELSE 0 END) AS tax_amount,
+                CASE WHEN account_move_line__partner_id.country_id = %(ma_country_id)s
+                    THEN account_move_line__partner_id.vat
+                    ELSE account_move_line__partner_id.l10n_ma_customs_vat
+                END AS partner_vat,
+                account_move_line__partner_id.name as partner_name,
+                account_move_line__partner_id.company_registry AS partner_ice,
+                tax.amount AS tax_rate,
+                CASE WHEN MIN(caba_origin_move.id) IS NULL
+                    THEN NULL
+                    ELSE ARRAY_AGG(DISTINCT caba_payment.l10n_ma_reports_payment_method)
+                END AS payment_method,
+                CASE WHEN MIN(caba_origin_move.id) IS NULL
+                    THEN NULL -- We make the assumption it's not important to provide it if not using cash basis
+                    ELSE GREATEST(MAX(account_move_line__move_id.date), MAX(caba_origin_move.date))
+                END AS payment_date,
+                COALESCE(MIN(caba_origin_move.invoice_date), MIN(account_move_line__move_id.invoice_date)) AS invoice_date,
+                COALESCE(MIN(caba_origin_move.move_type), MIN(account_move_line__move_id.move_type)) IN %(inbound_types)s AS is_inbound,
+                account_move_line__partner_id.country_id = %(ma_country_id)s AS partner_from_ma,
+                account_move_line__partner_id.id AS partner_id
+
+            FROM
+                %(table_references)s
+                JOIN account_tax tax
+                    ON tax.id = account_move_line.tax_line_id -- Only tax lines receive tags from the report, so it's fine to do this
+                    AND tax.amount_type = 'percent'
+                LEFT JOIN account_move caba_origin_move
+                    ON caba_origin_move.id = account_move_line__move_id.tax_cash_basis_origin_move_id
+                LEFT JOIN account_partial_reconcile caba_partial
+                    ON account_move_line__move_id.tax_cash_basis_rec_id = caba_partial.id
+                LEFT JOIN account_move_line caba_payment_aml
+                    ON caba_payment_aml.id IN (caba_partial.debit_move_id, caba_partial.credit_move_id)
+                    AND caba_payment_aml.move_id != caba_origin_move.id
+                LEFT JOIN account_payment caba_payment
+                    ON caba_payment.move_id = caba_payment_aml.move_id
+
+            WHERE %(search_condition)s
+
+            GROUP BY account_move_line__partner_id.id, COALESCE(caba_origin_move.id, account_move_line__move_id.id), tax.id
+            """,
+            table_references=report_query.from_clause,
+            search_condition=report_query.where_clause,
+            ma_country_id=self.env.ref('base.ma').id,
+            inbound_types=tuple(self.env['account.move'].get_inbound_types()),
+        ))
+
+        bill_data_list = self.env.cr.dictfetchall()
+
         date_from = fields.Date.from_string(options['date'].get('date_from'))
-        date_to = fields.Date.from_string(options['date'].get('date_to'))
         period_type = options['return_periodicity']['periodicity']
-        company = self.env.company
+        template_vals = self._l10n_ma_prepare_vat_report_header_values(self.env.company, bill_data_list, period_type, date_from)
 
         prorata_expression = self.env.ref('l10n_ma.l10n_ma_vat_d_prorata_pro')
-        prorata_value = self.env['account.report.external.value'].search([
-            ('target_report_expression_id', '=', prorata_expression.id),
-            ('company_id', '=', company.id),
-            ('date', '>=', date_from),
-            ('date', '<=', date_to),
-        ], limit=1, order='date desc')
+        prorata_expr_totals = report._compute_expression_totals_for_each_column_group(prorata_expression, options)
+        prorata_value = prorata_expr_totals[next(iter(options['column_groups']))][prorata_expression]['value']
+        template_vals |= self._l10n_ma_prepare_vat_report_bill_values(bill_data_list, prorata_value)
 
-        bills = self.env['account.move'].search([
-            ('move_type', 'in', self.env['account.move'].get_purchase_types()),
-            ('invoice_date', '>=', date_from),
-            ('invoice_date', '<=', date_to),
-            ('state', '=', 'posted'),
-        ])
-
-        template_vals = self._l10n_ma_prepare_vat_report_header_values(company, bills, period_type, date_from)
-        template_vals |= self._l10n_ma_prepare_vat_report_bill_values(bills, prorata_value)
         return template_vals
 
     @api.model

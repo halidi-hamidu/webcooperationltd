@@ -22,6 +22,12 @@ CANTON_CODES = [
     'SG', 'SH', 'SO', 'SZ', 'TG', 'TI', 'UR', 'VD', 'VS', 'ZG', 'ZH']
 TAX_SCALES = list('ABCDEFGHIJKLMNOPQRSTUV')
 
+ALL_CANTON_IMPORT_URLS = {
+    "2026": "https://www.estv.admin.ch/dam/de/sd-web/mX9Lw4R3OngC/tar2026txt.zip",
+    "2025": "https://www.estv.admin.ch/dam/de/sd-web/PB2kXbRp1bAQ/qst-ch-tar2025txt-de.zip",
+    "2024": "https://www.estv.admin.ch/dam/de/sd-web/zPXLuV1oabkb/qst-ch-tar2024txt-de.zip"
+}
+
 
 class L10nChTaxRateImportWizard(models.TransientModel):
     _name = 'l10n.ch.tax.rate.import.wizard'
@@ -332,7 +338,8 @@ class L10nChTaxRateImportWizard(models.TransientModel):
         try:
             with zipfile.ZipFile(zip_bytes, 'r') as z:
                 for file_name in z.namelist():
-                    if file_name.lower().endswith('.txt'):
+                    f_name_lower = file_name.lower()
+                    if f_name_lower.endswith('.txt') and (self.canton_mode == 'all' or (f"{self.canton.lower()}.txt" in f_name_lower)):
                         txt_bytes = z.read(file_name)
                         self.env['ir.attachment'].create({
                             'name': file_name,
@@ -352,22 +359,10 @@ class L10nChTaxRateImportWizard(models.TransientModel):
         Return the official ESTV URL based on year + whether we want all or single canton.
         """
         year_str = str(self.year)
-        short_year_str = year_str[-2:]
-        canton_lower = (self.canton or '').lower()
 
-        if self.canton_mode == 'all':
-            # e.g. 2025 =>
-            # https://www.estv.admin.ch/dam/estv/fr/dokumente/qst/schweiz/qst-ch-tar2025txt-fr.zip.download.zip/qst-ch-tar2025txt-fr.zip
-            url = (
-                "https://www.estv.admin.ch/dam/estv/fr/dokumente/qst/schweiz/"
-                f"qst-ch-tar{year_str}txt-fr.zip.download.zip/qst-ch-tar{year_str}txt-fr.zip"
-            )
+        if year_str in ALL_CANTON_IMPORT_URLS:
+            url = ALL_CANTON_IMPORT_URLS[year_str]
         else:
-            # Single canton approach
-            # https://www.estv.admin.ch/dam/estv/fr/dokumente/qst/2025/qst-loehne/qst-tar25ar-fr.zip.download.zip/qst-tar25ar-fr.zip
-            url = (
-                f"https://www.estv.admin.ch/dam/estv/fr/dokumente/qst/{year_str}/qst-loehne/"
-                f"qst-tar{short_year_str}{canton_lower}-fr.zip.download.zip/"
-                f"qst-tar{short_year_str}{canton_lower}-fr.zip"
-            )
+            raise UserError(_("It is currently not possible to import Tax rates automatically for this year, please import them manually."))
+
         return url

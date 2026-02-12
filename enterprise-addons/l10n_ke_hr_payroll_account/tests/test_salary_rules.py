@@ -49,3 +49,9 @@ class TestPayslipValidation(TestPayslipValidationCommon):
         payslip = self._generate_payslip(date(2025, 1, 1), date(2025, 1, 31))
         payslip_results = {'BASIC': 100000.0, 'GROSS': 100000.0, 'NSSF_EMPLOYEE_TIER_1': 420.0, 'NSSF_EMPLOYEE_TIER_2': 1740.0, 'GROSS_TAXABLE': 93590.0, 'INCOME_TAX': 22860.35, 'AHL_AMOUNT': 1500.0, 'PERS_RELIEF': -2400.0, 'PAYE': 20460.35, 'NSSF_AMOUNT': 2160.0, 'SHIF_AMOUNT': 2750.0, 'STATUTORY_DED': 26870.35, 'TOTAL_DED': 26870.35, 'NITA': 50.0, 'NSSF_EMP': 2160.0, 'AHL_AMOUNT_EMP': 1500.0, 'NET': 73129.65}
         self._validate_payslip(payslip, payslip_results)
+
+    def test_payslip_secondary_contract(self):
+        self.contract.l10n_ke_is_secondary = True
+        payslip = self._generate_payslip(date(2024, 1, 1), date(2024, 1, 31))
+        payslip_results = {'BASIC': 100000.0, 'GROSS': 100000.0, 'AHL_AMOUNT': 1500.0, 'GROSS_TAXABLE': 100000.0, 'INCOME_TAX': 35000.0, 'PAYE': 35000.0, 'STATUTORY_DED': 36500.0, 'TOTAL_DED': 36500.0, 'NITA': 50.0, 'AHL_AMOUNT_EMP': 1500.0, 'NET': 63500.0}
+        self._validate_payslip(payslip, payslip_results)

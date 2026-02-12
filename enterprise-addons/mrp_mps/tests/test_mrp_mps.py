@@ -636,6 +636,43 @@ class TestMpsMps(common.TransactionCase):
         wood_forecast_1 = mps_wood['forecast_ids'][0]
         self.assertEqual(wood_forecast_1['indirect_demand_qty'], 4)
 
+    def test_delivery_quantity_kit(self):
+        """On ordering a kit product containing a component ressuplied from another warehouse,
+        ensure the correct amount of component are ordered.
+        """
+        second_warehouse = self.env['stock.warehouse'].create({
+            'name': 'Second Warehouse',
+            'code': 'WH2',
+            'resupply_wh_ids': [Command.link(self.warehouse.id)],
+        })
+
+        resupply_route = self.env['stock.route'].search([('supplier_wh_id', '=', self.warehouse.id), ('supplied_wh_id', '=', second_warehouse.id)], limit=1)
+        self.drawer.route_ids = [Command.set(resupply_route.ids)]
+
+        self.env['mrp.bom'].create({
+            'product_tmpl_id': self.wardrobe.product_tmpl_id.id,
+            'type': 'phantom',
+            'product_qty': 2,
+            'bom_line_ids': [
+                Command.create({'product_id': self.drawer.id, 'product_qty': 6}),
+            ],
+        })
+
+        mps_wardrobe = self.env['mrp.production.schedule'].create({
+            'product_id': self.wardrobe.id,
+            'warehouse_id': second_warehouse.id,
+            'route_id': resupply_route.id,
+        })
+
+        self.env['mrp.product.forecast'].create({
+            'production_schedule_id': mps_wardrobe.id,
+            'date': self.mps_dates_month[0][0],
+            'forecast_qty': 4,
+        })
+
+        mps_wardrobe.action_replenish()
+        self.assertEqual(self.env['stock.move'].search([('product_id', '=', self.drawer.id)], limit=1).product_qty, 12)
+
     def test_impacted_schedule(self):
         impacted_schedules = self.mps_screw.get_impacted_schedule()
         self.assertEqual(sorted(impacted_schedules), sorted((self.mps - (self.mps_screw | self.mps_bolt)).ids))

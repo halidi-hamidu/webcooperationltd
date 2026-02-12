@@ -227,3 +227,24 @@ class TestPayslipValidation(TestPayslipValidationCommon):
         payslip.compute_sheet()
 
         self.assertEqual(payslip._get_line_values(['LOAN_DEDUCTION'])['LOAN_DEDUCTION'][payslip.id]['total'], -200.0)
+
+    def test_saudi_payslip_with_attendance(self):
+        if self.env["ir.module.module"]._get("hr_payroll_attendance").state != "installed":
+            self.skipTest(
+                "The test was skipped because the 'hr_payroll_attendance' module isn’t installed; therefore, attendance-based entries are unavailable."
+            )
+        self.saudi_employee.work_entry_source = "attendance"
+        payslip = self.env['hr.payslip'].create([{
+            'name': "Test Payslip",
+            'employee_id': self.saudi_employee.id,
+            'version_id': self.saudi_employee.version_id.id,
+            'company_id': self.env.company.id,
+            'struct_id': self.env.ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure').id,
+            'date_from': date(2026, 1, 1),
+            'date_to': date(2026, 1, 31),
+        }])
+        payslip.compute_sheet()
+        payslip_results = {
+            'BASIC': 0.0,
+        }
+        self._validate_payslip(payslip, payslip_results, skip_lines=True)

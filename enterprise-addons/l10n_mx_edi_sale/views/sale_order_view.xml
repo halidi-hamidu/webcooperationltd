@@ -7,7 +7,9 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='validity_date']" position="after">
-                    <field name="l10n_mx_edi_cfdi_to_public" invisible="country_code != 'MX'"/>
+                    <field name="l10n_mx_edi_cfdi_to_public"
+                        invisible="country_code != 'MX'"
+                        readonly="partner_id and country_code == 'MX' and not l10n_mx_edi_partner_address_complete"/>
                     <field name="l10n_mx_edi_payment_method_id" invisible="country_code != 'MX'"/>
                     <field name="l10n_mx_edi_payment_policy" invisible="country_code != 'MX'"/>
                     <field name="l10n_mx_edi_usage" invisible="country_code != 'MX'"/>

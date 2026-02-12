@@ -35,6 +35,7 @@ class HrEmployee(models.Model):
         planning_slots_by_employee = dict(self.env['planning.slot'].sudo()._read_group(
             domain=Domain.AND([
                 Domain('state', '=', 'published'),
+                Domain('employee_id', 'in', self.ids),
                 Domain.OR(planning_periods)
             ]),
             groupby=["employee_id"],
@@ -53,11 +54,11 @@ class HrEmployee(models.Model):
                     planning_intervals = schedule_interval
                 else:
                     for day in rrule(DAILY, dtstart=start, until=stop):
-                        day_start = max(datetime.combine(day, datetime.time.min()), start)
-                        day_stop = min(datetime.combine(day, datetime.time.max()), stop)
+                        day_start = max(datetime.combine(day, datetime.min.time()), start)
+                        day_stop = min(datetime.combine(day, datetime.max.time()), stop)
                         full_duration = sum_intervals(schedule_interval & Intervals([(day_start, day_stop, self.env['resource.calendar'])]))
                         day_stop -= timedelta(hours=full_duration * (100 - allocated_percentage))
-                        planning_intervals |= Intervals(day_start, day_stop, self.env['resource.calendar'])
+                        planning_intervals |= Intervals([(day_start, day_stop, self.env['resource.calendar'])])
                 planning_slot_interval |= planning_intervals
             res['schedule'][employee]['work'] |= planning_slot_interval
         return res

@@ -531,7 +531,7 @@ class L10n_BePartnerVatHandler(models.AbstractModel):
         if addr.get('invoice', False):
             addr_partner = self.env['res.partner'].browse([addr['invoice']])
             phone = addr_partner.phone and _raw_phonenumber(addr_partner.phone) or address.phone and _raw_phonenumber(address.phone)
-            email = addr_partner.email or ''
+            email = addr_partner.email or address.email
             city = addr_partner.city or ''
             zip_code = addr_partner.zip or ''
 
@@ -547,6 +547,8 @@ class L10n_BePartnerVatHandler(models.AbstractModel):
         # Turnover and Farmer tags are not included
         options['date']['date_from'] = options['date']['date_from'][0:4] + '-01-01'
         options['date']['date_to'] = options['date']['date_to'][0:4] + '-12-31'
+        # Set export_mode to 'file' to bypass load_more_limit and get all partners
+        options['export_mode'] = 'file'
         lines = report._get_lines(options)
         partner_lines = filter(lambda line: report._get_model_info_from_id(line['id'])[0] == 'res.partner', lines)
 

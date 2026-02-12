@@ -1,6 +1,8 @@
 from collections import defaultdict
+from contextlib import contextmanager
 import re
 from requests.exceptions import ConnectionError
+from socket import AF_INET, IPPROTO_TCP, SOCK_STREAM
 from unittest.mock import MagicMock, patch
 import urllib.parse
 
@@ -32,9 +34,10 @@ class TestDatabasesCommon(TransactionCase):
         cls.user_proj_manager = new_test_user(cls.env, login='project_manager@company.tld', groups="project.group_project_manager")
 
         # Tell the database how to connect
-        ICP = cls.env['ir.config_parameter']
-        ICP.set_param('databases.odoocom_apiuser', 'someuser@odoo.com')
-        ICP.set_param('databases.odoocom_apikey', 'privateKey')
+        cls.env['ir.config_parameter'].set_param('databases.odoocom_apikey', 'privateKey')
+
+        cls.startClassPatcher(patch('odoo.addons.databases.wizard.databases_synchronization_wizard.getaddrinfo',
+                                    return_value=[(AF_INET, SOCK_STREAM, IPPROTO_TCP, '', ('127.0.0.1', 0))]))
 
     def setUp(self):
         super().setUp()
@@ -75,3 +78,16 @@ class TestDatabasesCommon(TransactionCase):
 
         self.mock_requests_request = self.startPatcher(
             patch("requests.api.request", side_effect=mock_requests_request))
+
+    @contextmanager
+    def capture_wizard(self):
+        WizardType = self.env.registry['databases.synchronization.wizard']
+        original_do_sync = WizardType._do_synchronize
+        captured = {'wizards': []}
+
+        def side_effect(self):
+            captured['wizards'].append(self)
+            return original_do_sync(self)
+
+        with patch.object(WizardType, '_do_synchronize', side_effect=side_effect, autospec=True):
+            yield captured

@@ -776,6 +776,19 @@ class ProjectTask(models.Model):
         delta_hours = 160 if scale == "year" else 24 / cell_part
 
         sorted_tasks = topological_sort(self._get_dependencies_dict())
+
+        def update_used_intervals(valid_intervals_per_user, intervals, user_ids):
+            used_intervals = Intervals(intervals)
+            if not user_ids:
+                valid_intervals_per_user[False] -= used_intervals
+            else:
+                for user_id in valid_intervals_per_user:
+                    if not user_id:
+                        continue
+
+                    if set(user_id) & set(user_ids):
+                        valid_intervals_per_user[user_id] -= used_intervals
+
         for task in sorted_tasks:
             hours_to_plan = task._get_hours_to_plan()
 
@@ -799,9 +812,10 @@ class ProjectTask(models.Model):
             if user_ids:
                 hours_to_plan /= len(user_ids)
 
+            temp_valid_intervals_per_user = valid_intervals_per_user.copy()
+            used_intervals = []
             while not compute_date_end or hours_to_plan > 0:
-                used_intervals = []
-                for start_date, end_date, _dummy in valid_intervals_per_user[user_ids]:
+                for start_date, end_date, _dummy in temp_valid_intervals_per_user[user_ids]:
                     if first_possible_start_date:
                         if end_date <= first_possible_start_date:
                             continue
@@ -856,7 +870,9 @@ class ProjectTask(models.Model):
                 if fetch_date_end < end_loop:
                     new_fetch_date_end = min(fetch_date_end + relativedelta(months=1), end_loop)
                     valid_intervals_per_user, flex_user_work_hours_per_day, flex_user_work_hours_per_week = self._web_gantt_get_valid_intervals(fetch_date_end, new_fetch_date_end, users, [], True, valid_intervals_per_user)
+                    temp_valid_intervals_per_user = valid_intervals_per_user.copy()
                     fetch_date_end = new_fetch_date_end
+                    update_used_intervals(temp_valid_intervals_per_user, used_intervals, user_ids)
                 else:
                     if 'no_intervals' not in warnings:
                         warnings['no_intervals'] = _("Some tasks weren't planned because the closest available starting date was too far ahead in the future")
@@ -875,16 +891,7 @@ class ProjectTask(models.Model):
             for next_task in task.dependent_ids:
                 first_possible_date_per_task[next_task.id] = max(first_possible_date_per_task.get(next_task.id, compute_date_end), compute_date_end)
 
-            used_intervals = Intervals(used_intervals)
-            if not user_ids:
-                valid_intervals_per_user[False] -= used_intervals
-            else:
-                for user_id in valid_intervals_per_user:
-                    if not user_id:
-                        continue
-
-                    if set(user_id) & set(user_ids):
-                        valid_intervals_per_user[user_id] -= used_intervals
+            update_used_intervals(valid_intervals_per_user, used_intervals, user_ids)
 
         for task in tasks_to_write:
             old_vals_per_task_id[task.id] = {

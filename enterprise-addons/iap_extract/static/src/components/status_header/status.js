@@ -107,7 +107,7 @@ export class StatusHeader extends Component {
             [this.props.record.resId],
             {}
         ))[0];
-        if (status === "waiting_validation") {
+        if (["waiting_validation", "to_validate", "done"].includes(status)) {
             await this.refreshPage();
             return;
         }

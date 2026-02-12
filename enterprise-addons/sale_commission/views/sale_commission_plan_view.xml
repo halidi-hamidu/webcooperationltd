@@ -107,7 +107,7 @@
                         </page>
                         <page string="Targets" invisible="type != 'target'">
                             <field name="target_ids" readonly="state != 'draft'">
-                                <list create="0" delete="0" editable="bottom">
+                                <list create="0" editable="bottom">
                                     <field name="name" force_save="1"/>
                                     <field name="date_from" optional="hide" force_save="1"/>
                                     <field name="date_to" optional="hide" force_save="1"/>
@@ -188,6 +188,7 @@
         <field name="arch" type="xml">
             <search string="Commission Plan">
                 <field name="name" string="Name" filter_domain="[('name', 'ilike', self)]"/>
+                <field name="user_ids" string="Sales Person" filter_domain="[('user_ids.user_id', 'ilike', self)]"/>
                 <separator/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>

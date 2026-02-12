@@ -11,7 +11,7 @@ class Employee(models.Model):
     l10n_eg_other_allowances = fields.Monetary(readonly=False, related="version_id.l10n_eg_other_allowances", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_eg_number_of_days = fields.Integer(readonly=False, related="version_id.l10n_eg_number_of_days", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_eg_total_number_of_days = fields.Integer(readonly=False, related="version_id.l10n_eg_total_number_of_days", inherited=True, groups="hr_payroll.group_hr_payroll_user")
-    l10n_eg_total_eos_benefit = fields.Integer(readonly=False, related="version_id.l10n_eg_total_eos_benefit", inherited=True, groups="hr_payroll.group_hr_payroll_user")
+    l10n_eg_total_eos_benefit = fields.Integer(related="version_id.l10n_eg_total_eos_benefit", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_eg_social_insurance_reference = fields.Monetary(readonly=False, related="version_id.l10n_eg_social_insurance_reference", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_eg_total_leave_days = fields.Float(readonly=False, related="version_id.l10n_eg_total_leave_days", inherited=True, groups="hr_payroll.group_hr_payroll_user")
 

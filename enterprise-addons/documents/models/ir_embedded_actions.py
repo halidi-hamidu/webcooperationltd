@@ -1,4 +1,5 @@
 from odoo import api, models
+from odoo.fields import Domain
 
 
 class IrEmbeddedActions(models.Model):
@@ -25,3 +26,23 @@ class IrEmbeddedActions(models.Model):
         if to_check:
             folders = self.env["documents.document"].browse(to_check.mapped("parent_res_id"))
             folders.check_access("write")
+
+    @api.model
+    def _get_documents_embed_base_domain(self):
+        return [
+            ("parent_action_id", "=", self.env.ref("documents.document_action").id),
+            ("action_id.type", "=", "ir.actions.server"),
+            ("parent_res_model", "=", "documents.document"),
+        ]
+
+    @api.autovacuum
+    def _gc_documents_obsolete(self):
+        """Remove documents embedded actions for children actions as they can't be executed."""
+        documents_executable_domain = self._get_documents_embed_base_domain()
+        Documents = self.env['documents.document']
+        embeddable_domain = Documents._get_embeddable_server_action_domain()
+        documents_embeddable_server_action = self.env["ir.actions.server"]._search(embeddable_domain)
+        documents_not_embeddable_domain = [('action_id', 'not in', documents_embeddable_server_action)]
+        self.env["ir.embedded.actions"].search(
+            Domain.AND([documents_executable_domain, documents_not_embeddable_domain])
+        ).unlink()

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="rule_parameter_minimum_lpp_salary" model="hr.rule.parameter">
+        <field name="name">Minimum LPP Salary</field>
+        <field name="code">minimum_lpp_salary</field>
+        <field name="country_id" ref="base.ch"/>
+    </record>
+    <record id="rule_parameter_minimum_lpp_salary_2024" model="hr.rule.parameter.value">
+        <field name="parameter_value">22680</field>
+        <field name="rule_parameter_id" ref="rule_parameter_minimum_lpp_salary"/>
+        <field name="date_from" eval="datetime(2024, 1, 1).date()"/>
+    </record>
+
     <record id="l10n_ch_hr_elm_9054" model="hr.salary.rule">
         <field name="category_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_technical_category"/>
         <field name="name">LPP Salary (for %)</field>
@@ -9,9 +20,10 @@
         <field name="condition_python">result = version.l10n_ch_lpp_insurance_id and version.l10n_ch_lpp_in_percentage</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
+minimum_salary = version.l10n_ch_lpp_insurance_id._get_minimum_lpp_salary(payslip.date_from)
 coordination_deduction, max_amount = version.l10n_ch_lpp_insurance_id._find_coordination_amount(payslip.date_from)
 base = sum(result_rules[rule.code]['total'] for rule in payslip.struct_id.rule_ids if rule.l10n_ch_lpp_retroactive or rule.l10n_ch_lpp_forecast)
-result = min(max(0, base - coordination_deduction), max_amount)
+result = min(max((coordination_deduction - minimum_salary) if base >= minimum_salary else 0, base - coordination_deduction), max_amount)
         </field>
         <field name="struct_id" ref="l10n_ch_hr_payroll.hr_payroll_structure_ch_elm"/>
     </record>

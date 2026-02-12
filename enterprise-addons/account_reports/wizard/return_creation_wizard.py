@@ -40,6 +40,7 @@ class AccountReturnCreationWizard(models.TransientModel):
     date_to = fields.Date(string="Date To", required=True)
     show_warning_wrong_dates = fields.Boolean(compute='_compute_warnings')
     show_warning_existing_return = fields.Boolean(compute='_compute_warnings')
+    show_warning_overlap = fields.Boolean(compute='_compute_warnings')
 
     regulatory_compliance = fields.Boolean(string="Regulatory compliance", default=True)
     treasury_financing = fields.Boolean(string="Treasury and financing", default=True)
@@ -53,6 +54,8 @@ class AccountReturnCreationWizard(models.TransientModel):
     equity = fields.Boolean(string="Equity", default=True)
     other = fields.Boolean(string="Others", default=True)
 
+    is_create_disabled = fields.Boolean(compute='_compute_is_create_disabled')
+
     @api.depends('available_return_type_ids')
     def _compute_return_type_id(self):
         for wizard in self:
@@ -61,11 +64,16 @@ class AccountReturnCreationWizard(models.TransientModel):
             else:
                 wizard.return_type_id = False
 
+    @api.depends('show_warning_existing_return', 'show_warning_overlap', 'date_from', 'return_type_id', 'date_to')
+    def _compute_is_create_disabled(self):
+        for wizard in self:
+            wizard.is_create_disabled = not wizard.return_type_id or not wizard.date_from or not wizard.date_to or wizard.show_warning_existing_return or wizard.show_warning_overlap
+
     @api.onchange('return_type_id')
     def _onchange_return_type_id(self):
         today = fields.Date.context_today(self)
         if self.return_type_id:
-            period_months = self.return_type_id._get_periodicity_months_delay(self.company_id)
+            period_months = self.return_type_id._get_periodicity_months_delay(self.company_id, date=self.date_from)
             shifted_date = today - relativedelta(months=period_months)
             self.date_from, self.date_to = self.return_type_id._get_period_boundaries(self.company_id, shifted_date)
         else:
@@ -124,25 +132,27 @@ class AccountReturnCreationWizard(models.TransientModel):
         for wizard in self:
             wizard.show_warning_wrong_dates = False
             wizard.show_warning_existing_return = False
+            wizard.show_warning_overlap = False
 
-            if not wizard.date_from or not wizard.date_to or not wizard.return_type_id:
+            if not wizard.date_from or not wizard.date_to or not wizard.return_type_id or wizard.category == 'audit':
                 continue
 
             # ensures date_from and date_to are correctly set regarding return type boundaries
             date_pointer = wizard.date_from
             first_period = True
 
-            while date_pointer < wizard.date_to:
+            while date_pointer <= wizard.date_to:
                 period_start, period_end = wizard.return_type_id._get_period_boundaries(wizard.company_id, date_pointer)
 
                 if first_period and wizard.date_from != period_start:
                     wizard.show_warning_wrong_dates = True
-                    break
 
-                # check if a return already exists in this period
-                companies_with_return_in_period = returns_companies_map.get((period_start, period_end, tuple(wizard.return_type_id.ids)), self.env['res.company'])
-                if wizard.company_id in companies_with_return_in_period and wizard.category == 'account_return':
-                    wizard.show_warning_existing_return = True
+                # Find returns that are overlapping this date
+                for return_start, return_end, _type_ids in filter(lambda key: wizard.return_type_id.ids[0] in key[2], returns_companies_map.keys()):  # wizard.return_type_id.ids[0] because id can be NewId
+                    if wizard.date_from == return_start and wizard.date_to == return_end:
+                        wizard.show_warning_existing_return = True
+                    elif (return_start <= wizard.date_from <= return_end) or (return_start <= wizard.date_to <= return_end):
+                        wizard.show_warning_overlap = True
 
                 date_pointer = period_end + relativedelta(days=1)
                 first_period = False
@@ -151,14 +161,13 @@ class AccountReturnCreationWizard(models.TransientModel):
             if date_pointer - relativedelta(days=1) != wizard.date_to:
                 wizard.show_warning_wrong_dates = True
 
-            # only display at most one warning
-            if wizard.show_warning_wrong_dates:
-                wizard.show_warning_existing_return = False
+            if wizard.show_warning_existing_return:
+                wizard.show_warning_overlap = False
 
     def action_create_manual_account_returns(self):
         self.ensure_one()
 
-        if self.show_warning_wrong_dates:
+        if self.show_warning_wrong_dates and not self.env.context.get('force_periodicity_violation'):
             raise UserError(self.env._("The selected range doesn't match any fiscal period."))
 
         if self.show_warning_existing_return:
@@ -175,8 +184,9 @@ class AccountReturnCreationWizard(models.TransientModel):
         returns_created = self.return_type_id.with_context(
             forced_date_from=fields.Date.to_string(self.date_from),
             forced_date_to=fields.Date.to_string(self.date_to),
-            manually_created=True
-        )._try_create_returns_for_fiscal_year(company, tax_unit, allow_duplicates=self.category == 'audit', bypass_period_check=True)
+            manually_created=True,
+            force_periodicity_violation=self.env.context.get('force_periodicity_violation', self.category == 'audit'),
+        )._try_create_returns_for_fiscal_year(company, tax_unit, allow_duplicates=not self.show_warning_existing_return, bypass_period_check=True)
         returns_created.skipped_check_cycles = ','.join(
             v for k, v in {
                 'regulatory_compliance': 'regulatory_compliance',

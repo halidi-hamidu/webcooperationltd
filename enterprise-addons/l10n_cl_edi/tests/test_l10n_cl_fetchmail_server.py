@@ -140,8 +140,7 @@ class TestClFetchmailServer(TestL10nClEdiCommon):
         move_2 = self.env['fetchmail.server']._process_incoming_supplier_document(
             file_data, from_address, self.company_data['company'].id
         )
-        message = move_2.message_ids[1]
-        self.assertEqual(message.preview, 'E-invoice already exist: 1')
+        self.assertFalse(move_2, "A duplicated invoice has been created")
 
     @patch('odoo.fields.Date.context_today', return_value=fields.Date.from_string('2019-11-23'))
     def test_create_invoice_33_from_attachment_with_exempt_lines(self, context_today):
@@ -339,6 +338,31 @@ class TestClFetchmailServer(TestL10nClEdiCommon):
         self.assertEqual(move.partner_id, partner_sii_same_company)
         self.assertEqual(move.company_id, self.company_data['company'])
 
+    def test_create_invoice_33_from_attachment_in_multi_company_setup(self):
+        """DTE with unknown products in a multi-company setup. Make sure the default purchase tax
+        is selected from the receiving company when we rely on the `account.chart.template`. This happens
+        when the company doesn't have a default purchase tax explicitly set up by the user.
+        """
+
+        self.company_data_2['company'].account_purchase_tax_id = False
+        att_name = 'incoming_invoice_33.xml'
+        from_address = 'incoming_dte@test.com'
+        with file_open(f'l10n_cl_edi/tests/fetchmail_dtes/{att_name}', 'rb', filter_ext=('.xml',)) as f:
+            content = f.read()
+            file_data = {'name': att_name, 'raw': content, 'xml_tree': etree.fromstring(content)}
+
+        # Sudo to run like when OdooBot does the fetching. If we use a normal user,
+        # `_get_invoice_form` will override `allowed_company_ids` in the context,
+        # overriding anything we might set here. We want the user to be able to
+        # access both company 1 and company 2 to trigger the issue.
+        moves = self.env['fetchmail.server'].sudo()._process_incoming_supplier_document(
+            file_data, from_address, self.company_data_2['company'].id)
+
+        self.assertEqual(len(moves), 1)
+        move = moves[0]
+        # The tax should belong to the receiving company.
+        self.assertEqual(move.company_id, move.line_ids[0].tax_ids[0].company_id)
+
     def test_create_invoice_34_from_attachment(self):
         """Include Invoice Reference"""
         att_name = 'incoming_invoice_34.xml'
@@ -469,8 +493,8 @@ class TestClFetchmailServer(TestL10nClEdiCommon):
                 self.company_data['company'].id, file_data, origin_type='incoming_acknowledge'
             )
             logger.assert_called_with(
-                'Move not found with partner: %s, document_number: %s, l10n_latam_document_type: %s, company_id: %s',
-                    self.partner_sii.id, '254', l10n_latam_document_type.id, self.company_data['company'].id)
+                'Move not found with partners: %s, document_number: %s, l10n_latam_document_type: %s, company_id: %s',
+                    self.partner_sii.ids, '254', l10n_latam_document_type.id, self.company_data['company'].id)
 
     def test_process_incoming_customer_claim_acknowledge(self):
         l10n_latam_document_type = self.env['l10n_latam.document.type'].search([
@@ -491,6 +515,44 @@ class TestClFetchmailServer(TestL10nClEdiCommon):
         move.l10n_cl_dte_status = 'accepted'
         # Since the new creation of the account move name, the name must by force to avoid errors
         move.name = 'FNA 000254'
+
+        att_name = 'incoming_acknowledge.xml'
+        with file_open(f'l10n_cl_edi/tests/fetchmail_dtes/{att_name}', 'rb', filter_ext=('.xml',)) as f:
+            content = f.read()
+            file_data = {'name': att_name, 'raw': content, 'xml_tree': etree.fromstring(content)}
+
+        self.env['fetchmail.server']._process_incoming_customer_claim(
+            self.company_data['company'].id, file_data, origin_type='incoming_acknowledge')
+
+        self.assertEqual(move.l10n_cl_dte_acceptation_status, 'received')
+
+    def test_process_incoming_customer_claim_acknowledge_when_partner_has_invoice_child(self):
+        """Make sure that we search for an existing invoice for all possible partners when multiple share the
+        the same VAT number. For instance, this can happen when a parent partner has a child invoice contact.
+        """
+
+        self.env['res.partner'].create([{
+            'name': 'Invoice child',
+            'parent_id': self.partner_sii.id,
+            'vat':  self.partner_sii.vat,
+            'type': 'invoice',
+            'is_company': True,
+            'company_id': self.partner_sii.company_id.id,
+        }])
+        tax_exempt_invoice_type = self.env['l10n_latam.document.type'].search([
+            ('code', '=', '34'),
+            ('country_id.code', '=', 'CL'),
+        ])
+
+        move = self._create_invoice_one_line(
+            partner_id=self.partner_sii,
+            product_id=self.product_a,
+            price_unit=79,
+            move_name='FNA 000254',
+            l10n_latam_document_number='00254',
+            l10n_latam_document_type_id=tax_exempt_invoice_type,
+            l10n_cl_dte_status='accepted',
+        )
 
         att_name = 'incoming_acknowledge.xml'
         with file_open(f'l10n_cl_edi/tests/fetchmail_dtes/{att_name}', 'rb', filter_ext=('.xml',)) as f:
@@ -579,3 +641,15 @@ class TestClFetchmailServer(TestL10nClEdiCommon):
             file_data, from_address, self.company_data['company'].id
         )
         self.assertEqual(move.currency_id.name, 'USD')
+
+    def test_processing_incoming_customer_claim_batched(self):
+        """ Test processing of batched DTEs in a single xml """
+        att_name = 'incoming_supplier_dte_batched.xml'
+        from_address = 'incoming_dte@test.com'
+        with file_open(f'l10n_cl_edi/tests/fetchmail_dtes/{att_name}', 'rb') as f:
+            content = f.read()
+        file_data = {'name': att_name, 'raw': content, 'xml_tree': etree.fromstring(content)}
+        moves = self.env['fetchmail.server']._process_incoming_supplier_document(
+            file_data, from_address, self.company_data['company'].id
+        )
+        self.assertEqual(len(moves), 2)

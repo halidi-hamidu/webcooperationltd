@@ -29,7 +29,7 @@ class HrEmployee(models.Model):
             for employee in self:
                 if employee.work_contact_id:
                     employee.document_count = self.env['documents.document'].search_count([
-                        ('partner_id', '=', self.work_contact_id.id)
+                        ('partner_id', '=', employee.work_contact_id.id)
                     ])
                 else:
                     employee.document_count = 0

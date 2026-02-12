@@ -1,7 +1,5 @@
 /** @odoo-module **/
 
-const { DateTime } = luxon;
-
 import { Asserts } from "./asserts";
 import { registry } from "@web/core/registry";
 
@@ -24,7 +22,7 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Check the columns of section 1 are displayed",
-            trigger: "#table_header th:last():contains('Column 1')",
+            trigger: "#table_header th:contains('Column 1')",
         },
         {
             content: "Check the export buttons belong to the composite report",
@@ -35,15 +33,33 @@ registry.category("web_tour.tours").add('account_reports_sections', {
             trigger: "#filter_journal",
         },
         {
-            content: "Check the date chosen by default",
-            trigger: "#filter_date",
-            run: (actionHelper) => {
-                // Generic tax report opens on the previous period and in this case the period is one month.
-                // And since we are using the generic tax report, we need to go back one month.
-                const previousMonth = DateTime.now().minus({months: 1});
-
-                Asserts.isTrue(actionHelper.anchor.getElementsByTagName('button')[0].innerText.includes(previousMonth.year));
-            },
+            content: "Open date switcher",
+            trigger: "#filter_date button",
+            run: 'click',
+        },
+        {
+            content: "Select 'month' date filter",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='month']",
+            run: 'click',
+        },
+        {
+            content: "Click on the current period to edit it manually",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='month'] .input_current_date",
+            run: 'click',
+        },
+        {
+            content: "Make sure December 2025 is opened, whatever the return type linked to the report",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='month'] .input_current_date",
+            run: 'edit 12/2025',
+        },
+        {
+            content: "Click outside of the input to validate the choice",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='month']",
+            run: 'click',
+        },
+        {
+            content: "Wait for the date to be refreshed",
+            trigger: `#filter_date button:contains('Dec 2025')`,
         },
         {
             content: "Switch to section 2",
@@ -56,7 +72,7 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Check the columns of section 2 are displayed",
-            trigger: "#table_header th:last():contains('Column 2')",
+            trigger: "#table_header th:contains('Column 2')",
         },
         {
             content: "Check the export buttons belong to the composite report",
@@ -73,7 +89,7 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Select another date in the future",
-            trigger: ".dropdown-menu .dropdown-item:nth-child(3) .btn_next_date",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='year'] .btn_next_date",
             run: 'click'
         },
         {
@@ -83,11 +99,9 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Check that the date has changed",
-            trigger: `#filter_date button:not(:contains(${ DateTime.now().minus({months: 1}).year }))`, // We need to remove one month for the case where we are in january. It will impact the year.
+            trigger: `#filter_date button:not(:contains('2025'))`,
             run: (actionHelper) => {
-                const nextYear = DateTime.now().plus({years: 1}).year;
-
-                Asserts.isTrue(actionHelper.anchor.innerText.includes(nextYear));
+                Asserts.isTrue(actionHelper.anchor.innerText.includes('2027'));
             },
         },
         {
@@ -97,19 +111,19 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Select another date first time",
-            trigger: ".dropdown-menu .dropdown-item:nth-child(3) .btn_previous_date",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='year'] .btn_previous_date",
             run: 'click'
         },
         {
-            trigger: `.dropdown-menu .dropdown-item:nth-child(3) input[data-value*='${ DateTime.now().year}']`,
+            trigger: `.dropdown-menu .dropdown-item[data-period-type='year'] input[data-value*='2026']`,
         },
         {
             content: "Select another date second time",
-            trigger: ".dropdown-menu .dropdown-item:nth-child(3) .btn_previous_date",
+            trigger: ".dropdown-menu .dropdown-item[data-period-type='year'] .btn_previous_date",
             run: 'click'
         },
         {
-            trigger: `.dropdown-menu .dropdown-item:nth-child(3) input[data-value*='${ DateTime.now().minus({years: 1}).year }']`,
+            trigger: `.dropdown-menu .dropdown-item[data-period-type='year'] input[data-value*='2025']`,
         },
         {
             content: "Apply filter by closing the dropdown",
@@ -118,7 +132,7 @@ registry.category("web_tour.tours").add('account_reports_sections', {
         },
         {
             content: "Check that the date has changed",
-            trigger: `#filter_date button:contains(${ DateTime.now().minus({years: 1}).year })`,
+            trigger: `#filter_date button:contains('2025')`,
         },
         {
             content: "Switch back to section 1",

@@ -125,6 +125,43 @@ class WhatsAppMessage(WhatsAppFullCase, MockIncomingWhatsApp):
         self.assertEqual(self.whatsapp_account.notify_user_ids, self.user_wa_admin)
         self.assertEqual(self.whatsapp_account_2.notify_user_ids, self.user_wa_admin)
 
+    def test_blacklist_enforcement_cross_country(self):
+        """ Test that blacklist enforcement works correctly when the company country
+        differs from the partner's phone number country."""
+        company_de = self.env.ref('base.de')
+        self.company_admin.write({'country_id': company_de.id})
+        self.user_wa_admin.write({'country_id': False})
+
+        phone_number_local = "+32456001122"
+        phone_number_wa = "32456001122"
+
+        partner = self.env['res.partner'].create({
+            'name': 'Test Partner',
+            'country_id': False,
+            'phone': phone_number_local,
+        })
+
+        with self.mockWhatsappGateway():
+            self._receive_whatsapp_message(self.whatsapp_account, "STOP", phone_number_wa)
+
+        blacklist_entries = self.env['phone.blacklist'].sudo().search([('number', '=', phone_number_local)])
+        self.assertTrue(blacklist_entries, "Blacklist entry should be created")
+
+        composer = self._instanciate_wa_composer_from_records(
+            self.simple_whatsapp_template, partner, with_user=self.user_wa_admin
+        )
+
+        with self.mockWhatsappGateway():
+            composer.action_send_whatsapp_template()
+
+        self.assertWAMessageFromRecord(
+            partner,
+            status='error',
+            fields_values={
+                'failure_type': 'blacklisted',
+            }
+        )
+
     @users('employee')
     def test_message_values_from_composer(self):
         """ Check values produced when sending a message using composer """

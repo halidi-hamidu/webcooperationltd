@@ -69,7 +69,7 @@ registry.category("web_tour.tours").add("sign_tour", {
             run: "edit admin",
         },
         {
-            trigger: ".o-autocomplete--dropdown-item:first-child",
+            trigger: ".o-autocomplete--dropdown-item:contains('Administrator')",
             run: "click",
         },
         {
@@ -83,7 +83,7 @@ registry.category("web_tour.tours").add("sign_tour", {
             run: "click",
         },
         {
-            trigger: ".o_list_table tbody tr.o_data_row:first td:nth-child(2)",
+            trigger: ".o_list_table .o_data_row:has(.o_list_char:contains('Sample Contract')) .o_list_char:contains('Sample Contract')",
             content: "Open first record",
             run: "click",
         },

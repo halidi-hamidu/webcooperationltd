@@ -4,6 +4,7 @@ import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { ExpirationPanel } from "./expiration_panel";
 import { useSortable } from "@web/core/utils/sortable_owl";
+import { SysAdminPanel } from "./sysadmin_panel";
 
 import {
     Component,
@@ -35,7 +36,7 @@ class FooterComponent extends Component {
  */
 export class HomeMenu extends Component {
     static template = "web_enterprise.HomeMenu";
-    static components = { ExpirationPanel };
+    static components = { ExpirationPanel, SysAdminPanel };
     static props = {
         apps: {
             type: Array,

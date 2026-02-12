@@ -359,9 +359,9 @@ class LLMApiService:
             body.setdefault("tools", []).append(search_tool)
 
         with api_call_logging(body["input"], tools) as record_response:
-            response, to_call, next_inputs = self._request_llm_openai_helper(body, tools, inputs)
+            response, to_call, next_inputs, request_token_usage = self._request_llm_openai_helper(body, tools, inputs)
             if record_response:
-                record_response(to_call, response)
+                record_response(to_call, response, request_token_usage)
             return response, to_call, next_inputs
 
     def _request_llm_openai_helper(self, body, tools=None, inputs=()):
@@ -397,7 +397,14 @@ class LLMApiService:
                     response.append(text)
                 elif line.get('type') == 'message':
                     response.extend(t for c in line.get('content', ()) if (t := c.get('text')))
-        return response, to_call, next_inputs
+
+        request_token_usage = {}
+        if usage := llm_response.get('usage'):
+            request_token_usage["input_tokens"] = usage.get("input_tokens", 0)
+            request_token_usage["cached_tokens"] = usage.get('input_tokens_details', {}).get('cached_tokens', 0)
+            request_token_usage["output_tokens"] = usage.get("output_tokens", 0)
+
+        return response, to_call, next_inputs, request_token_usage
 
     def _request_llm_google(
         self, llm_model, system_prompts, user_prompts, tools=None,
@@ -469,9 +476,9 @@ class LLMApiService:
             body["tools"] = {'google_search': {}}
 
         with api_call_logging(body["contents"], tools) as record_response:
-            response, to_call, next_inputs = self._request_llm_google_helper(body, llm_model, inputs)
+            response, to_call, next_inputs, request_token_usage = self._request_llm_google_helper(body, llm_model, inputs)
             if record_response:
-                record_response(to_call, response)
+                record_response(to_call, response, request_token_usage)
             return response, to_call, next_inputs
 
     def _request_llm_google_helper(self, body, llm_model, inputs=()):
@@ -506,7 +513,13 @@ class LLMApiService:
                     else:
                         _logger.warning("Gemini: could not parse %s", line)
 
-        return response, to_call, next_inputs
+        request_token_usage = {}
+        if usage := llm_response.get("usageMetadata"):
+            request_token_usage["input_tokens"] = usage.get("promptTokenCount", 0)
+            request_token_usage["cached_tokens"] = usage.get("cachedContentTokenCount", 0)
+            request_token_usage["output_tokens"] = usage.get("candidatesTokenCount", 0)
+
+        return response, to_call, next_inputs, request_token_usage
 
     def _request_llm(self, *args, **kwargs):
         model = kwargs.get("llm_model") or args[0]

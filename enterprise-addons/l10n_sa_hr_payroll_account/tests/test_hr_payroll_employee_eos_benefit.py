@@ -25,16 +25,20 @@ class TestHrPayrollEmployeeEosBenefit(TestPayslipValidationCommon):
         )
 
     def test_sa_end_of_service_benefit(self):
-        self.employee.version_id.contract_date_start = date(2023, 4, 18)
+        self.employee.version_id.contract_date_start = date(2025, 1, 1)
         self.employee.version_id.contract_date_end = date(2025, 6, 9)
         self.employee.write({
             'active': False,
             'departure_reason_id': self.env.ref('l10n_sa_hr_payroll.saudi_departure_end_of_contract').id,
             'departure_date': date(2025, 6, 9),
         })
-        payslip = self._generate_payslip(date(2025, 7, 1), date(2025, 7, 31))
+        payslip = self._generate_payslip(date(2025, 6, 1), date(2025, 6, 30))
 
         # test end of contract with actual of number of days
+        payslip.compute_sheet()
+        self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 0, 2)
+
+        self.employee.version_id.contract_date_start = date(2023, 4, 18)
         payslip.compute_sheet()
         self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 10736.11, 2)
 
@@ -49,6 +53,10 @@ class TestHrPayrollEmployeeEosBenefit(TestPayslipValidationCommon):
         # test resignation with actual of number of days
         self.employee.departure_reason_id = self.env.ref('hr.departure_resigned').id
 
+        self.employee.version_id.contract_date_start = date(2025, 1, 1)
+        payslip.compute_sheet()
+        self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 0, 2)
+
         self.employee.version_id.contract_date_start = date(2023, 4, 18)
         payslip.compute_sheet()
         self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 3578.70, 2)
@@ -60,3 +68,13 @@ class TestHrPayrollEmployeeEosBenefit(TestPayslipValidationCommon):
         self.employee.version_id.contract_date_start = date(2014, 6, 30)
         payslip.compute_sheet()
         self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 84472.22, 2)
+
+        # test fired employee with actual of number of days
+        self.employee.departure_reason_id = self.env.ref('hr.departure_fired').id
+        payslip.compute_sheet()
+        self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 0, 2)
+
+        # test laid off employee with actual of number of days
+        self.employee.departure_reason_id = self.env.ref('l10n_sa_hr_payroll.saudi_departure_clause_77').id
+        payslip.compute_sheet()
+        self.assertAlmostEqual(payslip.line_ids.filtered(lambda l: l.code == 'EOSB').total, 10000, 2)

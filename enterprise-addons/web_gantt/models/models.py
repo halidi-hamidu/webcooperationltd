@@ -9,6 +9,17 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import _, unique, OrderedSet
 
+DATE_FIELD_ADAPTERS = {
+    'date': {
+        'parse': fields.Date.to_date,
+        'now': fields.Date.today,
+    },
+    'datetime': {
+        'parse': fields.Datetime.to_datetime,
+        'now': fields.Datetime.now,
+    },
+}
+
 
 class Base(models.AbstractModel):
     _inherit = 'base'
@@ -210,7 +221,20 @@ class Base(models.AbstractModel):
 
         message = self.env._("Tasks rescheduled")
         # if the pill is moved without changing dates, or there are no dependencies between pills, or the pill is moved to the past => only write the moved pill (like Manual rescheduling)
-        if (not (start_date_field_name in vals and stop_date_field_name in vals and dependency_field_name and dependency_inverted_field_name)) or (start_date_field_name in vals and datetime.strptime(vals[start_date_field_name], '%Y-%m-%d %H:%M:%S') < datetime.now()):
+        start_date_field = self.env[self._name]._fields[start_date_field_name]
+        start_date = now_value = None
+        if start_date_field_name in vals:
+            start_date = DATE_FIELD_ADAPTERS[start_date_field.type]['parse'](vals[start_date_field_name])
+            now_value = DATE_FIELD_ADAPTERS[start_date_field.type]['now']()
+        if (
+            not (
+                start_date_field_name in vals
+                and stop_date_field_name in vals
+                and dependency_field_name
+                and dependency_inverted_field_name
+            )
+            or (start_date and start_date < now_value)
+        ):
             old_vals_per_pill_id = record.web_gantt_init_old_vals_per_pill_id(vals)
             record.write(vals)
             return {
@@ -360,7 +384,8 @@ class Base(models.AbstractModel):
         return "\n".join(messages)
 
     def _web_gantt_get_direction(self, start_date_field_name, vals):
-        date_start = datetime.strptime(vals[start_date_field_name], '%Y-%m-%d %H:%M:%S')
+        start_date_field = self.env[self._name]._fields[start_date_field_name]
+        date_start = DATE_FIELD_ADAPTERS[start_date_field.type]['parse'](vals[start_date_field_name])
         return self._WEB_GANTT_RESCHEDULE_FORWARD if date_start > self[start_date_field_name] else self._WEB_GANTT_RESCHEDULE_BACKWARD
 
     def _web_gantt_action_reschedule_candidates(

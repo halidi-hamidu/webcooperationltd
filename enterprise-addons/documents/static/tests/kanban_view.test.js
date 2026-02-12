@@ -72,6 +72,7 @@ test("Open share with edit user_permission", async function () {
 });
 
 test("Colorless-tags are also visible on cards", async function () {
+    onRpc("/documents/touch/accessTokenFolder1", () => true);
     const serverData = getDocumentsTestServerModelsData([
         makeDocumentRecordData(2, "Testing tags", { folder_id: 1, tag_ids: [1, 2] }),
     ]);

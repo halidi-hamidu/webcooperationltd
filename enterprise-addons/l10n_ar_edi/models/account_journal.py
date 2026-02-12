@@ -58,7 +58,7 @@ class AccountJournal(models.Model):
         # Note:
         # test mode is enabled only when self.registry.enter_test_mode(cr) is explicitely called.
         # this is the case for upgrade tests for example, but not for l10n_ar_edi tests.
-        if modules.module.current_test:
+        if modules.module.current_test or self.company_id._get_environment_type() == 'testing' and not self.company_id.sudo().l10n_ar_afip_ws_crt_id:
             return 0
 
         pos_number = self.l10n_ar_afip_pos_number
@@ -78,7 +78,7 @@ class AccountJournal(models.Model):
             data = auth.copy()
             data.update({'Cbte_Tipo': document_type.code, 'Pto_venta': pos_number})
             response = client.service.FEXGetLast_CMP(Auth=data)
-            if response.FEXResult_LastCMP.Cbte_nro:
+            if response.FEXResult_LastCMP and response.FEXResult_LastCMP.Cbte_nro:
                 last = response.FEXResult_LastCMP.Cbte_nro
             if response.FEXErr.ErrCode != 0 or response.FEXErr.ErrMsg != 'OK':
                 errors = response.FEXErr
@@ -86,7 +86,7 @@ class AccountJournal(models.Model):
             data = auth.copy()
             data.update({'Tipo_cbte': document_type.code, 'Pto_venta': pos_number})
             response = client.service.BFEGetLast_CMP(Auth=data)
-            if response.BFEResult_LastCMP.Cbte_nro:
+            if response.BFEResult_LastCMP and response.BFEResult_LastCMP.Cbte_nro:
                 last = response.BFEResult_LastCMP.Cbte_nro
             if response.BFEErr.ErrCode != 0 or response.BFEErr.ErrMsg != 'OK':
                 errors = response.BFEErr

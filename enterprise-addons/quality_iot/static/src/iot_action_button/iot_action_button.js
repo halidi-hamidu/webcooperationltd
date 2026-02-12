@@ -22,9 +22,13 @@ export class IotActionButton extends Component {
     }
 
     get iotDevice() {
+        const { iot_box_id , identifier } = this.props.record.data;
+        if (!iot_box_id || !identifier) {
+            return false;
+        }
         return {
-            iotBoxId: this.props.record.data.iot_box_id.id,
-            deviceIdentifier: this.props.record.data.identifier,
+            iotBoxId: iot_box_id.id,
+            deviceIdentifier: identifier,
         }
     }
 

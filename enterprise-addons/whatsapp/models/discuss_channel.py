@@ -138,7 +138,7 @@ class DiscussChannel(models.Model):
             return message
 
         messages = None
-        if not kwargs.get('whatsapp_inbound_msg_uid') and attachment_ids and body:
+        if not kwargs.get('whatsapp_inbound_msg_uid') and attachment_ids and body and not tools.is_html_empty(body):
             audio_types = self.env['whatsapp.message']._SUPPORTED_ATTACHMENT_TYPE['audio']
             attachment_records = self.env['ir.attachment'].browse(attachment_ids)
             audio_attachments = attachment_records.filtered(lambda x: x.mimetype in audio_types)

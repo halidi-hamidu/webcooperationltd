@@ -137,7 +137,7 @@ class AIEmbedding(models.Model):
                     if not self.env['ir.cron']._commit_progress(len(batch)):
                         break
 
-                except (RequestException, UserError) as e:
+                except (RequestException, UserError, AttributeError) as e:
                     _logger.error(
                         "Failed to process batch %s/%s for model %s: %s",
                         batch_idx + 1, len(batches), model, str(e)

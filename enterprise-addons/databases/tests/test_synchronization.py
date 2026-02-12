@@ -1,5 +1,5 @@
 from unittest.mock import call, MagicMock, patch
-import xmlrpc.client
+import urllib.parse
 
 from .common import TestDatabasesCommon
 
@@ -19,8 +19,7 @@ class TestSynchronization(TestDatabasesCommon):
 
     @users('db_manager@company.tld')
     def test_synchronization_disabled(self):
-        # Clearing one of the two keys is enough to disable the synchronization to Odoo.com
-        self.env['ir.config_parameter'].sudo().set_param('databases.odoocom_apiuser', False)
+        self.env['ir.config_parameter'].sudo().set_param('databases.odoocom_apikey', False)
 
         self.env['project.project'].action_synchronize_all_databases()
 
@@ -58,7 +57,8 @@ class TestSynchronization(TestDatabasesCommon):
         self.json2_mocked_calls['www.odoo.com']['odoo.database']['list'] = [
             {'name': 'Odoo', 'url': 'http://odoo-sa.my.odoo.test', 'login': 'other_user@odoo.com', 'version': '17.0+e'},
         ]
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
         self.assertEqual(Project.search([]), new_projects)
         self.assertRecordValues(new_projects, [
             {
@@ -71,7 +71,7 @@ class TestSynchronization(TestDatabasesCommon):
             },
         ])
 
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "0 new databases, 1 updated.")
 
     @users('db_manager@company.tld')
@@ -85,9 +85,10 @@ class TestSynchronization(TestDatabasesCommon):
         self.mock_json2_calls_for_db('odoo-sa.my.odoo.test')
         self.mock_json2_calls_for_db('titi-sarl.my.odoo.test')
         self.mock_json2_calls_for_db('toto-nv.my.odoo.test')
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
 
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "3 new databases, 3 updated.")
 
         self.assertCountEqual(self.mock_requests_request.mock_calls[:1], [
@@ -128,8 +129,9 @@ class TestSynchronization(TestDatabasesCommon):
             {'name': 'Odoo', 'url': 'http://odoo-sa.my.odoo.test', 'login': 'other_user@odoo.com', 'version': '17.0+e'},
         ]
         self.mock_json2_calls_for_db('odoo-sa.my.odoo.test')
-        action = Project.action_synchronize_all_databases()
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "0 new databases, 3 updated.")
 
         self.assertEqual(Project.search([]), new_projects)
@@ -257,8 +259,9 @@ class TestSynchronization(TestDatabasesCommon):
         self.json2_mocked_calls['odoo-sa.my.odoo.test']['version'] = '16.0+e'
         self.json2_mocked_calls['odoo-sa.my.odoo.test']['res.users']['search_read'] = []
         self.json2_mocked_calls['odoo-sa.my.odoo.test']['kpi.provider']['get_kpi_summary'] = []
-        action = dbs.action_database_synchronize()
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        with self.capture_wizard() as captured:
+            dbs.action_database_synchronize()
+        wizard, = captured['wizards']
         self.assertEqual(
             wizard.error_message.strip(),
             "Error while connecting to http://anotherdb.that.doesnt.exist: "
@@ -291,7 +294,8 @@ class TestSynchronization(TestDatabasesCommon):
         self.json2_mocked_calls['odoo-sa.my.odoo.test']['version'] = 'saas~18.3a1+e'
 
         # This shouldn't raise any error
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
         dbs = Project.search([])
         self.assertRecordValues(dbs, [{
             'database_url': 'http://anotherdb.that.doesnt.exist',
@@ -301,7 +305,7 @@ class TestSynchronization(TestDatabasesCommon):
             'database_version': 'saas~18.3',
         }])
 
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(
             wizard.error_message.strip(),
             "Error while connecting to http://anotherdb.that.doesnt.exist: "
@@ -397,7 +401,8 @@ class TestSynchronization(TestDatabasesCommon):
             {'name': 'odoo-sa', 'url': 'http://odoo-sa.my.odoo.test', 'login': 'somethingelse@wout.wout', 'version': '16.0+e'},
         ]
         self.mock_json2_calls_for_db('odoo-sa.my.odoo.test')
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
         self.assertRecordValues(db, [
             {
                 'name': 'odoo-sa',
@@ -409,7 +414,7 @@ class TestSynchronization(TestDatabasesCommon):
                 'database_version': False,
             },
         ])
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(
             wizard.error_message.strip(),
             "The database http://odoo-sa.my.odoo.test is registered as a saas database in odoo.com. "
@@ -460,7 +465,7 @@ class TestSynchronization(TestDatabasesCommon):
 
     @users('db_manager@company.tld')
     def test_synchronization_wizard_update_from_odoocom_without_configuration(self):
-        self.env['ir.config_parameter'].sudo().set_param('databases.odoocom_apiuser', False)
+        self.env['ir.config_parameter'].sudo().set_param('databases.odoocom_apikey', False)
 
         wizard = self.env['databases.synchronization.wizard'].create({})
 
@@ -547,26 +552,19 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
     def setUp(self):
         super().setUp()
 
-        # Simulate a server where /json/2 is not implemented
-        self.mock_requests_request.configure_mock(**{
-            'side_effect': None,
-            'return_value.status_code': 303,
-        })
-        del self.mock_requests_request
+        # Simulate a server where /json/2 is not implemented, but let calls to odoo.com pass through
+        def mock_requests_request(method, uri, *args, **kwargs):
+            if urllib.parse.urlparse(uri).hostname == 'www.odoo.com':
+                return prev_mock_requests_request(method, uri, *args, **kwargs)
+            return MagicMock(status_code=303)
 
-        def object_execute_kw(db, uid, pwd, model, method, *args, **kwargs):
-            return self.object_execute_kw[model][method]
-
-        self.object_execute_kw = {}
+        prev_mock_requests_request = self.mock_requests_request.side_effect
+        self.mock_requests_request.configure_mock(side_effect=mock_requests_request)
 
         # Return a specific mock object for each ServerProxy
-        self.mock_odoocom_xmlrpc_common = MagicMock(**{'authenticate.return_value': -42})  # uid = -42
-        self.mock_odoocom_xmlrpc_object = MagicMock(**{'execute_kw.side_effect': object_execute_kw})
         self.odoo_sa_xmrpc_common = MagicMock(**{'authenticate.return_value': -128})
         self.odoo_sa_xmrpc_object = MagicMock()
         self.call_resolution_per_uri = {
-            "https://www.odoo.com/xmlrpc/2/common": self.mock_odoocom_xmlrpc_common,
-            "https://www.odoo.com/xmlrpc/2/object": self.mock_odoocom_xmlrpc_object,
             "http://odoo-sa.my.odoo.test/xmlrpc/2/common": self.odoo_sa_xmrpc_common,
             "http://odoo-sa.my.odoo.test/xmlrpc/2/object": self.odoo_sa_xmrpc_object,
         }
@@ -577,7 +575,7 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
             self.call_resolution_per_uri.setdefault(f"{database['url']}/xmlrpc/2/common", MagicMock())\
                     .version.configure_mock(return_value={'server_serie': database['version']})
             self.call_resolution_per_uri.setdefault(f"{database['url']}/xmlrpc/2/object", MagicMock())
-        self.object_execute_kw.setdefault('odoo.database', {})['list'] = databases_list
+        self.json2_mocked_calls['www.odoo.com']['odoo.database']['list'] = databases_list
 
     @users('db_manager@company.tld')
     def test_synchronize_databases(self):
@@ -590,8 +588,6 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
         Project.action_synchronize_all_databases()
         new_projects = Project.search([])
 
-        self.mock_odoocom_xmlrpc_common.authenticate.assert_called_with('openerp', 'someuser@odoo.com', 'privateKey', {})
-        self.mock_odoocom_xmlrpc_object.execute_kw.assert_called_with('openerp', -42, 'privateKey', 'odoo.database', 'list', [])
         self.assertRecordValues(new_projects, [
             {
                 'name': 'odoo-sa',
@@ -607,7 +603,8 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
         self.set_returned_databases_list([
             {'name': 'odoo-bis', 'login': 'other_user@odoo.com', 'version': '17.0+e', 'url': 'http://odoo-sa.my.odoo.test'},
         ])
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
         self.assertEqual(Project.search([]), new_projects)
         self.assertRecordValues(new_projects, [
             {
@@ -620,7 +617,7 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
             },
         ])
 
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "0 new databases, 1 updated.")
 
     @users('db_manager@company.tld')
@@ -631,13 +628,12 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
             {'name': 'titi-sarl', 'login': 'admin@titi-sarl.fr', 'version': '17.0+e', 'url': 'http://titi-sarl.my.odoo.test'},
             {'name': 'toto-nv', 'login': 'contact@toto-nv.be', 'version': '18.0+e', 'url': 'http://toto-nv.my.odoo.test'},
         ])
-        action = Project.action_synchronize_all_databases()
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
 
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "3 new databases, 3 updated.")
 
-        self.mock_odoocom_xmlrpc_common.authenticate.assert_called_with('openerp', 'someuser@odoo.com', 'privateKey', {})
-        self.mock_odoocom_xmlrpc_object.execute_kw.assert_called_with('openerp', -42, 'privateKey', 'odoo.database', 'list', [])
         new_projects = Project.search([], order='database_version')
         self.assertRecordValues(new_projects, [
             {
@@ -671,8 +667,9 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
         self.set_returned_databases_list([
             {'name': 'odoo', 'login': 'other_user@odoo.com', 'version': '17.0+e', 'url': 'http://odoo-sa.my.odoo.test'},
         ])
-        action = Project.action_synchronize_all_databases()
-        wizard = self.env['databases.synchronization.wizard'].browse(action['res_id'])
+        with self.capture_wizard() as captured:
+            Project.action_synchronize_all_databases()
+        wizard, = captured['wizards']
         self.assertEqual(wizard.summary_message, "0 new databases, 3 updated.")
 
         self.assertEqual(Project.search([]), new_projects)
@@ -713,8 +710,6 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
             Project._cron_synchronize_all_databases_with_odoocom()
         new_projects = Project.search([])
 
-        self.mock_odoocom_xmlrpc_common.authenticate.assert_called_with('openerp', 'someuser@odoo.com', 'privateKey', {})
-        self.mock_odoocom_xmlrpc_object.execute_kw.assert_called_with('openerp', -42, 'privateKey', 'odoo.database', 'list', [])
         self.assertRecordValues(new_projects, [
             {
                 'name': 'cron-odoo-sa',
@@ -753,22 +748,6 @@ class TestXmlRpcSynchronization(TestDatabasesCommon):
             fields.Datetime.from_string("2025-01-02 00:00"),
             "The database should have been scanned",
         )
-
-    @users('db_manager@company.tld')
-    def test_synchronization_wizard_update_from_odoocom_with_authenticate_error(self):
-        self.mock_odoocom_xmlrpc_common.authenticate = MagicMock(side_effect=xmlrpc.client.Fault(42, 'TestFaultString'))
-
-        wizard = self.env['databases.synchronization.wizard'].create({})
-        wizard._do_update_from_odoocom()
-        self.assertEqual(wizard.error_message, 'Error while listing databases from https://www.odoo.com: TestFaultString\n')
-
-    @users('db_manager@company.tld')
-    def test_synchronization_wizard_update_from_odoocom_with_call_error(self):
-        self.mock_odoocom_xmlrpc_object.execute_kw = MagicMock(side_effect=xmlrpc.client.Fault(42, 'TestFaultString'))
-
-        wizard = self.env['databases.synchronization.wizard'].create({})
-        wizard._do_update_from_odoocom()
-        self.assertEqual(wizard.error_message, 'Error while listing databases from https://www.odoo.com: TestFaultString\n')
 
     @users('db_manager@company.tld')
     def test_user_management(self):

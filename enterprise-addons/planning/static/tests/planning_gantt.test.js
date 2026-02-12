@@ -1016,7 +1016,7 @@ test("date_start and date_end in url (not in same month)", async function () {
 
     const { groupHeaders, range } = getGridContent();
     expect(groupHeaders.map((gh) => gh.title)).toEqual(["December 2020", "January 2021"]);
-    expect(range).toEqual("From: 12/06/2020 to: 01/04/2021");
+    expect(range).toEqual("12/06/2020 -> 01/04/2021");
 });
 
 test("publish on gantt view: default end_datetime should cover full range", async function () {

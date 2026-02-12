@@ -396,7 +396,7 @@ if payslip.date_to &gt;= datetime(2024,12,27).date():
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
 if version.l10n_ke_is_secondary:
-    result = remaining_gross
+    result = result_rules['GROSS_TAXABLE']['total']
     result_rate = payslip._rule_parameter('l10n_ke_income_tax_secondary')
 else:
     remaining_gross = result_rules['GROSS_TAXABLE']['total']

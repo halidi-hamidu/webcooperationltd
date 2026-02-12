@@ -1,9 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import fields
 from odoo.addons.survey.tests.common import TestSurveyCommon
 from odoo.addons.documents_spreadsheet.tests.common import SpreadsheetTestCommon
 
-from odoo.addons.spreadsheet.utils.formatting import datetime_to_spreadsheet_date_number
+from odoo.addons.spreadsheet.utils.formatting import datetime_to_spreadsheet_date_number, date_to_spreadsheet_date_number
 
 
 class DocumentSpreadsheetSurveyResults(TestSurveyCommon, SpreadsheetTestCommon):
@@ -229,6 +230,28 @@ class DocumentSpreadsheetSurveyResults(TestSurveyCommon, SpreadsheetTestCommon):
         self.assertEqual(spreadsheet_survey_results[2][0]["value"], "Quiz passed")
         self.assertEqual(spreadsheet_survey_results[2][1]["value"], False)
         self.assertEqual(spreadsheet_survey_results[2][2]["value"], True)
+
+    def test_question_type_change_date_to_datetime_keeps_answer_format(self):
+        test_survey = self.env["survey.survey"].create({"title": "Test Survey"})
+        question = self._add_question(None, "When is your birthday?", "date", survey_id=test_survey.id, sequence=1)
+        tz_name = self.env.user.tz or 'UTC'
+
+        answer = self._add_answer(test_survey, self.customer)
+        answer_date = fields.Date.from_string("2024-01-10")
+        self._add_answer_line(question, answer, answer_date)
+
+        # Change question type and add second answer (datetime)
+        question.write({"question_type": "datetime"})
+        new_answer = self._add_answer(test_survey, self.customer)
+        new_answer_datetime = fields.Datetime.from_string("2024-01-10 14:30:00")
+        self._add_answer_line(question, new_answer, new_answer_datetime)
+
+        spreadsheet_survey_results = test_survey.get_survey_results_for_spreadsheet()[0]["survey_table"]
+
+        self.assertEqual(spreadsheet_survey_results[1][1]["value"], date_to_spreadsheet_date_number(answer_date))
+        self.assertEqual(spreadsheet_survey_results[1][1]["format"], "mm/dd/yyyy")
+        self.assertEqual(spreadsheet_survey_results[1][2]["value"], datetime_to_spreadsheet_date_number(new_answer_datetime, tz_name))
+        self.assertEqual(spreadsheet_survey_results[1][2]["format"], "mm/dd/yyyy hh:mm:ss a")
 
     def _add_comment(self, survey, question, user_input, comment_value):
         self.env['survey.user_input.line'].create({

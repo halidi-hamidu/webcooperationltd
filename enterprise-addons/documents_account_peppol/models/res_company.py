@@ -6,8 +6,8 @@ class ResCompany(models.Model):
 
     peppol_reception_mode = fields.Selection(
         selection=[
-            ('journal', 'Receive in Journal'),
-            ('documents', 'Receive in Documents'),
+            ('journal', 'Receive as Bills'),
+            ('documents', 'Receive as Documents'),
         ],
         default='journal',
     )

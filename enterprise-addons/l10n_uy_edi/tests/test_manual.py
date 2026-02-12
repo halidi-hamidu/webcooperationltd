@@ -365,7 +365,8 @@ class TestManual(common.TestUyEdi):
         invoice.action_post()
 
         with patch("odoo.addons.account.models.account_move.AccountMove._is_downpayment", return_value=True), \
-             patch("odoo.addons.sale.models.account_move.AccountMove._is_downpayment", return_value=True):
+             patch("odoo.addons.sale.models.account_move.AccountMove._is_downpayment", return_value=True), \
+             patch("odoo.addons.pos_sale.models.account_move.AccountMove._is_downpayment", return_value=True):
             self._send_and_print(invoice)
         self._check_cfe(invoice, "e-FC", "150_global_donwpayment")
 

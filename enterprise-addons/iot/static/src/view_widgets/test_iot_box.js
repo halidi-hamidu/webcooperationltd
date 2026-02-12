@@ -20,7 +20,7 @@ export class TestIotBox extends Component {
     }
 
     async onClick() {
-        const { ip, identifier } = this.props.record.data;
+        const { ip, identifier, version } = this.props.record.data;
         const requestId = uuid();
         this.completeSuccess = true;
         const failureCallback = (protocol) => {
@@ -38,15 +38,17 @@ export class TestIotBox extends Component {
             }
         );
 
-        // Check webRTC
-        try {
-            await this.iotHttpService.webRtc.onMessage(identifier, identifier, requestId, () => {}, () => {
+        // Check webRTC only for versions that support it
+        if (!/\d{4}\.\d{2}\.\d{2}/.test(version)) {
+            try {
+                await this.iotHttpService.webRtc.onMessage(identifier, identifier, requestId, () => {}, () => {
+                    failureCallback("WebRTC");
+                });
+                await this.iotHttpService.webRtc.sendMessage(identifier, {}, requestId, "test_protocol");
+            } catch {
+                // Catch connection timeout (not going through onFailure)
                 failureCallback("WebRTC");
-            });
-            await this.iotHttpService.webRtc.sendMessage(identifier, {}, requestId, "test_protocol");
-        } catch {
-            // Catch connection timeout (not going through onFailure)
-            failureCallback("WebRTC");
+            }
         }
 
         // Check longpolling (no onMessage as we only check if the endpoint is reachable)
@@ -64,9 +66,12 @@ export class TestIotBox extends Component {
             identifier,
             identifier,
             this.onConnectionTestSuccess.bind(this),
-            () => failureCallback("Websocket"),
+            () => {
+                this.removeTestingNotification?.();
+                failureCallback("Websocket")
+            },
             undefined,
-            requestId,
+            requestId
         );
         await this.iotHttpService.websocket.sendMessage(identifier, {}, requestId, "test_connection");
     }

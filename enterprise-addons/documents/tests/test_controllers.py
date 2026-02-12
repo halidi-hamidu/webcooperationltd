@@ -462,9 +462,10 @@ class TestDocumentsControllers(HttpCaseWithUserDemo, MockEmail):
         self.assertEqual(res.status_code, HTTPStatus.TEMPORARY_REDIRECT)  # 307
         self.assertEqual(res.headers.get('Location'), self.internal_url.url)
 
+    @mute_logger('odoo.http')
     def test_doc_ctrl_cross_redirection(self):
-        docs_url = f'/documents/{self.public_file.access_token}'
-        odoo_url = '/odoo' + docs_url
+        docs_url = f'/documents/{self.public_file.access_token}?a=1'
+        odoo_url = f'/odoo{docs_url}'
         portal = self.user_portal.login
         demo = self.user_demo.login
         for login, url, code, location in [
@@ -482,6 +483,36 @@ class TestDocumentsControllers(HttpCaseWithUserDemo, MockEmail):
                 self.assertEqual(res.status_code, code)
                 if code == 307:
                     self.assertURLEqual(res.headers.get('Location'), location)
+
+    @mute_logger('odoo.http')
+    def test_doc_redirection_partner(self):
+        """Test that the partner is redirected to the signup page."""
+        self.public_file.access_via_link = 'none'
+        access = self.env["documents.access"].create({
+            'document_id': self.public_file.id,
+            'role': 'view',
+            'partner_id': self.env["res.partner"].create({'name': 'Test'}).id,
+        })
+        member_signup_token = access._get_member_signup_token()
+        docs_url = f'/documents/{self.public_file.access_token}?member_signup_token={member_signup_token}&member_id={access.id}'
+        res = self.url_open(docs_url, allow_redirects=False)
+        res.raise_for_status()
+        redirect_url = res.headers.get('Location') or ''
+        self.assertIn('/web/signup', redirect_url, f"Invalid redirect URL: {redirect_url}")
+        self.assertIn(self.public_file.access_token, redirect_url)
+
+        docs_url = f'/documents/{self.public_file.access_token}?member_signup_token=bad_token_{member_signup_token}&member_id={access.id}'
+        res = self.url_open(docs_url, allow_redirects=False)
+        self.assertFalse(res.ok)
+        redirect_url = res.headers.get('Location') or ''
+        self.assertFalse(redirect_url)
+
+        # remove the role, should invalidate the invitation link
+        access.last_access_date = fields.Datetime.now()
+        access.role = False
+        docs_url = f'/documents/{self.public_file.access_token}?member_signup_token={member_signup_token}&member_id={access.id}'
+        res = self.url_open(docs_url, allow_redirects=False)
+        self.assertFalse(res.ok)
 
     def test_doc_render_public_templates(self):
         self.authenticate(None, None)
@@ -709,6 +740,10 @@ class TestDocumentsControllers(HttpCaseWithUserDemo, MockEmail):
             is_access_via_link_hidden=False,
         )
 
+        shortcut = self.public_request.action_create_shortcut()
+        self.assertFalse(shortcut.thumbnail)
+        self.assertFalse(self.public_request.thumbnail)
+
         # Upload an image but forge the filename/mimetype to pretend it is text
         with self.assertLogs('odoo.tools.mimetypes', 'WARNING') as log_capture:
             res = self.url_open(f'/documents/upload/{self.public_request.access_token}',
@@ -722,6 +757,10 @@ class TestDocumentsControllers(HttpCaseWithUserDemo, MockEmail):
         self.assertEqual(self.public_request.mimetype, 'image/png',
                          "the mimetype must have been neutralized")
         self.assertEqual(self.public_request.raw, self.doc_icon)
+
+        self.assertTrue(shortcut.thumbnail)
+        self.assertTrue(self.public_request.thumbnail)
+
         self.assertEqual(log_capture.output, [
             ("WARNING:odoo.tools.mimetypes:File 'hello.txt' has an "
              "invalid extension for mimetype 'image/png', adding '.png'")

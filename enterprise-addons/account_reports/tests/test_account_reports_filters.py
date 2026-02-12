@@ -1643,6 +1643,26 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
         )
 
+        self.env.company.fiscalyear_last_day = 31
+        self.env.company.fiscalyear_last_month = '5'
+
+        self._assert_filter_date(
+            generic_tax_report,
+            {'date': {'period': -1, 'filter': 'previous_return_period'}, 'no_report_reroute': True},
+            {
+                'string': '2023',
+                'period_type': 'return_period',
+                'mode': 'range',
+                'filter': 'previous_return_period',
+                'period': -1,
+                'date_from': '2023-01-01',
+                'date_to': '2023-12-31',
+                'currency_table_period_key': '2023-01-01_2023-12-31',
+            },
+        )
+
+        self.env.company.fiscalyear_last_month = '12'
+
         # Setting a periodicity on the return type should take precedence over the company setting
         return_type.deadline_periodicity = 'semester'
 
@@ -1650,7 +1670,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             generic_tax_report,
             {'no_report_reroute': True},
             {
-                'string': '01/01/2024 - 06/30/2024',
+                'string': 'Jan 2024 - Jun 2024',
                 'period_type': 'return_period',
                 'mode': 'range',
                 'filter': 'previous_return_period',

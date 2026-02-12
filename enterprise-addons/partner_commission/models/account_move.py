@@ -62,15 +62,9 @@ class AccountMove(models.Model):
 
     def _make_commission(self):
         for move in self.filtered(lambda m: m.move_type in ['out_invoice', 'in_invoice', 'out_refund']):
-            if move.move_type in ['out_invoice', 'in_invoice']:
-                sign = 1
-                if move.commission_po_line_id or not move.referrer_id:
-                    continue
-            else:
-                sign = -1
-                if not move.commission_po_line_id:
-                    continue
-
+            if move.commission_po_line_id or not move.referrer_id:
+                continue
+            sign = 1 if move.move_type in ['out_invoice', 'in_invoice'] else -1
             comm_by_rule = defaultdict(float)
 
             product = None
@@ -142,6 +136,7 @@ class AccountMove(models.Model):
                     link=move._get_html_link(),
                     amount=formatLang(self.env, total, currency_obj=move.currency_id))
             else:
+                move.commission_po_line_id = line
                 msg_body = _('Commission refunded. Invoice: %(link)s. Amount: %(amount)s.',
                     link=move._get_html_link(),
                     amount=formatLang(self.env, total, currency_obj=move.currency_id))
@@ -156,14 +151,19 @@ class AccountMove(models.Model):
         for move, default_values in zip(self, default_values_list):
             default_values.update({
                 'referrer_id': move.referrer_id.id,
-                'commission_po_line_id': move.commission_po_line_id.id,
             })
         return super(AccountMove, self)._reverse_moves(default_values_list=default_values_list, cancel=cancel)
 
     def _invoice_paid_hook(self):
         res = super()._invoice_paid_hook()
-        self.filtered(lambda move: move.move_type == 'out_refund')._make_commission()
         self.filtered(lambda move: move.move_type == 'out_invoice')._make_commission()
+        # Only create commission reversal for credit notes if original invoice had commission
+        self.filtered(
+            lambda m:
+                m.move_type == 'out_refund'
+                and m.reversed_entry_id
+                and m.reversed_entry_id.commission_po_line_id
+        )._make_commission()
         return res
 
     def button_draft(self):

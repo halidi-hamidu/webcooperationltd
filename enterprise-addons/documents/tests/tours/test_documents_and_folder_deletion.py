@@ -1,5 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-
+from odoo.fields import Command
 from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
@@ -9,22 +8,38 @@ GIF = b"R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs="
 @tagged("post_install", "-at_install")
 class TestDocumentDeletion(HttpCase):
 
-    def test_delete_folder_and_documents_tour(self):
-        folder = self.env['documents.document'].create({
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.folder = cls.env["documents.document"].create({
             "type": "folder",
             "name": "Folder1",
             "owner_id": False,
             "access_internal": "edit",
+            "children_ids": [
+                Command.create(
+                    {
+                        "datas": GIF,
+                        "name": "Chouchou",
+                        "mimetype": "image/gif",
+                        "owner_id": False,
+                    }
+                )
+            ],
         })
-        document = self.env['documents.document'].create({
-            'datas': GIF,
-            'name': "Chouchou",
-            'folder_id': folder.id,
-            'mimetype': 'image/gif',
-            'owner_id': False,
-        })
-        folder_copy = folder
-        document_copy = document
-        self.start_tour(f"/odoo/documents/{document.access_token}", 'document_delete_tour', login='admin')
+        cls.document = cls.folder.children_ids[0]
+
+    def test_delete_folder_and_documents_tour(self):
+        folder_copy = self.folder
+        document_copy = self.document
+        self.start_tour(
+            f"/odoo/documents/{self.document.access_token}", 'document_delete_tour', login='admin')
         self.assertTrue(folder_copy.exists(), "The folder should still exist")
         self.assertFalse(document_copy.exists(), "The document should not exist anymore")
+
+    def test_tour_default_action_view(self):
+        # todo: move to a more appropriate place in master
+        self.start_tour(
+            f"/odoo/documents.document/{self.document.id}", 'document_default_access_view',
+            login='admin'
+        )

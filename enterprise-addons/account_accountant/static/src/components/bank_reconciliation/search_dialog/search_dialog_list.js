@@ -3,8 +3,16 @@ import { ListRenderer } from "@web/views/list/list_renderer";
 import { listView } from "@web/views/list/list_view";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { useState } from "@odoo/owl";
+import { formatMonetary } from "@web/views/fields/formatters";
 
 export class BankRecReconcileDialogListController extends ListController {
+    static template = "account_accountant.BankRecReconcileDialogListView";
+    static props = {
+        ...ListController.props,
+        bankRecInfo: { type: Object, optional: true },
+    };
+
     setup() {
         super.setup();
         this.orm = useService("orm");
@@ -46,6 +54,23 @@ export class BankRecReconcileDialogListController extends ListController {
 export class BankRecReconcileDialogListRenderer extends ListRenderer {
     static template = "account_accountant.BankRecReconcileDialogListRenderer";
     static recordRowTemplate = "account_accountant.BankRecReconcileDialogListRenderer.RecordRow";
+    static props = [...ListRenderer.props, "bankRecInfo?"];
+
+    setup() {
+        super.setup();
+        if (this.props.bankRecInfo?.state) {
+            this.bankRecState = useState(this.props.bankRecInfo.state);
+        }
+    }
+
+    get remainingAmountFormatted() {
+        const { currencyId } = this.props.bankRecInfo;
+        return formatMonetary(this.bankRecState.remainingAmount, { currencyId });
+    }
+
+    get hideRemainingAmount() {
+        return this.bankRecState?.hideRemainingAmount;
+    }
 
     async openMoveView(record) {
         this.env.services.action.doAction({
@@ -62,6 +87,13 @@ export const bankRecReconcileDialogListRenderer = {
     ...listView,
     Renderer: BankRecReconcileDialogListRenderer,
     Controller: BankRecReconcileDialogListController,
+    props: (genericProps, view) => {
+        const baseProps = listView.props(genericProps, view);
+        return {
+            ...baseProps,
+            bankRecInfo: genericProps.bankRecInfo,
+        };
+    },
 };
 
 registry.category("views").add("bank_rec_dialog_list", bankRecReconcileDialogListRenderer);

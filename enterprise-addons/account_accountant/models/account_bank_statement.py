@@ -193,6 +193,7 @@ class AccountBankStatementLine(models.Model):
             # the cron won't be limited, and we'll process all the statement lines never processed before
             return False
 
+        can_commit = not modules.module.current_test and not self.env.context.get('import_file', False)
         remaining_line_id = None
 
         start_time = fields.Datetime.now()
@@ -207,14 +208,14 @@ class AccountBankStatementLine(models.Model):
                 st_lines._try_auto_reconcile_statement_lines(company_id=company_id)
             except Exception as e:  # noqa: BLE001
                 _logger.warning("Error while processing statement lines: %s", e)
-                if not isinstance(e, UserError) and not modules.module.current_test:
+                if not isinstance(e, UserError) and can_commit:
                     _logger.warning("_cron_try_auto_reconcile_statement_lines will rollback the cursor")
                     self.env.cr.rollback()
                 if st_lines.exists():
                     st_lines.cron_last_check = fields.Datetime.now()
 
             # Commit if we can, in case an issue arises later.
-            if not modules.module.current_test:
+            if can_commit:
                 self.env.cr.commit()
 
         if remaining_line_id:
@@ -434,10 +435,10 @@ class AccountBankStatementLine(models.Model):
         if outstanding_accounts:
             query = SQL("""
                 SELECT st_line.id,
-                       ARRAY_AGG(word_aml.id) aml_id
+                       ARRAY_AGG(DISTINCT word_aml.id) aml_id
                   FROM account_bank_statement_line st_line
           JOIN LATERAL (
-                        SELECT DISTINCT ON (aml.id) aml.id, word, aml.ref
+                        SELECT aml.id, word, aml.ref
                           FROM account_move_line aml
                      LEFT JOIN account_move move ON (move.id = aml.move_id AND move.payment_reference != move.name),
                        LATERAL regexp_split_to_table(
@@ -459,7 +460,7 @@ class AccountBankStatementLine(models.Model):
                                )
                        ) word_aml ON TRUE
               GROUP BY st_line.id
-                HAVING COUNT(*) = 1
+                HAVING COUNT(DISTINCT word_aml.id) = 1
             """, tuple(st_move_ids), tuple(outstanding_accounts.ids), tuple(remaining_st_line_ids))
             self.env.cr.execute(query)
             for st_line_id, aml_id in self.env.cr.fetchall():
@@ -481,7 +482,7 @@ class AccountBankStatementLine(models.Model):
 
         query = SQL("""
                 SELECT st_line.id,
-                       ARRAY_AGG(word_aml.id) aml_ids,
+                       ARRAY_AGG(DISTINCT word_aml.id) aml_ids,
                        SUM(word_aml.amount_residual),
                        word_aml.word matching_word
                   FROM account_bank_statement_line st_line
@@ -508,7 +509,7 @@ class AccountBankStatementLine(models.Model):
                                )
                        ) word_aml ON TRUE
               GROUP BY st_line.id, matching_word
-                HAVING COUNT(*) = 1
+                HAVING COUNT(DISTINCT word_aml.id) = 1
         """, tuple(st_move_ids), tuple(account_ids), tuple(remaining_st_line_ids))
         self.env.cr.execute(query)
 
@@ -638,6 +639,8 @@ class AccountBankStatementLine(models.Model):
         """,
              st_line_ids=tuple(lines_without_partner.ids),
         )
+        # Exclude OdooBot from the retrieve partner functionnality
+        odoo_bot_partner = self.env.ref("base.partner_root")
         retrieve_partner_by_name_query = SQL("""
             SELECT ARRAY_AGG(DISTINCT partner.id) FILTER (WHERE partner.complete_name ILIKE st_line.partner_name AND partner.company_id::TEXT = ANY(STRING_TO_ARRAY(company.parent_path, '/'))) AS full_name_matching_partner_with_company,
                    ARRAY_AGG(DISTINCT partner.id) FILTER (WHERE partner.complete_name ILIKE st_line.partner_name AND partner.company_id IS NULL) AS full_name_matching_partner_without_company,
@@ -649,9 +652,11 @@ class AccountBankStatementLine(models.Model):
               JOIN res_company company ON company.id = st_line.company_id
              WHERE partner.parent_id IS NULL
                AND st_line.id IN %(st_line_ids)s
+               AND partner.id != %(odoo_bot_partner_id)s
           GROUP BY st_line.id
         """,
-             st_line_ids=tuple(lines_without_partner.ids),
+            st_line_ids=tuple(lines_without_partner.ids),
+            odoo_bot_partner_id=odoo_bot_partner.id,
         )
         self.env.cr.execute(retrieve_partner_by_account_query)
         account_query_result = self.env.cr.dictfetchall()
@@ -728,7 +733,7 @@ class AccountBankStatementLine(models.Model):
                     st_line.partner_id = partner[0]
 
             # Retrieve the partner from the partner name.
-            if st_line.partner_name:
+            if not st_line.partner_id and st_line.partner_name:
                 if st_line.id in partner_name_matching:
                     if len(partner := partner_name_matching[st_line.id]['full_name_matching_partner_with_company']) == 1:
                         # First match if partner name full match and company match
@@ -1545,7 +1550,7 @@ class AccountBankStatementLine(models.Model):
 
     def _prepare_for_tax_lines_recomputation(self):
         liquidity_lines, _suspense_lines, other_lines = self._seek_for_lines()
-        other_lines.filtered(lambda line: not line.reconciled_lines_ids)  # We do not recompute tax on lines that come from invoice
+        other_lines = other_lines.filtered(lambda line: not line.reconciled_lines_ids)  # We do not recompute tax on lines that come from invoice
 
         base_amls = other_lines.filtered(lambda line: not line.tax_repartition_line_id)
         base_lines = [self._prepare_base_line_for_taxes_computation(line) for line in base_amls]
@@ -1556,7 +1561,6 @@ class AccountBankStatementLine(models.Model):
     def _create_tax_lines(self, original_base_lines, original_tax_lines, new_lines):
         self.ensure_one()
         liquidity_lines, _suspense_lines, other_lines = self._seek_for_lines()
-        other_lines = other_lines.filtered(lambda line: not line.reconciled_lines_ids)  # We do not recompute tax on lines that come from invoice
 
         original_base_lines, original_tax_lines = self._recompute_tax_lines(original_base_lines, original_tax_lines)
         original_base_lines += [self._prepare_base_line_for_taxes_computation(move_line) for move_line in new_lines]
@@ -1566,7 +1570,6 @@ class AccountBankStatementLine(models.Model):
     def _edit_tax_lines(self, original_base_lines, original_tax_lines, edited_line, old_move_line):
         self.ensure_one()
         liquidity_lines, _suspense_lines, other_lines = self._seek_for_lines()
-        other_lines = other_lines.filtered(lambda line: not line.reconciled_lines_ids)  # We do not recompute tax on lines that come from invoice
 
         original_base_lines, original_tax_lines = self._recompute_tax_lines(original_base_lines, original_tax_lines)
 

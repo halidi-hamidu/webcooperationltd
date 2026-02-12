@@ -47,12 +47,16 @@ class KnowledgeArticle(models.Model):
         base_domain = super()._get_available_template_domain()
         return Domain.AND([base_domain, [("is_audit_report_template", "=", False)]])
 
+    def _get_inherited_audit_report(self):
+        self.ensure_one()
+        return self.inherited_audit_report_id
+
     def _prepare_template(self, ref):
         fragment = super()._prepare_template(ref)
         if 'target_article_id' in self.env.context:
             target_article = self.env['knowledge.article'].browse(
                 self.env.context['target_article_id'])
-            audit_report = target_article.inherited_audit_report_id
+            audit_report = target_article._get_inherited_audit_report()
 
             def transform_xmlid_to_res_id(match):
                 return str(ref(match.group('xml_id')))

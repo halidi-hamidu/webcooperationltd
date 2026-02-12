@@ -371,7 +371,7 @@ class AccountMoveLine(models.Model):
         ).tax_id
 
         res = {}
-        if non_deductible_tax_ids:
+        if non_deductible_tax_ids and self.ids:
             domain = [('move_id', 'in', self.move_id.ids)]
             tax_details_query = self._get_query_tax_details_from_domain(domain)
 

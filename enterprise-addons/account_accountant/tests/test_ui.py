@@ -67,4 +67,13 @@ class TestUi(AccountTestMockOnlineSyncCommon):
         })
         # Disable all onboarding tours
         self.env['web_tour.tour'].search([]).unlink()
+
+        # create what would be "demo data" as the sample invoice button does not appear when it is not present
+        if not self.env.ref('base.res_partner_2', raise_if_not_found=False):
+            demo_partner = self.env['res.partner'].create({'name': 'Acme Corporation'})
+            self.env['ir.model.data']._update_xmlids([{
+                'xml_id': "base.res_partner_2",
+                'record': demo_partner,
+                'noupdate': False,
+            }])
         self.start_tour("/odoo", 'account_accountant_tour', login="admin")

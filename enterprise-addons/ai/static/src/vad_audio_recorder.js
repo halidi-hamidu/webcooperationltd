@@ -27,16 +27,8 @@ export default class VADAudioRecorder {
 
     static listenerCount = 0;
 
-    constructor(
-        onMessage,
-        filterOptions = {
-            type: "bandpass",
-            frequency: 1850,
-            Q: 4.0,
-        }
-    ) {
+    constructor(onMessage) {
         this.onMessage = onMessage;
-        this.filterOptions = filterOptions;
         this.state = "inactive";
     }
 
@@ -95,14 +87,6 @@ export default class VADAudioRecorder {
             const audioContext = VADAudioRecorder.audioContext;
 
             const sourceNode = audioContext.createMediaStreamSource(VADAudioRecorder.audioStream);
-            const filterNode = audioContext.createBiquadFilter();
-            filterNode.type = this.filterOptions.type;
-            filterNode.frequency.setValueAtTime(
-                this.filterOptions.frequency,
-                audioContext.currentTime
-            );
-            filterNode.Q.setValueAtTime(this.filterOptions.Q, audioContext.currentTime);
-
             const workletUrl = url("/ai/static/src/worklets/pcm16_audio_processor.js");
             await audioContext.audioWorklet.addModule(workletUrl);
             const pcm16AudioProcessorNode = new AudioWorkletNode(audioContext, "pcm16-processor");
@@ -110,8 +94,7 @@ export default class VADAudioRecorder {
             if (audioContext.state === "suspended") {
                 await audioContext.resume();
             }
-            sourceNode.connect(filterNode);
-            filterNode.connect(pcm16AudioProcessorNode);
+            sourceNode.connect(pcm16AudioProcessorNode);
             pcm16AudioProcessorNode.connect(audioContext.destination);
 
             pcm16AudioProcessorNode.port.onmessage = (event) => {

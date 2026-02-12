@@ -1,5 +1,5 @@
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test, queryOne } from "@odoo/hoot";
 import { animationFrame } from "@odoo/hoot-mock";
 import {
     contains,
@@ -9,9 +9,11 @@ import {
     models,
     mountWithCleanup,
     onRpc,
+    defineActions,
 } from "@web/../tests/web_test_helpers";
 import { WebClientEnterprise } from "@web_enterprise/webclient/webclient";
-import { editView, handleDefaultStudioRoutes } from "../view_editor_tests_utils";
+import { editView, handleDefaultStudioRoutes, openStudio } from "../view_editor_tests_utils";
+import { waitFor } from "@odoo/hoot-dom";
 
 describe.current.tags("desktop");
 
@@ -193,4 +195,32 @@ test("many2many, one2many and binary fields cannot be selected in SortBy dropdow
     await contains("input.o_select_menu_toggler:eq(1)").click();
     // There are 3 hidden fields that are not defined above in the class (id, create_date, write_date)
     expect(".o_select_menu_item").toHaveCount(8);
+});
+
+test("map leaflet is rendered", async () => {
+    defineActions([
+        {
+            xml_id: "action_2",
+            name: "task Action 2",
+            res_model: "task",
+            type: "ir.actions.act_window",
+            views: [[1, "map"]],
+        },
+    ]);
+    await mountWithCleanup(WebClientEnterprise);
+    await waitFor(".o_home_menu");
+
+    getService("action").doAction("action_2");
+    await waitFor(".o-map-renderer--container.leaflet-container");
+    let mapContainer = queryOne(".o-map-renderer--container.leaflet-container");
+    let mapRect = mapContainer.getBoundingClientRect();
+    expect(mapRect.width).toBeGreaterThan(0);
+    expect(mapRect.height).toBeGreaterThan(0);
+
+    await openStudio();
+    await waitFor(".o_web_studio_view_renderer .o-map-renderer--container.leaflet-container");
+    mapContainer = queryOne(".o-map-renderer--container.leaflet-container");
+    mapRect = mapContainer.getBoundingClientRect();
+    expect(mapRect.width).toBeGreaterThan(0);
+    expect(mapRect.height).toBeGreaterThan(0);
 });

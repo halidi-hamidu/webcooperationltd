@@ -4,8 +4,8 @@ from odoo import fields, models
 class VoipCall(models.Model):
     _inherit = "voip.call"
 
-    ticket_count = fields.Integer(related="partner_id.ticket_count")
-    open_ticket_count = fields.Integer(related="partner_id.open_ticket_count")
+    ticket_count = fields.Integer(related="partner_id.ticket_count", groups="helpdesk.group_helpdesk_user", related_sudo=False)
+    open_ticket_count = fields.Integer(related="partner_id.open_ticket_count", groups="helpdesk.group_helpdesk_user", related_sudo=False)
 
     def voip_action_open_helpdesk_ticket(self):
         self.ensure_one()

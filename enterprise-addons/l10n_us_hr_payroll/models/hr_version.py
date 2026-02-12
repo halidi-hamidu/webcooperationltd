@@ -3,6 +3,21 @@
 from odoo import _, api, models, fields
 from odoo.exceptions import UserError
 
+DEFAULT_STATE_FILING_STATUS = {
+    'NY': 'ny_status_1',
+    'CA': 'ca_status_1',
+    'AL': 'al_status_1',
+    'CO': 'co_status_1',
+    'VT': 'vt_status_1',
+    'IL': 'il_status_1',
+    'AZ': 'az_status_4',
+    'DC': 'dc_status_1',
+    'NC': 'nc_status_1',
+    'VA': 'va_status_1',
+    'OR': 'or_status_1',
+    'ID': 'id_status_1',
+}
+
 
 class HrVersion(models.Model):
     _inherit = "hr.version"
@@ -110,6 +125,9 @@ class HrVersion(models.Model):
         selection=_get_selection_state_filing_status,
         string="State Tax Filing Status",
         tracking=True,
+        compute="_compute_l10n_us_state_filing_status",
+        store=True,
+        readonly=False,
         groups="hr_payroll.group_hr_payroll_user",
         help="Filing status used for State income tax calculation.")
     l10n_us_statutory_employee = fields.Boolean(
@@ -217,16 +235,17 @@ class HrVersion(models.Model):
         "The contribution rate must be a percentage between 0 and 100.",
     )
 
-    @api.constrains('l10n_us_state_filing_status', 'address_id')
+    @api.constrains('l10n_us_state_filing_status', 'address_id', 'employee_id')
     def _check_us_state_filling_status(self):
+        VALID_STATES = DEFAULT_STATE_FILING_STATUS.keys()
         for version in self:
             state_code = version.address_id.state_id.code
             filing_status = version.sudo().l10n_us_state_filing_status
-            if not state_code:
+            if not state_code or not version.employee_id:
                 continue
-            if state_code not in ['NY', 'CA', 'AL', 'CO'] and filing_status:
+            if state_code not in VALID_STATES and filing_status:
                 raise UserError(_('The employee state filing status should be empty for this working address state. (Work Address State: %s)', version.address_id.state_id.name))
-            if state_code not in ['NY', 'CA', 'AL', 'CO']:
+            if state_code not in VALID_STATES:
                 continue
             if not filing_status:
                 raise UserError(_('The employee state filing status is empty and should match the working address state. (Work Address State: %s)', version.address_id.state_id.name))
@@ -234,6 +253,23 @@ class HrVersion(models.Model):
                 selection_description_values = {
                     e[0]: e[1] for e in self._fields['l10n_us_state_filing_status']._description_selection(self.env)}
                 raise UserError(_('The employee state filing status should match the working address state. (Filing Status: %(filing_status)s, Work Address State: %(address_state)s)', filing_status=selection_description_values[filing_status], address_state=version.address_id.state_id.name))
+
+    @api.depends('address_id.state_id')
+    def _compute_l10n_us_state_filing_status(self):
+        for employee in self:
+            state_code = employee.address_id.state_id.code
+            filing_status = employee.l10n_us_state_filing_status
+
+            # Clear filing status if state is invalid
+            if not state_code:
+                employee.l10n_us_state_filing_status = False
+                continue
+
+            # Set default filing status if current status is empty or doesn't match state
+            if not filing_status or state_code != filing_status.split('_')[0].upper():
+                employee.l10n_us_state_filing_status = DEFAULT_STATE_FILING_STATUS.get(
+                    state_code, False
+                )
 
     @api.constrains('ssnid')
     def _check_ssnid(self):

@@ -360,6 +360,7 @@ class Data_MergeRecord(models.Model):
                 AND att2.attrelid = cl2.oid
                 AND con.contype = 'f'
                 AND cl2.relname = %s
+                AND cl2.relnamespace = current_schema::regnamespace
             GROUP BY cl1.relname""", table)))
 
     @api.model
@@ -389,6 +390,7 @@ class Data_MergeRecord(models.Model):
                     SELECT COUNT("column_name")
                     FROM "information_schema"."columns"
                     WHERE "table_name" ILIKE %s
+                    AND table_schema = current_schema
                     """, query_dict['table']
                 )
                 [[column_count]] = self.env.execute_query(query)
@@ -402,6 +404,7 @@ class Data_MergeRecord(models.Model):
                         FROM "information_schema"."columns"
                         WHERE
                             "table_name" LIKE %s
+                        AND table_schema = current_schema
                         AND "column_name" <> %s
                         """,
                         query_dict['table'],

@@ -23,6 +23,7 @@ import { cleanHints } from "@html_editor/../tests/_helpers/dispatch";
 import { parseHTML } from "@html_editor/utils/html";
 import { MAIN_PLUGINS } from "@html_editor/plugin_sets";
 import { setupEditor } from "@html_editor/../tests/_helpers/editor";
+import { user } from "@web/core/user";
 import { EmbeddedComponentPlugin } from "@html_editor/others/embedded_component_plugin";
 
 class Dummy extends models.Model {
@@ -68,7 +69,7 @@ beforeEach(() => {
 
 function getCurrentDate() {
     const today = new Date();
-    const timeString = today.toLocaleTimeString([], {
+    const timeString = today.toLocaleTimeString([user.lang], {
         hour: "2-digit",
         minute: "2-digit",
     });

@@ -463,3 +463,15 @@ class TestPeriodDuplication(TestCommonPlanning):
             (copied_slots[1] + copied_slots[2] + copied_slots[4] + copied_slots[5]).resource_id,
             "The copied slots on Tuesday and Thursday should be open shifts, as the resource has leaves planned on those days.",
         )
+
+    def test_rollback_copy_after_unlinking_slot(self):
+        PlanningSlot = self.env['planning.slot']
+        copied, to_copy = PlanningSlot.action_copy_previous_week('2019-06-09 00:00:00',
+                                                            [['start_datetime', '<=', '2020-04-04 21:59:59'],
+                                                             ['end_datetime', '>=', '2020-03-28 23:00:00']])
+
+        PlanningSlot.browse(copied[0]).unlink()
+        PlanningSlot.browse(copied).action_rollback_copy_previous_week(to_copy)
+
+        self.assertFalse(PlanningSlot.browse(copied[1]).exists())
+        self.assertFalse(PlanningSlot.browse(to_copy[0]).was_copied)

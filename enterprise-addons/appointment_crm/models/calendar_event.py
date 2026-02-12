@@ -29,7 +29,7 @@ class CalendarEvent(models.Model):
             if not meeting.activity_ids:
                 meeting.opportunity_id.sudo().activity_schedule(
                     act_type_xmlid='mail.mail_activity_data_meeting',
-                    date_deadline=meeting.start_date,
+                    date_deadline=meeting._get_activity_deadline_from_start(meeting.start, meeting.allday),
                     summary=meeting.name,
                     user_id=meeting.user_id.id,
                     calendar_event_id=meeting.id,

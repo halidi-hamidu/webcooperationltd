@@ -1,5 +1,5 @@
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 from odoo.addons.hr_expense_stripe.utils import make_request_stripe_proxy
 
@@ -28,12 +28,6 @@ class AccountJournal(models.Model):
         compute='_compute_nb_stripe_card',
         compute_sudo=True,
     )
-
-    @api.constrains('bank_statements_source')
-    def check_stripe_currency_existance(self):
-        for journal in self:
-            if not journal.company_id.stripe_currency_id and journal.bank_statements_source == 'stripe_issuing':
-                raise ValidationError(_("Stripe issuing is not supported for your localization"))
 
     def _compute_nb_stripe_card(self):
         for journal in self:

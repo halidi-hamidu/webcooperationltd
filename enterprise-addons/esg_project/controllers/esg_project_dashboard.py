@@ -37,7 +37,7 @@ class EsgProjectDashboard(EsgDashboard):
 
     def _get_dashboard_data(self):
         data = super()._get_dashboard_data()
-        if not self.env.user.has_group('project.group_project_user'):
+        if not request.env.user.has_group('project.group_project_user'):
             return data
         data['initiatives_box'] = self._get_initiatives_section_data()
         return data

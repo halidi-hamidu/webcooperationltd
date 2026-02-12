@@ -85,7 +85,7 @@ export class AccountReturnSelectionBadge extends Component {
 
     get additionalClassName() {
         const addClasses = [];
-        if (this.props.size === 'small' || this.env.config.viewType === 'list') {
+        if (this.props.size === 'small' || this.env.config?.viewType === 'list') {
             addClasses.push('o_account_return_selection_badge_button_small');
         }
         if (this.props.class) {

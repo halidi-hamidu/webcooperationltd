@@ -61,6 +61,28 @@ class TestItalianTaxReport(TestAccountReportsCommon):
             'credit',
             40.0)
 
+    def test_tax_report_carryover_vp14_credit_period_rounding(self):
+        """
+        Test to have a non-integer value in line vp14 credit at a period inside the year.
+        In this case, we should put that value in line vp8.
+        """
+        self._test_line_report_carryover(
+            'in_invoice',
+            '2015-03-10',
+            10,
+            self.tax_4a,
+            self._generate_options(
+                self.report,
+                fields.Date.from_string('2015-03-01'),
+                fields.Date.from_string('2015-03-31')),
+            self._generate_options(
+                self.report,
+                fields.Date.from_string('2015-04-01'),
+                fields.Date.from_string('2015-04-30')),
+            'VP8',
+            'credit',
+            0.4)
+
     def test_tax_report_carryover_vp14_credit_year(self):
         """
         Test to have a value in line vp14 credit at the last period of the year.

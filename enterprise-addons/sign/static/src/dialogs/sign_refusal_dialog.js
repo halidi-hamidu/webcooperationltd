@@ -6,6 +6,7 @@ import { Dialog } from "@web/core/dialog/dialog";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { ThankYouDialog } from "./thank_you_dialog";
 import { user } from "@web/core/user";
+import { isEmail } from "@web/core/utils/strings";
 
 export class SignRefusalDialog extends Component {
     static template = "sign.SignRefusalDialog";
@@ -59,6 +60,12 @@ export class SignRefusalDialog extends Component {
         if (!this.user) {
             const name = this.refuseNameEl.el.value;
             const email = this.refuseEmailEl.el.value;
+
+            if (!email || !isEmail(email)) {
+                this.refuseEmailEl.el.classList.add("is-invalid");
+                return;
+            }
+
             params = {
                 ...params,
                 refusal_name: name,

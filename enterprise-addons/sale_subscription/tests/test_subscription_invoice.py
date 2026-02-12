@@ -4,7 +4,7 @@ import datetime
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.tests import tagged, freeze_time
+from odoo.tests import HttpCase, tagged, freeze_time
 from odoo.tools import mute_logger
 from odoo.exceptions import AccessError, UserError
 
@@ -12,7 +12,7 @@ from odoo.addons.sale_subscription.tests.common_sale_subscription import TestSub
 
 
 @tagged('post_install', '-at_install')
-class TestSubscriptionInvoice(TestSubscriptionCommon):
+class TestSubscriptionInvoice(TestSubscriptionCommon, HttpCase):
     @mute_logger('odoo.addons.base.models.ir_model', 'odoo.models')
     def test_automatic(self):
         self.assertTrue(True)
@@ -137,6 +137,10 @@ class TestSubscriptionInvoice(TestSubscriptionCommon):
                     'name': 'Products',
                 }),
                 Command.create({
+                    'display_type': 'line_subsection',
+                    'name': 'Subscriptions',
+                }),
+                Command.create({
                     'product_id': sub_product1.id,
                     'name': "Subscription #A",
                     'price_unit': 42,
@@ -168,12 +172,17 @@ class TestSubscriptionInvoice(TestSubscriptionCommon):
 
         # first invoice, it should include one-time discount
         self.assertEqual(len(sub.invoice_ids), 1)
+        preview_so = sub.action_preview_sale_order()
+        url = preview_so.get('url')
+        # Ensure sale order preview does not crash when collapse_prices is accessed
+        self.assertEqual(self.url_open(url).status_code, 200)
         sub.invoice_ids._post()
         invoice = sub.invoice_ids[-1]
         self.assertEqual(invoice.amount_untaxed, 148.0)
-        self.assertEqual(len(invoice.invoice_line_ids), 4)
+        self.assertEqual(len(invoice.invoice_line_ids), 5)
         self.assertRecordValues(invoice.invoice_line_ids, [
             {'display_type': 'line_section', 'name': 'Products', 'product_id': False},
+            {'display_type': 'line_subsection', 'name': 'Subscriptions', 'product_id': False},
             {
                 'display_type': 'product', 'product_id': sub_product1.id,
                 'name': 'Subscription #A\n1 Month 01/03/2021 to 02/02/2021',
@@ -195,9 +204,10 @@ class TestSubscriptionInvoice(TestSubscriptionCommon):
         # second invoice, should NOT include one-time discount
         self.assertEqual(len(sub.invoice_ids), 2)
         self.assertEqual(invoice.amount_untaxed, 168.0)
-        self.assertEqual(len(invoice.invoice_line_ids), 3)
+        self.assertEqual(len(invoice.invoice_line_ids), 4)
         self.assertRecordValues(invoice.invoice_line_ids, [
             {'display_type': 'line_section', 'name': 'Products', 'product_id': False},
+            {'display_type': 'line_subsection', 'name': 'Subscriptions', 'product_id': False},
             {
                 'display_type': 'product', 'product_id': sub_product1.id,
                 'name': 'Subscription #A\n1 Month 02/03/2021 to 03/02/2021',

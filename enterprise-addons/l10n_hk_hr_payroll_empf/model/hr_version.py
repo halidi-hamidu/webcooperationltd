@@ -55,6 +55,7 @@ class HrVersion(models.Model):
         domain="[('company_id', '=', company_id), ('scheme_id', '=', l10n_hk_mpf_scheme_id)]",
         compute='_compute_l10n_hk_payroll_group',
         store=True,
+        readonly=False,
         tracking=True,
     )
     l10n_hk_member_class_id = fields.Many2one(
@@ -64,6 +65,7 @@ class HrVersion(models.Model):
         domain="[('company_id', '=', company_id), ('scheme_id', '=', l10n_hk_mpf_scheme_id)]",
         compute='_compute_l10n_hk_member_class',
         store=True,
+        readonly=False,
         tracking=True,
     )
     l10n_hk_mpf_account_number = fields.Char(

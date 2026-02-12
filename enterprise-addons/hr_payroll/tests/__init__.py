@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import common
+from . import common_payment_report
 from . import test_payslip_flow
 from . import test_contract_calendar_2_weeks
 from . import test_dashboard

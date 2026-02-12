@@ -133,3 +133,35 @@ class TestBarcodeClientActionPicking(TestBarcodeClientAction):
         self.assertRecordValues(picking_in.check_ids, [
             {'product_id': self.productserial1.id, 'measure_on': 'move_line', 'quality_state': 'pass', 'lot_name': 'SN001'},
         ])
+
+    def test_quality_check_packages_lots_tour(self):
+        """
+        Test quality check creation on an incoming shipment
+        using packages and lots in the Barcode app.
+        """
+        grp_lot = self.env.ref('stock.group_tracking_lot')
+        self.env.user.write({'group_ids': [Command.link(grp_lot.id)]})
+        product_lot = self.productlot1
+        self.env['quality.point'].create({
+            'product_ids': [Command.link(product_lot.id)],
+            'picking_type_ids': [Command.link(self.picking_type_in.id)],
+            'measure_on': 'move_line',
+        })
+        receipt = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_in.id,
+            'partner_id': self.owner.id,
+            'move_ids': [
+                Command.create({
+                    'product_id': product_lot.id,
+                    'product_uom_qty': 4,
+                    'product_uom': product_lot.uom_id.id,
+                    'location_id': self.supplier_location.id,
+                    'location_dest_id': self.stock_location.id,
+                })
+            ],
+        })
+        receipt.action_confirm()
+        self.start_tour(
+            self._get_client_action_url(receipt.id),
+            'test_quality_check_packages_lots_tour', login='admin'
+        )

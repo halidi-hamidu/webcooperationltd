@@ -1999,3 +1999,46 @@ class AppointmentTest(AppointmentCommon, HttpCaseWithUserDemo):
         self.assertIn(self.staff_user_bxls.id, available_user_1)
         # User is not available for other appointment when booking has been made for them.
         self.assertNotIn(self.staff_user_bxls.id, available_user_2)
+
+    @users('apt_manager')
+    def test_appointment_user_must_have_appointment_type_access(self):
+        appointment_type = self.env['appointment.type'].create([{
+            'name': 'Test appointment',
+            'staff_user_ids': [(6, 0, [self.apt_user.id])],
+        }])
+
+        # Case 1: Staff user should be allowed
+        event_staff = self.env['calendar.event'].create({
+            'name': 'Staff user event',
+            'appointment_type_id': appointment_type.id,
+            'booking_line_ids': [(0, 0, {
+                'appointment_user_id': self.apt_user.id,
+                'capacity_reserved': 1,
+            })],
+            'user_id': self.apt_user.id,
+        })
+        self.assertTrue(event_staff.exists())
+
+        # Case 2: appointment manager should be allowed
+        event_apt_manager = self.env['calendar.event'].create({
+            'name': 'Admin non-staff event',
+            'appointment_type_id': appointment_type.id,
+            'booking_line_ids': [(0, 0, {
+                'appointment_user_id': self.env.user.id,
+                'capacity_reserved': 1,
+            })],
+            'user_id': self.env.user.id,
+        })
+        self.assertTrue(event_apt_manager.exists())
+
+        # Case 3: User who cannot read the appointment type -> Should raise ValidationError
+        with self.assertRaises(ValidationError):
+            self.env['calendar.event'].create({
+                'name': 'Restricted event',
+                'appointment_type_id': appointment_type.id,
+                'booking_line_ids': [(0, 0, {
+                    'appointment_user_id': self.staff_user_bxls.id,
+                    'capacity_reserved': 1,
+                })],
+                'user_id': self.staff_user_bxls.id,
+            })

@@ -9,6 +9,17 @@ from odoo.tools import format_date, date_utils
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
 
+    def _get_l10n_in_employee_working_time(self, return_hours=False):
+        self.ensure_one()
+        slip_date_time = datetime.combine(self.date_from, time(12, 0, 0))
+        employee_work_data = self.employee_id.resource_calendar_id.get_work_duration_data(
+            date_utils.start_of(slip_date_time, 'month'),
+            date_utils.end_of(slip_date_time, 'month'))
+        if return_hours:
+            return employee_work_data['hours']
+        return employee_work_data['days']
+
+    # No longer used. To be removed in master.
     def _get_l10n_in_company_working_time(self, return_hours=False):
         self.ensure_one()
         slip_date_time = datetime.combine(self.date_from, time(12, 0, 0))
@@ -51,13 +62,21 @@ class HrPayslip(models.Model):
         return self.env['hr.leave.type'].with_company(self.company_id).with_context(employee_id=self.employee_id.id).get_allocation_data_request()
 
     def get_month(self):
-        res = {
-               'from_name': '', 'to_name': ''
-               }
-
         from_date = min(self.mapped('date_from'))
         to_date = max(self.mapped('date_to'))
-        res['from_name'] = from_date.strftime('%d') + '-' + from_date.strftime('%B') + '-' + from_date.strftime('%Y')
-        res['to_name'] = to_date.strftime('%d') + '-' + to_date.strftime('%B') + '-' + to_date.strftime('%Y')
+        return {
+            'from_name': format_date(self.env, from_date, date_format='long'),
+            'to_name': format_date(self.env, to_date, date_format='long')
+        }
 
-        return res
+    def action_payslip_payment_report(self, export_format='advice'):
+        action = super().action_payslip_payment_report()
+        if self.company_id.country_code != 'IN':
+            return action
+        action.update({
+            'context': {
+                **action['context'],
+                'default_export_format': export_format,
+            },
+        })
+        return action

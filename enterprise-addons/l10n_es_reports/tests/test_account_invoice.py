@@ -284,7 +284,10 @@ class TestAccountInvoice(TestAccountReportsCommon):
 
     @freeze_time('2025-09-01')
     def test_mod347_withhold_tax(self):
-        """ Test that withholding tax are properly taken into account in mod347 tax report """
+        """
+        Test that withholding taxes are excluded from the Modelo 347 report,
+        unless overridden by the user via the l10n_es_reports_mod347_invoice_type field.
+        """
         self.init_invoice('out_invoice', invoice_date=fields.Date.today(), partner=self.partner_es, amounts=[40000], taxes=[self.company_data['default_tax_sale'], self.tax_withhold_sale], post=True)
         self.init_invoice('out_invoice', invoice_date=fields.Date.today(), partner=self.partner_es.copy(), amounts=[2800], taxes=[self.company_data['default_tax_sale'], self.tax_withhold_sale], post=True)
         self.init_invoice('in_invoice', invoice_date=fields.Date.today(), partner=self.partner_es, amounts=[40000], taxes=[self.company_data['default_tax_purchase'], self.tax_withhold_purchase], post=True)
@@ -299,23 +302,19 @@ class TestAccountInvoice(TestAccountReportsCommon):
 
         expected_values = [
             ('Summary',                                                          ''),
-            ('Total number of persons and entities',                              2),
-            ('España',                                                            3),
-            ('España (copy)',                                                     1),
+            ('Total number of persons and entities',                              1),
+            ('España',                                                            1),
             ('Insurance operations',                                             ''),
             ('B - Sales of goods and services greater than 3.005,06 €',     48400.0),
             ('España',                                                      48400.0),
             ('Other operations',                                                 ''),
-            ('A - Purchases of goods and services greater than 3.005,06 €', 48400.0),
-            ('España',                                                      48400.0),
-            ('B - Sales of goods and services greater than 3.005,06 €',     51788.0),
-            ('España',                                                      48400.0),
-            ('España (copy)',                                                3388.0),
+            ('A - Purchases of goods and services greater than 3.005,06 €',     0.0),
+            ('B - Sales of goods and services greater than 3.005,06 €',         0.0),
         ]
         lines = report._get_lines(options)
 
         self.assertLinesValues(
-            lines[0:4] + lines[-9:],
+            lines[0:3] + lines[-6:],
             [0, 1],
             expected_values,
             options,

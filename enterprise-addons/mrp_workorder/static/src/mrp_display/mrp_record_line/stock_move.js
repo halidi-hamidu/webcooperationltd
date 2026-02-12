@@ -112,11 +112,17 @@ export class StockMove extends QualityCheck {
     //TODO remove in master
     addMoveLine() {
         const product = this.props.record.data.product_id;
+        const locationSrc = this.props.production.data.location_src_id;
         this.dialog.add(MrpSelectQuantDialog, {
             resModel: "stock.quant",
             noCreate: !this.isTracked,
             multiSelect: false,
-            domain: [["product_id", "=", product.id], ['location_id.usage', '=', 'internal'], ["on_hand", "=", true], ["quantity", ">", 0.0]],
+            domain: [
+                ["product_id", "=", product.id],
+                ["location_id", "child_of", locationSrc.id],
+                ["on_hand", "=", true],
+                ["quantity", ">", 0.0],
+            ],
             title: _t("Add line: %(productName)s", { productName: product.display_name }),
             context: {
                 single_product: true,
@@ -158,8 +164,7 @@ export class StockMove extends QualityCheck {
             if (this.displayCheck) {
                 await this.markAsDone(); // check button: accept prefilled values and confirm QC
             } else {
-                if (this.byproduct)
-                {
+                if (this.byproduct) {
                     this.createQuant(); // plus button: create a new move line. Create a new quant for the byproduct.
                 } else {
                     this.addMoveLine(); // plus button: create a new move line. Show a list of quants  to take from.

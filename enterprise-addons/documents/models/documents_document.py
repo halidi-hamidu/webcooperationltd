@@ -780,7 +780,7 @@ class DocumentsDocument(models.Model):
     def _compute_thumbnail(self):
         for document in self:
             if document.shortcut_document_id:
-                if document.shortcut_document_id.user_permission != 'none':
+                if document.shortcut_document_id:
                     document.thumbnail = document.shortcut_document_id.thumbnail
                     document.thumbnail_status = document.shortcut_document_id.thumbnail_status
                 else:
@@ -817,12 +817,10 @@ class DocumentsDocument(models.Model):
         if not folders_sudo:
             return {}
         all_embedded_actions_sudo = self.env['ir.embedded.actions'].sudo().search(
-            domain=[
-                ('parent_action_id', '=', self.env.ref("documents.document_action").id),
-                ('action_id.type', '=', 'ir.actions.server'),
-                ('parent_res_model', '=', 'documents.document'),
-                ('parent_res_id', 'in', (folders_sudo + folders_sudo.shortcut_document_id).ids),
-            ],
+            domain=Domain.AND([
+                self.env['ir.embedded.actions'].sudo()._get_documents_embed_base_domain(),
+                [('parent_res_id', 'in', (folders_sudo + folders_sudo.shortcut_document_id).ids)],
+            ]),
             order='sequence',
         )
         # Filtering on action_id.groups_id above is not possible because the orm "considers" action_id
@@ -1429,7 +1427,13 @@ class DocumentsDocument(models.Model):
     @api.model
     def _get_embeddable_server_action_domain(self):
         """Wrap `_get_base_server_actions_domain`'s domain to exclude children and actions with invalid children."""
-        candidate_actions_sudo = self.env["ir.actions.server"].sudo()._search(self._get_base_server_actions_domain())
+        candidate_actions_sudo = self.env["ir.actions.server"].sudo()._search(
+            Domain.AND([
+                self._get_base_server_actions_domain(),
+                Domain.OR([[('group_ids', 'any', [('id', 'in', self.env.user.all_group_ids.ids)])],
+                           [('group_ids', '=', False)]]),
+            ]),
+        )
         return Domain.AND([
             [('id', 'in', candidate_actions_sudo)],
             [('parent_id', '=', False)],  # no child action
@@ -1445,8 +1449,6 @@ class DocumentsDocument(models.Model):
         return Domain.AND([
             [('model_id', '=', self.env['ir.model']._get_id('documents.document'))],
             [('usage', 'in', ('ir_actions_server', 'documents_embedded'))],
-            Domain.OR([[('group_ids', 'any', [('id', 'in', self.env.user.all_group_ids.ids)])],
-                       [('group_ids', '=', False)]]),
         ])
 
     @api.model
@@ -1456,7 +1458,7 @@ class DocumentsDocument(models.Model):
         :param int folder_id: The folder on which we pin the actions
         :param int action_id: The id of the action to enable
         """
-        if not self.env.user.has_group('documents.group_documents_user'):
+        if not self.env.user.has_group('documents.group_documents_user') and not self.env.su:
             raise AccessError(_("You are not allowed to pin/unpin embedded Actions."))
         server_actions_groups_domain = [
             '|', ('group_ids', 'any', [('id', 'in', self.env.user.all_group_ids.ids)]),
@@ -1473,13 +1475,12 @@ class DocumentsDocument(models.Model):
         if folder.shortcut_document_id:
             return self.action_folder_embed_action(folder.shortcut_document_id.id, action_id)
 
-        all_embedded_actions_sudo = self.env['ir.embedded.actions'].sudo().search([
-            ('parent_action_id', '=', self.env.ref("documents.document_action").id),
-            ('action_id', '=', action_id),
-            ('action_id.type', '=', 'ir.actions.server'),
-            ('parent_res_model', '=', 'documents.document'),
-            ('parent_res_id', '=', folder_id),
-        ])
+        all_embedded_actions_sudo = self.env['ir.embedded.actions'].sudo().search(
+            Domain.AND([
+                self.env['ir.embedded.actions'].sudo()._get_documents_embed_base_domain(),
+                [('action_id', '=', action_id), ('parent_res_id', '=', folder_id)],
+            ])
+        )
         # See _get_folder_embedded_actions
         accessible_server_action_ids = self.env['ir.actions.server'].sudo().search([
             ('id', 'in', all_embedded_actions_sudo.action_id.ids),
@@ -1504,7 +1505,8 @@ class DocumentsDocument(models.Model):
             })
             action_name_translations = action._fields['name']._get_stored_translations(action)
             for lang, translation in action_name_translations.items():
-                embedded_action.with_context(lang=lang).name = translation
+                if self.env['res.lang']._lang_get(lang):
+                    embedded_action.with_context(lang=lang).name = translation
 
         return self.get_documents_actions(folder_id)
 
@@ -1527,6 +1529,18 @@ class DocumentsDocument(models.Model):
             return self.env['ir.actions.server'].with_context(documents_active_ids=ids).browse(embedded_action.action_id.id).run()
 
         raise UserError(_("Unavailable action."))
+
+    def _embed_action(self, action_id):
+        """Embed a server action on the current folder(s) if not already done."""
+        IrEmbeddedActions = self.env['ir.embedded.actions']
+        embedded_actions = self._get_folder_embedded_actions(self.ids)
+
+        new_embedding_folders = self.env['documents.document']
+        for folder in self:
+            if action_id not in embedded_actions.get(folder.id, IrEmbeddedActions).action_id.ids:
+                folder.action_folder_embed_action(folder.id, action_id)
+                new_embedding_folders |= folder
+        return new_embedding_folders
 
     def action_link_to_record(self, model=False):
         """Open the `link_to_record_wizard` to choose a record to link to the current documents.
@@ -2448,7 +2462,6 @@ class DocumentsDocument(models.Model):
             documents_to_sync.action_update_access_rights(
                 access_internal=new_parent_folder.access_internal,
                 access_via_link=new_parent_folder.access_via_link,
-                is_access_via_link_hidden=new_parent_folder.is_access_via_link_hidden,
                 # Simply add partners of destination
                 partners={access.partner_id: (access.role, access.expiration_date)
                           for access in new_parent_folder.access_ids if access.role},
@@ -2713,7 +2726,7 @@ class DocumentsDocument(models.Model):
         self.ensure_one()
         if access_uid and not force_website and self.active and self.env.user.has_group("documents.group_documents_user"):
             url_params = url_encode({
-                'preview_id': self.id,
+                'documents_init_document_id': self.id,
                 'view_id': self.env.ref("documents.document_view_kanban").id,
                 'menu_id': self.env.ref("documents.menu_root").id,
                 'folder_id': self.folder_id.id,

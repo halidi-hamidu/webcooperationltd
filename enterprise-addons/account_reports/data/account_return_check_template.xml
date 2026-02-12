@@ -34,7 +34,7 @@
             <field name="description">These accounts must be cleared regularly, as they represent unallocated or pending transactions.</field>
             <field name="type">check</field>
             <field name="model">account.bank.statement.line</field>
-            <field name="domain">[('is_reconciled', '=', False)]</field>
+            <field name="domain">[('is_reconciled', '=', False), ('state', '!=', 'cancel')]</field>
             <field name="cycle">regulatory_compliance</field>
             <field name="return_type" ref="account_reports.default_audit_return_type"/>
             <field name="code">_account_return_check_template_audit_empty_suspense_accounts</field>
@@ -143,11 +143,9 @@
 
         <record id="account_return_check_template_settlement_in_subsequent_period" model="account.return.check.template">
             <field name="name">Settlement in Subsequent Period</field>
-            <field name="description">Verify that cash and card receipts recorded at period-end are actually settled in the following period. Also check the correct accounting treatment of Dailly* assignments, discounting operations, and factoring contracts**.
+            <field name="description">Verify that cash and card receipts recorded at period-end are actually settled in the following period. Also check the correct accounting treatment of discounting operations and factoring contracts*.
 
-* The ""Dailly Law"" is a French law that allows businesses to assign commercial receivables (like invoices) to a credit institution (like a bank) in exchange for financing.
-
-**Factoring contracts involve a business selling its unpaid invoices (accounts receivable) to a third-party company, known as a factor, in exchange for immediate cash.
+*Factoring contracts involve a business selling its unpaid invoices (accounts receivable) to a third-party company, known as a factor, in exchange for immediate cash.
             </field>
             <field name="type">check</field>
             <field name="model" eval="False"/>
@@ -476,6 +474,149 @@
             <field name="cycle">fixed_assets</field>
             <field name="return_type" ref="account_reports.default_audit_return_type"/>
             <field name="code">_account_return_check_template_subsidaries_and_investments_summary</field>
+        </record>
+
+        <!-- Government -->
+
+        <record id="action_server_open_view_account_return_with_additional_params" model="ir.actions.server">
+            <field name="name">Open Tax Return</field>
+            <field name="model_id" ref="model_account_return"/>
+            <field name="state">code</field>
+            <field name="code">action = model.action_open_tax_return_view(env.context.get('sub_action_domain'), env.context.get('sub_action_context'))</field>
+        </record>
+
+        <record id="account_return_check_template_reconcile_payable_with_fillings" model="account.return.check.template">
+            <field name="name">Reconcile tax payables with tax filings</field>
+            <field name="description">Reconcile all tax-related payables with the latest official filings.
+Analyze discrepancies, verify post-period payments, and document the status of any unresolved amounts or ongoing disputes.</field>
+            <field name="type">check</field>
+            <field name="cycle">state</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_reconcile_payable_with_fillings</field>
+            <field name="action_id" ref="account_reports.action_server_open_view_account_return_with_additional_params"/>
+            <field name="additional_action_context">{
+                    'sub_action_domain': ['|', ('type_id.report_id', '=', ref('account.generic_tax_report')), ('type_id.report_id.root_report_id', '=', ref('account.generic_tax_report'))],
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_eligibility_tax_reductions_and_credits" model="account.return.check.template">
+            <field name="name">Eligibility for tax reductions and credits</field>
+            <field name="description">Identify applicable tax credit schemes, verify eligibility, compute benefits, validate supporting documentation, and monitor refund claims.</field>
+            <field name="type">check</field>
+            <field name="cycle">state</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_eligibility_tax_reductions_and_credits</field>
+            <field name="action_id" ref="account_reports.action_server_open_view_account_return_with_additional_params"/>
+            <field name="additional_action_context">{
+                    'sub_action_domain': ['|', ('type_id.report_id', '=', ref('account.generic_tax_report')), ('type_id.report_id.root_report_id', '=', ref('account.generic_tax_report'))],
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_vat_rate_compliance" model="account.return.check.template">
+            <field name="name">VAT rate compliance</field>
+            <field name="description">Ensure VAT rates applied are consistent with the company's activity.</field>
+            <field name="type">check</field>
+            <field name="cycle">state</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_vat_rate_compliance</field>
+            <field name="action_id" ref="account_reports.action_account_report_ja"/>
+        </record>
+
+        <record id="account_return_check_template_foreign_operations" model="account.return.check.template">
+            <field name="name">Foreign operations</field>
+            <field name="description">Review and reconcile intra-EU and international (export/import) operations for compliance and completeness.</field>
+            <field name="type">check</field>
+            <field name="cycle">state</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_foreign_operations</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+            <field name="additional_action_domain">[('date', '&gt;=', return_start_date), ('date', '&lt;=', return_end_date), ('partner_id.country_code', '!=', company_country_code)]</field>
+        </record>
+
+        <!-- Equity -->
+
+        <record id="account_return_check_template_equity_account_movements_legal_documents" model="account.return.check.template">
+            <field name="name">Equity account movements vs legal documents</field>
+            <field name="description">Ensure accounting entries in capital accounts are consistent with supporting legal documents.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_equity_account_movements_legal_documents</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+            <field name="additional_action_context">{'searchpanel_default_account_type': ['equity']}</field>
+        </record>
+
+        <record id="account_return_check_template_minimum_share_capital_compliance" model="account.return.check.template">
+            <field name="name">Minimum share capital compliance</field>
+            <field name="description">Verify that the company’s share capital meets or exceeds the legal minimum for its corporate form.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_minimum_share_capital_compliance</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+            <field name="additional_action_context">{'searchpanel_default_account_type': ['equity']}</field>
+        </record>
+
+        <record id="account_return_check_template_intercompany_account_reconciliation" model="account.return.check.template">
+            <field name="name">Intercompany account reconciliation</field>
+            <field name="description">Intercompany reconciliation is vital for accurate group accounting. It ensures reciprocal balances between related entities match precisely, which is necessary for eliminating internal transactions during consolidation.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_intercompany_account_reconciliation</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+        </record>
+
+        <record id="account_return_check_template_legal_reserve_and_dividend_eligibility" model="account.return.check.template">
+            <field name="name">Legal reserve and dividend eligibility</field>
+            <field name="description">Check whether the legal reserve is properly funded and if dividend distributions meet legal conditions, especially in case of unamortized formation expenses.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_legal_reserve_and_dividend_eligibility</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+            <field name="additional_action_context">{'searchpanel_default_account_type': ['equity']}</field>
+        </record>
+
+        <record id="account_return_check_template_dividend_payment_verification" model="account.return.check.template">
+            <field name="name">Dividend payment verification</field>
+            <field name="description">Confirm that the declared dividends were actually paid to the shareholders.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_dividend_payment_verification</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+        </record>
+
+        <record id="account_return_check_template_minutes_of_the_agm_on_profit_allocation" model="account.return.check.template">
+            <field name="name">Minutes of the AGM on profit allocation</field>
+            <field name="description">Ensure a signed copy of the AGM minutes allocating prior-year profit has been obtained and archived.</field>
+            <field name="type">file</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_minutes_of_the_agm_on_profit_allocation</field>
+        </record>
+
+        <record id="account_return_check_template_allocation_of_prior_year_result_to_equity" model="account.return.check.template">
+            <field name="name">Allocation of prior-year result to equity</field>
+            <field name="description">Check how the prior year's result (N-1) was allocated, especially if reclassified into share capital or reserves.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_allocation_of_prior_year_result_to_equity</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+            <field name="additional_action_context">{'searchpanel_default_account_type': ['equity', 'equity_unaffected']}</field>
+        </record>
+
+        <record id="account_return_check_template_risk_provisioning_and_provision_movement_schedule" model="account.return.check.template">
+            <field name="name">Risk provisioning and provision movement schedule</field>
+            <field name="description">Prepare a detailed provision schedule and ensure all risks are identified and properly provisioned.</field>
+            <field name="type">check</field>
+            <field name="cycle">equity</field>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_risk_provisioning_and_provision_movement_schedule</field>
+            <field name="action_id" ref="account_reports.action_view_account_balances"/>
+            <field name="additional_action_context">{'searchpanel_default_account_type': ['expense', 'expense_other']}</field>
         </record>
     </data>
 </odoo>

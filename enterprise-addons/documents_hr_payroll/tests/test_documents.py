@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from dateutil.relativedelta import relativedelta
 from unittest.mock import patch
+
+from odoo.fields import Date
 
 from odoo.addons.documents.tests.test_documents_multipage import single_page_pdf
 from odoo.addons.documents_hr.tests.test_documents_hr_common import TransactionCaseDocumentsHr
@@ -159,3 +162,34 @@ class TestCaseDocumentsBridgeHR(TestPayslipBase, TransactionCaseDocumentsHr):
         # Check if the document is created
         document = self.env['documents.document'].search([('res_model', '=', payslip._name), ('res_id', '=', payslip.id)])
         self.assertFalse(document, "A document will not be created if the employee has no partner.")
+
+    def test_payslip_document_creation_with_several_payslips(self):
+        """Check that the payslip documents are created when the cron is run on several payslips."""
+        contract_jul = self.jules_emp.create_version({
+            'date_version': Date.to_date('2018-01-01'),
+            'contract_date_start': Date.to_date('2018-01-01'),
+            'contract_date_end': Date.today() + relativedelta(years=2),
+            'date_end': Date.today() + relativedelta(years=2),
+            'name': 'Contract for Jules',
+            'wage': 5000.33,
+            'structure_type_id': self.structure_type.id,
+        })
+
+        payslip_jul = self.env['hr.payslip'].create({
+            'name': 'Payslip of Jules',
+            'employee_id': self.jules_emp.id,
+            'version_id': contract_jul.id,
+        })
+        payslip_ric = self.payslip
+        payslips = payslip_jul + payslip_ric
+
+        payslips.compute_sheet()
+        payslips.with_context(payslip_generate_pdf=True).action_payslip_done()
+        self.assertTrue(payslip_jul.queued_for_pdf)
+        self.assertTrue(payslip_ric.queued_for_pdf)
+
+        self.env['hr.payslip']._cron_generate_pdf()
+
+        # Check if the documents are created
+        documents = self.env['documents.document'].search([('res_model', '=', payslips._name), ('res_id', 'in', payslips.ids)])
+        self.assertEqual(len(documents), 2)

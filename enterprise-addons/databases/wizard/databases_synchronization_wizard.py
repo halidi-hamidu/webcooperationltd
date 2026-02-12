@@ -1,4 +1,9 @@
 import re
+from collections import defaultdict
+from concurrent.futures import as_completed, ThreadPoolExecutor
+from socket import IPPROTO_TCP, gaierror, getaddrinfo
+from urllib.parse import urlparse
+
 from odoo import api, fields, models
 from odoo.fields import Domain
 
@@ -36,21 +41,30 @@ class DatabasesSynchronizationWizard(models.TransientModel):
             )
 
     def _open(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': self.env._("Synchronization done successfully!"),
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'views': [[False, 'form']],
+        # The wizard was used to select which property fields were to be added.
+        # As they are now added inconditionally, is is bypassed and we just reload the client view.
+        # We only show the error messages if any.
+        # The wizard will be cleaned in saas~19.2, but we keep it in 19.0 and saas~19.1 to avoid changing the model in a stable version.
+        action = {
+            "type": "ir.actions.client",
+            "tag": "soft_reload",
         }
+        if self.error_message:
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': self.env._("Synchronization of %d databases", len(self.database_ids)),
+                'res_model': self._name,
+                'res_id': self.id,
+                'view_mode': 'form',
+                'target': 'new',
+                'views': [[False, 'form']],
+            }
+        return action
 
     def _can_update_from_odoo_com(self):
         ICP = self.env['ir.config_parameter'].sudo()
-        apiuser = ICP.get_param('databases.odoocom_apiuser')
         apikey = ICP.get_param('databases.odoocom_apikey')
-        return self.env.user.has_group('databases.group_databases_manager') and apiuser and apikey
+        return self.env.user.has_group('databases.group_databases_manager') and apikey
 
     def _do_update_from_odoocom(self):
         """
@@ -66,13 +80,12 @@ class DatabasesSynchronizationWizard(models.TransientModel):
         ICP = self.env['ir.config_parameter'].sudo()
         apihost = ICP.get_param('databases.odoocom_apihost', 'https://www.odoo.com')
         apidb = ICP.get_param('databases.odoocom_apidb', 'openerp')
-        apiuser = ICP.get_param('databases.odoocom_apiuser')
         apikey = ICP.get_param('databases.odoocom_apikey')
 
-        if not (apiuser and apikey):
+        if not apikey:
             return
 
-        odoocom_api = OdooComApi(apihost, apidb, apiuser, apikey)
+        odoocom_api = OdooComApi(apihost, apidb, apikey)
         try:
             databases = [db for db in odoocom_api.list_databases() if db['name'] != self.env.cr.dbname]
         except ApiError as e:
@@ -149,12 +162,63 @@ class DatabasesSynchronizationWizard(models.TransientModel):
             return self._open()
 
         try:
-            immediate_sync_limit = int(self.env['ir.config_parameter'].sudo().get_param('databases.immediate_sync_limit', 20))
+            immediate_sync_limit = int(self.env['ir.config_parameter'].sudo().get_param('databases.immediate_sync_limit', 300))
         except ValueError:
-            immediate_sync_limit = 20
+            immediate_sync_limit = 300
 
-        if immediate_sync_limit and len(self.database_ids) > immediate_sync_limit:
-            self.database_ids.sudo().database_last_synchro = False
+        dbs_to_process = self.database_ids[:immediate_sync_limit]
+        dbs_to_postpone = self.database_ids[immediate_sync_limit:]
+
+        # property.base.definition objects are readable only by role Settings
+        database_kpi_base_definition_id = self.database_ids.sudo().database_kpi_base_definition_id
+        database_kpi_base_definition_id.ensure_one()
+        self.property_definition = database_kpi_base_definition_id.properties_definition
+
+        db_by_url = {db.database_url: db for db in dbs_to_process}
+        db_apis = []
+        for db in dbs_to_process:
+            args = (db.database_url, db.database_name, db.database_api_login, db.sudo().database_api_key_to_use)
+            if not all(args):
+                self.error_message += self.env._(
+                    "Error while connecting to %(url)s: We are missing the database name, the api login or the api key\n",
+                    url=db.database_url,
+                )
+                continue
+            db_apis.append(OdooDatabaseApi(*args))
+
+        # avoid flooding a server with tons of parallel requests in case several dbs are hosted on the same server.
+        db_apis_per_ip = self._group_by_ips(db_apis)
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            db_apis_by_future = {executor.submit(_fetch_database_info, db_apis, self.env._): (db_apis, ip)
+                                 for ip, db_apis in db_apis_per_ip.items()}
+            for future in as_completed(db_apis_by_future):
+                try:
+                    results, errors = future.result()
+                except Exception as e:  # noqa: BLE001
+                    # meaningful errors should already be in `errors`, but an unexpected error from a thread should not stop the loop
+                    db_apis, ip = db_apis_by_future[future]
+                    host_names = ', '.join(db_api.host for db_api in db_apis)
+                    errors += self.env._("Error while fetching information from %(host_names)s on %(ip)s: %(message)s\n",
+                                         host_names=host_names, ip=ip, message=str(e))
+                    continue
+
+                self.error_message += errors
+                for db_url, values in results.items():
+                    db = db_by_url[db_url]
+                    users = values.pop('users', None)
+                    kpi_summary = values.pop('kpi_summary', None)
+                    if users is not None:
+                        self._write_users(db, users)
+                    if kpi_summary is not None:
+                        self._write_kpis(db, kpi_summary)
+                    db.write(values)
+
+        self.action_add_metrics_to_dashboard()
+        self.write({'new_properties': {}})
+
+        if dbs_to_postpone:
+            dbs_to_postpone.sudo().database_last_synchro = False
             self.notify_user = True
             self.env.ref('databases.ir_cron_synchronize_databases')._trigger()
             return {
@@ -166,44 +230,12 @@ class DatabasesSynchronizationWizard(models.TransientModel):
                                           "You will be notified upon completion."),
                     'type': 'info',
                     'sticky': False,
+                    'next': self._open(),
                 },
             }
-
-        # property.base.definition objects are readable only by role Settings
-        database_kpi_base_definition_id = self.database_ids.sudo().database_kpi_base_definition_id
-        database_kpi_base_definition_id.ensure_one()
-        self.property_definition = database_kpi_base_definition_id.properties_definition
-
-        for db in self.database_ids:
-            db.database_last_synchro = fields.Datetime.now()
-            if version := OdooDatabaseApi.fetch_version(db.database_url):
-                db.database_version = version
-            args = [db.database_url, db.database_name, db.database_api_login, db.sudo().database_api_key_to_use]
-            if not all(args):
-                self.error_message += self.env._(
-                    "Error while connecting to %(url)s: We are missing the database name, the api login or the api key\n",
-                    url=db.database_url,
-                )
-                continue
-            db_api = OdooDatabaseApi(*args)
-            self._read_users(db, db_api)
-            self._read_kpis(db, db_api)
-
-            db.database_nb_synchro_errors = 0
-
         return self._open()
 
-    def _read_users(self, db, db_api):
-        try:
-            users = db_api.list_internal_users()
-        except ApiError as e:
-            self.error_message += self.env._(
-                "Error while getting users from %(dbname)s: %(message)s\n",
-                dbname=db.database_name,
-                message=e.args[0],
-            )
-            return
-
+    def _write_users(self, db, users):
         users = {u['login']: u for u in users}
         existing_users = db.database_user_ids
         common_users = existing_users.filtered(lambda u: u.login in users)
@@ -227,17 +259,7 @@ class DatabasesSynchronizationWizard(models.TransientModel):
                 'latest_authentication': user_data['login_date'],
             })
 
-    def _read_kpis(self, db, db_api):
-        try:
-            kpi_summary = db_api.get_kpi_summary()
-        except ApiError as e:
-            self.error_message += self.env._(
-                "Error while getting KPIs from %(dbname)s: %(message)s\n",
-                dbname=db.database_name,
-                message=e.args[0],
-            )
-            return
-
+    def _write_kpis(self, db, kpi_summary):
         property_definition = {x['name']: x for x in self.property_definition or []}
         kpi_properties = {}
         for kpi in kpi_summary:
@@ -284,7 +306,7 @@ class DatabasesSynchronizationWizard(models.TransientModel):
         database_kpi_base_definition_id.ensure_one()
         previous_kpi_ids = {x['name'] for x in database_kpi_base_definition_id.properties_definition}
         self.write({
-            'new_properties': {kpi_id: {'label': kpi['string'], 'checked': False}
+            'new_properties': {kpi_id: {'label': kpi['string'], 'checked': True}
                                for kpi_id, kpi in property_definition.items() if kpi_id not in previous_kpi_ids},
             'property_definition': list(property_definition.values()),
         })
@@ -330,3 +352,52 @@ class DatabasesSynchronizationWizard(models.TransientModel):
             "tag": "soft_reload",
         }
         return action
+
+    def _group_by_ips(self, db_apis):
+        groups = defaultdict(list)
+        for db_api in db_apis:
+            hostname = urlparse(db_api.host).hostname
+            try:
+                addrinfo = getaddrinfo(hostname, None, proto=IPPROTO_TCP)
+            except gaierror as e:
+                self.error_message += self.env._("Error while resolving %(url)s: %(exception)s\n", url=db_api.host, exception=str(e))
+                continue
+            if not addrinfo:
+                self.error_message += self.env._("Error while resolving %(url)s: found no IP\n", url=db_api.host)
+                continue
+
+            _family, _type, _proto, _canonname, (ip, _port, *_) = sorted(addrinfo)[0]  # sort IPv4 before IPv6
+            groups[ip].append(db_api)
+        return groups
+
+
+def _fetch_database_info(db_apis, translate):
+    results = {}
+    errors = ''
+    for db_api in db_apis:
+        results[db_api.host] = {
+            'database_last_synchro': fields.Datetime.now(),
+            'database_nb_synchro_errors': 0,
+        }
+        if version := OdooDatabaseApi.fetch_version(db_api.host):
+            results[db_api.host]['database_version'] = version
+
+        try:
+            results[db_api.host]['users'] = db_api.list_internal_users()
+        except ApiError as e:
+            errors += translate(
+                "Error while getting users from %(dbname)s: %(message)s\n",
+                dbname=db_api.database,
+                message=e.args[0],
+            )
+
+        try:
+            results[db_api.host]['kpi_summary'] = db_api.get_kpi_summary()
+        except ApiError as e:
+            errors += translate(
+                "Error while getting KPIs from %(dbname)s: %(message)s\n",
+                dbname=db_api.database,
+                message=e.args[0],
+            )
+
+    return results, errors

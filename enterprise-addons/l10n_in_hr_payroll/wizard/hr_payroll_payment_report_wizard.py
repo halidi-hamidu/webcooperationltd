@@ -34,17 +34,24 @@ class HrPayrollPaymentReportWizard(models.TransientModel):
     # TODO: adapt for multiple bank accounts
     def _get_report_data(self, payslip):
         employee = payslip.employee_id
-        bank_account = employee.primary_bank_account_id
+        result = []
+        allocations = payslip.compute_salary_allocations()
 
-        return {
-            'company_name': self.company_id.name or '',
-            'company_account': self.l10n_in_company_bank_id.acc_number or '',
-            'name': employee.name,
-            'acc_no': bank_account.acc_number or '',
-            'ifsc_code': bank_account.bank_bic or '',
-            'bysal': payslip.net_wage,
-            'debit_credit': 'C',
-        }
+        for bank_account in employee.bank_account_ids:
+            amount = allocations.get(str(bank_account.id))
+            if not amount:
+                continue
+
+            result.append({
+                'company_name': self.company_id.name or '',
+                'company_account': self.l10n_in_company_bank_id.acc_number or '',
+                'name': employee.name,
+                'acc_no': bank_account.acc_number or '',
+                'ifsc_code': bank_account.bank_bic or '',
+                'bysal': amount,
+                'debit_credit': 'C',
+            })
+        return result
 
     def _get_pdf_data(self):
         total_bysal = 0
@@ -52,8 +59,8 @@ class HrPayrollPaymentReportWizard(models.TransientModel):
 
         for payslip in self.payslip_ids:
             report_line_data = self._get_report_data(payslip)
-            lines.append(report_line_data)
-            total_bysal += report_line_data['bysal']
+            lines.extend(report_line_data)
+            total_bysal += sum(line['bysal'] for line in report_line_data)
 
         return {
             'line_ids': {
@@ -128,11 +135,14 @@ class HrPayrollPaymentReportWizard(models.TransientModel):
 
         total_salary = 0
 
-        for row_idx, payslip in enumerate(self.payslip_ids, start=1):
-            row_data = self._get_report_data(payslip)
-            worksheet.write(row_idx, 0, row_idx, cell_format)
-            worksheet.write_row(row_idx, 1, row_data.values(), cell_format)
-            total_salary += row_data['bysal']
+        row_idx = 1
+        for payslip in self.payslip_ids:
+            report_rows = self._get_report_data(payslip)
+            for row_data in report_rows:
+                worksheet.write(row_idx, 0, row_idx, cell_format)
+                worksheet.write_row(row_idx, 1, row_data.values(), cell_format)
+                total_salary += row_data['bysal']
+                row_idx += 1
 
         worksheet.set_column(0, 0, 10)  # SI No.
         worksheet.set_column(0, 0, 20)  # Company Name.

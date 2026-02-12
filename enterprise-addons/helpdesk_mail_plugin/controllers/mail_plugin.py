@@ -31,8 +31,18 @@ class MailPluginController(mail_plugin.MailPluginController):
                     fold: True if the ticket has been closed, false otherwise
                 }
         """
-        tickets = request.env['helpdesk.ticket'].search(
-            [('partner_id', '=', partner.id)], offset=offset, limit=limit)
+        tickets = request.env['helpdesk.ticket'].search([
+            ('partner_id', '=', partner.id),
+            ('stage_id.fold', '=', False),
+        ], offset=offset, limit=limit)
+
+        if len(tickets) < limit:
+            remaining = limit - len(tickets)
+            folded_tickets = request.env['helpdesk.ticket'].search([
+                ('partner_id', '=', partner.id),
+                ('stage_id.fold', '=', True),
+            ], limit=remaining)
+            tickets |= folded_tickets
 
         return [{
             'ticket_id': ticket.id,

@@ -589,11 +589,7 @@ export class AccountReportFilters extends Component {
 
     get shouldDisplayReturnPeriod() {
         const periodicitySettings = this.controller.cachedFilterOptions.return_periodicity;
-        if (periodicitySettings) {
-            return periodicitySettings.start_day !== 1 || periodicitySettings.start_month !== 1 || ![1, 3, 12].includes(periodicitySettings.months_per_period);
-        }
-
-        return false;
+        return periodicitySettings?.is_filter_visible ?? false;
     }
 
     displayPeriod(periodType) {

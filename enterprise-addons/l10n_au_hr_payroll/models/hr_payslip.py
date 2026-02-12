@@ -394,6 +394,8 @@ class HrPayslip(models.Model):
             Current slip is included if it is validated. Else it can be forced to be included using
             'l10n_au_include_current_slip=True'
         """
+        if not self:
+            return self.env["hr.payslip"]
         start_year = self.version_id._l10n_au_get_financial_year_start(self.date_from)
         year_slips = self.env["hr.payslip"].search([
             ("employee_id", "=", self.employee_id.id),

@@ -43,8 +43,8 @@ test("TimesheetTimerFloatTimerField should not display seconds when timerRunning
 
 onRpc("get_server_time", () => serializeDateTime(now));
 
-async function _testTimesheetDisplayTimer(timerStart, timerPause) {
-    const expectedRunning = !!timerStart && !timerPause;
+async function _testTimesheetDisplayTimer(timerStart, timerPause, isTimerRunning) {
+    const expectedRunning = isTimerRunning;
     await mountWithCleanup(TimesheetDisplayTimer, {
         props: {
             name: "plop",
@@ -55,6 +55,7 @@ async function _testTimesheetDisplayTimer(timerStart, timerPause) {
                 data: {
                     timer_start: timerStart,
                     timer_pause: timerPause,
+                    is_timer_running: isTimerRunning,
                     plop: 1,
                 },
                 isFieldInvalid: () => {},
@@ -76,13 +77,13 @@ async function _testTimesheetDisplayTimer(timerStart, timerPause) {
 }
 
 test("timesheet_display_timer should update the timer when timer_start is truthy and timer_pause is falsy", async () => {
-    await _testTimesheetDisplayTimer(now.minus({ hours: 1 }), false);
+    await _testTimesheetDisplayTimer(now.minus({ hours: 1 }), false, true);
 });
 
 test("timesheet_display_timer should not update the timer when timer_start is falsy", async () => {
-    await _testTimesheetDisplayTimer(false, false);
+    await _testTimesheetDisplayTimer(false, false, false);
 });
 
 test("timesheet_display_timer should not update the timer when timer_start and timer_pause are truthy", async () => {
-    await _testTimesheetDisplayTimer(now.minus({ hours: 1 }), now.minus({ minutes: 30 }));
+    await _testTimesheetDisplayTimer(now.minus({ hours: 1 }), now.minus({ minutes: 30 }), false);
 });

@@ -20,6 +20,7 @@ class AccountMove(models.Model):
         for company_sudo, invoices in invoices_map.items():
             context = dict(self.env.context, default_company_id=company_sudo.id)
             context.pop('default_journal_id', None)
+            context.pop('default_invoice_payment_term_id', None)
             invoices.with_user(company_sudo.intercompany_user_id.id).with_context(context).with_company(company_sudo.id)._inter_company_create_invoices()
         return posted
 

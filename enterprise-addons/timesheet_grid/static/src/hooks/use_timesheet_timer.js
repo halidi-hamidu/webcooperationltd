@@ -24,7 +24,7 @@ export function useTimesheetTimer(isListView = false) {
             return timerState.timesheet;
         }
         let timesheet;
-        if (list.isGrouped) {
+        if (list.isGrouped || model.useSampleModel) {
             timesheet = new model.constructor.Record(
                 model,
                 {
@@ -71,7 +71,11 @@ export function useTimesheetTimer(isListView = false) {
     };
 
     const startTimer = async () => {
-        const timesheetTimerData = await timesheetTimerService.startTimer();
+        const { evalContext: context } = component.props.list;
+        const vals = context.default_task_id
+            ? { task_id: context.default_task_id }
+            : { project_id: context.default_project_id };
+        const timesheetTimerData = await timesheetTimerService.startTimer(vals);
         if (timesheetTimerData) {
             await createTimesheetTimerRecord(timesheetTimerData);
         }

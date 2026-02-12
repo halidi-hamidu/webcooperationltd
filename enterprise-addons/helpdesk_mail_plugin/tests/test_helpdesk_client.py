@@ -59,3 +59,30 @@ class TestHelpdeskClient(TestMailPluginControllerCommon, MailCase):
         self.assertIn(email_body, ticket.description)
         self.assertEqual(ticket.name, email_subject)
         self.assertEqual(ticket.user_id, self.user_test)
+
+    @mock_auth_method_outlook('admin')
+    def test_ticket_filter_folded_for_contact_data(self):
+        """Ensure open tickets are sent in priority to the outlook client."""
+        partner = self.env['res.partner'].create([
+            {'name': 'Partner 1'},
+        ])
+        folded_stage = self.env['helpdesk.stage'].create({
+            'name': 'Closed',
+            'fold': True,
+        })
+        closed_tickets = self.env['helpdesk.ticket'].create([
+            {'name': 'Ticket Closed 1', 'partner_id': partner.id, 'stage_id': folded_stage.id},
+            {'name': 'Ticket Closed 2', 'partner_id': partner.id, 'stage_id': folded_stage.id},
+        ])
+        open_tickets = self.env['helpdesk.ticket'].create([
+            {'name': 'Ticket Open 1', 'partner_id': partner.id},
+            {'name': 'Ticket Open 2', 'partner_id': partner.id},
+            {'name': 'Ticket Open 3', 'partner_id': partner.id},
+            {'name': 'Ticket Open 4', 'partner_id': partner.id},
+        ])
+
+        expected_ticket_ids = list(reversed(open_tickets.ids)) + [closed_tickets[-1].id]
+        result = self.make_jsonrpc_request('/mail_plugin/partner/get', {'partner_id': partner.id})
+        self.assertIn('tickets', result, msg='The user has create access to helpdesk.ticket')
+        returned_ticket_ids = [t['ticket_id'] for t in result['tickets']]
+        self.assertListEqual(expected_ticket_ids, returned_ticket_ids, msg='Ticket in non-folded stage should be returned first')

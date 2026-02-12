@@ -469,7 +469,7 @@ class TestRentalCommon(TransactionCase):
         self.assertEqual(sale_order.remaining_hours, 0, 'Default duration should be one day')
 
         self.assertEqual(
-            sol.price_total, sol.currency_id.round(sol.currency_id.round(60 / 1.1) * 1.1),
+            sol.price_total, sol.currency_id.round((60 / 1.1) * 1.1),
             "Price with 10% taxes should be almost equal to basic pricing (rounding difference)"
         )
 

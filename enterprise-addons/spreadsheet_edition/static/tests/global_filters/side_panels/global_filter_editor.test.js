@@ -303,6 +303,16 @@ test("Selecting another field resets the default value", async function () {
     expect(".o_tag_badge_text").toHaveCount(0);
 });
 
+test("Field matching is only available after both model and field are selected", async function () {
+    const { model, env } = await createSpreadsheetWithPivot();
+    await openSidePanelForCreation(model, env, "selection");
+    expect(".o_spreadsheet_field_matching").toHaveCount(0);
+    await selectModelForSelection("res.users");
+    expect(".o_spreadsheet_field_matching").toHaveCount(0);
+    await selectFieldForSelection("state");
+    expect(".o_spreadsheet_field_matching").toHaveCount(1);
+});
+
 test("Create a new numeric global filter", async function () {
     const { model, env } = await createSpreadsheetWithPivot();
     await openSidePanelForCreation(model, env, "numeric");

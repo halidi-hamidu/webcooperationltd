@@ -201,9 +201,7 @@ patch(PosStore.prototype, {
             return;
         }
         if (deliveryOrder.delivery_status === "acknowledged" && deliveryOrder.state != "cancel") {
-            if (!deliveryOrder.isFutureOrder()) {
-                await this.sendOrderInPreparationUpdateLastChange(deliveryOrder);
-            }
+            await this._sendDeliveryOrderForPreparation(deliveryOrder);
         } else if (deliveryOrder.delivery_status === "placed") {
             if (!this.isSoundPlaying) {
                 this.isSoundPlaying = true;
@@ -214,6 +212,28 @@ patch(PosStore.prototype, {
                     this.notificationOptions
                 );
             }
+        }
+    },
+
+    async _sendDeliveryOrderForPreparation(deliveryOrder) {
+        if (
+            deliveryOrder.last_order_preparation_change.urbanpiper_printed ||
+            deliveryOrder.isFutureOrder()
+        ) {
+            return;
+        }
+        let isReadyToPrint = true;
+        try {
+            isReadyToPrint = await this.data.call(
+                "pos.order",
+                "mark_urbanpiper_prep_order_as_printed",
+                [deliveryOrder.id]
+            );
+        } catch {
+            isReadyToPrint = false;
+        }
+        if (isReadyToPrint) {
+            await this.sendOrderInPreparationUpdateLastChange(deliveryOrder);
         }
     },
 

@@ -10,6 +10,7 @@ your electronic VAT declarations.
     'data': [
         'security/ir.model.access.csv',
         'security/l10n_be_vat_declaration_rules.xml',
+        'data/cron.xml',
         'views/account_return_views.xml',
         'views/res_config_settings_views.xml',
         'wizard/vat_return_lock_wizard.xml',

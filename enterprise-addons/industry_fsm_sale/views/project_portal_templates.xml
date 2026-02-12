@@ -28,7 +28,7 @@
         <t t-set="display_discount" t-value="any(line.discount for line in order.order_line)"/>
         <t t-if="doc.allow_billable and order and (final_subtotal != 0 or is_any_total_discount_line)">
             <div>
-                <table class="table table-sm o_main_table">
+                <table class="table table-sm table-borderless o_main_table">
                     <thead>
                         <tr>
                             <th class="text-start">Product</th>
@@ -123,7 +123,7 @@
             <div class="container_subtotal" name="so_total_summary" t-if="not hide_price">
                 <div id="total" class="row justify-content-end" name="total">
                     <div t-attf-class="#{'col-6' if report_type == 'pdf' else 'col-auto'}">
-                        <table t-if="final_subtotal != 0 or is_any_total_discount_line" class="table table-sm">
+                        <table t-if="final_subtotal != 0 or is_any_total_discount_line" class="table table-sm table-borderless">
                             <tr t-if="final_tax" class="o_subtotal" style="">
                                 <td><strong>Untaxed amount</strong></td>
                                 <td class="text-end">

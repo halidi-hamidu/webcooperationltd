@@ -7,3 +7,4 @@ from . import test_superstream
 from . import test_payslip_batch_payments
 from . import test_single_touch_payroll
 from . import test_account_return
+from . import test_payment_report

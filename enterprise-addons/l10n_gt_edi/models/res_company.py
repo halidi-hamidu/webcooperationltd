@@ -84,6 +84,7 @@ class ResCompany(models.Model):
             self.vat = self.parent_id.vat
             self.l10n_gt_edi_vat_affiliation = self.parent_id.l10n_gt_edi_vat_affiliation
             self.l10n_gt_edi_phrase_ids = self.parent_id.l10n_gt_edi_phrase_ids
+            self.l10n_gt_edi_service_provider = self.parent_id.l10n_gt_edi_service_provider
 
     @api.depends('country_code')
     def _compute_l10n_gt_edi_default_fields(self):

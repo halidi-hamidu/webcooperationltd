@@ -97,9 +97,7 @@ export class VoipSystrayItem extends Component {
                 this.voip.resetMissedCalls();
             }
             this.softphone.show();
-            if (await this.userAgent.shouldPlayIncomingCallRingtone()) {
-                this.ringtoneService.incoming.play();
-            }
+            this.userAgent.requestIncomingRingtone();
         }
     }
 }

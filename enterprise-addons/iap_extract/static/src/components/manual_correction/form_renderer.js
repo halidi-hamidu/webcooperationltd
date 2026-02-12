@@ -386,7 +386,7 @@ export const ExtractMixinFormRenderer = (T) => class extends T {
             newValue = registry.category("parsers").get("date")(newValue.split(' ')[0]);
         }
         else if (type === 'number') {
-            newValue = registry.category("parsers").get("float")(newValue.split(' ')[0]);
+            newValue = Number(newValue);
         }
         return newValue;
     }

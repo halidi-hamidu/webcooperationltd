@@ -485,7 +485,7 @@ export class DocumentService {
         if (!accessToken) {
             return;
         }
-        rpc(`/documents/touch/${encodeURIComponent(accessToken)}`);
+        return rpc(`/documents/touch/${encodeURIComponent(accessToken)}`);
     }
 
     /**

@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, models, _
+from odoo.tools import format_date
 
 
 class HrWorkEntry(models.Model):
@@ -25,7 +26,7 @@ class HrWorkEntry(models.Model):
         activity_vals = []
         for leave in leaves.sudo():
             user_ids = leave.holiday_status_id.responsible_ids.ids or self.env.user.ids
-            note = _("Sick time off to report to DRS for %s.", leave.date_from.strftime('%B %Y'))
+            note = _("Sick time off to report to DRS for %s.", format_date(self.env, leave.date_from, date_format='MMMM yyyy'))
             for user_id in user_ids:
                 activity_vals.append({
                     'activity_type_id': activity_type_id,

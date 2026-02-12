@@ -149,4 +149,6 @@ class HrEmployee(models.Model):
 
     def action_configure_employee_inputs(self):
         self.ensure_one()
-        return self.structure_id.action_get_structure_inputs()
+        action = self.structure_id.action_get_structure_inputs()
+        action['domain'].append(('input_usage_employee', '=', True))
+        return action

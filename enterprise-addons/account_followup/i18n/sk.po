@@ -8,13 +8,14 @@
 # Martin Trigaux, 2022
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2023
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-30 18:43+0000\n"
-"PO-Revision-Date: 2025-11-17 07:03+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"PO-Revision-Date: 2026-02-03 21:51+0000\n"
+"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
 "Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
 "account_followup/sk/>\n"
 "Language: sk\n"
@@ -23,24 +24,24 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
 ">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 5.12.2\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/account_followup_report.py:0
 msgid "%(company)s Payment Reminder - %(partner)s"
-msgstr ""
+msgstr "%(company)s Upomienka platby - %(partner)s"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/account_followup.py:0
 msgid "%(delay)s days (copy of %(name)s)"
-msgstr ""
+msgstr "%(delay)s dni (kópia %(name)s)"
 
 #. module: account_followup
 #: model:ir.actions.report,print_report_name:account_followup.action_report_followup
 msgid "'Follow-up ' + object.display_name"
-msgstr ""
+msgstr "'Upomienka ' + object.display_name"
 
 #. module: account_followup
 #: model:account_followup.followup.line,name:account_followup.demo_followup_line1
@@ -50,7 +51,7 @@ msgstr "15 dní"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.followup_filter_info_template
 msgid "2023-09-06"
-msgstr ""
+msgstr "6. 9. 2023"
 
 #. module: account_followup
 #: model:account_followup.followup.line,name:account_followup.demo_followup_line2
@@ -112,6 +113,43 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>\n"
+"                        <t t-if="
+"\"object.id != object.commercial_partner_id.id\">Vážení<t t-out="
+"\"object.name or ''\"/> "
+"(<t t-out=\"object.commercial_partner_id.name or ''\"/>),</t>\n"
+"                        <t t-else=\"\">Vážení <t t-out=\"object.name or ''\""
+"/>,</t>\n"
+"                        <br/>\n"
+"                        Napriek viacerým upomienkam, váš účet stále nie je "
+"vyrovnaný.\n"
+"                        Ak nebude v priebehu nasledujúcich 8 dní uhradená "
+"celá suma, bez ďalšieho upozornenia budú podniknuté právne kroky na "
+"vymáhanie pohľadávky.\n"
+"                        Verím, že tieto kroky nebudú potrebné a podrobnosti "
+"o splatných platbách sú uvedené nižšie.\n"
+"                        V prípade akýchkoľvek otázok týkajúcich sa tejto "
+"záležitosti, neváhajte kontaktovať naše účtovné oddelenie.\n"
+"                        <br/>\n"
+"                        S pozdravom,\n"
+"                        <br/>\n"
+"                        <t t-if="
+"\"not is_html_empty(object._get_followup_responsible().signature)\">\n"
+"                            <br/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().signature\"/>\n"
+"                        </t>\n"
+"                        <t t-else=\"\">\n"
+"                            <br/>\n"
+"                            --\n"
+"                            <br/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().name\"/>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 
 #. module: account_followup
 #: model:mail.template,body_html:account_followup.demo_followup_email_template_2
@@ -157,6 +195,46 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>\n"
+"                        <t t-if="
+"\"object.id != object.commercial_partner_id.id\">Vážený klient<t t-out="
+"\"object.name or ''\"/> "
+"(<t t-out=\"object.commercial_partner_id.name or ''\"/>),</t>\n"
+"                        <t t-else=\"\">Vážený klient<t t-out=\"object.name "
+"or ''\"/>,</t>\n"
+"                        <br/>\n"
+"                        Sme sklamaní, že napriek zaslaniu upomienky, je váš "
+"účet výrazne po splatnosti.\n"
+"                        <br/>\n"
+"                        Je nevyhnutné, aby ste platbu uhradili ihneď, inak "
+"budeme musieť zvážiť pozastavenie vášho účtu, čo znamená, že vašej "
+"spoločnosti už nebudeme môcť dodávať tovar a služby. Prosím, podniknite "
+"vhodné kroky, aby ste túto platbu uhradili v priebehu najbližších 8 dní.\n"
+"                        <br/>\n"
+"                        Ak máte problém s úhradou faktúry, o ktorom nevieme, "
+"neváhajte kontaktovať naše účtovné oddelenie, aby sme mohli túto záležitosť "
+"rýchlo vyriešiť.\n"
+"                        <br/>\n"
+"                        Podrobnosti o dlžných platbách sú uvedené nižšie.\n"
+"                        <br/>\n"
+"                        S pozdravom,\n"
+"                        <t t-if="
+"\"not is_html_empty(object._get_followup_responsible().signature)\">\n"
+"                            <br/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().signature\"/>\n"
+"                        </t>\n"
+"                        <t t-else=\"\">\n"
+"                            <br/>\n"
+"                            --\n"
+"                            <br/>\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().name\"/>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 
 #. module: account_followup
 #: model:mail.template,body_html:account_followup.email_template_followup_1
@@ -210,6 +288,55 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>\n"
+"                        <t t-if="
+"\"object.id != object.commercial_partner_id.id\">Vážený klient<t t-out="
+"\"object.name or ''\"/> "
+"(<t t-out=\"object.commercial_partner_id.name or ''\"/>),</t>\n"
+"                        <t t-else=\"\">Vážený klient<t t-out=\"object.name "
+"or ''\"/>,</t>\n"
+"                    </p>\n"
+"                    <p>\n"
+"                        Chceli by sme vás informovať, že váš účet vykazuje "
+"neuhradený zostatok vo výške <b><t t-out="
+"\"format_amount(object.total_overdue_followup, object.currency_id) or ''\""
+"/></b>.\n"
+"                         Žiadame vás, aby ste túto sumu uhradili do <b>8 "
+"dní</b>.\n"
+"                    </p>\n"
+"                    <p t-if=\"object._show_pay_now_button()\">\n"
+"                        <a t-att-href=\"'/my/invoices/overdue'\" style="
+"\"padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none "
+"!important; font-weight: 400; background-color: #875A7B; border: 0px solid "
+"#875A7B; border-radius:3px\">Zaplatiť teraz</a>\n"
+"                    </p>\n"
+"                    <p>\n"
+"                        Ak ste platbu už vykonali, toto oznámenie prosím "
+"ignorujte.\n"
+"                        V prípade akýchkoľvek otázok alebo ak potrebujete "
+"pomoc, neváhajte kontaktovať naše účtovné oddelenie.\n"
+"                    </p>\n"
+"                    <p>\n"
+"                        Ďakujeme za Vašu spoluprácu pri riešení tejto "
+"záležitosti.\n"
+"                    </p>\n"
+"                    <p>\n"
+"                        S úctou,\n"
+"                    </p>\n"
+"                    <p>\n"
+"                        <t t-if="
+"\"not is_html_empty(object._get_followup_responsible().signature)\">\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().signature\"/>\n"
+"                        </t>\n"
+"                        <t t-else=\"\">\n"
+"                            <t t-out="
+"\"object._get_followup_responsible().name\"/>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.res_partner_view_form
@@ -223,6 +350,9 @@ msgid ""
 "                                Pending Invoices\n"
 "                            </strong>"
 msgstr ""
+"<strong>\n"
+"                                Neuhradené faktúry\n"
+"                            </strong>"
 
 #. module: account_followup
 #: model:ir.model.constraint,message:account_followup.constraint_account_followup_followup_line_uniq_name
@@ -230,16 +360,18 @@ msgid ""
 "A follow-up action name must be unique. This name is already set to another "
 "action."
 msgstr ""
+"Názov upomienkovej akcie musí byť jedinečný. Tento názov je už priradený k "
+"inej akcii."
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__account_followup_followup_line__activity_default_responsible_type__account_manager
 msgid "Account Manager"
-msgstr ""
+msgstr "Manažér zákazníkov"
 
 #. module: account_followup
 #: model:ir.actions.server,name:account_followup.ir_cron_follow_up_ir_actions_server
 msgid "Account Report Followup; Execute followup"
-msgstr "Sledovanie správy o účte; Vykonajte následné kroky"
+msgstr "Účtovníctvo - prehľad upomienok; Spustite upomienky"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
@@ -255,7 +387,7 @@ msgstr "Aktivita"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
 msgid "Activity Notes"
-msgstr ""
+msgstr "Poznámky k aktivite"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__activity_type_id
@@ -265,7 +397,7 @@ msgstr "Typ aktivity"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.template_followup_report
 msgid "Add a note"
-msgstr "Pridaj poznámku"
+msgstr "Pridať poznámku"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
@@ -275,18 +407,18 @@ msgstr "Pridať kontakty pre notifikáciu..."
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__additional_follower_ids
 msgid "Add followers"
-msgstr ""
+msgstr "Pridať odberateľov"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.followup_filter_info_template
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__join_invoices
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__join_invoices
 msgid "Attach Invoices"
-msgstr ""
+msgstr "Priložiť faktúry"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__attachment_ids
@@ -298,27 +430,27 @@ msgstr "Príloha"
 #: model:ir.model.fields.selection,name:account_followup.selection__res_partner__followup_reminder_type__automatic
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_line_filter
 msgid "Automatic"
-msgstr "Automatická"
+msgstr "Automatické"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__body_has_template_value
 msgid "Body content is the same as the template"
-msgstr ""
+msgstr "Obsah tela je rovnaký ako šablóna"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__can_edit_body
 msgid "Can Edit Body"
-msgstr ""
+msgstr "Je možné upravovať telo"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Cancel"
-msgstr "Zrušené"
+msgstr "Zrušiť"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.missing_information_view_form
 msgid "Close"
-msgstr ""
+msgstr "Zatvoriť"
 
 #. module: account_followup
 #. odoo-python
@@ -339,7 +471,7 @@ msgstr "Kontakt"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Content Template"
-msgstr ""
+msgstr "Šablóna obsahu"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__body
@@ -349,7 +481,7 @@ msgstr "Obsahy"
 #. module: account_followup
 #: model:ir.model,website_form_label:account_followup.model_res_partner
 msgid "Create a Customer"
-msgstr ""
+msgstr "Vytvoriť zákazníka"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__create_uid
@@ -373,7 +505,7 @@ msgstr "Zákaznícka ref:"
 #. module: account_followup
 #: model:ir.actions.client,name:account_followup.action_account_followup
 msgid "Customers Statement"
-msgstr "Výpisy zákazníkov"
+msgstr "Výpis zákazníkov"
 
 #. module: account_followup
 #. odoo-python
@@ -389,7 +521,7 @@ msgstr "Dátum:"
 #. module: account_followup
 #: model:ir.model.constraint,message:account_followup.constraint_account_followup_followup_line_days_uniq
 msgid "Days of the follow-up lines must be different per company"
-msgstr "Dni následných riadkov sa musia v jednotlivých spoločnostiach líšiť"
+msgstr "Dni riadkov upomienok musia byť pre každú spoločnosť odlišné"
 
 #. module: account_followup
 #. odoo-python
@@ -408,6 +540,18 @@ msgid ""
 "Best Regards,\n"
 "\n"
 msgstr ""
+"Vážení %s,\n"
+"\n"
+"\n"
+"s výnimkou prípadov, keď došlo k chybe z našej strany, sa zdá, že "
+"nasledujúca suma zostala nezaplatená. Prosím, podniknite vhodné kroky, aby "
+"bola úhrada realizovaná v priebehu nasledujúcich 8 dní.\n"
+"\n"
+"Ak bola vaša platba realizovaná po odoslaní tohto e-mailu, prosím ignorujte "
+"túto správu. Neváhajte kontaktovať naše účtovné oddelenie.\n"
+"\n"
+"S pozdravom,\n"
+"\n"
 
 #. module: account_followup
 #. odoo-python
@@ -416,6 +560,8 @@ msgid ""
 "Dear client, we kindly remind you that you still have unpaid invoices. "
 "Please check them and take appropriate action. %s"
 msgstr ""
+"Vážený zákazník, pripomíname, že máte nezaplatené faktúry. Prosím, "
+"skontrolujte ich a podniknite príslušné kroky. %s"
 
 #. module: account_followup
 #: model_terms:ir.actions.act_window,help:account_followup.action_account_followup_line_definition_form
@@ -425,7 +571,7 @@ msgstr "Definujte nastavenie upomienok a súvisiace akcie"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.followup_filter_info_template
 msgid "Demo Ref"
-msgstr ""
+msgstr "Demo referencia"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__name
@@ -440,6 +586,10 @@ msgid ""
 "- Salesperson: Sales Person defined on the invoice\n"
 "- Account Manager: Sales Person defined on the customer"
 msgstr ""
+"Určite, kto bude pridelený k danej činnosti:\n"
+"- Zodpovedný za upomienky (predvolené nastavenie)\n"
+"- Predajca: Predajca uvedený na faktúre\n"
+"- Manažér zákazníka: Predajca uvedený u zákazníka"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__display_name
@@ -467,45 +617,45 @@ msgstr "Dni splatnosti"
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__send_email
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__email
 msgid "Email"
-msgstr "Email"
+msgstr "E-mail"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Email Recipients"
-msgstr ""
+msgstr "Príjemcovia e-mailov"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Email Subject"
-msgstr ""
+msgstr "Predmet e-mailu"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
 msgid "Email Template"
-msgstr ""
+msgstr "Šablóna e-mailu"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__email_recipient_ids
 msgid "Extra Recipients"
-msgstr ""
+msgstr "Ďalší príjemcovia"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/res_partner.py:0
 msgid "Follow-up %(partner)s - %(date)s.pdf"
-msgstr ""
+msgstr "Upomienka %(partner)s - %(date)s.pdf"
 
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_followup_line
 msgid "Follow-up Criteria"
-msgstr "Kritéria náväznosti"
+msgstr "Kritéria upomienok"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_move_line__followup_line_id
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__followup_line_id
 #: model:ir.model.fields,field_description:account_followup.field_res_users__followup_line_id
 msgid "Follow-up Level"
-msgstr "Úroveň náväznosti"
+msgstr "Úroveň upomienky"
 
 #. module: account_followup
 #: model:ir.actions.act_window,name:account_followup.action_account_followup_line_definition_form
@@ -516,40 +666,40 @@ msgstr "Nastavenie upomienok"
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_report
 msgid "Follow-up Report"
-msgstr "Správa o následných opatreniach"
+msgstr "Prehľad záväzkov"
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__account_followup_followup_line__activity_default_responsible_type__followup
 msgid "Follow-up Responsible"
-msgstr "Poverený naviazaním"
+msgstr "Poverený upomienkami"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__followup_status
 #: model:ir.model.fields,field_description:account_followup.field_res_users__followup_status
 msgid "Follow-up Status"
-msgstr "Stav následnej kontroly"
+msgstr "Stav upomienok"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_tree
 msgid "Follow-up Steps"
-msgstr "Kroky naviazania"
+msgstr "Kroky upomienok"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.report_followup_print_all
 msgid "Follow-up details"
-msgstr ""
+msgstr "Detaily upomienky"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/account_followup_report.py:0
 msgid "Follow-up letter generated"
-msgstr ""
+msgstr "Vytvorený list s upomienkou"
 
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_missing_information_wizard
 msgid "Followup missing information wizard"
-msgstr ""
+msgstr "Sprievodca chýbajúcimi informáciami k upomienkam"
 
 #. module: account_followup
 #: model_terms:ir.actions.act_window,help:account_followup.action_account_followup_line_definition_form
@@ -559,17 +709,21 @@ msgid ""
 "messages to\n"
 "            the customer."
 msgstr ""
+"Pre každý krok stanovte akcie, ktoré sa majú vykonať, a ich časové posunutie "
+"v dňoch. \n"
+"            Na zaslanie konkrétnych správ zákazníkovi je možné použiť "
+"tlačové a e-mailové šablóny."
 
 #. module: account_followup
 #: model:mail.template,name:account_followup.demo_followup_email_template_4
 msgid "Fourth reminder followup"
-msgstr ""
+msgstr "Štvrtá upomienka"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__has_moves
 #: model:ir.model.fields,field_description:account_followup.field_res_users__has_moves
 msgid "Has Moves"
-msgstr ""
+msgstr "Má záznamy"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__id
@@ -589,26 +743,29 @@ msgid ""
 "notifications about any email reply made by the partner on the reminder "
 "email."
 msgstr ""
+"Ak je táto možnosť nastavená, títo používatelia budú pridaní ako sledujúci "
+"partnera a budú dostávať oznámenia o každej e-mailovej odpovedi, ktorú "
+"partner pošle v upomienkovom e-maile."
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__res_partner__followup_status__in_need_of_action
 msgid "In need of action"
-msgstr "Potrebuje akciu"
+msgstr "Je potrebná akcia"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_partner_property_form_followup
 msgid "Invoice Follow-ups"
-msgstr ""
+msgstr "Faktúry k upomienke"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.template_followup_report
 msgid "Invoices Analysis"
-msgstr ""
+msgstr "Analýza faktúr"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__is_mail_template_editor
 msgid "Is Editor"
-msgstr ""
+msgstr "Je editor"
 
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_move_line
@@ -620,12 +777,12 @@ msgstr "Položka účtovnej knihy"
 #: code:addons/account_followup/models/res_partner.py:0
 #: model_terms:ir.ui.view,arch_db:account_followup.view_partner_property_form_followup
 msgid "Journal Items"
-msgstr ""
+msgstr "Položky účtovnej knihy"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Kind reminder!"
-msgstr ""
+msgstr "Milá pripomienka!"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__lang
@@ -649,7 +806,7 @@ msgstr "Naposledy upravované"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Letter/Email Content"
-msgstr ""
+msgstr "Obsah listu/e-mailu"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__mail_template_id
@@ -668,24 +825,24 @@ msgstr "Manuálne"
 #: code:addons/account_followup/models/res_partner.py:0
 #: code:addons/account_followup/wizard/followup_missing_information.py:0
 msgid "Missing information"
-msgstr ""
+msgstr "Chýbajúce informácie"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.line_template
 msgid "Name"
-msgstr ""
+msgstr "Názov"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/res_partner.py:0
 msgid "Next Reminder Date set to %s"
-msgstr "Dátum nasledujúceho pripomenutia bol nastavený na %s"
+msgstr "Dátum nasledujúcej upomienky bol nastavený na %s"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__followup_next_action_date
 #: model:ir.model.fields,field_description:account_followup.field_res_users__followup_next_action_date
 msgid "Next reminder"
-msgstr ""
+msgstr "Nasledujúca pripomienka"
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__res_partner__followup_status__no_action_needed
@@ -700,6 +857,9 @@ msgid ""
 "                Sending a reminder will set this date depending on the "
 "levels configuration, and you can change it manually."
 msgstr ""
+"Pred týmto dátumom nebudú vykonané žiadne kroky upomienok.\n"
+"                Odoslaním upomienky sa tento dátum nastaví v závislosti od "
+"konfigurácie úrovní, pričom ho môžete zmeniť ručne."
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__activity_note
@@ -719,6 +879,10 @@ msgid ""
 "usually be a placeholder expression that provides the appropriate language, "
 "e.g. {{ object.partner_id.lang }}."
 msgstr ""
+"Voliteľný jazyk prekladu (kód ISO), ktorý sa vyberie pri odosielaní e-mailu. "
+"Ak nie je nastavený, použije sa jazyk hlavného partnera. Zvyčajne by to mal "
+"byť výraz, ktorým sa určí príslušný jazyk, napr. {{ object.partner_id.lang "
+"}}."
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
@@ -735,7 +899,7 @@ msgstr "Pôvod"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.customer_statements_search_view
 msgid "Overdue Customer Invoices"
-msgstr ""
+msgstr "Faktúry zákazníkov po splatnosti"
 
 #. module: account_followup
 #. odoo-python
@@ -762,44 +926,44 @@ msgstr "Tlač"
 #. module: account_followup
 #: model:ir.actions.report,name:account_followup.action_report_followup
 msgid "Print Follow-up Letter"
-msgstr "Tlač následného listu"
+msgstr "Tlač listu s upomienkou"
 
 #. module: account_followup
 #: model:ir.actions.server,name:account_followup.action_account_reports_customer_statements_do_followup
 msgid "Process Follow-ups"
-msgstr ""
+msgstr "Spracovať upomienky"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/account_followup_report.py:0
 msgid "Reference"
-msgstr ""
+msgstr "Referencia"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
 msgid "Remind"
-msgstr ""
+msgstr "Pripomenúť"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__followup_reminder_type
 #: model:ir.model.fields,field_description:account_followup.field_res_users__followup_reminder_type
 msgid "Reminders"
-msgstr "Pripomienky"
+msgstr "Upomienky"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__render_model
 msgid "Rendering Model"
-msgstr ""
+msgstr "Renderovací model"
 
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_ir_actions_report
 msgid "Report Action"
-msgstr ""
+msgstr "Akcia výkazu"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.customer_statements_search_view
 msgid "Requires Follow-up"
-msgstr ""
+msgstr "Je potrebná upomienka"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__activity_default_responsible_type
@@ -822,17 +986,17 @@ msgstr "Obchodník"
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__create_activity
 msgid "Schedule Activity"
-msgstr "Naplánuj aktivity"
+msgstr "Naplánovať aktivity"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_line_filter
 msgid "Search Follow-up"
-msgstr "Vyhľadať naviazanie"
+msgstr "Vyhľadať upomienky"
 
 #. module: account_followup
 #: model:mail.template,name:account_followup.demo_followup_email_template_2
 msgid "Second reminder followup"
-msgstr ""
+msgstr "Druhá upomienka"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
@@ -848,38 +1012,38 @@ msgstr "Poslať & vytlačiť"
 #. module: account_followup
 #: model:ir.actions.act_window,name:account_followup.manual_reminder_action
 msgid "Send and Print"
-msgstr ""
+msgstr "Poslať a vytlačiť"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__show_print_button
 msgid "Show Print Button"
-msgstr ""
+msgstr "Zobraziť tlačidlo tlače"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__show_send_button
 msgid "Show Send Button"
-msgstr ""
+msgstr "Zobraziť tlačidlo odoslania"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__sms
 msgid "Sms"
-msgstr ""
+msgstr "SMS"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__sms_body
 msgid "Sms Body"
-msgstr ""
+msgstr "Telo SMS"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Sms Content"
-msgstr ""
+msgstr "Obsah SMS"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_followup_line__sms_template_id
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__sms_template_id
 msgid "Sms Template"
-msgstr ""
+msgstr "Šablóna SMS"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_account_followup_manual_reminder__subject
@@ -894,12 +1058,12 @@ msgstr "Zhrnutie"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.table_header_template_followup_report
 msgid "Table Header"
-msgstr ""
+msgstr "Záhlavie tabuľky"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.line_template
 msgid "Table Value"
-msgstr ""
+msgstr "Dáta tabuľky"
 
 #. module: account_followup
 #: model:ir.model.fields,help:account_followup.field_account_move_line__invoice_origin
@@ -913,6 +1077,9 @@ msgid ""
 "the reminder. Can be negative if you want to send the reminder before the "
 "invoice due date."
 msgstr ""
+"Počet dní po splatnosti faktúry, ktoré treba počkať, než sa zašle upomienka. "
+"Môže byť záporný, ak chcete zaslať pripomienku pred dátumom splatnosti "
+"faktúry."
 
 #. module: account_followup
 #: model:ir.model.fields,help:account_followup.field_res_partner__followup_responsible_id
@@ -921,6 +1088,8 @@ msgid ""
 "The responsible assigned to manual followup activities, if defined in the "
 "level."
 msgstr ""
+"Zodpovedná osoba poverená manuálnymi činnosťami k upomienkam, ak je "
+"definovaná na danej úrovni."
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.customer_statements_tree_view
@@ -931,13 +1100,13 @@ msgstr "Celkom"
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_all_due
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_all_due
 msgid "Total All Due"
-msgstr ""
+msgstr "Celkom k úhrade"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_all_overdue
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_all_overdue
 msgid "Total All Overdue"
-msgstr ""
+msgstr "Celkom po splatnosti"
 
 #. module: account_followup
 #. odoo-python
@@ -953,36 +1122,36 @@ msgstr "Splatné celkom"
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_overdue
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_overdue
 msgid "Total Overdue"
-msgstr "Oneskorené celkom"
+msgstr "Celkom po splatnosti"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__total_overdue_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_users__total_overdue_followup
 msgid "Total Overdue Followup"
-msgstr ""
+msgstr "Celkom po splatnosti - upomienky"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__unpaid_invoice_ids
 #: model:ir.model.fields,field_description:account_followup.field_res_users__unpaid_invoice_ids
 msgid "Unpaid Invoice"
-msgstr ""
+msgstr "Nezaplatená faktúra"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__unpaid_invoices_count
 #: model:ir.model.fields,field_description:account_followup.field_res_users__unpaid_invoices_count
 msgid "Unpaid Invoices Count"
-msgstr ""
+msgstr "Počet nezaplatených faktúr"
 
 #. module: account_followup
 #: model:ir.model.fields,field_description:account_followup.field_res_partner__unreconciled_aml_ids
 #: model:ir.model.fields,field_description:account_followup.field_res_users__unreconciled_aml_ids
 msgid "Unreconciled Aml"
-msgstr "Nezmierený Aml"
+msgstr "Nespárovaný účtovný riadok"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.missing_information_view_form
 msgid "View partners"
-msgstr ""
+msgstr "Zobraziť partnerov"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.missing_information_view_form
@@ -990,6 +1159,8 @@ msgid ""
 "We were not able to process some of the automated follow-up actions due to "
 "missing information on the partners."
 msgstr ""
+"Niektoré automatické kroky upomienok sme nemohli spracovať z dôvodu "
+"chýbajúcich informácií o partneroch."
 
 #. module: account_followup
 #: model:ir.model.fields.selection,name:account_followup.selection__res_partner__followup_status__with_overdue_invoices
@@ -999,12 +1170,12 @@ msgstr "S faktúrami po lehote splatnosti"
 #. module: account_followup
 #: model:ir.model,name:account_followup.model_account_followup_manual_reminder
 msgid "Wizard for sending manual reminders to clients"
-msgstr ""
+msgstr "Sprievodca pre odosielanie manuálnych upomienok klientom"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.manual_reminder_view_form
 msgid "Write your message here..."
-msgstr ""
+msgstr "Tu napíšte svoju správu..."
 
 #. module: account_followup
 #. odoo-python
@@ -1013,6 +1184,8 @@ msgid ""
 "You are trying to send an Email, but no follow-up contact has any email "
 "address set for customer '%s'"
 msgstr ""
+"Snažíte sa odoslať e-mail, ale žiadny kontakt pre upomienky nemá nastavenú e-"
+"mailovú adresu „%s“"
 
 #. module: account_followup
 #. odoo-python
@@ -1021,12 +1194,14 @@ msgid ""
 "You are trying to send an SMS, but no follow-up contact has any mobile/phone "
 "number set for customer '%s'"
 msgstr ""
+"Snažíte sa odoslať SMS, ale žiadny kontakt pre upomienky nemá nastavené "
+"mobilné/telefónne číslo „%s“"
 
 #. module: account_followup
 #. odoo-python
 #: code:addons/account_followup/models/res_partner.py:0
 msgid "commercial_partner_id"
-msgstr ""
+msgstr "commercial_partner_id"
 
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
@@ -1036,7 +1211,7 @@ msgstr "dní po dátume splatnosti"
 #. module: account_followup
 #: model_terms:ir.ui.view,arch_db:account_followup.view_account_followup_followup_line_form
 msgid "e.g. First Reminder Email"
-msgstr ""
+msgstr "napr. Prvý upomienkový e-mail"
 
 #. module: account_followup
 #. odoo-python
@@ -1053,6 +1228,8 @@ msgid ""
 "object._get_followup_responsible().company_id).name }} Payment Reminder - "
 "{{ object.commercial_company_name }}"
 msgstr ""
+"{{ (object.company_id or object._get_followup_responsible().company_id).name "
+"}} Pripomienka platby - {{ object.commercial_company_name }}"
 
 #~ msgid "%s (copy)"
 #~ msgstr "%s (kópia)"

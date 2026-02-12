@@ -11,7 +11,7 @@ export class QualitySpreadsheetPlugin extends CorePlugin {
         this.resultCellString = config.custom.qualitySuccessCell;
     }
 
-    adaptRanges(applyChange, sheetId) {
+    adaptRanges({ applyChange }, sheetId) {
         if (!this.resultCell) {
             return;
         }

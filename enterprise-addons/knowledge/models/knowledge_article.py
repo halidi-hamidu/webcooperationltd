@@ -1859,6 +1859,8 @@ class KnowledgeArticle(models.Model):
 
     def get_permission_panel_members(self):
         self.ensure_one()
+        if not self.user_has_access:
+            return []
         res_partner_fields_list = [('name', 'name'), ('partner_share', 'partner_share'), ('id', 'partner_id')]
         if self.env.user._is_internal():
             res_partner_fields_list.append(('email', 'email'))
@@ -2909,8 +2911,9 @@ class KnowledgeArticle(models.Model):
 
             # Create the child articles:
             child_templates = parent_template.child_ids
-            child_templates = child_templates.filtered(
-                lambda template: template.template_child_default_create)
+            if parent_article._should_load_all_annexes():
+                child_templates = child_templates.filtered(
+                    lambda template: template.template_child_default_create)
             child_templates = child_templates.sorted(
                 lambda template: (template.write_date, template.id))
 
@@ -3155,6 +3158,14 @@ class KnowledgeArticle(models.Model):
             } for stage_name, sequence, fold in [
                 (_("New"), 0, False), (_("Ongoing"), 1, False), (_("Done"), 2, True)]
             ])
+
+    def _should_load_all_annexes(self):
+        """
+        Return whether all child templates should be loaded when applying a template.
+        If True, the template_child_default_create flag is ignored.
+        """
+        self.ensure_one()
+        return True
 
     # ------------------------------------------------------------
     # TOOLS

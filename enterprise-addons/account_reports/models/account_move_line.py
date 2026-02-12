@@ -5,6 +5,7 @@ from odoo import api, models, fields, _
 
 from odoo.exceptions import UserError
 from odoo.tools import SQL
+from odoo.tools.sql import table_columns
 
 
 class AccountMoveLine(models.Model):
@@ -65,8 +66,7 @@ class AccountMoveLine(models.Model):
                    as in the first element of the returned tuple.
         """
         line_fields = self.env['account.move.line'].fields_get()
-        self.env.cr.execute("SELECT column_name FROM information_schema.columns WHERE table_name='account_move_line'")
-        stored_fields = {f[0] for f in self.env.cr.fetchall() if f[0] in line_fields}
+        stored_fields = {fld for fld in table_columns(self.env.cr, 'account_move_line') if fld in line_fields}
 
         fields_to_insert = []
         for fname in stored_fields:

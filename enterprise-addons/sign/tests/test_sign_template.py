@@ -3,7 +3,7 @@
 import base64
 from datetime import timedelta
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import file_open, mute_logger
 from odoo.tests import tagged, freeze_time
@@ -290,7 +290,7 @@ class TestSignTemplate(TransactionCase):
         with self.assertRaises(UserError):
             sign_template.model_id = type_cron.id
 
-    @mute_logger('odoo.addons.sign.utils.pdf_handling')
+    @mute_logger('odoo.addons.sign.utils.pdf_handling', 'pypdf._reader')
     def test_invalid_pdf_upload(self):
         """ Make sure that uploading invalid/encrypted PDF upload should raise the error. """
         for fname, data in [('test_AES.pdf', self.AES_pdf_data), ('test_unicode.pdf', self.unicode_pdf_data)]:
@@ -434,3 +434,53 @@ class TestSignTemplate(TransactionCase):
                              "The loaded sign items in the template should only be the active items.")
             self.assertEqual(len(non_active_item_ids), 0,
                              "The number of non-active sign items should equal to 0 after autovacuum.")
+
+    def test_template_sign_tour(self):
+        """
+            Check that users who do not have the Sign admin group can access
+            the template returned by `trigger_template_tour`, as access errors
+            related to sign items happened during the copy of the original template.
+        """
+        original_template = self.env.ref('sign.template_sign_tour')
+        original_template.sign_request_ids.unlink()
+        original_template.document_ids.sign_item_ids.unlink()
+
+        # check user with limited Sign rights can access the sample template
+        self.env['sign.template'].with_user(self.test_user).trigger_template_tour()
+
+        role = self.env['sign.item.role'].create({'name': 'test'})
+
+        document_id = original_template.document_ids[0].id
+        original_template.update_from_pdfviewer(sign_items={'-1': {
+            'type_id': self.env.ref('sign.sign_item_type_text').id,
+            'name': 'employee_id.name',
+            'required': True,
+            'responsible_id': role.id,
+            'page': 1,
+            'posX': 0.273,
+            'posY': 0.158,
+            'document_id': document_id,
+            'width': 0.150,
+            'height': 0.015,
+            'transaction_id': -1,
+        }})
+        self.assertTrue(original_template.sign_item_ids)
+
+        self.env['sign.request'].create({
+            'template_id': original_template.id,
+            'reference': 'Test Sign Request',
+            'request_item_ids': [Command.create({
+                'partner_id': self.env.user.partner_id.id,
+                'role_id': role.id,
+            })],
+        })
+
+        self.assertTrue(original_template.has_sign_requests)
+
+        # check user with limited Sign rights can access the sample template after items
+        # have been added to it and a sign request has been created.
+        res = self.env['sign.template'].with_user(self.test_user).trigger_template_tour()
+        template_id = res['params']['id']
+        template = self.env['sign.template'].browse(template_id)
+        # check existing sign items have not been copied to avoid access errors
+        self.assertFalse(template.sign_item_ids)

@@ -48,6 +48,7 @@ class ResCompany(models.Model):
         days = int(self.env['ir.config_parameter'].sudo().get_param('hr_appraisal.appraisal_create_in_advance_days', 8))
         appraisal_values = [{
             'company_id': employee.company_id.id,
+            'department_id': employee.department_id.id,
             'employee_id': employee.id,
             'date_close': employee.next_appraisal_date + relativedelta(days=days),
             'manager_ids': employee.parent_id,

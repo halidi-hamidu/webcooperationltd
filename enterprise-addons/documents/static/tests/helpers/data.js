@@ -195,6 +195,7 @@ export class DocumentsDocument extends models.Model {
                 "partner_id",
                 "type",
                 "user_permission",
+                "access_token",
             ]
         )) {
             if (!isNaN(record.user_folder_id)) {
@@ -270,6 +271,10 @@ export class DocumentsDocument extends models.Model {
     toggle_lock(id) {
         const record = this.browse(id)[0];
         record.lock_uid = record.lock_uid ? false : serverState.odoobotId;
+    }
+
+    get_documents_actions(folder_id) {
+        return [];
     }
 }
 

@@ -43,14 +43,24 @@ class TestLuSaftReport(TestSaftReport):
         cls.product_c = cls._create_product(name='product_c', lst_price=1000.0, standard_price=800.0, default_code='PA')
         cls.product_d = cls._create_product(name='product_d', lst_price=1000.0, standard_price=800.0, default_code=False)
 
+        tax_10 = cls.company_data['default_tax_sale'].copy({
+            'name': '10% S',
+            'amount': 10.0,
+            'include_base_amount': True,
+        })
+        cls.company_data['default_tax_sale'].sequence += 1
+
         # Create invoices
 
         invoices = cls.env['account.move'].create(
             list(starmap(cls._l10n_lu_saft_invoice_data, [
-                ('out_invoice', '2019-01-01', cls.partner_a, cls.product_a, 5.0, 1000.0),
-                ('out_refund', '2019-03-01', cls.partner_a, cls.product_a, 3.0, 1000.0),
-                ('in_invoice', '2018-12-31', cls.partner_b, cls.product_b, 10.0, 800.0),
-                ('in_invoice', '2019-01-01', cls.partner_b, cls.product_b, 10.0, 800.0),
+                ('out_invoice', '2019-01-01', cls.partner_a, [
+                    {'product': cls.product_a, 'quantity': 5.0, 'price_unit': 1000.0, 'tax_ids': cls.company_data['default_tax_sale'].ids + tax_10.ids},
+                    {'product': cls.product_b, 'quantity': 1.0, 'price_unit': 500.0, 'tax_ids': cls.company_data['default_tax_sale'].ids + tax_10.ids},
+                ]),
+                ('out_refund', '2019-03-01', cls.partner_a, [{'product': cls.product_a, 'quantity': 3.0, 'price_unit': 1000.0}]),
+                ('in_invoice', '2018-12-31', cls.partner_b, [{'product': cls.product_b, 'quantity': 10.0, 'price_unit': 800.0}]),
+                ('in_invoice', '2019-01-01', cls.partner_b, [{'product': cls.product_b, 'quantity': 10.0, 'price_unit': 800.0}]),
             ])))
         invoices.action_post()
         # Create an allocation entry
@@ -77,7 +87,7 @@ class TestLuSaftReport(TestSaftReport):
         }).action_post()
 
     @classmethod
-    def _l10n_lu_saft_invoice_data(cls, move_type, invoice_date, partner, product, quantity, price_unit):
+    def _l10n_lu_saft_invoice_data(cls, move_type, invoice_date, partner, lines_data):
         tax_type = 'purchase' if move_type == 'in_invoice' else 'sale'
         return {
             'move_type': move_type,
@@ -85,11 +95,11 @@ class TestLuSaftReport(TestSaftReport):
             'date': invoice_date,
             'partner_id': partner.id,
             'invoice_line_ids': [Command.create({
-                'product_id': product.id,
-                'quantity': quantity,
-                'price_unit': price_unit,
-                'tax_ids': [Command.set(cls.company_data[f"default_tax_{tax_type}"].ids)]
-            })]
+                'product_id': line_data['product'].id,
+                'quantity': line_data['quantity'],
+                'price_unit': line_data['price_unit'],
+                'tax_ids': [Command.set(line_data.get('tax_ids') or cls.company_data[f"default_tax_{tax_type}"].ids)]
+            }) for line_data in lines_data],
         }
 
     def _l10n_lu_saft_generate_report(self, date_from='2019-01-01', date_to='2019-12-31'):
@@ -99,9 +109,9 @@ class TestLuSaftReport(TestSaftReport):
 
     def test_saft_report_errors(self):
         invoice_data = list(starmap(self._l10n_lu_saft_invoice_data, [
-            ('out_invoice', '2019-01-01', self.partner_a, self.product_c, 5.0, 1000.0),
-            ('out_invoice', '2019-01-01', self.partner_a, self.product_d, 5.0, 1000.0),
-            ('out_invoice', '2018-12-31', self.partner_a, self.product_a, 5.0, 1000.0),
+            ('out_invoice', '2019-01-01', self.partner_a, [{'product': self.product_c, 'quantity': 5.0, 'price_unit': 1000.0}]),
+            ('out_invoice', '2019-01-01', self.partner_a, [{'product': self.product_d, 'quantity': 5.0, 'price_unit': 1000.0}]),
+            ('out_invoice', '2018-12-31', self.partner_a, [{'product': self.product_d, 'quantity': 5.0, 'price_unit': 1000.0}]),
         ]))
         new_invoices = self.env['account.move'].create(invoice_data)
         new_invoices.action_post()
@@ -160,7 +170,7 @@ class TestLuSaftReport(TestSaftReport):
                                 <StandardAccountID>401100</StandardAccountID>
                                 <AccountType>Receivable</AccountType>
                                 <OpeningDebitBalance>0.00</OpeningDebitBalance>
-                                <ClosingDebitBalance>2340.00</ClosingDebitBalance>
+                                <ClosingDebitBalance>3568.50</ClosingDebitBalance>
                             </Account>
                             <Account>
                                 <AccountID>___ignore___</AccountID>
@@ -184,7 +194,7 @@ class TestLuSaftReport(TestSaftReport):
                                 <StandardAccountID>461411</StandardAccountID>
                                 <AccountType>Current Liabilitie</AccountType>
                                 <OpeningDebitBalance>0.00</OpeningDebitBalance>
-                                <ClosingCreditBalance>340.00</ClosingCreditBalance>
+                                <ClosingCreditBalance>1068.50</ClosingCreditBalance>
                             </Account>
                             <Account>
                                 <AccountID>___ignore___</AccountID>
@@ -201,6 +211,14 @@ class TestLuSaftReport(TestSaftReport):
                                 <AccountType>Income</AccountType>
                                 <OpeningDebitBalance>0.00</OpeningDebitBalance>
                                 <ClosingCreditBalance>2000.00</ClosingCreditBalance>
+                            </Account>
+                            <Account>
+                                <AccountID>___ignore___</AccountID>
+                                <AccountDescription>Sales of finished goods</AccountDescription>
+                                <StandardAccountID>702100.1</StandardAccountID>
+                                <AccountType>Income</AccountType>
+                                <OpeningDebitBalance>0.00</OpeningDebitBalance>
+                                <ClosingCreditBalance>500.00</ClosingCreditBalance>
                             </Account>
                         </GeneralLedgerAccounts>
                         <Customers>
@@ -220,7 +238,7 @@ class TestLuSaftReport(TestSaftReport):
                                 </Contact>
                                 <CustomerID>___ignore___</CustomerID>
                                 <OpeningDebitBalance>0.00</OpeningDebitBalance>
-                                <ClosingDebitBalance>2340.00</ClosingDebitBalance>
+                                <ClosingDebitBalance>3568.50</ClosingDebitBalance>
                             </Customer>
                         </Customers>
                         <Suppliers>
@@ -251,6 +269,16 @@ class TestLuSaftReport(TestSaftReport):
                                     <TaxCode>___ignore___</TaxCode>
                                     <Description>17% S</Description>
                                     <TaxPercentage>17.0</TaxPercentage>
+                                    <Country>LU</Country>
+                                </TaxCodeDetails>
+                            </TaxTableEntry>
+                            <TaxTableEntry>
+                                <TaxType>___ignore___</TaxType>
+                                <Description>Taxe sur la valeur ajoutée</Description>
+                                <TaxCodeDetails>
+                                    <TaxCode>___ignore___</TaxCode>
+                                    <Description>10% S</Description>
+                                    <TaxPercentage>10.0</TaxPercentage>
                                     <Country>LU</Country>
                                 </TaxCodeDetails>
                             </TaxTableEntry>
@@ -309,8 +337,8 @@ class TestLuSaftReport(TestSaftReport):
                     </MasterFiles>
                     <GeneralLedgerEntries>
                         <NumberOfEntries>3</NumberOfEntries>
-                        <TotalDebit>18720.00</TotalDebit>
-                        <TotalCredit>18720.00</TotalCredit>
+                        <TotalDebit>19948.50</TotalDebit>
+                        <TotalCredit>19948.50</TotalCredit>
                         <Journal>
                             <JournalID>___ignore___</JournalID>
                             <Description>Sales</Description>
@@ -339,9 +367,20 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>5500.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
-                                            <Amount>850.00</Amount>
+                                            <Amount>935.00</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>10.0</TaxPercentage>
+                                        <TaxBase>5000.00</TaxBase>
+                                        <TaxBaseDescription>10% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>500.00</Amount>
                                         </TaxAmount>
                                     </TaxInformation>
                                 </Line>
@@ -351,9 +390,50 @@ class TestLuSaftReport(TestSaftReport):
                                     <ValueDate>2019-01-01</ValueDate>
                                     <SourceDocumentID>___ignore___</SourceDocumentID>
                                     <CustomerID>___ignore___</CustomerID>
+                                    <Description>[PB] product_b</Description>
+                                    <CreditAmount>
+                                        <Amount>500.00</Amount>
+                                    </CreditAmount>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>550.00</TaxBase>
+                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>93.50</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>10.0</TaxPercentage>
+                                        <TaxBase>500.00</TaxBase>
+                                        <TaxBaseDescription>10% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>50.00</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                </Line>
+                                <Line>
+                                    <RecordID>___ignore___</RecordID>
+                                    <AccountID>___ignore___</AccountID>
+                                    <ValueDate>2019-01-01</ValueDate>
+                                    <SourceDocumentID>___ignore___</SourceDocumentID>
+                                    <CustomerID>___ignore___</CustomerID>
+                                    <Description>10% S</Description>
+                                    <CreditAmount>
+                                        <Amount>550.00</Amount>
+                                    </CreditAmount>
+                                </Line><Line>
+                                    <RecordID>___ignore___</RecordID>
+                                    <AccountID>___ignore___</AccountID>
+                                    <ValueDate>2019-01-01</ValueDate>
+                                    <SourceDocumentID>___ignore___</SourceDocumentID>
+                                    <CustomerID>___ignore___</CustomerID>
                                     <Description>17% S</Description>
                                     <CreditAmount>
-                                        <Amount>850.00</Amount>
+                                        <Amount>1028.50</Amount>
                                     </CreditAmount>
                                 </Line>
                                 <Line>
@@ -364,7 +444,7 @@ class TestLuSaftReport(TestSaftReport):
                                     <CustomerID>___ignore___</CustomerID>
                                     <Description>INV/2019/00001</Description>
                                     <DebitAmount>
-                                        <Amount>5850.00</Amount>
+                                        <Amount>7078.50</Amount>
                                     </DebitAmount>
                                 </Line>
                             </Transaction>
@@ -392,6 +472,7 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>3000.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
@@ -450,6 +531,7 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>8000.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>1360.00</Amount>
@@ -496,7 +578,7 @@ class TestLuSaftReport(TestSaftReport):
                         <SalesInvoices>
                             <NumberOfEntries>2</NumberOfEntries>
                             <TotalDebit>3000.00</TotalDebit>
-                            <TotalCredit>5000.00</TotalCredit>
+                            <TotalCredit>5500.00</TotalCredit>
                             <Invoice>
                                 <InvoiceNo>INV/2019/00001</InvoiceNo>
                                 <CustomerInfo>
@@ -534,9 +616,58 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>5500.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
-                                            <Amount>850.00</Amount>
+                                            <Amount>935.00</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>10.0</TaxPercentage>
+                                        <TaxBase>5000.00</TaxBase>
+                                        <TaxBaseDescription>10% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>500.00</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                </Line>
+                                <Line>
+                                    <AccountID>___ignore___</AccountID>
+                                    <OrderReferences>
+                                        <OriginatingON>INV/2019/00001</OriginatingON>
+                                        <OrderDate>2019-01-01</OrderDate>
+                                    </OrderReferences>
+                                    <ProductCode>PB</ProductCode>
+                                    <ProductDescription>[PB] product_b</ProductDescription>
+                                    <Quantity>1.0</Quantity>
+                                    <InvoiceUOM>Dozens</InvoiceUOM>
+                                    <UnitPrice>500.00</UnitPrice>
+                                    <TaxPointDate>2019-01-01</TaxPointDate>
+                                    <Description>[PB] product_b</Description>
+                                    <InvoiceLineAmount>
+                                        <Amount>500.00</Amount>
+                                    </InvoiceLineAmount>
+                                    <DebitCreditIndicator>C</DebitCreditIndicator>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>550.00</TaxBase>
+                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>93.50</Amount>
+                                        </TaxAmount>
+                                    </TaxInformation>
+                                    <TaxInformation>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>10.0</TaxPercentage>
+                                        <TaxBase>500.00</TaxBase>
+                                        <TaxBaseDescription>10% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>50.00</Amount>
                                         </TaxAmount>
                                     </TaxInformation>
                                 </Line>
@@ -544,14 +675,25 @@ class TestLuSaftReport(TestSaftReport):
                                     <TaxInformationTotals>
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
-                                        <TaxPercentage>17.0</TaxPercentage>
-                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxPercentage>10.0</TaxPercentage>
+                                        <TaxBase>5500.00</TaxBase>
+                                        <TaxBaseDescription>10% S</TaxBaseDescription>
                                         <TaxAmount>
-                                            <Amount>850.00</Amount>
+                                            <Amount>550.00</Amount>
                                         </TaxAmount>
                                     </TaxInformationTotals>
-                                    <NetTotal>5000.00</NetTotal>
-                                    <GrossTotal>5850.00</GrossTotal>
+                                    <TaxInformationTotals>
+                                        <TaxType>___ignore___</TaxType>
+                                        <TaxCode>___ignore___</TaxCode>
+                                        <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>6050.00</TaxBase>
+                                        <TaxBaseDescription>17% S</TaxBaseDescription>
+                                        <TaxAmount>
+                                            <Amount>1028.50</Amount>
+                                        </TaxAmount>
+                                    </TaxInformationTotals>
+                                    <NetTotal>5500.00</NetTotal>
+                                    <GrossTotal>7078.50</GrossTotal>
                                 </DocumentTotals>
                             </Invoice>
                             <Invoice>
@@ -591,6 +733,7 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>3000.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
@@ -602,6 +745,7 @@ class TestLuSaftReport(TestSaftReport):
                                         <TaxType>___ignore___</TaxType>
                                         <TaxCode>___ignore___</TaxCode>
                                         <TaxPercentage>17.0</TaxPercentage>
+                                        <TaxBase>3000.00</TaxBase>
                                         <TaxBaseDescription>17% S</TaxBaseDescription>
                                         <TaxAmount>
                                             <Amount>510.00</Amount>
@@ -653,6 +797,7 @@ class TestLuSaftReport(TestSaftReport):
                                     <TaxType>___ignore___</TaxType>
                                     <TaxCode>___ignore___</TaxCode>
                                     <TaxPercentage>17.0</TaxPercentage>
+                                    <TaxBase>8000.00</TaxBase>
                                     <TaxBaseDescription>17% S</TaxBaseDescription>
                                     <TaxAmount>
                                         <Amount>1360.00</Amount>
@@ -664,6 +809,7 @@ class TestLuSaftReport(TestSaftReport):
                                     <TaxType>___ignore___</TaxType>
                                     <TaxCode>___ignore___</TaxCode>
                                     <TaxPercentage>17.0</TaxPercentage>
+                                    <TaxBase>8000.00</TaxBase>
                                     <TaxBaseDescription>17% S</TaxBaseDescription>
                                     <TaxAmount>
                                         <Amount>1360.00</Amount>

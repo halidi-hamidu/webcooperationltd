@@ -57,11 +57,11 @@ class RoomRoom(models.Model):
         for room in self:
             room.is_available = room.id not in booked_rooms
 
-    @api.depends("is_available", "room_booking_ids")
+    @api.depends("room_booking_ids")
     def _compute_next_booking_start(self):
         now = fields.Datetime.now()
         next_booking_start_by_room = dict(self.env["room.booking"]._read_group(
-            [("start_datetime", ">", now), ("room_id", "in", self.filtered('is_available').ids)],
+            [("start_datetime", ">", now), ("room_id", "in", self.ids)],
             ["room_id"],
             ["start_datetime:min"],
         ))

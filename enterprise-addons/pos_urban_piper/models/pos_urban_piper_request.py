@@ -349,7 +349,7 @@ class UrbanPiperClient:
         return [
             get_charge_data(product)
             for product in [product_packaging, product_delivery]
-            if product
+            if product and product.list_price > 0
         ]
 
     def request_category_timing(self):

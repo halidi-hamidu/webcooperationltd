@@ -158,9 +158,22 @@ class DocumentsSharing(models.TransientModel):
             )
             if self.invite_notify and (
                     share_template := self.env.ref('documents.mail_template_document_share', raise_if_not_found=False)):
+                access_urls_by_partner = {}
+                for partner in self.invite_partner_ids:
+                    access_urls = {}
+                    for document in self.document_ids:
+                        access_url = document.access_url
+                        member = document.access_ids.filtered(lambda access:
+                            access.partner_id == partner)
+                        if member and member._is_signup_available():
+                            access_url = f'{access_url}?member_signup_token={member._get_member_signup_token()}&member_id={member.id}'
+                        access_urls[document] = access_url
+                    access_urls_by_partner[partner] = access_urls
                 share_template.with_context(
                     documents=self.document_ids,
+                    access_urls_by_partner=access_urls_by_partner,
                     message=self.invite_notify_message or "").send_mail_batch(self.invite_partner_ids.ids)
+
             params = {
                 'title': _('Successfully Shared'),
                 'message': (

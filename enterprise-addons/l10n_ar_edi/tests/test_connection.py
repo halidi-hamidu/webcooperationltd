@@ -1,21 +1,21 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import base64
-import re
 
 from contextlib import contextmanager
 from lxml import etree
 from unittest.mock import patch
 
+from odoo.addons.account.tests.common import skip_unless_external
 from odoo.exceptions import RedirectWarning
 
-from odoo.addons.l10n_ar.tests.common import TestAr
+from odoo.addons.l10n_ar.tests.common import TestArCommon
 from odoo.tools.misc import file_open
 from odoo.tools.zeep.exceptions import Fault
 from odoo.tests import tagged
 
 
-@tagged('post_install_l10n', 'post_install', '-at_install')
-class TestArConnection(TestAr):
+@tagged('post_install_l10n', 'post_install', '-at_install', *TestArCommon.extra_tags)
+class TestArConnection(TestArCommon):
 
     @contextmanager
     def mock_zeep_client(self, response, should_error=False):
@@ -79,6 +79,7 @@ class TestArConnection(TestAr):
         cls.env.user.write({'company_id': cls.company_ri.id})
         cls.config = cls.env['res.config.settings'].create({})
 
+    @skip_unless_external
     def test_ar_connection_invalid(self):
         """ With no key content set, they will appear as expired or invalid. """
 
@@ -120,6 +121,7 @@ class TestArConnection(TestAr):
             with self.mock_zeep_client(login_response, should_error=True):
                 self.config.with_context(l10n_ar_invoice_skip_commit=True).l10n_ar_connection_test()
 
+    @skip_unless_external
     def test_ar_connection_valid(self):
         """ Patch the Zeep client so it doesn't make a network call and appears valid """
 

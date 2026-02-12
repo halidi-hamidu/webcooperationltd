@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import fields
-from odoo.addons.l10n_ar.tests.common import TestAr
+from odoo.addons.l10n_ar.tests.common import TestArCommon
 from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 from odoo.tests import Form, tagged
 from odoo.tools import file_open
@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 
 
 @tagged('post_install_l10n', 'post_install', '-at_install')
-class TestReports(TestAr, TestAccountReportsCommon):
+class TestArReports(TestArCommon, TestAccountReportsCommon):
 
     def _create_test_credit_notes_like_demo(self):
         """ Create in the unit tests the same credit notes created in demo data """
@@ -304,7 +304,7 @@ class TestReports(TestAr, TestAccountReportsCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.journal = cls._create_journal(cls, 'preprinted', data={'l10n_ar_afip_pos_number': 37928})
+        cls.journal = cls._create_journal('preprinted', data={'l10n_ar_afip_pos_number': 37928})
         cls.maxDiff = None
         cls.report = cls.env.ref('l10n_ar_reports.l10n_ar_vat_book_report')
 
@@ -319,7 +319,7 @@ class TestReports(TestAr, TestAccountReportsCommon):
         })
 
         # ==== Create VAT BOOK demo data ====
-        cls._create_test_invoices_like_demo(cls, use_current_date=False)
+        cls._create_test_invoices_like_demo(use_current_date=False)
         for inv in cls.demo_invoices.values():
             inv.action_post()
 

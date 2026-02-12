@@ -59,7 +59,7 @@
                         </div>
                     </group>
                     <group invisible="not context.get('sign_directly_without_mail', False)">
-                        <div class="o_horizontal_separator mb-2 text-uppercase fw-bolder small" colspan="2">
+                        <div class="o_horizontal_separator mb-2 text-uppercase fw-bolder small mobile-hide" colspan="2">
                             Options
                         </div>
                         <field name="subject" placeholder="Signature Request" required="1"/>
@@ -134,8 +134,8 @@
                     />
                     <button string="Schedule" name="send_request" type="object" class="btn-primary" invisible="not scheduled_date"/>
                     <button string="Download" name="quick_sign" title="Autocomplete values and download signed document" context="{'no_sign_mail': True, 'sign_all': True, 'sign_now': True}" type="object" invisible="not display_download_button"/>
-                    <button string="Discard" class="btn-secondary me-3" special="cancel" data-hotkey="x"/>
-                    <div invisible="(not has_default_template and not template_id) or (context.get('sign_directly_without_mail',False))" class="d-flex gap-3">
+                    <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                    <div invisible="(not has_default_template and not template_id) or (context.get('sign_directly_without_mail',False))" class="d-flex justify-content-around justify-content-md-start gap-3 w-100 w-md-auto">
                         <field name="attachment_ids" widget="many2many_binary_sign_request"/>
                         <field name="scheduled_date" widget="text_scheduled_date"/>
                     </div>

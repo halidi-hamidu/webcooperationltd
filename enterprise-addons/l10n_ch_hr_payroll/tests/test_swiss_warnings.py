@@ -160,7 +160,6 @@ class TestWhitelistFromTemplate(TransactionCase):
         })
 
         expected_action_texts = [
-            'Employee Reference',
             'Gender',
             'Birthday',
             'Nationality (Country)',
@@ -188,3 +187,19 @@ class TestWhitelistFromTemplate(TransactionCase):
         ]
 
         self.validate_payslip_issues_presence(payslip, expected_action_texts_2)
+
+    def test_pay_run_payslip_name_ch(self):
+        """
+        This test checks that the name of the payslip contains the name and the period for which the pay run is
+        being run.
+        """
+
+        payslip_run = self.env['hr.payslip.run'].create({
+            'date_end': '2025-11-30',
+            'date_start': '2025-11-01',
+            'name': 'Payslip for Employee',
+            'structure_id': self.env.ref('l10n_ch_hr_payroll.hr_payroll_structure_ch_elm').id,
+        })
+
+        payslip_run.generate_payslips(employee_ids=[self.employee_ch.id])
+        self.assertEqual(payslip_run.slip_ids.name, 'Salary Slip - CH Employee - November 2025')

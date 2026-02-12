@@ -42,7 +42,8 @@ class HrVersion(models.Model):
         readonly=False, store=True, groups="hr_payroll.group_hr_payroll_user", tracking=True,
         help="Define Basic salary from company cost compute it based on Wages (Including DA)")
     l10n_in_basic_percentage = fields.Float(string="Basic Salary Percentage", groups="hr_payroll.group_hr_payroll_user",
-        compute="_compute_l10n_in_basic_percentage", store=True, readonly=False, tracking=True)
+        compute="_compute_l10n_in_basic_percentage", store=True, readonly=False, tracking=True,
+        default=lambda self: self.env['hr.rule.parameter']._get_parameter_from_code('l10n_in_basic_percent', raise_if_not_found=False))
     l10n_in_standard_allowance = fields.Monetary(string="Standard Allowance", tracking=True,
         compute="_compute_l10n_in_standard_allowance", store=True, readonly=False,
         groups="hr_payroll.group_hr_payroll_user",
@@ -187,6 +188,8 @@ class HrVersion(models.Model):
         'l10n_in_leave_travel_allowance', 'wage', 'hourly_wage'
     )
     def _check_l10n_in_total_allowance_below_wage(self):
+        if self.env.context.get('salary_simulation'):
+            return False
         for version in self:
             if version.company_id.country_code != 'IN':
                 continue
@@ -206,34 +209,26 @@ class HrVersion(models.Model):
                     total=format_amount(self.env, total_allowance, self.env.company.currency_id))
                 )
 
-    @api.depends('wage', 'hourly_wage', 'wage_type', 'resource_calendar_id.hours_per_day', 'l10n_in_basic_percentage')
+    @api.depends('wage', 'hourly_wage', 'wage_type', 'resource_calendar_id.hours_per_week', 'l10n_in_basic_percentage')
     def _compute_l10n_in_basic_salary_amount(self):
+        self.env.remove_to_compute(self._fields['l10n_in_basic_percentage'], self)
         for version in self:
             monthly_wage = version._l10n_in_get_montly_wage()
             version.l10n_in_basic_salary_amount = monthly_wage * version.l10n_in_basic_percentage
 
-    @api.depends('l10n_in_basic_salary_amount', 'wage', 'hourly_wage', 'wage_type', 'resource_calendar_id.hours_per_day')
+    @api.depends('l10n_in_basic_salary_amount')
     def _compute_l10n_in_basic_percentage(self):
-        default_percentage = self.env['hr.rule.parameter']._get_parameter_from_code('l10n_in_basic_percent', raise_if_not_found=False)
-        is_hr_payroll = self.env.context.get('is_hr_payroll')
-        salary_simulation = self.env.context.get('salary_simulation')
         for version in self:
-            if version.company_id.country_code != 'IN':
-                continue
             monthly_wage = version._l10n_in_get_montly_wage()
             if not monthly_wage:
                 version.l10n_in_basic_percentage = 0.0
-                continue
-            if self.env.context.get('skip_percentage_calc'):
-                continue
-            if (not version.l10n_in_basic_salary_amount and not is_hr_payroll and salary_simulation):
-                version.l10n_in_basic_percentage = default_percentage
                 continue
             version.l10n_in_basic_percentage = version.l10n_in_basic_salary_amount / monthly_wage
 
     # ----- Allowances -----
     @api.depends('l10n_in_basic_salary_amount', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
+        self.env.remove_to_compute(self._fields['l10n_in_hra_percentage'], self)
         for version in self:
             version.l10n_in_hra = version.l10n_in_basic_salary_amount *\
                 version.l10n_in_hra_percentage
@@ -244,13 +239,12 @@ class HrVersion(models.Model):
             if not version.l10n_in_basic_salary_amount:
                 version.l10n_in_hra_percentage = 0.0
                 continue
-            if self.env.context.get('skip_percentage_calc'):
-                continue
             version.l10n_in_hra_percentage = version.l10n_in_hra /\
                 version.l10n_in_basic_salary_amount
 
     @api.depends('l10n_in_basic_salary_amount', 'l10n_in_standard_allowance_percentage')
     def _compute_l10n_in_standard_allowance(self):
+        self.env.remove_to_compute(self._fields['l10n_in_standard_allowance_percentage'], self)
         for version in self:
             version.l10n_in_standard_allowance = version.l10n_in_basic_salary_amount *\
                 version.l10n_in_standard_allowance_percentage
@@ -266,6 +260,7 @@ class HrVersion(models.Model):
 
     @api.depends('l10n_in_basic_salary_amount', 'l10n_in_performance_bonus_percentage')
     def _compute_l10n_in_performance_bonus(self):
+        self.env.remove_to_compute(self._fields['l10n_in_performance_bonus_percentage'], self)
         for version in self:
             version.l10n_in_performance_bonus = version.l10n_in_basic_salary_amount *\
                 version.l10n_in_performance_bonus_percentage
@@ -276,13 +271,12 @@ class HrVersion(models.Model):
             if not version.l10n_in_basic_salary_amount:
                 version.l10n_in_performance_bonus_percentage = 0.0
                 continue
-            if self.env.context.get('skip_percentage_calc'):
-                continue
             version.l10n_in_performance_bonus_percentage = version.l10n_in_performance_bonus /\
                 version.l10n_in_basic_salary_amount
 
     @api.depends('l10n_in_basic_salary_amount', 'l10n_in_leave_travel_percentage')
     def _compute_l10n_in_leave_travel_allowance(self):
+        self.env.remove_to_compute(self._fields['l10n_in_leave_travel_percentage'], self)
         for version in self:
             version.l10n_in_leave_travel_allowance = version.l10n_in_basic_salary_amount *\
                 version.l10n_in_leave_travel_percentage
@@ -293,12 +287,10 @@ class HrVersion(models.Model):
             if not version.l10n_in_basic_salary_amount:
                 version.l10n_in_leave_travel_percentage = 0.0
                 continue
-            if self.env.context.get('skip_percentage_calc'):
-                continue
             version.l10n_in_leave_travel_percentage = version.l10n_in_leave_travel_allowance /\
                 version.l10n_in_basic_salary_amount
 
-    @api.depends('wage', 'hourly_wage', 'resource_calendar_id.hours_per_day', 'l10n_in_basic_salary_amount',
+    @api.depends('wage', 'hourly_wage', 'resource_calendar_id.hours_per_week', 'l10n_in_basic_salary_amount',
         'l10n_in_hra', 'l10n_in_performance_bonus', 'l10n_in_leave_travel_allowance', 'l10n_in_standard_allowance')
     def _compute_l10n_in_fixed_allowance(self):
         for version in self:
@@ -312,6 +304,8 @@ class HrVersion(models.Model):
                 ])
                 monthly_wage = version._l10n_in_get_montly_wage()
                 version.l10n_in_fixed_allowance = monthly_wage - total_allowances
+            else:
+                version.l10n_in_fixed_allowance = 0.0
 
     @api.depends('l10n_in_fixed_allowance')
     def _compute_l10n_in_fixed_allowance_percentage(self):
@@ -325,6 +319,7 @@ class HrVersion(models.Model):
     # ----- Deductions -----
     @api.depends('l10n_in_basic_salary_amount', 'l10n_in_gratuity_percentage')
     def _compute_l10n_in_gratuity(self):
+        self.env.remove_to_compute(self._fields['l10n_in_gratuity_percentage'], self)
         for version in self:
             version.l10n_in_gratuity = version.l10n_in_basic_salary_amount * version.l10n_in_gratuity_percentage
 
@@ -333,8 +328,6 @@ class HrVersion(models.Model):
         for version in self:
             if not version.l10n_in_basic_salary_amount:
                 version.l10n_in_gratuity_percentage = 0.0
-                continue
-            if self.env.context.get('skip_percentage_calc'):
                 continue
             version.l10n_in_gratuity_percentage = version.l10n_in_gratuity / version.l10n_in_basic_salary_amount
 
@@ -399,6 +392,7 @@ class HrVersion(models.Model):
 
     @api.depends('l10n_in_gross_salary', 'l10n_in_esic_employee_percentage')
     def _compute_l10n_in_esic_employee_amount(self):
+        self.env.remove_to_compute(self._fields['l10n_in_esic_employee_percentage'], self)
         for version in self:
             if not version.l10n_in_gross_salary:
                 version.l10n_in_esic_employee_amount = 0.0
@@ -412,13 +406,12 @@ class HrVersion(models.Model):
             if not version.l10n_in_gross_salary:
                 version.l10n_in_esic_employee_percentage = 0.0
                 continue
-            if self.env.context.get('skip_percentage_calc'):
-                continue
             version.l10n_in_esic_employee_percentage = version.l10n_in_esic_employee_amount /\
                 version.l10n_in_gross_salary
 
     @api.depends('l10n_in_gross_salary', 'l10n_in_esic_employer_percentage')
     def _compute_l10n_in_esic_employer_amount(self):
+        self.env.remove_to_compute(self._fields['l10n_in_esic_employer_percentage'], self)
         for version in self:
             if not version.l10n_in_gross_salary:
                 version.l10n_in_esic_employer_amount = 0.0
@@ -431,8 +424,6 @@ class HrVersion(models.Model):
         for version in self:
             if not version.l10n_in_gross_salary:
                 version.l10n_in_esic_employer_percentage = 0.0
-                continue
-            if self.env.context.get('skip_percentage_calc'):
                 continue
             version.l10n_in_esic_employer_percentage = version.l10n_in_esic_employer_amount /\
                 version.l10n_in_gross_salary
@@ -470,39 +461,15 @@ class HrVersion(models.Model):
             ]
         return whitelisted_fields
 
-    def _l10n_in_convert_amount(self, amount, period_from, period_to):
-        PERIODS_PER_YEAR = {
-            "daily": 260,
-            "weekly": 52,
-            "bi-weekly": 26,
-            "semi-monthly": 24,
-            "monthly": 12,
-            "bi-monthly": 6,
-            "quarterly": 4,
-            "semi-annually": 2,
-            "annually": 1,
-        }
-
-        NUMBER_OF_WEEKS = {
-            "daily": 1 / 5,
-            "weekly": 1,
-            "bi-weekly": 2,
-            "monthly": 13 / 3,
-            "quarterly": 13,
-            "annually": 13 * 4,
-        }
-        if period_to == "weekly":
-            return amount / NUMBER_OF_WEEKS[period_from]
-        coefficient = PERIODS_PER_YEAR[period_from] / PERIODS_PER_YEAR[period_to]
-        return amount * round(coefficient)
-
     def _l10n_in_get_montly_wage(self):
         """
         Returns the monthly wage based on the wage type and resource calendar.
         """
-        if self.wage_type == 'hourly':
-            hours_per_day = self.resource_calendar_id.hours_per_day
-            monthly_wage = self._l10n_in_convert_amount(self.hourly_wage * hours_per_day, "daily", "monthly")
+        calendar = self.resource_calendar_id or self.company_id.resource_calendar_id
+        if self.wage_type == 'hourly' and calendar:
+            hours_per_week = calendar.hours_per_week or calendar.full_time_required_hours or 0.0
+            monthly_hours = hours_per_week * 52 / 12 if hours_per_week else 0.0
+            monthly_wage = self.hourly_wage * monthly_hours
         else:
             monthly_wage = self.wage
         return max(monthly_wage, 0)

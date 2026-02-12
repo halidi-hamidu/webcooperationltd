@@ -5,7 +5,6 @@ from odoo.http import request
 from ..utils.llm_api_service import LLMApiService, RealtimeParameters
 
 DEFAULT_TOKEN_LIFESPAN = 7200  # Token lifespan in seconds
-DEFAULT_SILENCE_DURATION = 500  # Silence duration in ms
 
 
 class AgentController(http.Controller):
@@ -22,12 +21,11 @@ class AgentController(http.Controller):
                     "input": {
                         "transcription": {
                             "language": language,
-                            "model": "gpt-4o-transcribe",
+                            "model": "whisper-1",
                             "prompt": prompt,
                         },
                         "turn_detection": {
                             "type": "server_vad",
-                            "silence_duration_ms": DEFAULT_SILENCE_DURATION,
                         },
                         "noise_reduction": {"type": "far_field"},
                     }

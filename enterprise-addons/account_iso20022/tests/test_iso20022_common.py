@@ -36,10 +36,10 @@ class TestISO20022CommonCreditTransfer(AccountTestInvoicingCommon):
             'memo': memo,
         })
 
-    def generate_iso20022_batch_payment(self, partner):
-        payment_1 = self.create_payment(self.company_data['default_journal_bank'], partner, self.payment_method, 500)
+    def generate_iso20022_batch_payment(self, partner, memo=None):
+        payment_1 = self.create_payment(self.company_data['default_journal_bank'], partner, self.payment_method, 500, memo)
         payment_1.action_post()
-        payment_2 = self.create_payment(self.company_data['default_journal_bank'], partner, self.payment_method, 600)
+        payment_2 = self.create_payment(self.company_data['default_journal_bank'], partner, self.payment_method, 600, memo)
         payment_2.action_post()
 
         batch = self.env['account.batch.payment'].create({

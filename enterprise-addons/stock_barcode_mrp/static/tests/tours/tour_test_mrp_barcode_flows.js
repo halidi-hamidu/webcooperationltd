@@ -179,6 +179,110 @@ registry.category("web_tour.tours").add("test_process_confirmed_mo", {
     ],
 });
 
+const validateBomCreationSteps = [
+    {
+        trigger: ".o_barcode_line.o_header",
+        run: function () {
+            const lines = helper.getLines();
+            helper.assert(lines.length, 3, "The header line + 2 components lines");
+            const [headerLine, componentLine1, componentLine2] = lines;
+            helper.assertLineProduct(headerLine, "Final Product");
+            helper.assertLineQty(headerLine, "0/1");
+            helper.assertLineProduct(componentLine1, "Compo 01");
+            helper.assertLineQty(componentLine1, "0/2");
+            helper.assertLineProduct(componentLine2, "Compo 02");
+            helper.assertLineQty(componentLine2, "0/3");
+        },
+    },
+    // Scans again the finished product, it should increase its quantity and its components' quantity aswell.
+    { trigger: ".o_barcode_client_action", run: "scan final" },
+    {
+        trigger: ".o_barcode_line.o_header.o_header_completed",
+        run: function () {
+            const lines = helper.getLines();
+            helper.assert(lines.length, 3, "The header line + 2 components lines");
+            const [headerLine, componentLine1, componentLine2] = lines;
+            helper.assertLineProduct(headerLine, "Final Product");
+            helper.assertLineQty(headerLine, "1/1");
+            helper.assertLineProduct(componentLine1, "Compo 01");
+            helper.assertLineQty(componentLine1, "2/2");
+            helper.assertLineProduct(componentLine2, "Compo 02");
+            helper.assertLineQty(componentLine2, "3/3");
+        },
+    },
+    // Scans two more times the final product and validate the production.
+    { trigger: ".o_barcode_client_action", run: "scan final" },
+    { trigger: ".o_barcode_client_action", run: "scan final" },
+    {
+        trigger: ".o_barcode_line.o_header .qty-done:contains(3)",
+        run: function () {
+            const lines = helper.getLines();
+            helper.assert(lines.length, 3, "The header line + 2 components lines");
+            const [headerLine, componentLine1, componentLine2] = lines;
+            helper.assertLineProduct(headerLine, "Final Product");
+            helper.assertLineQty(headerLine, "3/1");
+            helper.assertLineProduct(componentLine1, "Compo 01");
+            helper.assertLineQty(componentLine1, "6/2");
+            helper.assertLineProduct(componentLine2, "Compo 02");
+            helper.assertLineQty(componentLine2, "9/3");
+        },
+    },
+    ...stepUtils.validateBarcodeOperation(
+        ".o_scan_message.o_scan_validate",
+        ".o_view_nocontent_smiling_face"
+    ),
+];
+
+registry.category("web_tour.tours").add("test_barcode_production_create_bom", {
+    steps: () => [
+        // Creates a new production from the Barcode App.
+        {
+            trigger: "article.o_barcode_picking_type:contains('Manufacturing')",
+            run: "click",
+        },
+        {
+            trigger: ".o-kanban-button-new",
+            run: "click",
+        },
+        {
+            trigger: ".o_scan_message.o_scan_product",
+        },
+        {
+            trigger: ".o_title:contains('New')",
+            run: "scan final",
+        },
+        ...validateBomCreationSteps,
+        // Close the previous notification to ensure that the next
+        // validateBomCreationSteps does not finish prematurely because of it.
+        {
+            trigger: ".o_notification_close.btn-close",
+            run: "click",
+        },
+        // Creates a new production from the "Add product" form from Barcode App.
+        {
+            trigger: ".o-kanban-button-new",
+            run: "click",
+        },
+        {
+            trigger: ".o_add_line",
+            run: "click",
+        },
+        {
+            trigger: "div[name=product_id] input",
+            run: "edit Final Product",
+        },
+        {
+            trigger: ".ui-autocomplete a:contains('Final Product')",
+            run: "click",
+        },
+        {
+            trigger: "button.o_save",
+            run: "click",
+        },
+        ...validateBomCreationSteps,
+    ],
+});
+
 registry.category("web_tour.tours").add("test_scrap_done_mo", {
     steps: () => [
         {
@@ -272,77 +376,6 @@ registry.category("web_tour.tours").add("test_barcode_production_create", {
                 helper.assert(helper.getLines().length, 2);
                 const headerLine = helper.getLine({ index: 0 });
                 helper.assertLineQty(headerLine, "2/1");
-            },
-        },
-        ...stepUtils.validateBarcodeOperation(".o_scan_message.o_scan_validate"),
-    ],
-});
-
-registry.category("web_tour.tours").add("test_barcode_production_create_bom", {
-    steps: () => [
-        // Creates a new production from the Barcode App.
-        {
-            trigger: "article.o_barcode_picking_type:contains('Manufacturing')",
-            run: "click",
-        },
-        { trigger: ".o_kanban_tip_filter" },
-        {
-            trigger: ".o-kanban-button-new",
-            run: "click",
-        },
-        // Scans a product with BoM, it should add it as the final product and add a line for each components.
-        {
-            trigger: ".o_scan_message.o_scan_product",
-        },
-        {
-            trigger: ".o_title:contains('New')",
-            run: "scan final",
-        },
-        {
-            trigger: ".o_barcode_line.o_header",
-            run: function () {
-                const lines = helper.getLines();
-                helper.assert(lines.length, 3, "The header line + 2 components lines");
-                const [headerLine, componentLine1, componentLine2] = lines;
-                helper.assertLineProduct(headerLine, "Final Product");
-                helper.assertLineQty(headerLine, "0/1");
-                helper.assertLineProduct(componentLine1, "Compo 01");
-                helper.assertLineQty(componentLine1, "0/2");
-                helper.assertLineProduct(componentLine2, "Compo 02");
-                helper.assertLineQty(componentLine2, "0/3");
-            },
-        },
-        // Scans again the finished product, it should increase its quantity and its components' quantity aswell.
-        { trigger: ".o_barcode_client_action", run: "scan final" },
-        {
-            trigger: ".o_barcode_line.o_header.o_header_completed",
-            run: function () {
-                const lines = helper.getLines();
-                helper.assert(lines.length, 3, "The header line + 2 components lines");
-                const [headerLine, componentLine1, componentLine2] = lines;
-                helper.assertLineProduct(headerLine, "Final Product");
-                helper.assertLineQty(headerLine, "1/1");
-                helper.assertLineProduct(componentLine1, "Compo 01");
-                helper.assertLineQty(componentLine1, "2/2");
-                helper.assertLineProduct(componentLine2, "Compo 02");
-                helper.assertLineQty(componentLine2, "3/3");
-            },
-        },
-        // Scans two more times the final product and validate the production.
-        { trigger: ".o_barcode_client_action", run: "scan final" },
-        { trigger: ".o_barcode_client_action", run: "scan final" },
-        {
-            trigger: ".o_barcode_line.o_header .qty-done:contains(3)",
-            run: function () {
-                const lines = helper.getLines();
-                helper.assert(lines.length, 3, "The header line + 2 components lines");
-                const [headerLine, componentLine1, componentLine2] = lines;
-                helper.assertLineProduct(headerLine, "Final Product");
-                helper.assertLineQty(headerLine, "3/1");
-                helper.assertLineProduct(componentLine1, "Compo 01");
-                helper.assertLineQty(componentLine1, "6/2");
-                helper.assertLineProduct(componentLine2, "Compo 02");
-                helper.assertLineQty(componentLine2, "9/3");
             },
         },
         ...stepUtils.validateBarcodeOperation(".o_scan_message.o_scan_validate"),
@@ -807,7 +840,7 @@ registry.category("web_tour.tours").add("test_barcode_production_component_no_st
             run: function () {
                 helper.assert(helper.getLines().length, 2);
                 const componentLine = helper.getLine({ barcode: "compo01" });
-                helper.assertLineQty(componentLine, "2");
+                helper.assertLineQty(componentLine, "2/2");
             },
         },
         {
@@ -1057,7 +1090,10 @@ registry.category("web_tour.tours").add("test_barcode_production_add_byproduct",
             trigger: ".o_save_byproduct",
             run: "click",
         },
-        ...stepUtils.validateBarcodeOperation(),
+        ...stepUtils.validateBarcodeOperation(
+            ".o_barcode_client_action .o_barcode_lines",
+            ".o_view_nocontent_smiling_face"
+        ),
     ],
 });
 
@@ -1157,7 +1193,7 @@ registry.category("web_tour.tours").add("test_barcode_production_component_diffe
         {
             trigger: ".o_header_completed",
             run: () => {
-                helper.assertLineQty(1, "1 kg");
+                helper.assertLineQty(1, "1/1 kg");
             },
         },
     ],
@@ -1190,9 +1226,29 @@ registry.category("web_tour.tours").add("test_delivery_kit_with_tracked_compo", 
                 helper.assertLineTrackingNumber(classicLine, "LOT004");
                 helper.assertLineQty(kitLine, "1/1");
                 helper.assertLineTrackingNumber(kitLine, "LOT003");
-            }
+            },
         },
         ...stepUtils.validateBarcodeOperation(),
+    ],
+});
+
+registry.category("web_tour.tours").add("test_picking_kit_variant_packaging", {
+    steps: () => [
+        {
+            trigger: ".o_stock_barcode_main_menu",
+            run: "scan WH/IN/BLUESIMPLEKIT",
+        },
+        {
+            trigger: ".o_barcode_client_action",
+            run: "scan PACK02",
+        },
+        {
+            trigger: ".modal-content:contains('Add extra product?') button:contains(Ok)",
+            run: "click",
+        },
+        {
+            trigger: ".o_barcode_line:contains('Simple Kit (blue)')",
+        },
     ],
 });
 
@@ -1330,6 +1386,38 @@ registry.category("web_tour.tours").add("test_backorder_partial_completion_save_
     ],
 });
 
+registry.category("web_tour.tours").add("test_backorder_partial_completion_preserves_reserved_qty_on_exit", {
+    steps: () => [
+        { trigger: ".o_stock_barcode_main_menu", run: "scan TBPCSNS mo" },
+        {
+            trigger:
+                '.o_barcode_line:has(.o_barcode_line_title .o_product_label:contains("Final Product")) .o_add_quantity',
+            run: "click",
+        },
+        {
+            trigger:
+                '.o_barcode_line:has(.o_barcode_line_title .o_product_label:contains("Compo 01")) .o_edit',
+            run: "click",
+        },
+        { trigger: "input", run: "clear" },
+        { trigger: "input", run: "edit 1" },
+        { trigger: ".o_save", run: "click" },
+        { trigger: ".o_barcode_line" },
+
+        { trigger: ".o_exit", run: "click" },
+        { trigger: ".o_stock_barcode_main_menu", run: "scan TBPCSNS mo" },
+        {
+            trigger:
+                '.o_barcode_line:has(.o_barcode_line_title .o_product_label:contains("Compo 01")) :contains("1/1")',
+        },
+        {
+            trigger:
+                '.o_barcode_line:has(.o_barcode_line_title .o_product_label:contains("Compo 01")) :contains("0/5")',
+            run: () => {},
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("test_barcode_mo_creation_in_mo2", {
     steps: () => [
         { trigger: "button.o_button_operations", run: "click" },
@@ -1384,12 +1472,8 @@ registry.category("web_tour.tours").add("test_setting_barcode_mrp_allow_extra_pr
         // Scans product2; It shouldn't be added as the allow_extra_product config is disabled.
         { trigger: ".o_barcode_client_action", run: "scan product2" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage(
-                    "The product product2 should not be picked in this operation."
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The product product2 should not be picked in this operation.)",
         },
     ],
 });
@@ -1819,5 +1903,15 @@ registry.category("web_tour.tours").add("test_picking_product_with_kit_and_compo
                 helper.assertLineQty(2, "0/1");
             },
         },
+    ],
+});
+
+registry.category("web_tour.tours").add("test_gs1_qty_final_product", {
+    steps: () => [
+        { trigger: ".o_barcode_client_action", run: "scan 01000000826558533000000002" },
+        { trigger: ".o_barcode_line:contains('Compo 01') .qty-done:contains(4)", run(){} },
+        { trigger: ".o_barcode_client_action", run: "scan 01000000826558533000000002" },
+        { trigger: ".o_barcode_line:contains('Compo 01') .qty-done:contains(8)", run(){} },
+        ...stepUtils.validateBarcodeOperation(),
     ],
 });

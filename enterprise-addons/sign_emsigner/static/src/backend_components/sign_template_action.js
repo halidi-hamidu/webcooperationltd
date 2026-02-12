@@ -103,7 +103,6 @@ patch(SignTemplateSidebarRoleItems.prototype, {
             size: "md",
             title: _t("Signer Edition"),
             onRecordSaved: async ({ data }) => {
-                this.state.roleName = data.name;
                 await this.updateRoleNameAndAvatar(data);
                 const emsignerRoleValues = await this.getEmsignerRoleValues(this.props.propsForEmsigner);
                 // Show warning if the role is emsigner and there are multiple signers or documents

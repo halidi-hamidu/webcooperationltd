@@ -252,7 +252,7 @@ class L10n_Mx_EdiDocument(models.Model):
                 lambda x: x._action_retry_invoice_try_cancel(),
             ),
             'payment_sent_failed': (
-                None,
+                lambda x: x.move_id,
                 lambda x: x.move_id._l10n_mx_edi_cfdi_payment_try_send(),
             ),
             'payment_cancel_failed': (
@@ -287,6 +287,9 @@ class L10n_Mx_EdiDocument(models.Model):
     def _compute_show_button_needed(self):
         """ Compute whatever or not the 'show' button should be displayed. """
         for doc in self:
+            if doc.state.startswith('payment_') and not doc.move_id:
+                doc.show_button_needed = False
+                continue
             doc.show_button_needed = doc.state.startswith('payment_') or doc.state.startswith('ginvoice_')
 
     # -------------------------------------------------------------------------
@@ -502,8 +505,8 @@ class L10n_Mx_EdiDocument(models.Model):
         """
         regex = r"(?i:\s+(s\.?\s?(a\.?)( de c\.?v\.?|)|(s\.?\s?(a\.?s\.?)|s\.? en c\.?( por a\.?)?|s\.?\s?c\.?\s?(l\.?(\s?\(?limitada)?\)?|s\.?(\s?\(?suplementada\)?)?)|s\.? de r\.?l\.?)))\s*$"
         unaccented = remove_accents(re.sub(regex, "", name or ''))
-        # ñ character should stay as-is because unlike accents, the mexican government saves this letter that way...
-        return ''.join(c if name[i] not in 'üÜñÑ' else name[i] for i, c in enumerate(unaccented)).upper()
+        # some characters should stay as-is because the mexican government saves these letters that way...
+        return ''.join(c if name[i] not in 'üÜñÑëË' else name[i] for i, c in enumerate(unaccented)).upper()
 
     @api.model
     def _add_base_cfdi_values(self, cfdi_values):
@@ -1001,7 +1004,7 @@ class L10n_Mx_EdiDocument(models.Model):
             elif is_refund_gi:
                 base_line_cfdi_values['clave_prod_serv'] = '84111506'
                 base_line_cfdi_values['clave_unidad'] = 'ACT'
-                base_line_cfdi_values['description'] = "Devoluciones, descuentos o bonificaciones"
+                base_line_cfdi_values['description'] = base_line['name']
                 base_line_cfdi_values['no_identificacion'] = product.default_code
                 base_line_cfdi_values['cuenta_predial'] = product.l10n_mx_edi_predial_account
                 base_line_cfdi_values['unidad'] = (base_line['uom_id'].name or '').upper()
@@ -1314,7 +1317,7 @@ class L10n_Mx_EdiDocument(models.Model):
         :param number_next:     The consumed number.
         :return:
         """
-        sequence.number_next = number_next + 1
+        sequence.sudo().number_next = number_next + 1
         sequence.flush_recordset(fnames=['number_next'])
 
     @api.model
@@ -2385,7 +2388,8 @@ Content-Disposition: form-data; name="xml"; filename="xml"
             self.move_id._l10n_mx_edi_cfdi_invoice_update_sat_state(self, sat_state, error=error)
             return True
         elif self.state in ('payment_sent', 'payment_cancel'):
-            self.move_id._l10n_mx_edi_cfdi_payment_update_sat_state(self, sat_state, error=error)
+            if self.move_id:
+                self.move_id._l10n_mx_edi_cfdi_payment_update_sat_state(self, sat_state, error=error)
             return True
         else:
             source_records = self._get_source_records()
@@ -2413,11 +2417,14 @@ Content-Disposition: form-data; name="xml"; filename="xml"
             cfdi_infos['uuid'],
         )
 
-        if self.sat_state != sat_results['value']:
+        if self.sat_state == sat_results['value']:
+            # force update write_date
+            self.sat_state = sat_results['value']
+        else:
             self._update_document_sat_state(sat_results['value'], error=sat_results.get('error'))
 
-            if self._can_commit():
-                self.env.cr.commit()
+        if self._can_commit():
+            self.env.cr.commit()
 
         return sat_results
 
@@ -2486,10 +2493,10 @@ Content-Disposition: form-data; name="xml"; filename="xml"
         """
         domain = self._get_update_sat_status_domain(extra_domain=extra_domain)
         domain = Domain.AND([domain, [('write_date', '>=', fields.Date.today() - timedelta(days=60))]])
-        documents = self.search(domain, limit=batch_size + 1, order='write_date')
+        documents = self.search(domain, limit=batch_size + 1, order='write_date, id')
 
-        for counter, document in enumerate(documents):
-            if counter == batch_size:
-                self.env.ref('l10n_mx_edi.ir_cron_update_pac_status_invoice')._trigger()
-            else:
-                document._update_sat_state()
+        for document in documents[:batch_size]:
+            document._update_sat_state()
+
+        if len(documents) == batch_size:
+            self.env.ref('l10n_mx_edi.ir_cron_update_pac_status_invoice')._trigger()

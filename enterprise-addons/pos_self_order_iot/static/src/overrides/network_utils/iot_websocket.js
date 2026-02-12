@@ -20,7 +20,12 @@ patch(IotWebsocket.prototype, {
         const access_token = new URLSearchParams(browser.location.search).get("access_token");
         await rpc("/pos-self-order/iot-box-websocket-channel", {
             access_token,
-            message: { iot_identifiers: [iotBoxIdentifier], session_id: messageId, ...message },
+            message: {
+                iot_identifiers: [iotBoxIdentifier],
+                iot_identifier: iotBoxIdentifier, // compatibility with v19.1+ IoT Boxes
+                session_id: messageId,
+                ...message,
+            },
             message_type: messageType,
         });
 

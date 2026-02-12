@@ -149,16 +149,26 @@ class PricerStore(models.Model):
                 raise UserError(_('Failed to unlink Pricer tag %(pricer_tag)s at API url %(api_url)s', pricer_tag=pricer_tag_id, api_url=unlink_tag_url))
 
     def action_button_update_pricer_tags(self):
-        """
-        Action assigned to buttons which allow the user to manually call Pricer API
-        self here contains the recordset of selected Pricer Stores in their list view
-        """
-        # Recover arguments from xml context
-        self._update_pricer_tags(self.env.context.get('update_all') or False)
+        """Manually call Pricer API to update products on Pricer tags"""
+        updated = self._update_pricer_tags(update_all=False)
+
+        message = (
+            self.last_update_status_message
+            if updated
+            else _('Everything is already up to date with Pricer. No update needed.')
+        )
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': message,
+                'type': 'danger' if message.startswith(_('Error')) else 'info',
+            },
+        }
 
     def _update_pricer_tags(self, update_all):
-        """
-        This method is regularly called by a cron in pricer module
+        """This method is regularly called by a cron in pricer module
         The interval is defined in data/pricer_ir_cron.xml
         This is done to avoid doing excessive API requests on every action
         while maintaining user's pricer tags synchronized with Odoo database
@@ -166,44 +176,62 @@ class PricerStore(models.Model):
         A button on list view of pricer stores allows the user to manually call this method
         If called manually, instead of going through ALL the pricer stores in the database,
         it will only check the pricer stores specified in its "pricer_stores_to_update" argument
+
+        :param bool update_all: only kept not to change the method signature
         """
+        anything_to_update = False
+
         # Go through every Pricer store and build a JSON request body for it
         with requests.Session() as requests_session:
-            for pricer_store in self:
-                create_or_update_request_body = []
-                link_request_body = []
+            for store in self:
+                products = store.product_ids.filtered("pricer_product_to_create_or_update")
+                tags = products.pricer_tag_ids.filtered("pricer_product_to_link")
 
-                for product_id in pricer_store.product_ids:
-                    # Check if the product needs to be created / update on Pricer db
-                    if product_id.pricer_product_to_create_or_update or update_all:
-                        create_or_update_request_body.append(product_id._get_create_or_update_body())
-                        product_id.pricer_product_to_create_or_update = False
-                        for pricer_tag_id in product_id.pricer_tag_ids:
-                            # Check if the pricer tag needs to be linked to a product
-                            if pricer_tag_id.pricer_product_to_link or update_all:
-                                link_request_body.append(pricer_tag_id._get_link_body())
-                                pricer_tag_id.pricer_product_to_link = False
+                if not products and not tags:
+                    continue  # This store is up to date
 
-                # If needed, call the Pricer api to update/create products and link the price tags
-                if create_or_update_request_body or link_request_body:
-                    try:
-                        setup_requests_session(requests_session, pricer_store.pricer_login, pricer_store.pricer_password, pricer_store.auth_url)
-                        # Create / Update products at Pricer database
-                        if create_or_update_request_body:
-                            response = requests_session.patch(pricer_store.create_or_update_products_url, json=create_or_update_request_body, timeout=PRICER_REQUESTS_TIMEOUT)
-                            response.raise_for_status()
-                            _logger.info("Succesfully created/updated products information for %s at Pricer API url: %s", pricer_store.name, pricer_store.create_or_update_products_url)
-                        # Link the new Pricer tags to the existing products on their database
-                        if link_request_body:
-                            response = requests_session.patch(pricer_store.link_tags_url, json=link_request_body, timeout=PRICER_REQUESTS_TIMEOUT)
-                            response.raise_for_status()
-                            _logger.info("Succesfully linked Pricer labels to products for %s at Pricer API URL: %s", pricer_store.name, pricer_store.link_tags_url)
-                        pricer_store.last_update_status_message = _("Update successfully sent to Pricer")
-                    except requests.exceptions.RequestException as e:
-                        _logger.warning(e)
-                        if e.response:
-                            pricer_store.last_update_status_message = _("Error: %(status_code)s - %(message)s", status_code=e.response.status_code, message=e.response.reason)
-                        else:
-                            pricer_store.last_update_status_message = _("Error: check Pricer credentials")
-                    finally:
-                        pricer_store.last_update_datetime = fields.Datetime.now()
+                anything_to_update = True
+
+                # Call the Pricer api to update/create products and link the price tags
+                try:
+                    setup_requests_session(requests_session, store.pricer_login, store.pricer_password, store.auth_url)
+                    # Create / Update products at Pricer database
+                    if products:
+                        requests_session.patch(
+                            store.create_or_update_products_url,
+                            json=[p._get_create_or_update_body() for p in products],
+                            timeout=PRICER_REQUESTS_TIMEOUT,
+                        ).raise_for_status()
+                        products.write({'pricer_product_to_create_or_update': False})
+                        _logger.info(
+                            "Successfully created/updated products information for %s at Pricer API url: %s",
+                            store.name, store.create_or_update_products_url,
+                        )
+                    # Link the new Pricer tags to the existing products on their database
+                    if tags:
+                        requests_session.patch(
+                            store.link_tags_url,
+                            json=[t._get_link_body() for t in tags],
+                            timeout=PRICER_REQUESTS_TIMEOUT,
+                        ).raise_for_status()
+                        tags.write({'pricer_product_to_link': False})
+                        _logger.info(
+                            "Successfully linked Pricer labels to products for %s at Pricer API URL: %s",
+                            store.name, store.link_tags_url,
+                        )
+                    store.last_update_status_message = _("Update successfully sent to Pricer")
+
+                except requests.exceptions.RequestException as e:
+                    _logger.warning(e)
+                    if e.response:
+                        store.last_update_status_message = _(
+                            "Error: %(code)s - %(reason)s",
+                            code=e.response.status_code,
+                            reason=e.response.reason,
+                        )
+                    else:
+                        store.last_update_status_message = _("Error: check Pricer credentials")
+                finally:
+                    store.last_update_datetime = fields.Datetime.now()
+
+        return anything_to_update

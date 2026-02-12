@@ -1,43 +1,46 @@
 /** @odoo-module **/
 
+import * as helper from "@mrp_workorder/../tests/tours/running_tour_action_helper";
+import { stepUtils } from "@mrp_workorder/../tests/tours/tour_step_utils";
 import { registry } from "@web/core/registry";
 
 registry.category("web_tour.tours").add("test_worksheet_quality_check", {
     steps: () => [
-        {
-            trigger: ".form-check:has(input[name='Lovely Workcenter'])",
-            run: "click",
-        },
-        {
-            trigger: "button:contains('Confirm')",
-            run: "click",
-        },
+        ...stepUtils.openWorkcentersSelector(),
+        ...stepUtils.addWorkcenterToDisplay("Lovely Workcenter"),
+        ...stepUtils.confirmWorkcentersSelection(),
         {
             content: "Check that we are in the MO view",
-            trigger: ".o_mrp_display_records button:contains('Lovely Workcenter')",
+            trigger: ".o_work_center_btn.active:contains('Overview')",
+            run: function () {
+                helper.assertWorkOrderValues({
+                    name: "TWH/MO/00001",
+                    product: "Lovely Product",
+                    quantity: "1 Unit",
+                    steps: [
+                        { label: "Lovely Operation", workcenter: "Lovely Workcenter" },
+                    ],
+                });
+            }
         },
+        ...stepUtils.clickOnWorkcenterButton("Lovely Workcenter"),
         {
-            content: "Swap to the WO view of the Lovely Workcenter",
-            trigger: "button.btn-light:contains('Lovely Workcenter')",
-            run: "click",
-        },
-        {
-            content: "Register the production",
-            trigger: ".o_mrp_record_line span:contains(Register Production)",
-            run: "click",
-        },
-        {
-            trigger: "button:contains('Validate')",
-            run: "click",
+            trigger: ".o_work_center_btn.active:contains('Lovely Workcenter')",
+            run: function () {
+                helper.assertWorkOrderValues({
+                    name: "TWH/MO/00001",
+                    product: "Lovely Product",
+                    operation: "Lovely Operation",
+                    quantity: "1 Unit",
+                    steps: [
+                        { label: "Lovely Worksheet" },
+                    ],
+                });
+            }
         },
         {
             content: "Open the worksheet Quality Check",
-            trigger: ".o_mrp_display_record .accordion a.accordion-button",
-            run: "click",
-        },
-        {
-            content: "Open the worksheet Quality Check",
-            trigger: ".o_mrp_record_line span:contains(Lovely Worksheet)",
+            trigger: ".o_mrp_record_line button.o_btn_icon:has(.fa-file-text)",
             run: "click",
         },
         {
@@ -53,12 +56,13 @@ registry.category("web_tour.tours").add("test_worksheet_quality_check", {
         },
         {
             trigger:
-                ".o_mrp_display_record:has(.accordion:contains(1/1):has(.collapse:not(.show)))",
+                ".o_mrp_display_record .o_line_value.text-success:contains('passed')",
         },
         {
             content: "Check that the quality check has been validated",
-            trigger: ".btn:contains('Close Production')",
+            trigger: "button.btn-primary[barcode_trigger='CLMO']",
             run: "click",
         },
+        { trigger: ".o_view_nocontent" },
     ],
 });

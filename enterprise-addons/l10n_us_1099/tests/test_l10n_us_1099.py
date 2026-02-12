@@ -255,3 +255,61 @@ class Test1099(AccountTestInvoicingCommon):
         self.assertEqual(csv_content[1], expected_lines[0], 'Wizard did not generate the expected line for 1099 vendor.')
         self.assertEqual(csv_content[2], expected_lines[1], 'Wizard did not generate the expected line for Vendor X.')
         self.assertEqual(len(csv_content), 3, 'Wizard should exactly generate the three lines above.')
+
+    @freeze_time("2021-02-10")
+    def test_multi_company_payer_name(self):
+        other_company = self.company_data_2["company"]
+        liquidity_account_2 = self.company_data_2['default_journal_bank'].default_account_id
+        vendor_2 = self.vendor_1099.copy()
+
+        move_vals_1, move_vals_2 = [
+            {
+                "date": "2020-06-06",
+                "line_ids": [
+                    Command.create({
+                        "name": "debit",
+                        "partner_id": (self.vendor_1099 if i == 0 else vendor_2).id,
+                        "account_id": (self.expense_account if i == 0 else self.company_data_2['default_account_expense']).id,
+                        "debit": 100.0,
+                        "credit": 0.0,
+                    }),
+                    Command.create({
+                        "name": "credit",
+                        "partner_id": (self.vendor_1099 if i == 0 else vendor_2).id,
+                        "account_id": (self.liquidity_account if i == 0 else liquidity_account_2).id,
+                        "debit": 0.0,
+                        "credit": 100.0,
+                    }),
+                ],
+            } for i in range(2)
+        ]
+
+        move_1 = self.env["account.move"].create(move_vals_1)
+        move_2 = self.env["account.move"].with_company(other_company).create(move_vals_2)
+        (move_1 + move_2).action_post()
+
+        lines_to_export = (move_1 + move_2).line_ids.filtered('credit')
+        wizard = self.env['l10n_us_1099.wizard'].create({'lines_to_export': lines_to_export})
+        wizard.action_generate()
+        csv_content = base64.b64decode(wizard.generated_csv_file).decode().splitlines()
+
+        self.maxDiff = None  # show the full diff in case of errors
+        header = (
+            'Payer Name,Payer Address Line 1,Payer Address Line 2,Payer City,Payer State,Payer Zip,Payer Country,Payer Phone Number,Payer TIN,'
+            'Payee Name,Payee Address Line 1,Payee Address Line 2,Payee City,Payee State,Payee Zip,Payee Country,Payee Email,Payee TIN,NEC - 1 Nonemployee compensation,'
+            'MISC - 1 Rents,MISC - 2 Royalties,MISC - 3 Other income,MISC - 5 Fishing boat proceeds,MISC - 6 Medical and health care payments,'
+            'MISC - 8 Substitute payments in lieu of dividends or interest,MISC - 9 Crop insurance proceeds,MISC - 10 Gross proceeds paid to an attorney,'
+            'MISC - 11 Fish purchased for resale,MISC - 12 Section 409A deferrals,MISC - 13 Excess golden parachute payments,MISC - 14 Nonqualified deferred compensation'
+        )
+        self.assertEqual(csv_content[0], header, 'Wizard did not generate the expected header.')
+
+        expected_lines = [(
+            'company_1_data,1 W Seneca St,Floor 26,Buffalo,New York,14203,United States,(716) 249-2880,987654321,1099 vendor,250 Executive Park Blvd,'
+            '#3400,San Francisco,California,94134,United States,vendor@example.com,123456789,0,0,0,100.0,0,0,0,0,0,0,0,0,0'
+        ), (
+            'company_2,,,,,,United States,,,1099 vendor (copy),250 Executive Park Blvd,'
+            '#3400,San Francisco,California,94134,United States,vendor@example.com,123456789,0,0,0,100.0,0,0,0,0,0,0,0,0,0'
+        )]
+        self.assertEqual(csv_content[1], expected_lines[0], 'Wizard did not generate the expected line for 1099 vendor.')
+        self.assertEqual(csv_content[2], expected_lines[1], 'Wizard did not generate the expected line for Vendor 2.')
+        self.assertEqual(len(csv_content), 3, 'Wizard should exactly generate the three lines above.')

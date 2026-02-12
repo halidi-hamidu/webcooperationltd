@@ -14,6 +14,7 @@ class ResPartner(models.Model):
     l10n_mx_edi_addenda_ids = fields.Many2many(
         comodel_name='l10n_mx_edi.addenda',
         string='Addendas & Complementos',
+        copy=False,
     )
     l10n_mx_edi_fiscal_regime = fields.Selection(
         selection=FISCAL_REGIMES_SELECTION,
@@ -41,6 +42,7 @@ class ResPartner(models.Model):
             ('PUE', 'PUE'),
         ],
     )
+    l10n_mx_edi_partner_address_complete = fields.Boolean(compute='_compute_l10n_mx_edi_partner_address_complete')
 
     @api.depends('country_code')
     def _compute_l10n_mx_edi_fiscal_regime(self):
@@ -95,3 +97,8 @@ class ResPartner(models.Model):
         if self.country_code == 'MX':
             return 'MX'
         return super()._deduce_country_code()
+
+    @api.depends('country_id', 'zip')
+    def _compute_l10n_mx_edi_partner_address_complete(self):
+        for partner in self:
+            partner.l10n_mx_edi_partner_address_complete = bool(partner.country_id and partner.zip)

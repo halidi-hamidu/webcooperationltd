@@ -427,6 +427,8 @@ class SaleOrder(models.Model):
         for origin_order_id, invoices_ids in orders_vals + list(move_by_origin.items()):
             other_move_ids = move_by_origin[origin_order_id]
             all_move_ids = set(invoices_ids + other_move_ids)
+            # Filtered only account.move that user can see
+            all_move_ids = self.env['account.move'].browse(all_move_ids)._filtered_access('read').ids
             so_by_origin[origin_order_id].update({
                 'invoice_ids': [Command.set(all_move_ids)],
                 'invoice_count': len(all_move_ids)
@@ -604,9 +606,11 @@ class SaleOrder(models.Model):
         super()._notify_thread(message, msg_vals=msg_vals, **kwargs)
 
     def _fetch_duplicate_orders(self):
-        # Renewal subscription orders ('2_renewal') should not duplicate orders
-        non_renewal_orders = self.filtered_domain([('subscription_state', '!=', '2_renewal')])
-        return super(SaleOrder, non_renewal_orders)._fetch_duplicate_orders()
+        # Renewal and upsell subscription orders should not duplicate orders
+        non_renewal_upsell_orders = self.filtered_domain([
+            ('subscription_state', 'not in', ('2_renewal', '7_upsell'))
+        ])
+        return super(SaleOrder, non_renewal_upsell_orders)._fetch_duplicate_orders()
 
     ###########
     # CRUD    #
@@ -786,7 +790,7 @@ class SaleOrder(models.Model):
                         order.subscription_state = '1_draft'
                 elif order.subscription_state != '7_upsell':
                     order.subscription_state = False
-                if all(sol._is_postpaid_line() for sol in order.order_line):
+                if order.order_line._is_all_postpaid():
                     post_paid |= order
 
             # _prepare_confirmation_values will update subscription_state for all confirmed subscription.
@@ -857,6 +861,12 @@ class SaleOrder(models.Model):
         # discount is 50% and the default next_invoice_date will be in june too.
         # We need to get the default next_invoice_date that was saved on the upsell because the compute has no way
         # to differentiate new line created by an upsell and new line created by the user.
+        self.env['sale.order'].search([
+            ('subscription_state', '=', '7_upsell'),
+            ('state', 'in', ['draft', 'sent']),
+            ('subscription_id', 'in', self.subscription_id.ids),
+            ('id', 'not in', self.ids)
+        ]).action_cancel()
         for upsell in self:
             upsell.subscription_id.message_post(body=_("The upsell %s has been confirmed.", upsell._get_html_link()))
         for line in (updated_line_ids | new_lines_ids).with_context(skip_line_status_compute=True):
@@ -1281,11 +1291,15 @@ class SaleOrder(models.Model):
         )
         invoiceable_line_ids = []
         downpayment_line_ids = []
-        pending_section = None
+        section_line_ids = []
+        subsection_line_ids = []
         for line in self.order_line:
-            if line.display_type in ('line_section', 'line_subsection'):
-                # Only add section if one of its lines is invoiceable
-                pending_section = line
+            if line.display_type == 'line_section':
+                section_line_ids = [line.id]  # Start a new section.
+                subsection_line_ids = []
+                continue
+            if line.display_type == 'line_subsection':
+                subsection_line_ids = [line.id]  # Start a new subsection.
                 continue
 
             if line.state != 'sale':
@@ -1303,9 +1317,22 @@ class SaleOrder(models.Model):
                     # downpayment line must be kept at the end in its dedicated section
                     downpayment_line_ids.append(line.id)
                     continue
-                if pending_section:
-                    invoiceable_line_ids.append(pending_section.id)
-                    pending_section = False
+                if subsection_line_ids:
+                    if line.display_type:
+                        subsection_line_ids.append(line.id)
+                        continue
+                    # Extend the subsection lines too if altleast one invoicable line is under subsection
+                    invoiceable_line_ids.extend(section_line_ids + subsection_line_ids)
+                    subsection_line_ids = []
+                    section_line_ids = []
+                # If the invoicable line is under section
+                elif section_line_ids:
+                    if line.display_type:
+                        section_line_ids.append(line.id)
+                        continue
+                    invoiceable_line_ids.extend(section_line_ids)
+                    section_line_ids = []
+                    subsection_line_ids = []
                 invoiceable_line_ids.append(line.id)
             if line.display_type == "subscription_discount":
                 invoiceable_line_ids.append(line.id)
@@ -2247,7 +2274,7 @@ class SaleOrder(models.Model):
         :param order: the new order
         """
         for follower in self.message_follower_ids:
-            if follower.partner_id not in order.message_follower_ids.partner_id and not follower.partner_id.partner_share:
+            if follower.partner_id not in order.message_follower_ids.partner_id:
                 order.message_subscribe(
                     partner_ids=follower.partner_id.ids,
                     subtype_ids=follower.subtype_ids.ids

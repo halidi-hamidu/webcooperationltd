@@ -1,7 +1,6 @@
 from collections import defaultdict
 
-from odoo import api, fields, models
-
+from odoo import api, exceptions, fields, models
 from odoo.addons.mail.tools.discuss import Store
 
 
@@ -69,7 +68,7 @@ class MailActivity(models.Model):
         for model_name, record_ids in record_ids_by_model_name.items():
             if not self.env[model_name].has_access("read"):
                 continue
-            # calling search will filter out records that are irrelevant to the current company
+            # calling search will filter out records that are irrelevant to the current company / unlinked
             allowed_record_ids_by_model_name[model_name] = self.env[model_name].search([("id", "in", list(record_ids))]).ids
         store = Store()
         overdue_call_activities_of_current_user.filtered(
@@ -127,13 +126,17 @@ class MailActivity(models.Model):
         for model, data in data_by_model.items():
             records = self.env[model].browse(data["record_ids"])
             for record, activity in zip(records, data["activities"]):
-                phone = record.phone if "phone" in record else False
-                if not phone:
-                    recipient = next(
-                        iter(record._mail_get_partners(introspect_fields=True)[record.id]),
-                        self.env["res.partner"],
-                    )
-                    phone = recipient.phone
+                try:
+                    phone = record.phone if "phone" in record else False
+                    if not phone:
+                        recipient = next(
+                            iter(record._mail_get_partners(introspect_fields=True)[record.id]),
+                            self.env["res.partner"],
+                        )
+                        phone = recipient.phone
+                # cascade-deleted records might make this crash, be defensive
+                except exceptions.MissingError:
+                    phone = False
                 phone_numbers_by_activity[activity] = phone
         return phone_numbers_by_activity
 

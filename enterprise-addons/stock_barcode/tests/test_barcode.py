@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command
+from odoo.exceptions import ValidationError
 from odoo.tests import HttpCase, tagged
 
 
@@ -339,3 +340,21 @@ class TestBarcodeClientAction(HttpCase):
 
         product.write({'barcode': False})
         self.assertFalse(product.barcode)
+
+    def test_lot_duplication_with_gs1_nomenclature(self):
+        """
+        Test that two lots cannot have the same name, even when the name follows the pattern of a GS1 rule
+        """
+        product = self.env['product.product'].create({
+            'name': 'Product',
+            'is_storable': True,
+            'tracking': 'serial',
+        })
+        self.env.company.nomenclature_id = self.env.ref('barcodes_gs1_nomenclature.default_gs1_nomenclature')
+        lot = {
+            'name': '101',  # Matches the 'Batch or lot number' rule (barcode_rule_gs1_10)
+            'product_id': product.id
+        }
+        self.env['stock.lot'].create(lot)
+        with self.assertRaises(ValidationError, msg="Shouldn't be possible to create two lots with the same name"):
+            self.env['stock.lot'].create(lot)

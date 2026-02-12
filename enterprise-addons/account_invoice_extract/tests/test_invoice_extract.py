@@ -867,11 +867,11 @@ class TestInvoiceExtract(AccountTestInvoicingCommon, TestExtractMixin, TestAccou
         invoice = self._create_invoice_with_tax()
 
         self.assertRecordValues(invoice.invoice_line_ids, [{
-                'price_unit': 112,
                 'quantity': 1,
                 'price_subtotal': 100,
                 'price_total': 112,
         }])
+        self.assertAlmostEqual(invoice.invoice_line_ids.price_unit, 112)
 
     def test_tax_price_excluded(self):
         self.env['account.tax'].create({
@@ -975,12 +975,13 @@ class TestInvoiceExtract(AccountTestInvoicingCommon, TestExtractMixin, TestAccou
         # Test that when we validate 3 bills without modification from the OCR data, we show
         # the user a wizard to automate the posting for that vendor
 
-        def create_bill_with_ocr(ref):
+        def create_bill_with_ocr(ref, date='2017-01-01'):
             move = self.env['account.move'].create({
                 'move_type': 'in_invoice',
                 'ref': ref,
                 'extract_state': 'waiting_extraction',
                 'extract_document_uuid': 'some_token',
+                'invoice_date': date,
             })
             with self._mock_iap_extract(
                 extract_response=self.get_result_success_response(),
@@ -1007,7 +1008,7 @@ class TestInvoiceExtract(AccountTestInvoicingCommon, TestExtractMixin, TestAccou
         autopost_bills_wizard.action_automate_partner()
 
         # Now, next time the OCR is finished, we should autopost the bill
-        bill = create_bill_with_ocr("ref3")
+        bill = create_bill_with_ocr("ref3", date="2017-01-02")
         self.assertEqual(bill.state, "posted")
 
     def test_invoice_ocr_note_author(self):

@@ -45,15 +45,15 @@ class SaleOrder(models.Model):
         readonly=False,
     )
 
+    l10n_mx_edi_partner_address_complete = fields.Boolean(related="partner_id.l10n_mx_edi_partner_address_complete")
+
     @api.depends('partner_id')
     def _compute_l10n_mx_edi_payment_method_id(self):
-        default_payment_method_id = self.env.ref('l10n_mx_edi.payment_method_otros', raise_if_not_found=False)
         for order in self:
             if order.country_code == 'MX':
                 order.l10n_mx_edi_payment_method_id = (
                     order.partner_id.l10n_mx_edi_payment_method_id or
-                    order.l10n_mx_edi_payment_method_id or
-                    default_payment_method_id
+                    order.l10n_mx_edi_payment_method_id
                 )
             else:
                 order.l10n_mx_edi_payment_method_id = False
@@ -70,10 +70,10 @@ class SaleOrder(models.Model):
             else:
                 order.l10n_mx_edi_usage = False
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'l10n_mx_edi_partner_address_complete')
     def _compute_l10n_mx_edi_cfdi_to_public(self):
         for order in self:
-            order.l10n_mx_edi_cfdi_to_public = False
+            order.l10n_mx_edi_cfdi_to_public = order.country_code == 'MX' and not order.l10n_mx_edi_partner_address_complete
 
     @api.depends('partner_id')
     def _compute_l10n_mx_edi_payment_policy(self):

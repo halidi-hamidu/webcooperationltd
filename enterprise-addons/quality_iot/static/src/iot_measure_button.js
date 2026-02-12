@@ -6,9 +6,7 @@ import { IotActionButton } from "./iot_action_button/iot_action_button";
 export class IotMeasureWidget extends IotActionButton {
     setup() {
         super.setup();
-
-        this._isMeasuring = true;
-        this._keepMeasuring();
+        this.onClick(); // Send a first action to set the `session_id`
         onWillUnmount(() => this._isMeasuring = false);
     }
 
@@ -25,7 +23,13 @@ export class IotMeasureWidget extends IotActionButton {
         );
     }
 
-    async onClick() {
+    onClick() {
+        if (!this.iotDevice) {
+            this.notification.add(_t("No IoT device configured for this quality check."), {
+                type: "warning",
+            });
+            return;
+        }
         const { iotBoxId, deviceIdentifier } = this.iotDevice;
         this.iotHttpService.action(
             iotBoxId,
@@ -46,11 +50,12 @@ export class IotMeasureWidget extends IotActionButton {
     }
 
     async onSuccess(data) {
-        if (!data.value) {
+        const measure = data.result ? data.result : data.value; // compatibility w/ newer IoT Boxes
+        if (!measure) {
             return this.notifyFailure();
         }
         this._keepMeasuring();
-        this.props.record.update({ measure: data.value });
+        this.props.record.update({ measure });
     }
 }
 

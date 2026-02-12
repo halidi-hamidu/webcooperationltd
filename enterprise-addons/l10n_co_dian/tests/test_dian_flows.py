@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import patch
+from markupsafe import Markup
 
 from odoo import fields
 from odoo.exceptions import UserError
@@ -161,23 +162,53 @@ class TestDianFlows(TestCoDianCommon):
             'message': "<p>Error al parsear xml. Namespace prefix 'sts' is not defined.</p>",
         }])
 
-    def test_send_bill_sync_duplicated(self):
+    def test_send_bill_sync_duplicated_identifier_accepted(self):
         """ SendBillSync returning 'Regla: 90, Rechazo: Documento procesado anteriormente.'
         This means an invoice with the same CUFE has already been accepted by the DIAN.
+        The invoice on DIAN has the same partner and issue date than the one being sent,
+        therefore it is accepted.
         """
         error_raised = False
         try:
-            self._mock_send_and_print(move=self.invoice, response_file='SendBillSync_duplicated.xml')
-        except UserError as e:
+            xml = self._read_file('l10n_co_dian/tests/attachments/invoice_alcohol.xml', 'rb')
+            with patch(f'{self.document_path}._get_xml_by_document_key', return_value=xml):
+                self._mock_send_and_print(move=self.invoice, response_file='SendBillSync_duplicated.xml')
+        except UserError:
             error_raised = True
 
         self.assertFalse(error_raised)
-        self.assertTrue(self.invoice.l10n_co_dian_attachment_id)
         self.assertRecordValues(self.invoice.l10n_co_dian_document_ids, [{
             'zip_key': False,
             'state': 'invoice_accepted',
             'message': ("<p>Validación contiene errores en campos mandatorios.</p>"
                         "<ul><li>Regla: 90, Rechazo: Documento procesado anteriormente.</li></ul>"),
+        }])
+
+    def test_send_bill_sync_duplicated_identifier_rejected(self):
+        """ SendBillSync returning 'Regla: 90, Rechazo: Documento procesado anteriormente.'
+        This means an invoice with the same CUFE has already been accepted by the DIAN.
+        The invoice on DIAN has the same partner but a different issue time than the one
+        being sent, therefore it is rejected.
+        """
+        error_raised = False
+        try:
+            xml = self._read_file('l10n_co_dian/tests/attachments/invoice_alcohol.xml', 'rb')
+            # change the issue time in the XML so that the invoice should be rejected
+            xml = xml.replace(
+                b'<cbc:IssueTime>19:00:00-05:00</cbc:IssueTime>',
+                b'<cbc:IssueTime>08:00:00-05:00</cbc:IssueTime>'
+            )
+            with patch(f'{self.document_path}._get_xml_by_document_key', return_value=xml):
+                self._mock_send_and_print(move=self.invoice, response_file='SendBillSync_duplicated.xml')
+        except UserError:
+            error_raised = True
+
+        self.assertTrue(error_raised)
+        self.assertRecordValues(self.invoice.l10n_co_dian_document_ids, [{
+            'zip_key': False,
+            'state': 'invoice_rejected',
+            'message': Markup("<p>Validación contiene errores en campos mandatorios.</p>"
+                              "<ul><li>Regla: 90, Rechazo: Documento procesado anteriormente.</li></ul>"),
         }])
 
     def test_send_bill_sync_second_attempt(self):

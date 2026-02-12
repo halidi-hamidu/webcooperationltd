@@ -129,6 +129,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                         'tax_id': line_vals['tax_line_id'],
                         'tax_name': line_vals['tax_name'],
                         'tax_amount': line_vals['tax_amount'],
+                        'tax_base_amount': line_vals['tax_base_amount'],
                         'tax_amount_type': line_vals['tax_amount_type'],
                         'amount': line_vals['balance'],
                         'amount_currency': line_vals['amount_currency'],

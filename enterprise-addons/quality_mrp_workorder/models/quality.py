@@ -86,4 +86,5 @@ class QualityCheck(models.Model):
     def action_fail_and_next(self):
         self.ensure_one()
         super().do_fail()
-        return {'next_check_id': self._next()}
+        result = self._next()
+        return result if isinstance(result, dict) else {'next_check_id': result}

@@ -175,3 +175,37 @@ class TestWorkorderDurationHr(common.TransactionCase):
             'employee_ids': self.employee_1.ids,
             'time_efficiency': 80,
         })
+
+    def test_button_pending_only_current_employee(self):
+        """
+        Ensure that clicking on Pending stops only the current employee productivity
+        and does not affect other employees working on the same workorder.
+        """
+        self.mo.action_confirm()
+        wo = self.mo.workorder_ids
+
+        # Create a second user linked to employee_2
+        user_2 = self.env['res.users'].create({
+            'name': 'Second User',
+            'login': 'second_user',
+            'email': 'second_user@test.com',
+            'group_ids': [Command.set([self.env.ref('mrp.group_mrp_user').id])],
+            'employee_id': self.employee_2.id,
+        })
+        # Start workorder with employee 1
+        self.env.user.employee_id = self.employee_1
+        wo.start_employee(self.employee_1.id)
+        # Start workorder with employee 2 (second user)
+        wo.with_user(user_2).start_employee(self.employee_2.id)
+        # Ensure both employees are working
+        self.assertEqual(len(wo.time_ids), 2)
+        self.assertFalse(any(wo.time_ids.mapped('date_end')))
+        # Employee 1 clicks on Pending
+        wo.button_pending()
+
+        time_emp_1 = wo.time_ids.filtered(lambda t: t.employee_id == self.employee_1)
+        time_emp_2 = wo.time_ids.filtered(lambda t: t.employee_id == self.employee_2)
+        # Employee 1 must be stopped
+        self.assertTrue(time_emp_1.date_end)
+        # Employee 2 must still be running
+        self.assertFalse(time_emp_2.date_end)

@@ -540,6 +540,53 @@ class TestAnalyticReport(TestAccountReportsCommon):
             options,
         )
 
+    def test_general_ledger_with_analytic_group_by(self):
+        analytic_plan = self.env["account.analytic.plan"].create({
+            "name": "Default Plan",
+        })
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Test Account",
+            "plan_id": analytic_plan.id,
+        })
+
+        invoice = self.init_invoice(
+            "out_invoice",
+            amounts=[100, 200],
+            invoice_date="2023-01-01",
+        )
+        invoice.action_post()
+        invoice.invoice_line_ids[0].analytic_distribution = {analytic_account.id: 100}
+
+        general_ledger_report = self.env.ref("account_reports.general_ledger_report")
+        general_ledger_report.filter_analytic_groupby = True
+        options = self._generate_options(
+            general_ledger_report,
+            "2023-01-01",
+            "2023-01-01",
+            default_options={
+                'unfold_all': True,
+                'analytic_accounts_groupby': [analytic_account.id],
+            }
+        )
+
+        self.assertLinesValues(
+            general_ledger_report._get_lines(options),
+            #                                           [             Analytic account             ]|[                 Total                   ]
+            #   Name                                    Debit           Credit          Balance     |   Debit           Credit          Balance
+            [   0,                                         4,                5,               6,          10,               11,              12],
+            [
+                ['121000 Account Receivable',           0.00,             0.00,            0.00,      300.00,             0.00,          300.00],
+                ['INV/2023/00001',                      0.00,             0.00,            0.00,      300.00,             0.00,          300.00],
+                ['Total 121000 Account Receivable',     0.00,             0.00,            0.00,      300.00,             0.00,          300.00],
+                ['400000 Product Sales',                0.00,           100.00,         -100.00,        0.00,           300.00,         -300.00],
+                ['INV/2023/00001 test line',            0.00,           100.00,         -100.00,        0.00,           100.00,         -100.00],
+                ['INV/2023/00001 test line',            0.00,             0.00,         -100.00,        0.00,           200.00,         -300.00],
+                ['Total 400000 Product Sales',          0.00,           100.00,         -100.00,        0.00,           300.00,         -300.00],
+                ['Total General Ledger',                0.00,           100.00,         -100.00,      300.00,           300.00,            0.00],
+            ],
+            options,
+        )
+
     def test_analytic_groupby_with_horizontal_groupby(self):
 
         out_invoice_1 = self.env['account.move'].create([{

@@ -188,3 +188,69 @@ class TestPickingBarcodeClientAction(TestBarcodeClientAction):
         })
         delivery.action_confirm()
         self.start_tour('/odoo/barcode', 'test_delivery_kit_with_tracked_compo', login='admin')
+
+    def test_picking_kit_variant_packaging(self):
+        """ Test packaging related to a specific variant.
+        """
+        group_uom = self.env.ref('uom.group_uom')
+        self.env.user.write({'group_ids': [Command.link(group_uom.id)]})
+        att_color = self.env['product.attribute'].create({'name': 'Color', 'sequence': 1})
+        att_color_values = self.env['product.attribute.value'].create([
+            {'name': 'red', 'attribute_id': att_color.id},
+            {'name': 'blue', 'attribute_id': att_color.id},
+        ])
+        product_template = self.bom_simple_kit.product_tmpl_id
+        product_template.attribute_line_ids = self.env['product.template.attribute.line'].create([{
+            'product_tmpl_id': product_template.id,
+            'attribute_id': att_color.id,
+            'value_ids': [
+                Command.set(att_color_values.ids),
+            ],
+        }])
+        blue_sofa = product_template.product_variant_ids[1]
+        pack_2 = self.env['uom.uom'].create({
+            'name': 'pack of two',
+            'relative_factor': 2,
+            'relative_uom_id': self.env.ref('uom.product_uom_unit').id,
+        })
+        self.env['product.uom'].create({
+            'barcode': 'PACK02',
+            'product_id': blue_sofa.id,
+            'uom_id': pack_2.id,
+        })
+        picking = self.env['stock.picking'].create({
+            'name': 'WH/IN/BLUESIMPLEKIT',
+            'picking_type_id': self.picking_type_in.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'move_ids': [
+                Command.create({
+                    'product_id': blue_sofa.id,
+                    'product_uom_qty': 2,
+                    'product_uom': blue_sofa.uom_id.id,
+                    'location_id': self.supplier_location.id,
+                    'location_dest_id': self.stock_location.id,
+                }),
+            ],
+        })
+        picking.action_confirm()
+        self.start_tour('/odoo/barcode', 'test_picking_kit_variant_packaging', login='admin')
+
+    def test_only_mo_of_current_operation_are_visible(self):
+        """Test that it only returns manufacturing orders for the given picking type."""
+        picking_type_1 = self.warehouse.manu_type_id
+        picking_type_2 = picking_type_1.copy()
+        mo_1 = self.env['mrp.production'].create({
+            'product_id': self.product1.id,
+            'product_qty': 1,
+            'picking_type_id': picking_type_1.id,
+        })
+        mo_2 = self.env['mrp.production'].create({
+            'product_id': self.product1.id,
+            'product_qty': 1,
+            'picking_type_id': picking_type_2.id,
+        })
+        action = picking_type_1.get_action_picking_tree_ready_kanban()
+        productions = self.env['mrp.production'].search(action['domain'])
+        self.assertEqual(productions.ids, [mo_1.id])
+        self.assertNotIn(mo_2.id, productions.ids)

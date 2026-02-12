@@ -120,7 +120,7 @@ class CalendarBooking(models.Model):
         env_tz = self.with_context(tz=tz).env
         if self.staff_user_id:
             return _(
-                "%(name)s with %(staff_user)s\n%(date_start)s at %(time_start)s to\n%(date_end)s at %(time_end)s (%(timezone)s)",
+                "%(name)s with %(staff_user)s\n%(date_start)s at %(time_start)s to %(date_end)s at %(time_end)s (%(timezone)s)",
                 name=self.appointment_type_id.name,
                 staff_user=self.staff_user_id.display_name,
                 date_start=format_date(env_tz, self.start),
@@ -131,7 +131,7 @@ class CalendarBooking(models.Model):
             )
         else:
             return _(
-                "%(name)s\n%(date_start)s at %(time_start)s to\n%(date_end)s at %(time_end)s (%(timezone)s)",
+                "%(name)s\n%(date_start)s at %(time_start)s to %(date_end)s at %(time_end)s (%(timezone)s)",
                 name=self.appointment_type_id.name,
                 staff_user=self.staff_user_id.display_name,
                 date_start=format_date(env_tz, self.start),

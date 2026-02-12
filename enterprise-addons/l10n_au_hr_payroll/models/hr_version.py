@@ -522,11 +522,11 @@ class HrVersion(models.Model):
             else:
                 version.l10n_au_tfn = ""
 
-    @api.depends("marital", "children", "l10n_au_tax_free_threshold")
+    @api.depends("marital", "children", "l10n_au_tax_free_threshold", "employee_id.l10n_au_medicare_variation_form")
     def _compute_l10n_au_medicare_reduction(self):
         for version in self:
             version.l10n_au_medicare_reduction = "X"
-            if version.marital in ["married", "cohabitant"] and version.l10n_au_tax_free_threshold:
+            if version.marital in ["married", "cohabitant"] and version.l10n_au_tax_free_threshold and version.employee_id.l10n_au_medicare_variation_form:
                 if not version.children:
                     version.l10n_au_medicare_reduction = "0"
                 elif version.children < 10:

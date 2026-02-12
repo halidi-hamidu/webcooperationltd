@@ -735,6 +735,12 @@ class HelpdeskTicket(models.Model):
     def _unsubscribe_portal_users(self):
         self.message_unsubscribe(partner_ids=self.message_partner_ids.filtered('user_ids.share').ids)
 
+    def website_form_input_filter(self, request, values):
+        if 'partner_id' in values:
+            values.pop('partner_name', None)
+            values.pop('partner_email', None)
+        return values
+
     # ------------------------------------------------------------
     # Actions and Business methods
     # ------------------------------------------------------------

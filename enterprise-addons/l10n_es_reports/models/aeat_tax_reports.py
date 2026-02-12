@@ -1212,7 +1212,8 @@ class L10n_EsMod347TaxReportHandler(models.AbstractModel):
 
         rslt += self._l10n_es_boe_format_number(options, cash_basis_data or 0, length=16, decimal_places=2, signed=True, sign_pos=' ', in_currency=True)
 
-        rslt += self._l10n_es_boe_format_string(' ' * 201)
+        rslt += self._l10n_es_boe_format_string('000000', length=6)
+        rslt += self._l10n_es_boe_format_string(' ' * 195)
         rslt += b'\r\n'
 
         return rslt
@@ -1647,7 +1648,7 @@ class L10n_EsMod390TaxReportHandler(models.AbstractModel):
         casilla_lines_map = {}
         for section in options['sections']:
             section_report = self.env['account.report'].browse(section['id'])
-            report_lines = section_report._get_lines(section_report.get_options({}))
+            report_lines = section_report._get_lines({**options, 'report_id': section_report.id})
             casilla_lines_map.update(self._retrieve_casilla_lines(report_lines))
 
         # Header
@@ -1743,10 +1744,10 @@ class L10n_EsMod390TaxReportHandler(models.AbstractModel):
         # Header
         rslt = self._l10n_es_boe_format_string('<T39002000> ')
         casillas = [700, 701, 667, 668, 1, 2, 702, 703, 669, 670, 3, 4, 5, 6, 704, 705, 671, 672,
-        500, 501, 706, 707, 673, 674, 502, 503, 504, 505, 708, 709, 675, 675, 643, 644, 710, 711,
+        500, 501, 706, 707, 673, 674, 502, 503, 504, 505, 708, 709, 675, 676, 643, 644, 710, 711,
         677, 678, 645, 646, 647, 648, 712, 713, 679, 680, 7, 8, 714, 715, 681, 682, 9, 10, 11, 12,
-        13, 14, 716, 717, 683, 684, 23, 24, 25, 26, 720, 721, 687, 688, 545, 546, 722, 723, 689,
-        690, 547, 548, 551, 552, 27, 28, 29, 30, 649, 650, 31, 32, 33, 34]
+        13, 14, 716, 717, 683, 684, 21, 22, 718, 719, 685, 686, 23, 24, 25, 26, 720, 721, 687, 688,
+        545, 546, 722, 723, 689, 690, 547, 548, 551, 552, 27, 28, 29, 30, 649, 650, 31, 32, 33, 34]
         for casilla in casillas:
             rslt += self._l10n_es_boe_format_number(options, casilla_lines_map[f'{casilla:02d}'],
                                                     length=17, decimal_places=2, in_currency=True)

@@ -6,7 +6,7 @@ class PCM16AudioProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super(options);
 
-        this.maxBufferSize = 6000;
+        this.maxBufferSize = 2400;
         this.buffer = new Int16Array(this.maxBufferSize);
         this.nextInsertPointer = 0; // Next position to insert data into the buffer
     }

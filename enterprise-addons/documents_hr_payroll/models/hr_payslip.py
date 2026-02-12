@@ -74,12 +74,13 @@ class HrPayslip(models.Model):
         return super()._get_document_folder() if self.employee_id.user_id else self.company_id._get_or_create_worker_payroll_folder()
 
     def _check_create_documents(self):
+        self.ensure_one()
         return self._get_document_partner().id and (bool(self.employee_id.user_id) or self.company_id.documents_hr_settings)
 
     def _get_email_template(self):
         return self.env.ref(
             'documents_hr_payroll.mail_template_new_payslip', raise_if_not_found=False
-        ) if self._check_create_documents() else None
+        )
 
     def _compute_document_access_url(self):
         documents = self.env["documents.document"].search(
@@ -92,6 +93,11 @@ class HrPayslip(models.Model):
                 access_url_per_payslip[document.res_id] = document.access_url
         for payslip in self:
             payslip.document_access_url = access_url_per_payslip.get(payslip.id)
+
+    def _check_send_payslip_mail(self):
+        self.ensure_one()
+        res = super()._check_send_payslip_mail()
+        return res and self._check_create_documents()
 
     @api.model
     def _cron_generate_pdf(self, batch_size=False):

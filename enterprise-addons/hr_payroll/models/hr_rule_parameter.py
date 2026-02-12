@@ -87,9 +87,9 @@ class HrRuleParameter(models.Model):
     @api.depends('parameter_version_ids')
     def _compute_current_value(self):
         for rule_parameter in self:
+            rule_parameter.current_value_one_line = False
+            rule_parameter.valid_since = False
             if not rule_parameter.parameter_version_ids:
-                rule_parameter.current_value_one_line = False
-                rule_parameter.valid_since = False
                 continue
 
             # All values are already order from most recent to oldest.

@@ -654,14 +654,25 @@ class TestSubscriptionUpsell(TestSubscriptionCommon):
             renewal_so._create_invoices()
             renewal_so.order_line.invoice_lines.move_id._post()
             self.assertIn(
-                self.sale_user.partner_id, renewal_so.message_partner_ids,
+                self.subscription.message_follower_ids.partner_id.id, renewal_so.message_follower_ids.partner_id.ids,
                 "Parent order's followers should be copied into renew order.")
             # add a new follower in the renew order
-            renewal_so.message_subscribe(partner_ids=(self.partner + self.legit_user.partner_id).ids)
+            renewal_so.message_subscribe(self.partner.ids)
 
             # create a upsell order from renewal order
             action = renewal_so.prepare_upsell_order()
             upsell_so = self.env['sale.order'].browse(action['res_id'])
             self.assertEqual(
-                upsell_so.message_partner_ids, (self.sale_user + self.env.user).partner_id,
-                "Parent order's internal followers should be copied into upsell order, not customers")
+                renewal_so.message_follower_ids.partner_id.ids, upsell_so.message_follower_ids.partner_id.ids,
+                "Parent order's followers should be copied into upsell order.")
+
+    def test_upsell_duplicate_warning(self):
+        self.subscription.write({
+            'partner_id': self.user_portal.partner_id.id,
+            'client_order_ref': 'co_ref'
+        })
+        self.subscription.action_confirm()
+        self.subscription._create_recurring_invoice()
+        action = self.subscription.prepare_upsell_order()
+        upsell_so = self.env['sale.order'].browse(action['res_id'])
+        self.assertFalse(upsell_so.duplicated_order_ids, "Upsell quotation should not be marked as duplicate order and not show warning")

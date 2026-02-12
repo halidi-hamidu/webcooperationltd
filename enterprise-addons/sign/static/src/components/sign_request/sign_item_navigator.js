@@ -98,17 +98,6 @@ export function startSignItemNavigator(parent, target, types, env) {
     }
 
     function _scrollToSignItemPromise(item) {
-        if (env.isSmall) {
-            return new Promise((resolve) => {
-                state.isScrolling = true;
-                item.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                    inline: "center",
-                });
-                resolve();
-            });
-        }
         state.isScrolling = true;
         const viewer = target.querySelector("#viewer");
         const containerHeight = target.offsetHeight;

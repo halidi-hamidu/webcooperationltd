@@ -88,7 +88,8 @@ class ProductTemplate(models.Model):
         found_plan_ids = set()
         for pricing in all_pricings:
             if (
-                (plan_id := pricing.plan_id.id) not in found_plan_ids
+                pricing.plan_id.sudo().active
+                and (plan_id := pricing.plan_id.id) not in found_plan_ids
                 # No need for uom conversion since multi-uom is not supported for recurring
                 # products atm.
                 and pricing._is_applicable_for(product=variant or self, qty_in_product_uom=quantity)
@@ -120,9 +121,9 @@ class ProductTemplate(models.Model):
 
         to_year = {'year': 1, 'month': 12, 'week': 52}
         translation_mapping = {
-            'year': _('year'),
-            'month': _('month'),
-            'week': _('week'),
+            'year': (self.env._('year'), self.env._('years')),
+            'month': (self.env._('month'), self.env._('months')),
+            'week': (self.env._('week'), self.env._('weeks')),
         }
 
         # Find the plan with the shortest billing period to use as base for comparison
@@ -173,13 +174,17 @@ class ProductTemplate(models.Model):
             )
 
             if product_or_template.type == 'consu':
-                # For consumable products, use billing period (e.g., "3 month") instead of plan name
+                # For consumable products, use billing period (e.g., "3 months") instead of plan name
                 value = pricing.plan_id.billing_period_value
-                table_name = f"{value if value != 1 else ''} {pricing.plan_id.billing_period_unit}".strip()
+                unit = pricing.plan_id.billing_period_unit
+                singular_unit, plural_unit = translation_mapping.get(unit)
+                unit_label = singular_unit if value == 1 else plural_unit
+                table_name = f"{value if value != 1 else ''} {unit_label}".strip()
             else:
                 # For non-consumable products, use plan name with non-breaking spaces
                 table_name = pricing.plan_id.name.replace(" ", "\u00A0")
 
+            minimum_billing_period, _ = translation_mapping.get(minimum_period)
             pricing_data = {
                 'plan_id': pricing_plan_sudo.id,
                 'price': f"{pricing.plan_id.name}: {price_format}",
@@ -187,7 +192,7 @@ class ProductTemplate(models.Model):
                 'table_price': price_format,
                 'table_name': table_name,
                 'to_minimum_billing_period': f'{format_amount(self.env, amount=price_in_minimum_period, currency=currency)}'
-                                             f' / {translation_mapping.get(minimum_period, minimum_period)}',
+                                             f' / {minimum_billing_period}',
                 'can_be_added': request.cart.plan_id.id in (pricing_plan_sudo.id, False),
             }
 

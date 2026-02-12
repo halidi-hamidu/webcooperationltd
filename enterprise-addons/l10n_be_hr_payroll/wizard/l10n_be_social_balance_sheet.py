@@ -9,7 +9,8 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools.misc import format_date
+from odoo.tools.float_utils import float_compare
+from odoo.tools.misc import format_date, format_time
 
 _logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
         self.ensure_one()
         number_of_months_period = (self.date_to.year - self.date_from.year) * 12 + self.date_to.month - self.date_from.month + 1
         contracts = self.env['hr.employee']._get_all_versions_with_contract_overlap_with_period(self.date_from, self.date_to)
-        invalid_employees = contracts.employee_id.filtered(lambda e: e.sex not in ['male', 'female'])
+        invalid_employees = contracts.employee_id.filtered(lambda e: e.slip_ids and e.sex not in ['male', 'female'])
         if invalid_employees:
             raise UserError(self.env._('Please configure a sex (either male or female) for the following employees:\n\n%s', '\n'.join(invalid_employees.mapped('name'))))
 
@@ -95,7 +96,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                     payslip = employee_payslips
                 sex = payslip.employee_id.sex
                 calendar = payslip.version_id.resource_calendar_id
-                if calendar.full_time_required_hours == calendar.hours_per_week:
+                if not float_compare(calendar.full_time_required_hours, calendar.hours_per_week, precision_rounding=2):
                     workers_data[sex]['full'] += 1
                     workers_data[sex]['fte'] += 1
                 else:
@@ -139,7 +140,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                 else:
                     continue
                 calendar = payslip.version_id.resource_calendar_id
-                if calendar.full_time_required_hours == calendar.hours_per_week:
+                if not float_compare(calendar.full_time_required_hours, calendar.hours_per_week, precision_rounding=2):
                     workers_data[sex]['full'] += worked_paid_hours
                     workers_data[sex]['fte'] += worked_paid_hours
                 else:
@@ -177,7 +178,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                 if sex not in ['male', 'female']:
                     raise UserError(self.env._('Please configure a sex (either male or female) for the following employee: %s', payslip.employee_id.name))
                 calendar = payslip.version_id.resource_calendar_id
-                contract_type = 'full' if calendar.full_time_required_hours == calendar.hours_per_week else 'part'
+                contract_type = 'full' if not float_compare(calendar.full_time_required_hours, calendar.hours_per_week, precision_rounding=2) else 'part'
                 gross = round(line_values['GROSS'][payslip.id]['total'], 2) - round(line_values['IP.PART'][payslip.id]['total'], 2)
                 private_car = round(line_values['CAR.PRIV'][payslip.id]['total'], 2)
                 public_transport = round(line_values['PUB.TRANS'][payslip.id]['total'], 2)
@@ -200,7 +201,14 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
             workers_data = collections.defaultdict(lambda: dict(full=0, part=0, fte=0))
 
             end_contracts = self.env['hr.employee']._get_all_versions_with_contract_overlap_with_period(self.date_to, self.date_to)
-            end_contracts = end_contracts.filtered(lambda c: c.contract_type_id != cip)
+            end_contracts = end_contracts.filtered(lambda c: c.contract_type_id != cip and any(s.state in ['validated', 'paid'] for s in c.employee_id.slip_ids))
+            end_contracts_by_employees = collections.defaultdict(lambda: self.env['hr.version'])
+            last_end_contracts = self.env['hr.version']
+            for end_contract in end_contracts:
+                end_contracts_by_employees[end_contract.employee_id] += end_contract
+            for employee_contracts in end_contracts_by_employees.values():
+                last_end_contracts += employee_contracts.sorted('date_version', reverse=True)[0]
+            end_contracts = last_end_contracts
 
             cdi = self.env.ref('l10n_be_hr_payroll.l10n_be_contract_type_cdi')
             cdd = self.env.ref('l10n_be_hr_payroll.l10n_be_contract_type_cdd')
@@ -219,12 +227,14 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                 ('male', 'master'): '1203',
                 ('male', 'doctor'): '1203',
                 ('male', 'other'): '1201',
+                ('male', False): '1201',
                 ('male', 'civil_engineer'): '1203',
                 ('female', 'graduate'): '1212',
                 ('female', 'bachelor'): '1212',
                 ('female', 'master'): '1213',
                 ('female', 'doctor'): '1213',
                 ('female', 'other'): '1211',
+                ('female', False): '1211',
                 ('female', 'civil_engineer'): '1213',
             }
 
@@ -249,7 +259,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
 
                 sex = contract.employee_id.sex
                 calendar = contract.resource_calendar_id
-                contract_time = 'full' if calendar.full_time_required_hours == calendar.hours_per_week else 'part'
+                contract_time = 'full' if not float_compare(calendar.full_time_required_hours, calendar.hours_per_week, precision_rounding=2) else 'part'
 
                 workers_data['105'][contract_time] += 1
                 workers_data['105']['fte'] += 1 * calendar.work_time_rate / 100.0
@@ -308,7 +318,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                     _logger.info(self.env._("The contract %(contract_name)s for %(employee)s is not of one the following types: CDI, CDD. Replacement, For a clearly defined work", contract_name=contract.name, employee=contract.employee_id.name))
                     continue
                 calendar = contract.resource_calendar_id
-                contract_time = 'full' if calendar.full_time_required_hours == calendar.hours_per_week else 'part'
+                contract_time = 'full' if not float_compare(calendar.full_time_required_hours, calendar.hours_per_week, precision_rounding=2) else 'part'
                 if employee not in in_employees and employee.contract_date_start and (date_from <= employee.contract_date_start <= date_to):
                     in_employees |= employee
 
@@ -375,7 +385,7 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
                 reports_data['social_balance_sheet'] = report_data
                 report_data['year'] = date_from.strftime('%Y')
             else:
-                report_data['month'] = date_from.strftime('%B')
+                report_data['month'] = format_date(self.env, date_from, date_format='MMMM')
                 report_data['year'] = date_from.strftime('%Y')
                 reports_data['SBS{:0{}}'.format(i, max_int_len)] = report_data
         return collections.OrderedDict(sorted(reports_data.items(), key=lambda t: t[0], reverse=True))
@@ -437,7 +447,11 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
             },
             'established': {
                 'header': self.env._('Established on'),
-                'value': self.create_date.strftime("%d %B %Y at %H:%M:%S"),
+                'value': self.env._(
+                    "%(established_date)s at %(established_time)s",
+                    established_date=format_date(self.env, self.create_date, date_format='long'),
+                    established_time=format_time(self.env, self.create_date),
+                )
             },
             'joint_committees': {
                 'header': self.env._('Number of joint committees'),
@@ -445,7 +459,11 @@ class L10nBeSocialBalanceSheet(models.TransientModel):
             },
             'period': {
                 'header': self.env._('Period'),
-                'value': self.env._('%(date_from)s to %(date_to)s', date_from=self.date_from.strftime("%d %B %Y"), date_to=self.date_to.strftime("%d %B %Y")),
+                'value': self.env._(
+                    '%(date_from)s to %(date_to)s',
+                    date_from=format_date(self.env, self.date_from, date_format='long'),
+                    date_to=format_date(self.env, self.date_to, date_format='long'),
+                ),
             },
             'currency': {
                 'header': self.env._('Currency'),

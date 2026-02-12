@@ -513,73 +513,130 @@ class TestStudioIrModelHardcoded(TransactionCase):
             Should be executed at post install time because obviously the models should all
             have a chance to get up to date.
         """
-        modules = self.env["ir.module.module"].search([])
-        module_names = set(modules.mapped("name"))
         needed_modules = {
             "account",
+            "account_edi",
+            "account_edi_ubl_cii",
+            "analytic",
             "appointment",
+            "auth_signup",
+            "base",
+            "base_automation",
+            "calendar",
             "crm",
             "documents",
+            "event",
             "helpdesk",
             "hr",
+            "hr_recruitment",
+            "html_editor",
             "knowledge",
             "loyalty",
+            "mail",
+            "mail_mobile",
+            "maintenance",
             "mrp",
+            "phone_validation",
             "planning",
             "point_of_sale",
+            "portal",
+            "pos_enterprise",
+            "pos_loyalty",
             "pos_restaurant",
             "product",
             "project",
+            "purchase",
+            "purchase_stock",
             "quality",
             "repair",
+            "resource",
             "sale",
+            "sale_management",
+            "sale_planning",
+            "sale_project",
+            "sale_subscription",
+            "sales_team",
             "sign",
             "stock",
             "survey",
             "uom",
+            "web_map",
+            "web_studio",
             "website",
+            "website_sale",
             "worksheet",
         }
-        self.assertTrue(module_names.issuperset(needed_modules))
+        modules = self.env["ir.module.module"].search([('name', 'in', list(needed_modules))])
+        self.assertEqual(len(needed_modules), len(modules), needed_modules.difference(modules.mapped('name')))
 
-        installed = self.env["ir.module.module"]._installed().keys()
-        if not all(name in installed for name in needed_modules):
+        if ms := [m.name for m in modules if m.state != 'installed']:
             # At least one needed module is not installed, so we would not be able
             # to assert the hardcoded lists, so we skip the rest of the test.
-            return
+            self.skipTest(f"Missing required modules {', '.join(ms)}")
+
+        def check_ownership(model: str, field_name: str | None = None) -> None:
+            self.assertIn(model, self.env, f"Unknown model {model}")
+            if field_name:
+                field = self.env[model]._fields.get(field_name)
+                self.assertIsNotNone(field, f"Unknown field {model}.{field_name}")
+                # sadly Field._module returns the module which last overrode
+                # the field, and Field._modules has unstable ordering, so if
+                # the field was overridden walk the MRO from the top
+                module = field._module if len(field._modules) == 1 else next(
+                    cls
+                    for cls in reversed(self.registry[model].mro())
+                    if hasattr(cls, field_name)
+                )._module
+                seen_modules.add(module)
+                self.assertIn(
+                    module,
+                    needed_modules,
+                    f"{model}.{field_name} was not added by a listed module",
+                )
+            else:
+                seen_modules.add(self.env[model]._original_module)
+                self.assertIn(
+                    self.env[model]._original_module,
+                    needed_modules,
+                    f"{model} was not added by a listed module",
+                )
+
+        seen_modules = set()
 
         for model, defaults in PRESET_MODELS_DEFAULTS:
-            self.assertIn(model, self.env)
+            check_ownership(model)
             for field in defaults:
                 self.assertIn(field, self.env["studio.export.model"]._fields)
 
         for model, fields in DEFAULT_FIELDS_TO_EXCLUDE.items():
             for field in fields:
-                self.assertIn(field, self.env[model]._fields)
+                check_ownership(model, field)
 
         for model, fields in ABSTRACT_MODEL_FIELDS_TO_EXCLUDE.items():
             for field in fields:
-                self.assertIn(field, self.env[model]._fields)
+                check_ownership(model, field)
 
         for model, fields in FIELDS_TO_EXPORT.items():
             for field in fields:
-                self.assertIn(field, self.env[model]._fields)
+                check_ownership(model, field)
 
         for model in DEFAULT_MODELS_TO_EXPORT:
-            self.assertIn(model, self.env)
+            check_ownership(model)
 
         for model in RELATED_MODELS_TO_EXCLUDE:
-            self.assertIn(model, self.env)
+            check_ownership(model)
 
         for model in MODELS_WITH_NOUPDATE:
-            self.assertIn(model, self.env)
+            check_ownership(model)
 
         for model, fields in RELATIONS_NOT_TO_EXPORT.items():
             for field in fields:
-                self.assertIn(field, self.env[model]._fields)
+                check_ownership(model, field)
 
         for model, field in XML_FIELDS:
-            self.assertIn(field, self.env[model]._fields)
+            check_ownership(model, field)
+
+        self.assertEqual(needed_modules, seen_modules)
 
     def test_24_export_all_required_fields(self):
         """Test that all required fields are exported"""

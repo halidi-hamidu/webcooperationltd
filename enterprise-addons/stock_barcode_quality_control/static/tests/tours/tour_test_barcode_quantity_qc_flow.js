@@ -202,3 +202,36 @@ registry.category("web_tour.tours").add("test_quality_check_partial_reception_ba
         },
     ],
 });
+
+registry.category("web_tour.tours").add("test_quality_check_packages_lots_tour", {
+    steps: () => [
+        // Scan product
+        { trigger: '.o_barcode_client_action', run: "scan productlot1" },
+        // First lot (2 units) -> Pack
+        { trigger: '.o_barcode_line.o_selected', run: "scan lot-01" },
+        { trigger: '.o_barcode_line .o_line_lot_name:contains(lot-01)' },
+        { trigger: '.o_barcode_line .qty-done:contains(1)', run: "scan lot-01" },
+        { trigger: 'button.o_put_in_pack', run: 'click' },
+        // Wait for first pack to be applied before scanning next lot
+        { trigger: '.o_barcode_line .result-package' },
+        // Second lot (2 units) -> Pack
+        { trigger: '.o_barcode_client_action', run: "scan lot-02" },
+        { trigger: '.o_barcode_line.o_selected .o_line_lot_name:contains(lot-02)', run: "scan lot-02" },
+        { trigger: 'button.o_put_in_pack', run: 'click' },
+        // Wait for second pack to be applied before clicking quality checks
+        { trigger: '.o_barcode_line:last-child .result-package' },
+        // Validate picking -> pass quality checks popup
+        { trigger: '.o_check_quality', run: 'click' },
+        {
+            trigger: ".modal-content:has(.modal-header:contains('productlot1 - 2.0 Units - lot-01')) button[name=do_pass]",
+            run: 'click',
+        },
+        {
+            trigger: ".modal-content:has(.modal-header:contains('productlot1 - 2.0 Units - lot-02')) button[name=do_pass]",
+            run: 'click',
+        },
+        // Final validation
+        { trigger: '.o_validate_page', run: 'click' },
+        { trigger: '.o_notification_bar.bg-success' },
+    ],
+});

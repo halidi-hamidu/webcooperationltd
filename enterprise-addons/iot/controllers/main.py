@@ -8,6 +8,7 @@ import json
 import logging
 import pathlib
 import pprint
+import re
 import textwrap
 import werkzeug
 import zipfile
@@ -61,9 +62,20 @@ class IoTController(http.Controller):
         # '_L.py' files for Linux and '_W.py' for Windows
         incompatible_filename = "_L.py" if box.version[0] == 'W' else "_W.py"
         module_ids = request.env['ir.module.module'].sudo().search([('state', '=', 'installed')])
+        modules = module_ids.mapped('name') + ["iot_drivers", "pos_blackbox_be"]  # add pos_blackbox_be to detect blackbox devices without the module installed
+
+        if re.search(r"\d{4}\.\d{2}\.\d{2}", box.version):
+            # New IoT Boxes get drivers from git repository, not from installed modules
+            # for partners/clients that want to download custom drivers from the db, we only download
+            # custom drivers, to avoid overwriting the git ones
+            modules = [
+                m for m in modules
+                if m not in {"iot", "iot_drivers", "pos_blackbox_be", "l10n_se_pos", "pos_iot_six", "quality_iot"}
+            ]
+
         fobj = io.BytesIO()
         with zipfile.ZipFile(fobj, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for module in module_ids.mapped('name') + ['iot_drivers', 'pos_blackbox_be']:  # add pos_blackbox_be to detect blackbox devices without the module installed
+            for module in modules:
                 module_path = get_module_path(module)
                 if module_path:
                     iot_handlers = pathlib.Path(module_path) / 'iot_handlers'

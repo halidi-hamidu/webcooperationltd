@@ -1,71 +1,50 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+from odoo.addons.account.tests.common import skip_unless_external
+from odoo.addons.l10n_ar_edi.tests.common import TestArEdiCommon
 from odoo.tests import tagged
-from . import common
 
 
-@tagged('-at_install', 'external_l10n', 'post_install', '-standard', 'external')
-class TestMono(common.TestEdi):
+@tagged('post_install', 'post_install_l10n', '-at_install', *TestArEdiCommon.extra_tags)
+class TestArEdiWsfeMono(TestArEdiCommon):
 
     @classmethod
+    @TestArEdiCommon.setup_afip_ws('wsfe')
     def setUpClass(cls):
         # Issue ['C', 'E'] and  Receive ['B', 'C', 'I']
-        super().setUpClass()
         # Login in "Monotributista" Company
-        cls.env.user.write({'company_id': cls.company_mono.id})
-        cls.company_mono.write({'l10n_ar_afip_ws_crt_id': cls.ar_certificate_2})
-        cls._create_afip_connections(cls, cls.company_mono, cls.afip_ws)
-
-
-@tagged('fe', 'mono', 'external_l10n', '-at_install', 'post_install', '-standard', 'external')
-class TestFE(TestMono):
-
-    @classmethod
-    @common.TestEdi.setup_afip_ws('wsfe')
-    def setUpClass(cls):
         super().setUpClass()
+        cls.subfolder = "wsfe/mono"
+        cls.env.user.write({'company_id': cls.company_mono.id})
+
         cls.partner = cls.res_partner_adhoc
-        cls.journal = cls._create_journal(cls, 'wsfe')
+        cls.journal = cls._create_journal('wsfe')
         cls.document_type.update({
             'invoice_c': cls.env.ref('l10n_ar.dc_c_f'),
             'debit_note_c': cls.env.ref('l10n_ar.dc_c_nd'),
             'credit_note_c': cls.env.ref('l10n_ar.dc_c_nc'),
         })
 
-    def test_00_connection(self):
-        self._test_connection()
+        if 'external' in cls.test_tags:
+            cls.company_mono.write({'l10n_ar_afip_ws_crt_id': cls.ar_certificate_2})
+            cls._create_afip_connections(cls.company_mono, cls.afip_ws)
+        else:
+            cls.company_mono.l10n_ar_afip_ws_crt_id = False
 
-    def test_01_consult_invoice(self):
-        self._test_consult_invoice()
+    @skip_unless_external
+    def test_ar_edi_wsfe_mono_external_flow(self):
+        self._test_ar_edi_common_external()
 
-    def test_02_invoice_c_product(self):
-        self._test_case('invoice_c', 'product')
-
-    def test_03_invoice_c_service(self):
-        self._test_case('invoice_c', 'service')
-
-    def test_04_invoice_c_product_service(self):
-        self._test_case('invoice_c', 'product_service')
-
-    def test_05_debit_note_c_product(self):
-        invoice = self._test_case('invoice_c', 'product')
-        self._test_case_debit_note('debit_note_c', invoice)
-
-    def test_06_debit_note_c_service(self):
-        invoice = self._test_case('invoice_c', 'service')
-        self._test_case_debit_note('debit_note_c', invoice)
-
-    def test_06_debit_note_c_product_service(self):
-        invoice = self._test_case('invoice_c', 'product_service')
-        self._test_case_debit_note('debit_note_c', invoice)
-
-    def test_07_credit_note_c_product(self):
-        invoice = self._test_case('invoice_c', 'product')
-        self._test_case_credit_note('credit_note_c', invoice)
-
-    def test_08_credit_note_c_service(self):
-        invoice = self._test_case('invoice_c', 'service')
-        self._test_case_credit_note('credit_note_c', invoice)
-
-    def test_09_credit_note_c_product_service(self):
-        invoice = self._test_case('invoice_c', 'product_service')
-        self._test_case_credit_note('credit_note_c', invoice)
+    def test_ar_edi_wsfe_mono_flow_suite(self):
+        for test_name, move_type, document_code, concept in (
+                ('test_wsfe_mono_invoice_c_product', 'invoice', 'c', 'product'),
+                ('test_wsfe_mono_invoice_c_service', 'invoice', 'c', 'service'),
+                ('test_wsfe_mono_invoice_c_product_service', 'invoice', 'c', 'product_service'),
+                ('test_wsfe_mono_debit_note_c_product', 'debit_note', 'c', 'product'),
+                ('test_wsfe_mono_debit_note_c_service', 'debit_note', 'c', 'service'),
+                ('test_wsfe_mono_debit_note_c_product_service', 'debit_note', 'c', 'product_service'),
+                ('test_wsfe_mono_credit_note_c_product', 'credit_note', 'c', 'product'),
+                ('test_wsfe_mono_credit_note_c_service', 'credit_note', 'c', 'service'),
+                ('test_wsfe_mono_credit_note_c_product_service', 'credit_note', 'c', 'product_service'),
+        ):
+            with self.subTest(test_name=test_name), self.cr.savepoint() as sp:
+                self._test_ar_edi_flow(test_name, move_type, document_code, concept)
+                sp.close()  # Rollback to ensure all subtests start in the same situation

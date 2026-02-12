@@ -362,3 +362,13 @@ class AccountMove(models.Model):
         if self.l10n_latam_use_documents and self.company_id.country_id.code == 'PE':
             return 'l10n_pe_edi.report_invoice_document'
         return super()._get_name_invoice_report()
+
+    def _check_document_type_discount(self):
+        for move in self:
+            if move.l10n_pe_edi_is_required and move.l10n_latam_document_type_id.code in ('07', '08') and any(move.invoice_line_ids.mapped('discount')):
+                raise UserError(_("Credit and Debit notes with discounts are not allowed in SUNAT. "
+                                  "Please adjust the lines to confirm the document."))
+
+    def _post(self, soft=True):
+        self._check_document_type_discount()
+        return super()._post(soft)

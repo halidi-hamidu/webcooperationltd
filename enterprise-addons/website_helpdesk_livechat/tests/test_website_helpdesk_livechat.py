@@ -42,7 +42,7 @@ class TestWebsiteHelpdeskLivechat(HttpCase, HelpdeskCommon):
 
         # Post a message that will be part of the chat history in the ticket description
         test_message = 'Test message'
-        discuss_channel.message_post(body=test_message)
+        discuss_channel.message_post(body=test_message, message_type="comment")
         # Create both image and text-type attachments.
         attachments = self.env['ir.attachment'].create([{
             'name': "Image attachment",
@@ -58,7 +58,7 @@ class TestWebsiteHelpdeskLivechat(HttpCase, HelpdeskCommon):
         }])
 
         # Post message with the created attachments
-        discuss_channel.message_post(attachment_ids=attachments.ids)
+        discuss_channel.message_post(attachment_ids=attachments.ids, message_type="comment")
 
         # Create the ticket with the /ticket command
         ticket_name = 'Test website helpdesk livechat'

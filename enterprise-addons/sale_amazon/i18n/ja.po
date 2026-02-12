@@ -3,13 +3,13 @@
 # * sale_amazon
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# "Junko Augias (juau)" <juau@odoo.com>, 2025.
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-30 18:42+0000\n"
-"PO-Revision-Date: 2025-12-22 07:31+0000\n"
+"PO-Revision-Date: 2026-02-02 13:40+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
 "Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
 "sale_amazon/ja/>\n"
@@ -166,9 +166,9 @@ msgstr ""
 "                }\n"
 "            </style>\n"
 "            <body><div>\n"
-"                <p>配送オーダの同期中にエラーが発生し、完了できませんでした。"
+"                <p>出荷オーダの同期中にエラーが発生し、完了できませんでした。"
 "</p>\n"
-"                <p>他の同期は試行されませんので、配送オーダを再度手動で同期す"
+"                <p>他の同期は試行されませんので、出荷オーダを再度手動で同期す"
 "る前に、問題を修正してください。</p>\n"
 "                <p>以下は Amazon から送信されたエラーです: </p>\n"
 "                <table class=\"amz_table\">\n"
@@ -179,20 +179,20 @@ msgstr ""
 "                        </tr>\n"
 "                    </thead>\n"
 "                    <tbody>\n"
-"                        <tr t-foreach=\"ctx.get('error_messages')\" t-"
-"as=\"error\">\n"
+"                        <tr t-foreach=\"ctx.get('error_messages')\" t-as="
+"\"error\">\n"
 "                            <th><t t-out=\"error['order_ref']\"/></th>\n"
 "                            <td>\n"
-"                                <t t-if=\"error['message']\" t-"
-"out=\"error['message']\"/>\n"
+"                                <t t-if=\"error['message']\" t-out="
+"\"error['message']\"/>\n"
 "                                <t t-else=\"\">Amazonとの同期中に不明なエラー"
 "が発生しました。\n"
 "                                    注文のステータスが正常かどうかを手動で確"
 "認する必要があります。\n"
 "                                    この問題に関する詳しい情報は、\n"
 "                                    <a href=\"https://www.odoo.com/"
-"documentation/latest/applications/sales/sales/amazon_connector/"
-"manage.html#manage_deliveries_errors\">\n"
+"documentation/latest/applications/sales/sales/amazon_connector/manage.html#"
+"manage_deliveries_errors\">\n"
 "                                        のドキュメンテーションをご確認くださ"
 "い。\n"
 "                                    </a>.</t>\n"
@@ -351,7 +351,7 @@ msgstr "アカウント"
 #. module: sale_amazon
 #: model:ir.model.fields,field_description:sale_amazon.field_amazon_account__active
 msgid "Active"
-msgstr "アクティブ"
+msgstr "有効"
 
 #. module: sale_amazon
 #: model_terms:ir.ui.view,arch_db:sale_amazon.amazon_account_view_form
@@ -617,7 +617,7 @@ msgstr "Amazon: オファーの同期化に失敗した場合の利用可能在�
 #. module: sale_amazon
 #: model:mail.template,name:sale_amazon.picking_sync_failure
 msgid "Amazon: Delivery Order Synchronization Failure"
-msgstr "Amazon：配送オーダ同期失敗"
+msgstr "Amazon：出荷オーダ同期失敗"
 
 #. module: sale_amazon
 #: model:mail.template,name:sale_amazon.order_sync_failure
@@ -632,7 +632,7 @@ msgstr "Amazon: 利用可能な在庫の同期"
 #. module: sale_amazon
 #: model:ir.actions.server,name:sale_amazon.ir_cron_sync_amazon_pickings_ir_actions_server
 msgid "Amazon: sync delivery orders"
-msgstr "Amazon: 配送オーダ同期"
+msgstr "Amazon: 出荷オーダ同期"
 
 #. module: sale_amazon
 #: model:ir.actions.server,name:sale_amazon.ir_cron_sync_amazon_feeds_ir_actions_server
@@ -914,7 +914,7 @@ msgstr "ID"
 #: model:ir.model.fields,help:sale_amazon.field_amazon_account__active
 msgid ""
 "If made inactive, this account will no longer be synchronized with Amazon."
-msgstr "非有効化すると、このアカウントはアマゾンと同期されなくなります。"
+msgstr "無効化すると、このアカウントはアマゾンと同期されなくなります。"
 
 #. module: sale_amazon
 #. odoo-python
@@ -935,9 +935,8 @@ msgstr ""
 msgid ""
 "If the sale is locked, you can not modify it anymore. However, you will "
 "still be able to invoice or deliver."
-msgstr ""
-"販売がロックされている場合は、これ以上修正することはできません。 ただし、引き"
-"続き請求や配達が可能です。"
+msgstr "販売がロックされている場合は、これ以上編集できません。ただし、請求や出荷は引"
+"き続き可能です。"
 
 #. module: sale_amazon
 #: model_terms:ir.ui.view,arch_db:sale_amazon.picking_view_form
@@ -1261,7 +1260,7 @@ msgstr "Amazonオーダ {{ ctx.get('amazon_order_ref') }} の同期に失敗し�
 #. module: sale_amazon
 #: model:mail.template,subject:sale_amazon.picking_sync_failure
 msgid "Synchronization of delivery orders has failed"
-msgstr "配送オーダの同期に失敗しました"
+msgstr "出荷オーダの同期に失敗しました"
 
 #. module: sale_amazon
 #: model_terms:ir.ui.view,arch_db:sale_amazon.picking_view_form
@@ -1456,7 +1455,7 @@ msgstr ""
 #: code:addons/sale_amazon/models/stock_picking.py:0
 msgid ""
 "The sales order of this delivery order is not linked to an Amazon account."
-msgstr "この配送オーダの販売オーダはAmazonアカウントにリンクしていません。"
+msgstr "この出荷オーダの販売オーダはAmazonアカウントにリンクしていません。"
 
 #. module: sale_amazon
 #: model:ir.model.fields,help:sale_amazon.field_amazon_offer__account_id
@@ -1488,11 +1487,11 @@ msgid ""
 "- Done: The delivery details have been processed.\n"
 "- Error: The synchronization of the delivery order failed."
 msgstr ""
-"Amazonへの配送オーダの同期ステータス：\n"
-"- 保留中： 配送オーダが確定され、まもなく同期されます。\n"
+"Amazonへの出荷オーダの同期ステータス：\n"
+"- 保留中： 出荷オーダが確定され、まもなく同期されます。\n"
 "- 処理中： 配送の詳細が送信され、処理中です。\n"
 "- 完了： 配送の詳細が処理されました。\n"
-"- エラー： 配送オーダの同期に失敗しました。"
+"- エラー： 出荷オーダの同期に失敗しました。"
 
 #. module: sale_amazon
 #: model:ir.model.fields,help:sale_amazon.field_amazon_offer__amazon_sync_status

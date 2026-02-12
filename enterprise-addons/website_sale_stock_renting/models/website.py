@@ -7,7 +7,7 @@ class Website(models.Model):
     _inherit = 'website'
 
     def _get_product_available_qty(self, product, *, start_date=None, end_date=None, **kwargs):
-        if product.rent_ok and product.is_storable and not product.allow_out_of_stock_order:
+        if product.rent_ok and product.is_storable:
             start_date = start_date or product.env.context.get('start_date')
             end_date = end_date or product.env.context.get('end_date')
             if end_date and start_date:

@@ -82,7 +82,17 @@ class TestFrontend(TestPosUrbanPiperCommon):
             'name': 'Preparation Display',
             'pos_config_ids': [(4, self.urban_piper_config.id)],
         })
-        self.start_pos_tour('OrderFlowTour', pos_config=self.urban_piper_config, login="pos_admin")
+        PosOrder = self.env.registry.models['pos.order']
+
+        def mark_urbanpiper_prep_order_as_printed_patch(self):
+            # Catch the intentionally raised ValueError from the mathod
+            # and return 'False' instead of propagating the exception
+            try:
+                return super(PosOrder, self).mark_urbanpiper_prep_order_as_printed()
+            except ValueError:
+                return False
+        with patch.object(PosOrder, "mark_urbanpiper_prep_order_as_printed", mark_urbanpiper_prep_order_as_printed_patch):
+            self.start_pos_tour('OrderFlowTour', pos_config=self.urban_piper_config, login="pos_admin")
         order_1 = self.env['pos.order'].search([('delivery_identifier', '=', identifier_1)])
         order_2 = self.env['pos.order'].search([('delivery_identifier', '=', identifier_2)])
         self.assertEqual(100.0, order_1.amount_total)
@@ -276,6 +286,16 @@ class TestFrontend(TestPosUrbanPiperCommon):
                 'delivery_provider_id': self.env.ref('pos_urban_piper.pos_delivery_provider_justeat').id,
             }).make_test_order(identifier_1)
         self.start_pos_tour('test_to_check_attribute', pos_config=self.urban_piper_config, login="pos_admin")
+
+    def test_charges_sent_to_urbanpiper(self):
+        up = UrbanPiperClient(self.urban_piper_config)
+        delivery_charge_product = self.env.ref('pos_urban_piper.product_delivery_charges')
+        delivery_charge_product.list_price = 10
+        charges = up._prepare_charges_data()
+        self.assertEqual(
+            charges,
+            [{'code': 'DC_F', 'title': 'Delivery Charges', 'active': True, 'structure': {'applicable_on': 'order.order_subtotal', 'value': 10.0}, 'item_ref_ids': ['all']}]
+        )
 
     def test_order_with_no_children_taxes(self):
         tax = self.env['account.tax'].create({

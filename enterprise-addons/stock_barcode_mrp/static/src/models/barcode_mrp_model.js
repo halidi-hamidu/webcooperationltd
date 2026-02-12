@@ -406,7 +406,7 @@ export default class BarcodeMRPModel extends BarcodePickingModel {
             if (args.lot_id) {
                 this.record.lot_producing_ids = [args.lot_id];
             }
-            this.produceQty();
+            this.produceQty(args.qty_done);
             return;
         }
         let move = args.move_id;
@@ -514,6 +514,7 @@ export default class BarcodeMRPModel extends BarcodePickingModel {
                     product_id: this.cache.getRecord("product.product", move.product_id),
                     location_id: move.location_id,
                     qty_done: qtyRemaining,
+                    reserved_uom_qty: qtyRemaining,
                     move_id: moveId,
                 };
                 if (this.groups.group_uom) {

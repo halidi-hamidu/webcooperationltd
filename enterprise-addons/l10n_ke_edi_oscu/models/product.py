@@ -175,7 +175,7 @@ class ProductProduct(models.Model):
 
     @api.depends('type')
     def _compute_l10n_ke_packaging_unit_id(self):
-        service_packaging = self.env.ref('l10n_ke_edi_oscu.packaging_type_ou', raise_if_not_found=False)
+        service_packaging = self.env.ref('l10n_ke_edi_oscu.code_17_OU', raise_if_not_found=False)
         for product in self.filtered(lambda p: not p.l10n_ke_packaging_unit_id):
             product.l10n_ke_packaging_unit_id = service_packaging if product.type == 'service' else None
 

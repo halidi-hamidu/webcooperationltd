@@ -7,9 +7,10 @@ import { _t } from "@web/core/l10n/translation";
 import { ExpirationPanel } from "./expiration_panel";
 import { cookie } from "@web/core/browser/cookie";
 import { rpc } from "@web/core/network/rpc";
+import { SysAdminPanel } from "./sysadmin_panel";
 
 const { DateTime } = luxon;
-import { Component, reactive, xml } from "@odoo/owl";
+import { Component, reactive, xml, markup } from "@odoo/owl";
 
 function daysUntil(datetime) {
     const duration = datetime.diff(DateTime.utc(), "days");
@@ -37,6 +38,10 @@ export class SubscriptionManager {
         this.warningType = session.warning;
         this.lastRequestStatus = null;
         this.isWarningHidden = cookie.get("oe_instance_hide_panel");
+        this.sysadmin = session.sysadmin_message || {};
+        if (this.sysadmin.message) {
+            this.sysadmin.message = markup(this.sysadmin.message);
+        }
     }
 
     get formattedExpirationDate() {
@@ -170,10 +175,11 @@ class ExpiredSubscriptionBlockUI extends Component {
         <t t-if="subscription.daysLeft &lt;= 0">
             <div class="o_blockUI"/>
             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1100" class="d-flex align-items-center justify-content-center">
-                <ExpirationPanel/>
+                <ExpirationPanel t-if="!subscription.sysadmin.replace"/>
+                <SysAdminPanel t-if="subscription.sysadmin.message and subscription.warningType === 'admin'"/>
             </div>
         </t>`;
-    static components = { ExpirationPanel };
+    static components = { ExpirationPanel, SysAdminPanel };
     setup() {
         this.subscription = useService("enterprise_subscription");
     }

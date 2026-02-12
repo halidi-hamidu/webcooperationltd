@@ -65,4 +65,12 @@ class TestUi(HttpCase, TestWebsiteSaleRentingCommon):
             'value_ids': [(6, 0, v.ids)],
         } for v in self.values_processor])
         self.computer.is_published = True
-        self.start_tour("/odoo", 'shop_buy_rental_product_comparison', login='admin')
+        self.assertTrue(self.computer.valid_product_template_attribute_line_ids)
+
+        # Make sure comparison button is enabled on /shop page (of any website, as it seems
+        # self.website is not the website used by the tour)
+        for website in self.env['website'].search([]):
+            website.write({
+                'shop_opt_products_design_classes': self.website.shop_opt_products_design_classes + ' o_wsale_products_opt_has_comparison'
+            })
+        self.start_tour("/shop?search=Computer", 'shop_buy_rental_product_comparison', login='admin')

@@ -1,12 +1,12 @@
 import logging
 import re
+from json import JSONDecodeError
 
 import requests
-from json import JSONDecodeError
 
 from odoo import fields
 from odoo.exceptions import UserError
-from odoo.tools import float_round, LazyTranslate
+from odoo.tools import LazyTranslate, float_round
 
 _logger = logging.getLogger(__name__)
 _lt = LazyTranslate(__name__)
@@ -370,6 +370,7 @@ STRIPE_REQUEST_REFUSED_REASONS = {
     'network_fallback': _lt("Stripe timed-out or encountered an error when communicating with the card network"),
     'not_allowed': _lt("The charge is not allowed on the Stripe network, possibly because it is an ATM withdrawal or cash advance."),
     'pin_blocked': _lt("The card's PIN is blocked"),
+    'authorization_controls': _lt("Transaction amount exceeded the card daily/transaction hard limit of 50.000 €"),
     'spending_controls': _lt("The card was declined because of the Stripe spending controls"),
     'suspected_fraud': _lt("The authorization was suspected as fraudulent by Stripe's risk controls"),
     'verification_failed': _lt("The authorization failed required verification checks"),
@@ -552,6 +553,7 @@ def _validate_route(route):
         'test_helpers/issuing/cards',
         'test_helpers/fund_balance',
         'test_helpers/transactions/create_force_capture',
+        'test_helpers/account_verify',
         'topups',
     }
     if route in safe_simple_routes:

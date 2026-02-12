@@ -2,6 +2,7 @@
 from odoo import models, fields, api
 from odoo.fields import Domain
 from odoo.tools import SQL, Query
+from odoo.tools.sql import table_columns
 
 
 class AccountReport(models.Model):
@@ -36,13 +37,15 @@ class AccountReport(models.Model):
         It will create a new table like the account_move_line table, but with
         amounts and the date relative to the cash basis.
         """
-        self.env.cr.execute("SELECT 1 FROM information_schema.tables WHERE table_name='cash_basis_temp_account_move_line'")
+        self.env.cr.execute(
+            "SELECT 1 FROM information_schema.tables WHERE table_name='cash_basis_temp_account_move_line'"
+            "   AND table_schema::regnamespace = pg_my_temp_schema()")
         if self.env.cr.fetchone():
             return
 
-        self.env.cr.execute("SELECT column_name FROM information_schema.columns WHERE table_name='account_move_line'")
+        all_fields = set(table_columns(self.env.cr, 'account_move_line'))
         changed_fields = ['date', 'amount_currency', 'amount_residual', 'balance', 'debit', 'credit']
-        unchanged_fields = list(set(f[0] for f in self.env.cr.fetchall()) - set(changed_fields))
+        unchanged_fields = list(all_fields - set(changed_fields))
         selected_journals = tuple(self.env.context.get('journal_ids', []))
         sql = """   -- Create a temporary table
             CREATE TEMPORARY TABLE IF NOT EXISTS cash_basis_temp_account_move_line () INHERITS (account_move_line) ON COMMIT DROP;
@@ -167,13 +170,13 @@ class AccountReport(models.Model):
         """
 
         self.env.cr.execute(
-            "SELECT 1 FROM information_schema.tables WHERE table_name='analytic_cash_basis_temp_account_move_line'")
+            "SELECT 1 FROM information_schema.tables WHERE table_name='analytic_cash_basis_temp_account_move_line'"
+            "   AND table_schema::regnamespace = pg_my_temp_schema()")
         if self.env.cr.fetchone():
             return
 
         line_fields = self.env['account.move.line'].fields_get()
-        self.env.cr.execute("SELECT column_name FROM information_schema.columns WHERE table_name='account_move_line'")
-        stored_fields = {f[0] for f in self.env.cr.fetchall() if f[0] in line_fields}
+        stored_fields = {fld for fld in table_columns(self.env.cr, 'account_move_line') if fld in line_fields}
         changed_equivalence_dict = {
             "balance": SQL('CASE WHEN aml.balance != 0 THEN -aal.amount * cash_basis_aml.balance / aml.balance ELSE 0 END'),
             "amount_currency": SQL('CASE WHEN aml.amount_currency != 0 THEN -aal.amount * cash_basis_aml.amount_currency / aml.amount_currency ELSE 0 END'),

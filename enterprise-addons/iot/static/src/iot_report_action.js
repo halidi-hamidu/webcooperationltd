@@ -81,7 +81,11 @@ export async function getSelectedPrintersForReport(reportId, env) {
 async function iotReportActionHandler(action, options, env) {
     if (action.device_ids && action.device_ids.length) {
         action.data ??= {};
-        const args = [action.id, action.context.active_ids, action.data];
+        const args = [
+            action.id,
+            action.context.active_ids.filter((e) => typeof e === "number"), // remove string uuid ids (e.g. PoS)
+            action.data,
+        ];
         const reportId = action.id;
         const printerIds = await getSelectedPrintersForReport(reportId, env);
 

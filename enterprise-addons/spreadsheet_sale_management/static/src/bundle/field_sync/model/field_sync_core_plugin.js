@@ -74,7 +74,7 @@ export class FieldSyncCorePlugin extends OdooCorePlugin {
         }
     }
 
-    adaptRanges(applyChange) {
+    adaptRanges({ applyChange }) {
         const deletedPositions = [];
         const newPositions = new Map();
         for (const [position, fieldSync] of this.getAllFieldSyncs()) {
@@ -89,7 +89,7 @@ export class FieldSyncCorePlugin extends OdooCorePlugin {
                 default: {
                     const { top, left } = change.range.zone;
                     deletedPositions.push(position);
-                    newPositions.set({ sheetId, col: left, row: top}, fieldSync);
+                    newPositions.set({ sheetId, col: left, row: top }, fieldSync);
                     break;
                 }
             }

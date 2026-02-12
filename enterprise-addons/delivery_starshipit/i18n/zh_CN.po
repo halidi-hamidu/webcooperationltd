@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:42+0000\n"
+"POT-Creation-Date: 2026-02-06 18:41+0000\n"
 "PO-Revision-Date: 2025-09-16 15:27+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
@@ -18,6 +18,18 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 5.12.2\n"
+
+#. module: delivery_starshipit
+#. odoo-python
+#: code:addons/delivery_starshipit/models/delivery_carrier.py:0
+msgid ""
+"%(order_info)sHowever, the shipping label creation failed with the following "
+"error:\n"
+"%(error)s\n"
+"\n"
+"Please either continue the configuration or delete the order in Starshipit "
+"before trying again."
+msgstr ""
 
 #. module: delivery_starshipit
 #: model_terms:ir.ui.view,arch_db:delivery_starshipit.view_delivery_carrier_form
@@ -47,6 +59,17 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-info-circle\"/>可用的运输服务取决于您的 Starshipit 账户中已"
 "启用的运输公司。"
+
+#. module: delivery_starshipit
+#: model_terms:ir.ui.view,arch_db:delivery_starshipit.choose_delivery_carrier_view_form
+msgid "<i class=\"oi oi-arrow-right me-1\"/>Get more delivery methods"
+msgstr ""
+
+#. module: delivery_starshipit
+#. odoo-python
+#: code:addons/delivery_starshipit/wizard/starshipit_shipping_wizard.py:0
+msgid "Add a shipping method"
+msgstr ""
 
 #. module: delivery_starshipit
 #: model_terms:ir.ui.view,arch_db:delivery_starshipit.view_shipping_method_starshipit
@@ -107,11 +130,17 @@ msgid "Delivery"
 msgstr "发货"
 
 #. module: delivery_starshipit
+#: model:ir.model,name:delivery_starshipit.model_choose_delivery_carrier
+msgid "Delivery Carrier Selection Wizard"
+msgstr ""
+
+#. module: delivery_starshipit
 #: model_terms:ir.ui.view,arch_db:delivery_starshipit.view_shipping_method_starshipit
 msgid "Delivery Service"
 msgstr "送货服务"
 
 #. module: delivery_starshipit
+#: model:ir.model.fields,field_description:delivery_starshipit.field_choose_delivery_carrier__display_name
 #: model:ir.model.fields,field_description:delivery_starshipit.field_delivery_carrier__display_name
 #: model:ir.model.fields,field_description:delivery_starshipit.field_starshipit_shipping_wizard__display_name
 #: model:ir.model.fields,field_description:delivery_starshipit.field_stock_package_type__display_name
@@ -134,6 +163,7 @@ msgid "Error: this delivery method is not available for this order."
 msgstr "错误：此订单不适用此送货方式。"
 
 #. module: delivery_starshipit
+#: model:ir.model.fields,field_description:delivery_starshipit.field_choose_delivery_carrier__id
 #: model:ir.model.fields,field_description:delivery_starshipit.field_delivery_carrier__id
 #: model:ir.model.fields,field_description:delivery_starshipit.field_starshipit_shipping_wizard__id
 #: model:ir.model.fields,field_description:delivery_starshipit.field_stock_package_type__id
@@ -220,12 +250,6 @@ msgid ""
 "Package dimensions are required to get more accurate rates. You can define "
 "these in a package type that you set as default"
 msgstr "要获得更准确的费率，需要包装尺寸。您可以在默认设置的包装类型中定义尺寸"
-
-#. module: delivery_starshipit
-#. odoo-python
-#: code:addons/delivery_starshipit/models/delivery_carrier.py:0
-msgid "Please delete the order on Starshipit then try again."
-msgstr "请删除 Starshipit 上的订单，然后重试。"
 
 #. module: delivery_starshipit
 #. odoo-python
@@ -403,12 +427,6 @@ msgstr "Starshipit 无法为承运商%s生成退货。请直接与承运商处�
 
 #. module: delivery_starshipit
 #. odoo-python
-#: code:addons/delivery_starshipit/models/starshipit_service.py:0
-msgid "Starshipit returned an error: %(message)s"
-msgstr "Starshipit 返回错误信息：%(message)s"
-
-#. module: delivery_starshipit
-#. odoo-python
 #: code:addons/delivery_starshipit/models/delivery_carrier.py:0
 msgid ""
 "Starshipit: Delivery cost re-evaluated on Sales Order based on updated exact "
@@ -477,6 +495,18 @@ msgstr "无法获取精确价格，将通过定时任务更新。"
 
 #. module: delivery_starshipit
 #. odoo-python
+#: code:addons/delivery_starshipit/models/delivery_carrier.py:0
+msgid "The order '%(order_number)s' has been created!\n"
+msgstr ""
+
+#. module: delivery_starshipit
+#. odoo-python
+#: code:addons/delivery_starshipit/models/delivery_carrier.py:0
+msgid "The order has been created!\n"
+msgstr ""
+
+#. module: delivery_starshipit
+#. odoo-python
 #: code:addons/delivery_starshipit/models/starshipit_service.py:0
 msgid ""
 "The picking %(picking_name)s sequence is too long for Starshipit. Please "
@@ -515,16 +545,6 @@ msgstr "该运营商将使用的服务。这是在向导中选择运营商时设
 #. odoo-python
 #: code:addons/delivery_starshipit/models/delivery_carrier.py:0
 msgid ""
-"The shipping label creation failed with the following error:\n"
-"%(error)s"
-msgstr ""
-"创建运输标签失败，出现以下错误： \n"
-"%(error)s"
-
-#. module: delivery_starshipit
-#. odoo-python
-#: code:addons/delivery_starshipit/models/delivery_carrier.py:0
-msgid ""
 "There are no shipping services available, please verify the shipping address "
 "or activate suitable carriers in your starshipit account."
 msgstr ""
@@ -554,3 +574,16 @@ msgstr "调拨"
 #: code:addons/delivery_starshipit/controllers/download_starshipit_labels.py:0
 msgid "starshipit_labels"
 msgstr ""
+
+#~ msgid "Please delete the order on Starshipit then try again."
+#~ msgstr "请删除 Starshipit 上的订单，然后重试。"
+
+#~ msgid "Starshipit returned an error: %(message)s"
+#~ msgstr "Starshipit 返回错误信息：%(message)s"
+
+#~ msgid ""
+#~ "The shipping label creation failed with the following error:\n"
+#~ "%(error)s"
+#~ msgstr ""
+#~ "创建运输标签失败，出现以下错误： \n"
+#~ "%(error)s"

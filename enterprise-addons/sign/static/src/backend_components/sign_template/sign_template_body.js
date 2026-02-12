@@ -74,6 +74,10 @@ export class SignTemplateBody extends Component {
 
 
         onWillUnmount(() => {
+            const iframeDoc = this.PDFIframe.el?.contentDocument;
+            if (iframeDoc && this._onIframeClick) {
+                iframeDoc.removeEventListener("click", this._onIframeClick);
+            }
             if (this.props.iframe) {
                 this.props.iframe.unmount();
                 this.props.iframe = null;
@@ -120,9 +124,26 @@ export class SignTemplateBody extends Component {
         });
     }
 
+    // Dropdowns rely on document clicks; iframe clicks don't propagate, so close all dropdowns manually
+    attachDropdownCloseOnIframeClick(iframeDoc) {
+        if (!iframeDoc) {
+            return;
+        }
+        if (this._onIframeClick) {
+            iframeDoc.removeEventListener("click", this._onIframeClick);
+        }
+        this._onIframeClick = () => {
+            document
+                .querySelectorAll(".o-dropdown--menu")
+                .forEach(menu => menu.remove());
+        };
+        iframeDoc.addEventListener("click", this._onIframeClick);
+    }
+
     waitForPDF() {
         this.PDFIframe.el.onload = () => {
             injectPDFCustomStyles(this.PDFIframe.el.contentDocument);
+            this.attachDropdownCloseOnIframeClick(this.PDFIframe.el.contentDocument);
             setTimeout(() => this.doPDFPostLoad(), 1);
         };
     }

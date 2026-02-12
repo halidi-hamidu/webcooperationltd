@@ -128,7 +128,7 @@ class AccountMoveLine(models.Model):
                 continue
             sign = 1 if aml.move_id.move_type == 'out_invoice' else -1
             periods.setdefault(aml.deferred_end_date, 0.0)
-            periods[aml.deferred_end_date] += sign * aml.product_uom_id._compute_quantity(aml.quantity, target_uom, round=False)
+            periods[aml.deferred_end_date] += sign * abs(aml.product_uom_id._compute_quantity(aml.quantity, target_uom, round=False))
 
         invoice_dates = [d for d, qty in periods.items() if qty > 0.0]
 

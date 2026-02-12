@@ -1,86 +1,87 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from odoo.addons.account.tests.common import skip_unless_external
+from odoo.addons.l10n_ar_edi.tests.common import TestArEdiCommon
 from odoo.tests import tagged
-from . import common
 
 
-@tagged('fex', 'ri', 'external_l10n', '-at_install', 'post_install', '-standard', 'external')
-class TestFex(common.TestFexCommon):
+@tagged('post_install', 'post_install_l10n', '-at_install', *TestArEdiCommon.extra_tags)
+class TestArEdiWsfex(TestArEdiCommon):
 
-    def test_00_connection(self):
-        self._test_connection()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.subfolder = "wsfex"
+        cls.partner = cls.res_partner_barcelona_food
+        cls.incoterm = cls.env.ref('account.incoterm_EXW')
+        cls.journal = cls._create_journal('wsfex')
 
-    def test_01_consult_invoice(self):
-        self._test_consult_invoice()
+        # Document Types
+        cls.document_type.update({
+            'invoice_e': cls.env.ref('l10n_ar.dc_e_f'),
+            'credit_note_e': cls.env.ref('l10n_ar.dc_e_nc'),
+        })
 
-    def test_02_invoice_e_product(self):
-        """ similar to  demo_invoice_14 """
-        self._test_case('invoice_e', 'product')
+    @classmethod
+    def _create_invoice_ar(cls, **invoice_args):
+        # EXTEND TestArEdiCommon._create_invoice_ar
+        invoice_args.setdefault('invoice_incoterm_id', cls.incoterm)
+        return super()._create_invoice_ar(**invoice_args)
 
-    def test_03_invoice_e_service(self):
-        """ similar to  demo_invoice_15 """
-        self._test_case('invoice_e', 'service')
+    @skip_unless_external
+    def test_ar_edi_wsfex_external_flow(self):
+        self._test_ar_edi_common_external()
 
-    def test_04_invoice_e_product_service(self):
-        self._test_case('invoice_e', 'product_service')
+    def test_ar_edi_wsfex_flow_suite(self):
+        for test_name, move_type, document_code, concept in (
+                ('test_wsfex_invoice_e_product', 'invoice', 'e', 'product'),
+                ('test_wsfex_invoice_e_service', 'invoice', 'e', 'service'),
+                ('test_wsfex_invoice_e_product_service_default', 'invoice', 'e', 'product_service'),
+                ('test_wsfex_credit_note_e_product', 'credit_note', 'e', 'product'),
+                ('test_wsfex_credit_note_e_service', 'credit_note', 'e', 'service'),
+                ('test_wsfex_credit_note_e_product_service', 'credit_note', 'e', 'product_service'),
+        ):
+            with self.subTest(test_name=test_name), self.cr.savepoint() as sp:
+                self._test_ar_edi_flow(test_name, move_type, document_code, concept)
+                sp.close()  # Rollback to ensure all subtests start in the same situation
 
-    def test_05_credit_note_e_product(self):
-        """ similar to  demo_invoice_16 """
-        invoice = self._test_case('invoice_e', 'product')
-        self._test_case_credit_note('credit_note_e', invoice)
-
-    def test_06_credit_note_e_service(self):
-        invoice = self._test_case('invoice_e', 'service')
-        self._test_case_credit_note('credit_note_e', invoice)
-
-    def test_07_credit_note_e_product_service(self):
-        invoice = self._test_case('invoice_e', 'product_service')
-        self._test_case_credit_note('credit_note_e', invoice)
-
-    def test_08_free_zone(self):
+    def test_ar_edi_wsfex_invoice_free_zone(self):
         """ Invoice to "IVA Liberado - Free Zone" partner (similar to demo_invoice_6) """
-        partner = self.res_partner_montana_sur
-        invoice = self._test_case('invoice_e', 'product_service', forced_values={
-            'partner': partner,
-            'lines': [{'product': self.product_iva_105, 'price_unit': 642.0, 'quantity': 5},
-                      {'product': self.service_iva_27, 'price_unit': 250.0, 'quantity': 1},
-                      {'product': self.product_iva_105_perc, 'price_unit': 3245.0, 'quantity': 2},
-                      {'product': self.product_no_gravado, 'price_unit': 50.0, 'quantity': 10},
-                      {'product': self.product_iva_cero, 'price_unit': 200.0, 'quantity': 1},
-                      {'product': self.product_iva_exento, 'price_unit': 100.0, 'quantity': 1}]})
-        tax_exento = self._search_tax('iva_exento')
-        self.assertEqual(invoice.invoice_line_ids.mapped('tax_ids'), tax_exento)
+        invoice = self._test_ar_edi_flow(
+            test_name='test_wsfex_invoice_free_zone',
+            move_type='invoice',
+            document_code='e',
+            concept='product_service',
+            partner_id=self.res_partner_montana_sur,
+            invoice_line_ids=self._get_ar_multi_invoice_line_ids(),
+        )
+        self.assertEqual(set(invoice.invoice_line_ids.tax_ids.mapped('amount')), {0.0})
 
-    def test_09_invoice_e_product_service(self):
+    def test_ar_edi_wsfex_invoice_e_product_service(self):
         """ Invoice "4 - Otros (expo)" because it have Services (similar to demo_invoice_7) """
         # Can be unified with test_04_invoice_e_product_service? why 4 - Otros (expo)?
-        partner = self.res_partner_barcelona_food
-        invoice = self._test_case('invoice_e', 'product_service', forced_values={
-            'partner': partner,
-            'lines': [{'product': self.product_iva_105, 'price_unit': 642.0, 'quantity': 5},
-                      {'product': self.service_iva_27, 'price_unit': 250.0, 'quantity': 1},
-                      {'product': self.product_iva_105_perc, 'price_unit': 3245.0, 'quantity': 2},
-                      {'product': self.product_no_gravado, 'price_unit': 50.0, 'quantity': 10},
-                      {'product': self.product_iva_cero, 'price_unit': 200.0, 'quantity': 1},
-                      {'product': self.product_iva_exento, 'price_unit': 100.0, 'quantity': 1}]})
-        tax_exento = self._search_tax('iva_exento')
-        self.assertEqual(invoice.invoice_line_ids.mapped('tax_ids'), tax_exento)
+        invoice = self._test_ar_edi_flow(
+            test_name='test_wsfex_invoice_e_product_service_multi',
+            move_type='invoice',
+            document_code='e',
+            concept='product_service',
+            partner_id=self.res_partner_barcelona_food,
+            invoice_line_ids=self._get_ar_multi_invoice_line_ids(),
+        )
+        self.assertEqual(set(invoice.invoice_line_ids.tax_ids.mapped('amount')), {0.0})
 
-    def test_10_invoice_with_notes(self):
+    def test_ar_edi_wsfex_invoice_with_notes(self):
         """ Invoice with multiple products/services and with line note """
-        partner = self.res_partner_barcelona_food
-        invoice = self._test_case('invoice_e', 'product_service', forced_values={
-            'partner': partner,
-            'lines': [{'product': self.product_iva_105, 'price_unit': 642.0, 'quantity': 5},
-                      {'product': self.service_iva_27, 'price_unit': 250.0, 'quantity': 1},
-                      {'product': self.product_iva_105_perc, 'price_unit': 3245.0, 'quantity': 2},
-                      {'product': self.product_no_gravado, 'price_unit': 50.0, 'quantity': 10},
-                      {'product': self.product_iva_cero, 'price_unit': 200.0, 'quantity': 1},
-                      {'product': self.product_iva_exento, 'price_unit': 100.0, 'quantity': 1},
-                      {'display_type': 'line_note', 'name': 'Notes'}
-                      ]})
-        tax_exento = self._search_tax('iva_exento')
-        self.assertEqual(invoice.invoice_line_ids.mapped('tax_ids'), tax_exento)
+        note_line_values = self._prepare_invoice_line(display_type='line_note', price_unit=False, product_id=False, name='Notes')
+        invoice = self._test_ar_edi_flow(
+            test_name='test_wsfex_invoice_e_with_notes',
+            move_type='invoice',
+            document_code='e',
+            concept='product_service',
+            partner_id=self.res_partner_barcelona_food,
+            invoice_line_ids=self._get_ar_multi_invoice_line_ids() + [note_line_values],
+        )
+        self.assertEqual(set(invoice.invoice_line_ids.tax_ids.mapped('amount')), {0.0})
 
-    def test_11_payment_foreign_currency(self):
+    def test_ar_edi_wsfex_payment_foreign_currency(self):
         """ Payment in Foreign Currency  """
         self._test_payment_foreign_currency()

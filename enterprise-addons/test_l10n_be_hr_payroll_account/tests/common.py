@@ -269,6 +269,7 @@ class TestPayrollAccountCommon(odoo.tests.HttpCase):
 
         cls.env.ref('base.user_admin').write({
             'company_ids': [(4, cls.company_id.id)],
+            'company_id': cls.company_id.id,
             'name': 'Mitchell Admin',
             'sign_signature': img_content,
         })
@@ -282,7 +283,7 @@ class TestPayrollAccountCommon(odoo.tests.HttpCase):
             'state_id': cls.env.ref('base.state_us_39').id,
             'phone': '+1 555-555-5555',
             'tz': 'Europe/Brussels',
-            'company_id': cls.env.company.id,
+            'company_id': cls.company_id.id,
         })
         demo.write({
             'partner_id': partner_id,

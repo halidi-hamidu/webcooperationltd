@@ -119,7 +119,7 @@ export class SignTemplateSidebarRoleItems extends Component {
     }
 
     async updateRoleNameAndAvatar(data) {
-        this.state.roleName = data.name;
+        this.onChangeRoleName(data.name);
         const assignToId = data.assign_to?.id;
         if (assignToId) {
             const [partner] = await this.orm.call(

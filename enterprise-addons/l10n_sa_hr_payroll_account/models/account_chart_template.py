@@ -53,8 +53,8 @@ class AccountChartTemplate(models.AbstractModel):
         rules_mapping[out_of_contract_days_rule]['debit'] = '400074'
 
         social_rule = self.env.ref('l10n_sa_hr_payroll.ksa_saudi_social_insurance_contribution')
-        rules_mapping[social_rule]['debit'] = '400010'
-        rules_mapping[social_rule]['credit'] = '201022'
+        rules_mapping[social_rule]['debit'] = '201022'
+        rules_mapping[social_rule]['credit'] = '400010'
 
         social_insurance_employee_contribution_rule = self.env.ref('l10n_sa_hr_payroll.ksa_saudi_social_insurance_employee_contribution')
         rules_mapping[social_insurance_employee_contribution_rule]['debit'] = '201022'

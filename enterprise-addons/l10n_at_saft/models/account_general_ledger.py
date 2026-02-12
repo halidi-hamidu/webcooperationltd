@@ -120,22 +120,16 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
                 'action': self.env['res.config.settings']._get_records_action(name="Settings"),
             }
 
-        company_partner = self.env.company.partner_id
-        if not (company_contacts := template_vals['partner_detail_map'][company_partner.id]['contacts']):
-            template_vals['errors']['missing_company_contact'] = {
-                'message': _('Please define a company contact.'),
+        company_contact = self.env['res.partner']
+        if contacts := template_vals['partner_detail_map'][self.env.company.partner_id.id]['contacts']:
+            company_contact |= contacts[0]
+        if company_contact and not company_contact.phone:
+            template_vals['errors']['missing_partner_phone_number'] = {
+                'message': _('Please define a phone or mobile phone number for your company contact.'),
                 'action_text': _('Check Company'),
-                'action': self.env.company._get_records_action(name=_("Missing Company Contact")),
+                'action': company_contact._get_records_action(name=_("Missing Company Data")),
                 'level': 'danger'
             }
-        else:
-            company_contact = company_contacts[0]
-            if not company_contact.phone:
-                template_vals['errors']['missing_partner_phone_number'] = {
-                    'message': _('Please define a phone or mobile phone number for your company contact.'),
-                    'action_text': _('Check Company'),
-                    'action': company_contact._get_records_action(name=_("Missing Company Data")),
-                }
 
         partner_without_complete_address_ids = []
         for (partner_id, partner_detail) in template_vals['partner_detail_map'].items():

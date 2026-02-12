@@ -3,10 +3,12 @@
 
 from unittest.mock import patch
 from datetime import date
+from dateutil.relativedelta import relativedelta
 
 from odoo import tests
 from odoo.fields import Date
 from odoo.exceptions import UserError
+from odoo.tests import Form
 from odoo.tests.common import TransactionCase, new_test_user
 
 @tests.tagged('post_install', '-at_install')
@@ -80,3 +82,14 @@ class TestRuleParameter(TransactionCase):
             # Read a BE parameter from FR company
             # Value should not come from cache, access rights should be checked
             self.env['hr.rule.parameter'].with_user(user).with_company(company_2)._get_parameter_from_code('test_parameter')
+
+    def test_future_rule_parameter(self):
+        """Test rule parameter value creation with future date"""
+        with Form(self.env['hr.rule.parameter']) as rule:
+            rule.name = 'Test Future Parameter'
+            rule.code = 'test_future_param'
+            with rule.parameter_version_ids.new() as rule_value:
+                rule_value.parameter_value = '2'
+                rule_value.date_from = date.today() + relativedelta(months=2)
+        new_rule = rule.save()
+        self.assertTrue(new_rule.exists())

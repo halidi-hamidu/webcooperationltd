@@ -12,7 +12,7 @@ from odoo import models, fields, release, _
 from odoo.exceptions import RedirectWarning, UserError
 from odoo.modules.registry import Registry
 from odoo.sql_db import BaseCursor
-from odoo.tools import get_lang, SQL
+from odoo.tools import format_date, SQL
 from odoo.tools.misc import street_split
 
 
@@ -271,7 +271,7 @@ class AccountGeneralLedgerReportHandler(models.AbstractModel):
             period_to = fields.Date.to_string(period_to.date())
             periods.append(Period(
                 number=self._l10n_nl_reports_compute_period_number(period_from),
-                name=period.strftime('%B') + ' ' + date_from[0:4],
+                name=format_date(self.env, period, date_format='MMMM Y'),
                 date_from=period_from,
                 date_to=period_to
             ))

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from odoo import Command
 from odoo.tests import freeze_time
+from odoo.addons.web_gantt.models.models import Base
 from .common import TestWebGantt
 
 
@@ -335,3 +336,29 @@ class TestWebGanttReschedule(TestWebGantt):
             '2 moved before 3',
         )
         self.assert_not_replanned(self.pills2_1 | self.pills2_4, self.initial_dates)
+
+    def test_reschedule_dates(self):
+        pill = self.env["test.web.gantt.pill2"].create({
+            self.date_start_field_name: "2021-04-27",
+            self.date_stop_field_name: "2021-04-27",
+        })
+
+        self.env['test.web.gantt.pill2'].web_gantt_reschedule(
+            {
+                self.date_start_field_name: "2021-04-28",
+                self.date_stop_field_name: "2021-04-28",
+            },
+            Base._WEB_GANTT_RESCHEDULE_CONSUME_BUFFER,
+            pill.id,
+            self.dependency_field_name, self.dependency_inverted_field_name,
+            self.date_start_field_name, self.date_stop_field_name
+        )
+
+        self.assertEqual(
+            pill[self.date_stop_field_name],
+            date(2021, 4, 28),
+        )
+        self.assertEqual(
+            pill[self.date_start_field_name],
+            date(2021, 4, 28),
+        )

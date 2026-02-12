@@ -84,7 +84,7 @@ class AccountMove(models.Model):
     def _compute_l10n_ke_validation_message(self):
         """ Compute the series of messages to be displayed in the banner at the header of the invoice. """
         for move in self:
-            if not move.is_invoice(include_receipts=True):
+            if not move.is_invoice(include_receipts=True) or move.country_code != 'KE':
                 move.l10n_ke_validation_message = False
                 continue
 

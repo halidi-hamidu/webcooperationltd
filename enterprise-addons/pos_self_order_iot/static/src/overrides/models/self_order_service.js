@@ -12,6 +12,7 @@ patch(SelfOrder.prototype, {
         this.iot_longpolling = services.iot_longpolling;
         this.iotHttpService = services.iot_http;
         await super.setup(...arguments);
+        this.iot_longpolling.setLna(odoo.use_lna);
 
         this.iotHttpService.cacheIotBoxRecords(this.models["iot.box"].getAll());
 

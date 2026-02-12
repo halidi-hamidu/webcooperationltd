@@ -16,7 +16,7 @@ export class ConfirmQuantDialog extends Component {
 
     onConfirm() {
         this.props.onConfirm({
-            inventory_name: this.prop,
+            inventory_name: this.inventoryReason.value,
         });
         this.props.close();
     }

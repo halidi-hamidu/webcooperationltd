@@ -19,7 +19,7 @@ class TestSwedishIsoBBANCreditTransfer(TestSwedishIsoCreditTransfer):
         self.swedish_partner_bank.lock_trust_fields = False
         self.swedish_partner_bank.acc_number = '1234-5617'
         self.assertEqual(self.swedish_partner_bank.acc_type, 'bankgiro')
-        batch = self.generate_iso20022_batch_payment(self.swedish_partner)
+        batch = self.generate_iso20022_batch_payment(self.swedish_partner, '78949')
         sct_doc = self.get_sct_doc_from_batch(batch)
         xml_file_path = file_path('l10n_se_bban/tests/data/bankgiro.xml')
         expected_tree = etree.parse(xml_file_path)

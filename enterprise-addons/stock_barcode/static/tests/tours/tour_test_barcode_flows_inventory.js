@@ -92,21 +92,9 @@ registry.category("web_tour.tours").add("test_inventory_adjustment", {
         {
             trigger: ".o_scan_message.o_scan_product",
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_barcode_line",
-            run: "scan OBTVALI",
-        },
-
-        {
-            trigger: ".o_stock_barcode_main_menu",
-            run: "click",
-        },
-
-        {
-            trigger: ".o_notification_bar.bg-success",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -186,7 +174,7 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_multi_company
             run: "click",
         },
         {
-            trigger: "button.o_button_inventory",
+            trigger: "button.o_button_inventory span:contains('1')",
             run: "click",
         },
         // Scan product1 and product_no_company, they should be added in the inventory adj.
@@ -245,7 +233,7 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_multi_company
             run: "click",
         },
         {
-            trigger: "button.o_button_inventory",
+            trigger: "button.o_button_inventory:not(:has(span))",
             run: "click",
         },
         // Scan product2 and product_no_company, they should be added in the inventory adj.
@@ -276,18 +264,9 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_multi_company
             },
         },
         // Validate the Inventory Adjustment.
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_barcode_line",
-            run: "scan OBTVALI",
-        },
-        {
-            trigger: ".o_notification_bar.bg-success",
-        },
-        {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -339,15 +318,9 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_multi_locatio
             trigger: ".o_barcode_client_action",
             run: "scan product1",
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_barcode_client_action",
-            run: "scan OBTVALI",
-        },
-        {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -383,7 +356,8 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_tracked_produ
             run: "scan serial1",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned serial number serial1 is already used.)",
             run: function () {
                 // Check that other lines is correct
                 let line = helper.getLine({ barcode: "productserial1" });
@@ -392,7 +366,6 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_tracked_produ
                 line = helper.getLine({ barcode: "productlot1" });
                 helper.assertLineQty(line, "2");
                 helper.assert(line.querySelector(".o_line_lot_name").innerText.trim(), "lot1");
-                helper.assertErrorMessage("The scanned serial number serial1 is already used.");
             },
         },
         {
@@ -470,19 +443,9 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_tracked_produ
                 helper.assertSublinesCount(3);
             },
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_barcode_client_action",
-            run: "scan OBTVALI",
-        },
-        {
-            trigger: ".o_notification_bar.bg-success",
-            run: "click",
-        },
-        {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -585,10 +548,7 @@ registry.category("web_tour.tours").add("test_inventory_adjustment_tracked_produ
         },
         ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -655,10 +615,8 @@ registry
             ),
 
             {
-                trigger: ".o_stock_barcode_main_menu",
-                run: function () {
-                    helper.assertErrorMessage("The inventory count has been updated");
-                },
+                trigger:
+                    ".o_notification:has(.bg-success):text(The inventory count has been updated)",
             },
         ],
     });
@@ -810,7 +768,6 @@ registry.category("web_tour.tours").add("test_inventory_dialog_not_counted_seria
         { trigger: ".o_barcode_line.o_selected", run: "scan sn1,sn2,sn3" },
         // Apply => No dialog because all SN are counted.
         ...stepUtils.validateBarcodeOperation(".o_barcode_line.o_selected.o_line_completed"),
-        { trigger: ".o_stock_barcode_main_menu" },
     ],
 });
 
@@ -859,10 +816,7 @@ registry.category("web_tour.tours").add("test_inventory_nomenclature", {
         },
         ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -889,20 +843,9 @@ registry.category("web_tour.tours").add("test_inventory_package", {
             trigger: ".o_save",
             run: "click",
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_apply_page",
-            run: "scan OBTVALI",
-        },
-
-        {
-            trigger: ".o_notification_bar.bg-success",
-            run: function () {
-                helper.assertErrorMessage("The inventory count has been updated");
-            },
-        },
-
-        {
-            trigger: ".o_stock_barcode_main_menu",
+            trigger: ".o_notification:has(.bg-success):text(The inventory count has been updated)",
         },
     ],
 });
@@ -940,14 +883,7 @@ registry.category("web_tour.tours").add("test_inventory_packaging", {
             trigger: ".o_apply_page",
             run: "scan OBTVALI",
         },
-        {
-            trigger: ".o_notification_bar.bg-success",
-            run: "click",
-        },
-        {
-            trigger: ".o_notification button.o_notification_close",
-            run: "click",
-        },
+        ...stepUtils.checkNotificationMessage("The inventory count has been updated"),
         {
             trigger: ".o_button_inventory",
             run: "click",
@@ -1420,6 +1356,10 @@ registry.category("web_tour.tours").add("test_inventory_using_buttons", {
             run: "click",
         },
         {
+            trigger: ".o_input",
+            run: "edit Very important reason"
+        },
+        {
             trigger: ".o_confirm:contains('Apply Now')",
             run: "click",
         },
@@ -1800,15 +1740,10 @@ registry
                     helper.assertLineQty(0, "1");
                 },
             },
+            ...stepUtils.validateBarcodeOperation(),
             {
-                trigger: ".o_apply_page.btn-primary",
-                run: "scan OBTVALI",
-            },
-            {
-                trigger: ".o_notification_bar.bg-success",
-                run: function () {
-                    helper.assertErrorMessage("The inventory count has been updated");
-                },
+                trigger:
+                    ".o_notification:has(.bg-success):text(The inventory count has been updated)",
             },
         ],
     });

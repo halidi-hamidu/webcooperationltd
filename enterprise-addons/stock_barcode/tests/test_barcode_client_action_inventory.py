@@ -71,8 +71,12 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         ])
 
     def test_inventory_adjustment_multi_company(self):
-        """ When doing an Inventory Adjustment, ensures only products belonging
-        to current company or to no company can be scanned."""
+        """ When doing an Inventory Adjustment in Barcode:
+        - ensures only products belonging to the current company or to no
+          company can be scanned;
+        - ensures that only request counts of the current company are displayed
+          in the Barcode main menu.
+        """
         # Creates two companies and assign them to the user.
         company_a = self.env['res.company'].create({'name': 'Comp A - F2 FTW'})
         company_b = self.env['res.company'].create({'name': 'Comp B - F3 Wee-Wee Pool'})
@@ -88,6 +92,15 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
             'is_storable': True,
             'barcode': 'product_no_company',
         })
+        # Create a quant, then request_count in the company A.
+        company_a_location = self.env['stock.location'].search([('company_id', '=', company_a.id), ('usage', '=', 'internal')], limit=1)
+        self.env['stock.quant']._update_available_quantity(product_no_company, company_a_location, 2)
+        wizard_request_count = self.env['stock.request.count'].create({
+            'user_id': self.env.user.id,
+            'quant_ids': product_no_company.stock_quant_ids.ids,
+            'show_expected_quantity': True,
+        })
+        wizard_request_count.action_request_count()
         self.start_tour("/odoo", 'test_inventory_adjustment_multi_company', login='admin', timeout=180)
         # Checks an inventory adjustment was correctly validated for each company.
         inventory_moves = self.env['stock.move'].search([
@@ -586,6 +599,8 @@ class TestInventoryAdjustmentBarcodeClientAction(TestBarcodeClientAction):
         self.assertEqual(productlot1_quant.quantity, 1.0)
         self.assertEqual(productlot1_quant.lot_id.name, 'toto-42')
         self.assertEqual(productlot1_quant.location_id.id, self.stock_location.id)
+        inventory_move_line = self.env['stock.move.line'].search([('product_id', '=', self.product1.id), ('is_inventory', '=', True)], limit=1)
+        self.assertEqual(inventory_move_line.reference, 'Very important reason')
 
     def test_inventory_adjustment_with_no_internal_location_quant(self):
         self.env.user.write({'group_ids': [Command.link(self.env.ref('stock.group_stock_multi_locations').id)]})

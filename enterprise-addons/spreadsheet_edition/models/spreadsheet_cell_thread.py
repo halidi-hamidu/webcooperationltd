@@ -12,7 +12,7 @@ class SpreadsheetCellThread(models.Model):
 
     def _compute_display_name(self):
         for record in self:
-            record.display_name = self._get_spreadsheet_record().display_name
+            record.display_name = record._get_spreadsheet_record().display_name
 
     @api.model_create_multi
     def create(self, vals_list):

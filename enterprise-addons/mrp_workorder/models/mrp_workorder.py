@@ -767,8 +767,18 @@ class MrpWorkorder(models.Model):
         return total_workcenter_cost
 
     def button_pending(self):
-        for emp in self.employee_ids:
-            self.stop_employee([emp.id])
+        Employee = self.env['hr.employee']
+        # Determine current employee
+        if not self.env.context.get('mrp_display'):
+            employee = self.env.user.employee_id
+        else:
+            connected_employees = Employee.get_employees_connected()
+            if not connected_employees:
+                raise UserError(_("You need to log in to process this work order."))
+            employee = Employee.get_session_owner()
+        if employee:
+            # Stop productivity only for the current employee
+            self.stop_employee([employee.id])
         super().button_pending()
 
     def action_mark_as_done(self):

@@ -65,6 +65,10 @@ export class PDFIframe {
             eventBus.on("pagerendered",  (ev) => this.refreshSignItems(ev.pageNumber));
             eventBus.on("scalechange",   ()  => this.updateFontSize());
             eventBus.on("rotationchanging",() => this.updateFontSize());
+
+            // We need to refresh just one more time after we assign the eventbus on the pageredered
+            // as the page could have rendered before we assigned the bus
+            this.refreshSignItems();
         });
     }
 
@@ -279,7 +283,6 @@ export class PDFIframe {
     preRender() {
         const viewerContainer = this.root.querySelector("#viewerContainer");
         viewerContainer.style.visibility = "visible";
-        this.setInitialZoom();
     }
 
     get normalSize() {
@@ -319,15 +322,6 @@ export class PDFIframe {
             button.removeAttribute("disabled");
             this.refreshSignItems();
         }
-    }
-
-    setInitialZoom() {
-        let button = this.root.querySelector("button#zoomInButton");
-        if (!this.env.isSmall) {
-            button = this.root.querySelector("button#zoomOutButton");
-            button.click();
-        }
-        button.click();
     }
 
     postRender() {

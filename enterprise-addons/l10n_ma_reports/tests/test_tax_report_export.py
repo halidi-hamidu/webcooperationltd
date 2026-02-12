@@ -1,8 +1,7 @@
 from odoo import Command
+from odoo.addons.account_reports.models.account_report import AccountReportFileDownloadException
 from odoo.addons.account_reports.tests.common import TestAccountReportsCommon
 from odoo.tests import tagged
-
-from freezegun import freeze_time
 
 
 @tagged('post_install_l10n', 'post_install', '-at_install')
@@ -27,49 +26,43 @@ class TestAccountMaExport(TestAccountReportsCommon):
         })
 
         cls.report = cls.env.ref('l10n_ma.tax_report_vat')
-        cls.handler = cls.env['l10n_ma.tax.report.handler']
-
-        cls.default_options = cls._generate_options(cls.report, '2019-01-01', '2019-02-01')
-        cls.default_options['date']['period_type'] = 'month'  # 'month' or 'quarter' are required
-
-    def _l10n_ma_generate_report(self, options=None):
-        with freeze_time('2019-11-01 00:00:00'):
-            return self.handler.l10n_ma_reports_export_vat_to_xml(options or self.default_options)
 
     def test_simple_export_tax_report(self):
         """ This will test a simple export with no moves data. """
+        self._report_compare_with_test_file(
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml'),
+            test_xml="""
+                <DeclarationReleveDeduction>
+                    <idf>22233411</idf>
+                    <annee>2019</annee>
+                    <periode>1</periode>
+                    <regime>1</regime>
+                    <releveDeductions>
+                    </releveDeductions>
+                </DeclarationReleveDeduction>
+            """,
+        )
 
-        report = self._l10n_ma_generate_report()
-        self._report_compare_with_test_file(report, test_xml="""
-            <DeclarationReleveDeduction>
-                <idf>22233411</idf>
-                <annee>2019</annee>
-                <periode>1</periode>
-                <regime>1</regime>
-                <releveDeductions>
-                </releveDeductions>
-            </DeclarationReleveDeduction>
-        """)
-
-        self.env.company.account_return_periodicity = 'trimester'  # 'monthly' or 'trimester' are required
-        options = self._generate_options(self.report, '2019-01-01', '2019-04-01')
-        report = self._l10n_ma_generate_report(options)
-        self._report_compare_with_test_file(report, test_xml="""
-            <DeclarationReleveDeduction>
-                <idf>22233411</idf>
-                <annee>2019</annee>
-                <periode>1</periode>
-                <regime>2</regime>
-                <releveDeductions>
-                </releveDeductions>
-            </DeclarationReleveDeduction>
-        """)
+        self.env.company.account_return_periodicity = 'trimester'
+        self._report_compare_with_test_file(
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-03-31'), 'l10n_ma_reports_export_vat_to_xml'),
+             test_xml="""
+                <DeclarationReleveDeduction>
+                    <idf>22233411</idf>
+                    <annee>2019</annee>
+                    <periode>1</periode>
+                    <regime>2</regime>
+                    <releveDeductions>
+                    </releveDeductions>
+                </DeclarationReleveDeduction>
+            """,
+        )
 
     def test_export_tax_report_with_data(self):
         """ This will test a simple export with moves data. """
         self.partner_ma.company_registry = '123456789123456'
 
-        self.env['account.move'].create({
+        bill = self.env['account.move'].create({
             'move_type': 'in_invoice',
             'date': '2019-01-01',
             'invoice_date': '2019-01-01',
@@ -80,38 +73,45 @@ class TestAccountMaExport(TestAccountReportsCommon):
                 'price_unit': 1000.0,
                 'tax_ids': [Command.set(self.company_data['default_tax_purchase'].ids)],
             })],
-        }).action_post()
+        })
 
-        report = self._l10n_ma_generate_report()
-        self._report_compare_with_test_file(report, test_xml="""
-            <DeclarationReleveDeduction>
-                <idf>22233411</idf>
-                <annee>2019</annee>
-                <periode>1</periode>
-                <regime>1</regime>
-                <releveDeductions>
-                    <rd>
-                        <ordre>1</ordre>
-                        <num>BILL/2019/01/0001</num>
-                        <des>BILL/2019/01/0001</des>
-                        <mht>500.0</mht>
-                        <tva>100.0</tva>
-                        <ttc>600.0</ttc>
-                        <refF>
-                            <if>22233412</if>
-                            <nom>Ma customer</nom>
-                            <ice>123456789123456</ice>
-                        </refF>
-                        <tx>20.0</tx>
-                        <mp>
-                            <id>7</id>
-                        </mp>
-                        <dpai></dpai>
-                        <dfac>2019-01-01</dfac>
-                    </rd>
-                </releveDeductions>
-            </DeclarationReleveDeduction>
-        """)
+        bill.action_post()
+        self.pay_with_statement_line(bill, self.company_data['default_journal_bank'].id, '2019-01-01', -600)
+
+        self.env.flush_all()
+
+        self._report_compare_with_test_file(
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml'),
+            test_xml="""
+                <DeclarationReleveDeduction>
+                    <idf>22233411</idf>
+                    <annee>2019</annee>
+                    <periode>1</periode>
+                    <regime>1</regime>
+                    <releveDeductions>
+                        <rd>
+                            <ordre>1</ordre>
+                            <num>BILL/2019/01/0001</num>
+                            <des>BILL/2019/01/0001</des>
+                            <mht>500.0</mht>
+                            <tva>100.0</tva>
+                            <ttc>600.0</ttc>
+                            <refF>
+                                <if>22233412</if>
+                                <nom>Ma customer</nom>
+                                <ice>123456789123456</ice>
+                            </refF>
+                            <tx>20.0</tx>
+                            <mp>
+                                <id>7</id>
+                            </mp>
+                            <dpai>2019-01-01</dpai>
+                            <dfac>2019-01-01</dfac>
+                        </rd>
+                    </releveDeductions>
+                </DeclarationReleveDeduction>
+            """,
+        )
 
     def test_export_tax_report_local_partner_with_no_ice(self):
         """
@@ -125,7 +125,7 @@ class TestAccountMaExport(TestAccountReportsCommon):
             'company_registry': '123456789123456',
         })
 
-        self.env['account.move'].create([
+        bills = self.env['account.move'].create([
             {
                 'move_type': 'in_invoice',
                 'date': '2019-01-01',
@@ -150,48 +150,51 @@ class TestAccountMaExport(TestAccountReportsCommon):
                     'tax_ids': [Command.set(self.company_data['default_tax_purchase'].ids)],
                 })],
             },
-        ]).action_post()
+        ])
 
-        template_value = self.handler._l10n_ma_prepare_vat_report_values(self.default_options)
-        self.assertTrue('partner_vat_ice_missing' in template_value['errors'])
+        bills.action_post()
+        self.pay_with_statement_line(bills, self.company_data['default_journal_bank'].id, '2019-01-01', -1200)
 
-        # This part is needed to avoid the assert of an error and having the content of the file.
-        generator_params = {'values': template_value, 'template': 'l10n_ma_reports.l10n_ma_tax_report_template', 'file_type': 'xml'}
-        content = self.env['ir.qweb']._render(**generator_params)
+        self.env.flush_all()
 
-        generated_export_string = self.get_xml_tree_from_string(content)
-        self.assertXmlTreeEqual(
-            generated_export_string,
-            self.get_xml_tree_from_string("""
-                <DeclarationReleveDeduction>
-                    <idf>22233411</idf>
-                    <annee>2019</annee>
-                    <periode>1</periode>
-                    <regime>1</regime>
-                    <releveDeductions>
-                        <rd>
-                            <ordre>1</ordre>
-                            <num>BILL/2019/01/0002</num>
-                            <des>BILL/2019/01/0002</des>
-                            <mht>500.0</mht>
-                            <tva>100.0</tva>
-                            <ttc>600.0</ttc>
-                            <refF>
-                                <if>22233411</if>
-                                <nom>Ma customer with ice</nom>
-                                <ice>123456789123456</ice>
-                            </refF>
-                            <tx>20.0</tx>
-                            <mp>
-                                <id>7</id>
-                            </mp>
-                            <dpai></dpai>
-                            <dfac>2019-01-01</dfac>
-                        </rd>
-                    </releveDeductions>
-                </DeclarationReleveDeduction>
-            """)
-        )
+        try:
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml')
+            self.fail("Generating the XML file should have raised, due to the partner without ICE")
+
+        except AccountReportFileDownloadException as download_exception:
+            self.assertTrue('partner_vat_ice_missing' in download_exception.errors)
+            self._report_compare_with_test_file(
+                download_exception.content,
+                test_xml="""
+                    <DeclarationReleveDeduction>
+                        <idf>22233411</idf>
+                        <annee>2019</annee>
+                        <periode>1</periode>
+                        <regime>1</regime>
+                        <releveDeductions>
+                            <rd>
+                                <ordre>1</ordre>
+                                <num>BILL/2019/01/0002</num>
+                                <des>BILL/2019/01/0002</des>
+                                <mht>500.0</mht>
+                                <tva>100.0</tva>
+                                <ttc>600.0</ttc>
+                                <refF>
+                                    <if>22233411</if>
+                                    <nom>Ma customer with ice</nom>
+                                    <ice>123456789123456</ice>
+                                </refF>
+                                <tx>20.0</tx>
+                                <mp>
+                                    <id>7</id>
+                                </mp>
+                                <dpai>2019-01-01</dpai>
+                                <dfac>2019-01-01</dfac>
+                            </rd>
+                        </releveDeductions>
+                    </DeclarationReleveDeduction>
+                """,
+            )
 
     def test_export_tax_report_critical_error(self):
         """
@@ -202,7 +205,7 @@ class TestAccountMaExport(TestAccountReportsCommon):
         self.env.company.vat = False
         self.partner_ma.company_registry = '123456789123456'
 
-        self.env['account.move'].create({
+        bill = self.env['account.move'].create({
             'move_type': 'in_invoice',
             'date': '2019-01-01',
             'invoice_date': '2019-01-01',
@@ -213,16 +216,33 @@ class TestAccountMaExport(TestAccountReportsCommon):
                 'price_unit': 1000.0,
                 'tax_ids': [Command.set(self.company_data['default_tax_purchase'].ids)],
             })],
-        }).action_post()
+        })
 
-        errors = self.handler._l10n_ma_prepare_vat_report_values(self.default_options)['errors']
-        self.assertTrue('company_vat_missing' in errors)
+        bill.action_post()
+        self.pay_with_statement_line(bill, self.company_data['default_journal_bank'].id, '2019-01-01', -600)
+
+        self.env.flush_all()
+
+        try:
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml')
+            self.fail("Generating the XML file should have raised, due to the company having no VAT")
+
+        except AccountReportFileDownloadException as download_exception:
+            self.assertTrue('company_vat_missing' in download_exception.errors)
+            self.assertFalse(download_exception.content)
 
         self.env.company.vat = '22233411'
         self.env.company.account_return_periodicity = 'semester'
-        options = self._generate_options(self.report, '2019-01-01', '2019-02-01')
-        errors = self.handler._l10n_ma_prepare_vat_report_values(options)['errors']
-        self.assertTrue('period_invalid' in errors)
+
+        self.env.flush_all()
+
+        try:
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml')
+            self.fail("Generating the XML file should have raised, due to report periodicity being invalid.")
+
+        except AccountReportFileDownloadException as download_exception:
+            self.assertTrue('period_invalid' in download_exception.errors)
+            self.assertFalse(download_exception.content)
 
     def test_export_tax_report_foreign_customer(self):
         # 'vat' value must be random to avoid the partner auto-completion feature that would overwrite the company_registry (ICE)
@@ -232,7 +252,7 @@ class TestAccountMaExport(TestAccountReportsCommon):
             'country_id': self.env.ref('base.us').id,
         })
 
-        self.env['account.move'].create({
+        bill = self.env['account.move'].create({
             'move_type': 'in_invoice',
             'date': '2019-01-01',
             'invoice_date': '2019-01-01',
@@ -243,35 +263,42 @@ class TestAccountMaExport(TestAccountReportsCommon):
                 'price_unit': 1000.0,
                 'tax_ids': [Command.set(self.company_data['default_tax_purchase'].ids)],
             })],
-        }).action_post()
+        })
 
-        report = self._l10n_ma_generate_report()
-        self._report_compare_with_test_file(report, test_xml="""
-            <DeclarationReleveDeduction>
-                <idf>22233411</idf>
-                <annee>2019</annee>
-                <periode>1</periode>
-                <regime>1</regime>
-                <releveDeductions>
-                    <rd>
-                        <ordre>1</ordre>
-                        <num>BILL/2019/01/0001</num>
-                        <des>BILL/2019/01/0001</des>
-                        <mht>500.0</mht>
-                        <tva>100.0</tva>
-                        <ttc>600.0</ttc>
-                        <refF>
-                            <if>20727020</if>
-                            <nom>Foreign customer with no ice</nom>
-                            <ice>20727020</ice>
-                        </refF>
-                        <tx>20.0</tx>
-                        <mp>
-                            <id>7</id>
-                        </mp>
-                        <dpai></dpai>
-                        <dfac>2019-01-01</dfac>
-                    </rd>
-                </releveDeductions>
-            </DeclarationReleveDeduction>
-        """)
+        bill.action_post()
+        self.pay_with_statement_line(bill, self.company_data['default_journal_bank'].id, '2019-01-01', -1200)
+
+        self.env.flush_all()
+
+        self._report_compare_with_test_file(
+            self.report.dispatch_report_action(self._generate_options(self.report, '2019-01-01', '2019-01-31'), 'l10n_ma_reports_export_vat_to_xml'),
+            test_xml="""
+                <DeclarationReleveDeduction>
+                    <idf>22233411</idf>
+                    <annee>2019</annee>
+                    <periode>1</periode>
+                    <regime>1</regime>
+                    <releveDeductions>
+                        <rd>
+                            <ordre>1</ordre>
+                            <num>BILL/2019/01/0001</num>
+                            <des>BILL/2019/01/0001</des>
+                            <mht>500.0</mht>
+                            <tva>100.0</tva>
+                            <ttc>600.0</ttc>
+                            <refF>
+                                <if>20727020</if>
+                                <nom>Foreign customer with no ice</nom>
+                                <ice>20727020</ice>
+                            </refF>
+                            <tx>20.0</tx>
+                            <mp>
+                                <id>7</id>
+                            </mp>
+                            <dpai>2019-01-01</dpai>
+                            <dfac>2019-01-01</dfac>
+                        </rd>
+                    </releveDeductions>
+                </DeclarationReleveDeduction>
+            """,
+        )

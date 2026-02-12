@@ -7,7 +7,7 @@ import { _t } from "@web/core/l10n/translation";
 export class StudioView extends Component {
     static components = { WithSearch };
     static template = xml`
-        <div t-att-style="style" class="w-100" t-ref="viewRenderer">
+        <div t-att-style="style" class="w-100 h-100" t-ref="viewRenderer">
             <WithSearch t-props="withSearchProps" t-slot-scope="search">
                 <t t-component="viewEditorModel.editorInfo.editor.Controller" t-props="Object.assign(controllerProps, search)" />
             </WithSearch>

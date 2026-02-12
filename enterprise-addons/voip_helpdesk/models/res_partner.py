@@ -5,7 +5,7 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     ticket_ids = fields.One2many("helpdesk.ticket", "partner_id")
-    open_ticket_count = fields.Integer(compute="_compute_open_ticket_count")
+    open_ticket_count = fields.Integer(compute="_compute_open_ticket_count", groups="helpdesk.group_helpdesk_user")
 
     @api.depends("ticket_ids.fold")
     def _compute_open_ticket_count(self):

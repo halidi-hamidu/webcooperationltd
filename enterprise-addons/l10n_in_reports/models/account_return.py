@@ -2443,22 +2443,6 @@ class AccountReturn(models.Model):
                 ) if line_ids else None,
             })
 
-        # Credit Notes
-        if 'fiscal_year_reversed_move' not in check_codes_to_ignore:
-            _template, move_ids = self.env['l10n_in.report.handler']._get_out_of_fiscal_year_reversed_moves(options)
-            move_count = len(move_ids)
-            checks.append({
-                'code': 'fiscal_year_reversed_move',
-                'name': _("Fiscal Year Reversed Move"),
-                'message': _("Some Credit Notes for invoices issued during financial year shouldn't be in GSTR-1 after November 30th,\n"
-                    "so it's advisable to remove the tax from it."
-                ),
-                'records_model': self.env['ir.model']._get('account.move').id,
-                'records_count': move_count,
-                'result': 'anomaly' if move_ids else 'reviewed',
-                'action': move_ids._get_records_action(name=_("Credit Notes")) if move_ids else None,
-            })
-
         if 'unlinked_unregistered_inter_state_reversed_move' not in check_codes_to_ignore:
             _template, move_ids = self.env['l10n_in.report.handler']._get_unlinked_unregistered_inter_state_reversed_moves(options)
             move_count = len(move_ids)

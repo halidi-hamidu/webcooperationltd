@@ -1715,7 +1715,7 @@ class TestPickingBarcodeClientAction(TestBarcodeClientAction):
         """
         group_package = self.env.ref('stock.group_tracking_lot')
         self.env.user.write({'group_ids': [Command.link(group_package.id)]})
-        self._reset_package_sequence()
+        self._reset_package_sequence(42)
         # Create a receipt for two products.
         receipt = self.env['stock.picking'].create({
             'location_id': self.picking_type_in.default_location_src_id.id,
@@ -1739,7 +1739,7 @@ class TestPickingBarcodeClientAction(TestBarcodeClientAction):
         })
         receipt.action_confirm()
         self.start_tour('/odoo/barcode', 'test_put_in_pack_in_new_created_package', login='admin')
-        self.assertEqual(receipt.move_ids.move_line_ids.result_package_id.name, "PACK0000001")
+        self.assertEqual(receipt.move_ids.move_line_ids.result_package_id.name, "PACK0000042")
         self.assertEqual(
             receipt.move_ids[0].move_line_ids.result_package_id.id,
             receipt.move_ids[1].move_line_ids.result_package_id.id,
@@ -3952,7 +3952,7 @@ class TestPickingBarcodeClientAction(TestBarcodeClientAction):
             {'product_uom_qty': 2.0, 'quantity': 2, 'product_uom': pack_of_6, 'state': 'done'},
         ])
         self.assertRecordValues(receipt_2.move_ids, [
-            {'product_uom_qty': 12.0, 'quantity': 32.0, 'packaging_uom_id': unit, 'state': 'done'}
+            {'product_uom_qty': 12.0, 'quantity': 32.0, 'product_uom': unit, 'packaging_uom_id': pack_of_6, 'state': 'done'}
         ])
         self.assertRecordValues(receipt_3.move_ids, [
             {'product_uom_qty': 10.0, 'quantity': 10.0, 'product_uom': unit, 'state': 'done'},
@@ -4724,3 +4724,13 @@ class TestPickingBarcodeClientAction(TestBarcodeClientAction):
 
         self.assertTrue(receipt.backorder_ids)
         self.assertEqual(receipt.backorder_ids.move_ids.product_uom_qty, 3.0)
+
+    def test_no_validate_multiple_times(self):
+        grp_multi_loc = self.env.ref('stock.group_stock_multi_locations')
+        self.env.user.write({'group_ids': [Command.link(grp_multi_loc.id)]})
+        self.picking_type_internal.action_unarchive()
+        self.env['stock.quant']._update_available_quantity(self.product2, self.stock_location, 1)
+        self.start_tour('/odoo/barcode', 'test_no_validate_multiple_times', login='admin')
+
+        quant = self.env['stock.quant'].search([('product_id', '=', self.product2.id), ('location_id', '=', self.shelf1.id)], limit=1)
+        self.assertEqual(quant.quantity, 1)

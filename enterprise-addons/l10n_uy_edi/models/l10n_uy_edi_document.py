@@ -520,14 +520,16 @@ class L10n_Uy_EdiDocument(models.Model):
     def _get_partner_from_xml(self, xml_tree, partner_vat_RUC):
         """Select partner if exists or create partner from vendor bill XML data. """
         partner = self.env["res.partner"]._retrieve_partner(vat=partner_vat_RUC, company=self.company_id)
-        state_id = self.env["res.country.state"].search([("name", "ilike", xml_tree.findtext(".//{*}Departamento"))], limit=1)
+        state_id = None
+        if departamento := xml_tree.findtext(".//{*}Departamento"):
+            state_id = self.env["res.country.state"].search([("name", "ilike", departamento), ("country_id.code", "=", "UY")], limit=1)
         return partner or self.env["res.partner"].create({
             "name": xml_tree.findtext(".//{*}RznSoc"),
             "vat": partner_vat_RUC,
             "city": xml_tree.findtext(".//{*}Ciudad"),
             "street": xml_tree.findtext(".//{*}DomFiscal"),
             "state_id": state_id.id if state_id else None,
-            "country_id": state_id.country_id.id if state_id else None,
+            "country_id": self.env.ref("base.uy").id,
             "l10n_latam_identification_type_id": self.env.ref("l10n_uy.it_rut").id,
             "is_company": True
         })

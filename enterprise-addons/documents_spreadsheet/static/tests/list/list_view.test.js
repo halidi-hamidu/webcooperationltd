@@ -580,6 +580,42 @@ test("Selected all records from current page are inserted correctly", async func
     expect(getCellValue(model, "A5")).toBe(2);
 });
 
+test("Insert in spreadsheet is avaiblable on a list grouped by m2m field", async function () {
+    let spreadsheetAction;
+    patchWithCleanup(SpreadsheetAction.prototype, {
+        setup() {
+            super.setup();
+            spreadsheetAction = this;
+        },
+    });
+    const serverData = {
+        models: getBasicData(),
+        views: {
+            "partner,false,list": `
+                    <list>
+                        <field name="foo"/>
+                    </list>`,
+        },
+    };
+    await spawnListViewForSpreadsheet({
+        serverData,
+        groupBy: ["tag_ids"],
+    });
+    const target = getFixture();
+    await contains(target.querySelectorAll(".o_list_record_selector input")[0]).click();
+    await toggleActionMenu();
+    await contains(".o-dropdown--menu .o_menu_item:has(.oi-view-list)").click();
+    await contains(".modal button.btn-primary").click();
+    await animationFrame();
+
+    const model = getSpreadsheetActionModel(spreadsheetAction);
+    await waitForDataLoaded(model);
+    expect(getCellValue(model, "A2")).toBe(12);
+    expect(getCellValue(model, "A3")).toBe(1);
+    expect(getCellValue(model, "A4")).toBe(17);
+    expect(getCellValue(model, "A5")).toBe(2);
+});
+
 test("Can see record of a list", async function () {
     const { webClient, model } = await createSpreadsheetFromListView();
     const listId = model.getters.getListIds()[0];

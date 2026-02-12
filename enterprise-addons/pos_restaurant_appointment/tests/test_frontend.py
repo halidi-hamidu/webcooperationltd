@@ -52,6 +52,7 @@ class TestUi(TestFrontend):
             'pos_table_ids': [(6, 0, [cls.main_floor_table_5.id])]
         })
 
+    @freeze_time('2026-01-28 12:00:00')
     def test_pos_restaurant_appointment_tour_basic(self):
         now = fields.Datetime.now()
         self.env['calendar.event'].create([{

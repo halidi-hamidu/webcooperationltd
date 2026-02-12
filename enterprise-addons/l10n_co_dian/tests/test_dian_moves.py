@@ -209,7 +209,6 @@ class TestDianMoves(TestCoDianCommon):
         self._assert_document_dian(xml, "l10n_co_dian/tests/attachments/invoice_plastic_bags.xml")
 
     def test_invoice_plastic_bags_new(self):
-        self.env['ir.config_parameter'].sudo().set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', True)
         self.test_invoice_plastic_bags()
 
     def test_multicurrency(self):
@@ -648,3 +647,14 @@ class TestDianMoves(TestCoDianCommon):
         xml = self._generate_xml(credit_note)
         self.env['l10n_co_dian.document']._create_document(xml, credit_note, state='invoice_accepted')
         self.assertEqual(credit_note._get_name_invoice_report(), 'l10n_co_dian.report_invoice_document')
+
+    def test_invoice_narration_in_note(self):
+        """ Test that invoice narration (Terms and Conditions) appears in first cbc:Note tag """
+        invoice = self._create_move()
+        invoice.narration = '<p>Payment due in 30 days. Bank account: 123456789.</p>'
+        xml = self._generate_xml(invoice)
+        root = etree.fromstring(xml)
+        notes = root.findall('.//{*}Note')
+        self.assertEqual(len(notes), 2, "Should have 2 Note tags")
+        self.assertEqual(notes[0].text, 'Payment due in 30 days. Bank account: 123456789.', "First Note should contain Terms and Conditions")
+        self.assertTrue(notes[1].text.startswith('SETP'), "Second Note should contain CUFE calculation data")

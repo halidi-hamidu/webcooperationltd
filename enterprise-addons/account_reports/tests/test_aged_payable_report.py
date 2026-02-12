@@ -264,6 +264,36 @@ class TestAgedPayableReport(TestAccountReportsCommon):
             options
         )
 
+    def test_aged_payable_unfold_all_with_integer_rounding(self):
+        """Test unfolding a line when rendering the whole report with integer rounding."""
+        self.report.integer_rounding = 'HALF-UP'
+        options = self._generate_options(self.report, '2017-02-01', '2017-02-01')
+        partner_a_line_id = self.report._get_generic_line_id('res.partner', self.partner_a.id, parent_line_id=self.parent_line_id, markup={'groupby': 'partner_id'})
+        options['unfolded_lines'] = [partner_a_line_id]
+        report_lines = self.report._get_lines(options)
+        self.assertLinesValues(
+            # pylint: disable=C0326
+            self.report.sort_lines(report_lines, options),
+            #   Name                    Not Due     1 - 30     31 - 60     61 - 90    91 - 120     Older       Total
+            [   0,                            3,          4,          5,          6,          7,          8,          9],
+            [
+                ('Aged Payable',           150.0,      150.0,      150.0,      900.0,      450.0,      150.0,      1950.0),
+                ('partner_a',              100.0,      100.0,      100.0,      600.0,      300.0,      100.0,      1300.0),
+                ('BILL/2016/11/0001',        0.0,        0.0,        0.0,      500.0,        0.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,        0.0,        0.0,        0.0,      200.0,        0.0,          ''),
+                ('BILL/2016/10/0001',      100.0,        0.0,        0.0,        0.0,        0.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,      100.0,        0.0,        0.0,        0.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,        0.0,      100.0,        0.0,        0.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,        0.0,        0.0,      100.0,        0.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,        0.0,        0.0,        0.0,      100.0,        0.0,          ''),
+                ('BILL/2016/10/0001',        0.0,        0.0,        0.0,        0.0,        0.0,      100.0,          ''),
+                ('Total partner_a',        100.0,      100.0,      100.0,       600.0,     300.0,      100.0,      1300.0),
+                ('partner_b',               50.0,       50.0,       50.0,       300.0,     150.0,       50.0,       650.0),
+                ('Total Aged Payable',     150.0,      150.0,      150.0,      900.0,      450.0,      150.0,      1950.0),
+            ],
+            options
+        )
+
     def test_aged_payable_unknown_partner(self):
         """ Test that journal items without a partner in the payable account appear as unknown partner. """
 

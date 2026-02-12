@@ -961,3 +961,22 @@ class TestDeferredManagement(AccountTestInvoicingCommon):
         ], date='2025-01-01', post=False)
         with self.assertRaisesRegex(UserError, r"Having different deferred entries generation methods for expenses and revenues is not supported..."):
             deferred_move.action_post()
+
+    def test_misc_entry_no_deferred_dates_with_diff_methods(self):
+        """
+        Misc entries with expense and revenue accounts but NO deferred dates should
+        post successfully even when different generation methods are configured.
+        """
+        self.company.generate_deferred_expense_entries_method = 'on_validation'
+        self.company.generate_deferred_revenue_entries_method = 'manual'
+        move = self.env['account.move'].create({
+            'move_type': 'entry',
+            'date': '2025-01-01',
+            'journal_id': self.company_data['default_journal_misc'].id,
+            'line_ids': [
+                Command.create({'account_id': self.expense_accounts[0].id, 'balance': 100}),
+                Command.create({'account_id': self.revenue_accounts[0].id, 'balance': -100}),
+            ],
+        })
+        move.action_post()
+        self.assertEqual(move.state, 'posted')

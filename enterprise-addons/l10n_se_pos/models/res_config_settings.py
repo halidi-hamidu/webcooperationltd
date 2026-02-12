@@ -9,6 +9,7 @@ class ResConfigSettings(models.TransientModel):
     pos_iface_sweden_fiscal_data_module = fields.Many2one(
         "iot.device",
         compute="_compute_pos_iface_sweden_fiscal_data_module",
+        domain="[('type', '=', 'fiscal_data_module')]",
         store=True,
         readonly=False,
     )

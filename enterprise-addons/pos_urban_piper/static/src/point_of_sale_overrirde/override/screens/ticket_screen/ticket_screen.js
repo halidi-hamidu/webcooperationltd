@@ -88,6 +88,7 @@ patch(TicketScreen.prototype, {
         const response = await this._updateOrderStatus(syncedOrder, "Acknowledged");
         const status = await this._handleResponse(response, syncedOrder, "acknowledged");
         if (status) {
+            await this.pos._sendDeliveryOrderForPreparation(syncedOrder);
             this._updateScreenState(syncedOrder, "ACTIVE_ORDERS");
             syncedOrder.uiState.orderAcceptTime = luxon.DateTime.now().ts;
         }

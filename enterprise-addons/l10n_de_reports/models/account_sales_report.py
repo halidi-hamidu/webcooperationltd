@@ -23,11 +23,7 @@ class L10n_DeEcSalesReportHandler(models.AbstractModel):
         """
         super()._init_core_custom_options(report, options, previous_options)
         ec_operation_category = options.get('sales_report_taxes', {'goods': tuple(), 'triangular': tuple(), 'services': tuple()})
-
-        ec_operation_category['goods'] = tuple(self.env.ref('l10n_de.tax_report_de_tag_41_tag')._get_matching_tags().ids)
-        ec_operation_category['triangular'] = tuple(self.env.ref('l10n_de.tax_report_de_tag_42_tag')._get_matching_tags().ids)
-        ec_operation_category['services'] = tuple(self.env.ref('l10n_de.tax_report_de_tag_21_tag')._get_matching_tags().ids)
-
+        ec_operation_category.update(self._get_tax_tags_for_de_sales_report())
         # Change the names of the taxes to specific ones that are dependant to the tax type
         ec_operation_category['operation_category'] = {
             'goods': 'L',
@@ -82,4 +78,11 @@ class L10n_DeEcSalesReportHandler(models.AbstractModel):
             'file_name': report.get_default_report_filename(options, 'ZIP'),
             'file_content': res,
             'file_type': 'zip'
+        }
+
+    def _get_tax_tags_for_de_sales_report(self):
+        return {
+            'goods': tuple(self.env.ref('l10n_de.tax_report_de_tag_41_tag')._get_matching_tags().ids),
+            'triangular': tuple(self.env.ref('l10n_de.tax_report_de_tag_42_tag')._get_matching_tags().ids),
+            'services': tuple(self.env.ref('l10n_de.tax_report_de_tag_21_tag')._get_matching_tags().ids),
         }

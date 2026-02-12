@@ -201,7 +201,7 @@ class HMRCTransaction(models.Model):
                 button_text=_("Go to company"),
             )
         else:
-            message = _("An error happened when sending the document. Please try again later")
+            message = _("An error happened when sending the document.\n\nDetails:\n%(code)s: %(message)s", code=error['code'], message=error['message'])
 
         self.company_id.message_post(body=message)
         raise UserError(message)

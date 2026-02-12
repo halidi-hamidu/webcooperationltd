@@ -90,5 +90,5 @@ class SaleOrder(models.Model):
             if so.commercial_partner_id.grade_id != so.assigned_grade_id:
                 continue
             if so.commercial_partner_id.commission_plan_id == so.assigned_grade_id.default_commission_plan_id:
-                so.commercial_partner_id.commission_plan_id = False
+                so.commercial_partner_id.sudo().commission_plan_id = False
         return super()._remove_partnership()

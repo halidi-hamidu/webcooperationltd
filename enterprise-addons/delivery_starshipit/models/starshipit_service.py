@@ -257,6 +257,31 @@ class Starshipit:
             'packages': [{}],
         })
 
+    def _get_delivery_services_with_destination(self, origin_partner, destination_partner, total_weight=None):
+        """
+        Fetch delivery services between an origin and a destination.
+        """
+        self._validate_partner_fields(origin_partner)
+        self._validate_partner_fields(destination_partner)
+        details = {
+            'sender': {
+                'street': ' '.join(filter(None, [origin_partner.street, origin_partner.street2])),
+                'city': origin_partner.city,
+                'state': origin_partner.state_id.code,
+                'post_code': origin_partner.zip,
+                'country_code': origin_partner.country_id.code,
+            },
+            'destination': {
+                'street': ' '.join(filter(None, [destination_partner.street, destination_partner.street2])),
+                'city': destination_partner.city,
+                'state': destination_partner.state_id.code,
+                'post_code': destination_partner.zip,
+                'country_code': destination_partner.country_id.code,
+            },
+            'packages': [{"weight": total_weight}] if total_weight else [{}],
+        }
+        return self._send_request('deliveryservices', method='POST', data=details)
+
     def _clone_order(self, order_id):
         return self._send_request('orders/shipment/clone', data={
             'order_id': order_id,

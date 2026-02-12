@@ -186,7 +186,8 @@ def make_sp_api_request(account, operation, path_parameter='', payload=None, met
         _logger.exception("Unable to reach endpoint at %s", url)
         raise ValidationError(account.env._("Could not establish the connection to the API."))
     json_response = response.json()
-    _logger.info("SPAPI response for operation %s: %s", operation, pformat(json_response))
+    if const.API_OPERATIONS_MAPPING[operation].get('log_response', True):
+        _logger.info("SPAPI response for operation %s: %s", operation, pformat(json_response))
     return json_response
 
 

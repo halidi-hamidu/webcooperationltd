@@ -102,10 +102,10 @@ class Survey(models.Model):
                 for user_input_line in question.user_input_line_ids:
                     value = user_input_line._get_answer_value()
                     value_format = None
-                    if question.question_type == 'datetime':
+                    if user_input_line.answer_type == 'datetime' and value:
                         value = datetime_to_spreadsheet_date_number(value, tz_name)
                         value_format = date_time_format
-                    elif question.question_type == 'date':
+                    elif user_input_line.answer_type == 'date' and value:
                         value = date_to_spreadsheet_date_number(value)
                         value_format = date_format
                     column[user_row_index[user_input_line.user_input_id]]['value'] = value

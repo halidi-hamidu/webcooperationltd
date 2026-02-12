@@ -63,6 +63,8 @@
             'hr_contract_salary/static/src/xml/url_field.xml',
             'hr_contract_salary/static/src/js/copy_clipboard_field.js',
             'hr_contract_salary/static/src/scss/copy_clipboard_field.scss',
+            'hr_contract_salary/static/src/js/salary_calculator_copy_clipboard_field.js',
+            'hr_contract_salary/static/src/xml/salary_calculator_copy_clipboard_field.xml',
         ],
         'web.assets_tests': [
             'hr_contract_salary/static/tests/tours/hr_contract_salary_applicant_flow_tour.js',

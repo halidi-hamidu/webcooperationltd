@@ -9,15 +9,16 @@
 # Jeffery CHEN <jeffery9@gmail.com>, 2023
 # Martin Trigaux, 2023
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
-# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025.
+# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# 张飞虎 <feihu.zhang@live.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-30 18:42+0000\n"
-"PO-Revision-Date: 2025-12-16 04:16+0000\n"
-"Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
+"PO-Revision-Date: 2026-02-02 13:39+0000\n"
+"Last-Translator: 张飞虎 <feihu.zhang@live.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/account_accountant/zh_Hans/>\n"
 "Language: zh_CN\n"
@@ -199,6 +200,11 @@ msgid ""
 "i>\n"
 "                                </span>"
 msgstr ""
+"<span class=\"text-muted\" invisible="
+"\"min_fiscalyear_lock_date_exception_for_me_id or "
+"min_fiscalyear_lock_date_exception_for_everyone_id\">\n"
+"                                    <i class=\"ms-2\">但允许例外情况</i>\n"
+"                                </span>"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_account_change_lock_date
@@ -209,6 +215,10 @@ msgid ""
 "i>\n"
 "                                </span>"
 msgstr ""
+"<span class=\"text-muted\" invisible=\"min_tax_lock_date_exception_for_me_id "
+"or min_tax_lock_date_exception_for_everyone_id\">\n"
+"                                    <i class=\"ms-2\">税务结账后</i>\n"
+"                                </span>"
 
 #. module: account_accountant
 #: model_terms:digest.tip,tip_description:account_accountant.digest_tip_account_accountant_1
@@ -255,7 +265,8 @@ msgid ""
 "A payment with entry was created for an invoice previously linked to this "
 "payment: %(link)s.\n"
 "Its amount was deducted from this payment."
-msgstr ""
+msgstr "已为先前关联至本笔付款的发票 %(link)s 创建了带分录的付款，该发票金额已从本笔"
+"付款中扣除。"
 
 #. module: account_accountant
 #. odoo-python
@@ -263,7 +274,7 @@ msgstr ""
 msgid ""
 "A payment with entry was created for the related invoice during its "
 "reconciliation, replacing this one: %(link)s."
-msgstr ""
+msgstr "在对账过程中，已为关联发票生成带会计分录的付款单，本单据已被替换：%(link)s。"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_account_change_lock_date
@@ -582,7 +593,7 @@ msgstr "取消"
 #. odoo-python
 #: code:addons/account_accountant/models/account_payment.py:0
 msgid "Canceled payment during reconciliation"
-msgstr ""
+msgstr "对账期间取消付款"
 
 #. module: account_accountant
 #. odoo-javascript
@@ -639,7 +650,7 @@ msgstr "点击此处查找会计师或在Odoo中列出您的会计服务"
 #. odoo-javascript
 #: code:addons/account_accountant/static/src/js/tours/account_accountant.js:0
 msgid "Click on the statement to unfold it."
-msgstr ""
+msgstr "点击对账单将其展开。"
 
 #. module: account_accountant
 #: model:ir.model,name:account_accountant.model_res_company
@@ -813,7 +824,7 @@ msgstr "天"
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_move_form_inherit
 msgid "Deferral Entries"
-msgstr ""
+msgstr "递延分录"
 
 #. module: account_accountant
 #. odoo-python
@@ -867,7 +878,7 @@ msgstr "递延开支日记账"
 #. module: account_accountant
 #: model:ir.model.fields.selection,name:account_accountant.selection__account_move__deferred_entry_type__misc
 msgid "Deferred Miscellaneous"
-msgstr ""
+msgstr "递延杂项"
 
 #. module: account_accountant
 #: model:ir.model.fields.selection,name:account_accountant.selection__account_move__deferred_entry_type__revenue
@@ -1032,12 +1043,12 @@ msgstr "编辑模式金额"
 #. module: account_accountant
 #: model:ir.model.fields,field_description:account_accountant.field_res_config_settings__module_account_auto_transfer
 msgid "Enable Auto Transfer"
-msgstr ""
+msgstr "启用自动转账"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.res_config_settings_view_form
 msgid "Enable Auto Transfers"
-msgstr ""
+msgstr "启用自动转账"
 
 #. module: account_accountant
 #: model:ir.model.fields,field_description:account_accountant.field_account_fiscal_year__date_to
@@ -1226,7 +1237,8 @@ msgid ""
 "Having different deferred entries generation methods for expenses and "
 "revenues is not supported on journal entries involving both expense and "
 "revenue accounts. You can split this entry into two entries instead."
-msgstr ""
+msgstr "在同时涉及费用类科目和收入类科目的日记账分录中，不支持对费用和收入使用不同的"
+"递延分录生成方式。你可以将此分录拆分为两个独立的分录来处理。"
 
 #. module: account_accountant
 #: model:ir.model.fields,field_description:account_accountant.field_account_account__id
@@ -1301,13 +1313,13 @@ msgstr "保险期 12 个月"
 #. odoo-python
 #: code:addons/account_accountant/models/account_bank_statement.py:0
 msgid "Invalid Bank Statements"
-msgstr ""
+msgstr "无效银行对账单"
 
 #. module: account_accountant
 #. odoo-javascript
 #: code:addons/account_accountant/static/src/components/bank_reconciliation/statement_summary/statement_summary.xml:0
 msgid "Invalid Statement(s)"
-msgstr ""
+msgstr "无效对账单"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_statement_line_search_bank_rec_widget
@@ -1595,13 +1607,13 @@ msgstr "匹配"
 #. odoo-python
 #: code:addons/account_accountant/models/account_bank_statement.py:0
 msgid "Matching done"
-msgstr ""
+msgstr "匹配完成"
 
 #. module: account_accountant
 #. odoo-python
 #: code:addons/account_accountant/models/account_bank_statement.py:0
 msgid "Matching unreconciled"
-msgstr ""
+msgstr "未对账匹配"
 
 #. module: account_accountant
 #: model:ir.model,name:account_accountant.model_ir_ui_menu
@@ -1682,7 +1694,7 @@ msgstr "杂项日记账"
 #. odoo-python
 #: code:addons/account_accountant/models/account_payment.py:0
 msgid "Modified amount during reconciliation"
-msgstr ""
+msgstr "对账过程中修改的金额"
 
 #. module: account_accountant
 #: model:ir.model.fields.selection,name:account_accountant.selection__res_company__deferred_expense_amount_computation_method__month
@@ -2038,7 +2050,7 @@ msgstr "记录现金流动和转账"
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_move_form_inherit
 msgid "Related Entries"
-msgstr ""
+msgstr "相关分录"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_move_form_inherit
@@ -2224,7 +2236,7 @@ msgstr "单一币别模式"
 #. odoo-javascript
 #: code:addons/account_accountant/static/src/components/bank_reconciliation/statement_line/statement_line.xml:0
 msgid "Some lines have invalid analytic distribution"
-msgstr ""
+msgstr "部分行项目的分析维度分配无效"
 
 #. module: account_accountant
 #: model:ir.model.fields,field_description:account_accountant.field_account_fiscal_year__date_from
@@ -2253,7 +2265,7 @@ msgstr "对账单行"
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_statement_form_bank_rec_widget
 msgid "Statement Lines"
-msgstr ""
+msgstr "对账单明细行"
 
 #. module: account_accountant
 #. odoo-python
@@ -2358,7 +2370,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_create_statement_form_bank_rec_widget
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_statement_form_bank_rec_widget
 msgid "The running balance ("
-msgstr ""
+msgstr "账面余额（"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_create_statement_form_bank_rec_widget
@@ -2381,7 +2393,7 @@ msgstr "系统将尝试根据行标签预测供应商账单行内的产品"
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_create_statement_form_bank_rec_widget
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_statement_form_bank_rec_widget
 msgid "There are one or more"
-msgstr ""
+msgstr "存在一条或多条"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_account_change_lock_date
@@ -2402,12 +2414,12 @@ msgstr "该项只能用于日记账项目"
 #. odoo-javascript
 #: code:addons/account_accountant/static/src/components/bank_reconciliation/line_to_reconcile/line_to_reconcile.xml:0
 msgid "This line has invalid analytic distribution"
-msgstr ""
+msgstr "该行项目的分析维度分配无效"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_rec_edit_line
 msgid "This line requires analytic distribution."
-msgstr ""
+msgstr "该行项目必须填写分析维度分配。"
 
 #. module: account_accountant
 #. odoo-python
@@ -2596,7 +2608,7 @@ msgstr "两个会计年度不能有重叠日期，请更正会计年度的开始
 #. odoo-javascript
 #: code:addons/account_accountant/static/src/js/tours/account_accountant.js:0
 msgid "You can now go back to the dashboard."
-msgstr ""
+msgstr "现在可以返回仪表板。"
 
 #. module: account_accountant
 #. odoo-python
@@ -2730,7 +2742,7 @@ msgstr "id"
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_create_statement_form_bank_rec_widget
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_statement_form_bank_rec_widget
 msgid "invalid statement(s)"
-msgstr ""
+msgstr "无效的对账单"
 
 #. module: account_accountant
 #: model_terms:ir.ui.view,arch_db:account_accountant.view_bank_rec_edit_line

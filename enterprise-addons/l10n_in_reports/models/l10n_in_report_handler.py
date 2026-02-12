@@ -3,7 +3,6 @@ import io
 from collections import defaultdict
 
 import logging
-from datetime import datetime
 import re
 import xlsxwriter
 
@@ -145,15 +144,11 @@ class L10n_InReportHandler(models.AbstractModel):
 
     @api.model
     def _get_out_of_fiscal_year_reversed_moves(self, options):
-        AccountMove = self.env['account.move']
-        out_of_fiscal_year_reversed_moves = AccountMove.search(
-            self._get_reversed_moves_domain(options) +
-            [
-                ('reversed_entry_id', '!=', False),
-                ('reversed_entry_id.invoice_date', '<', AccountMove._l10n_in_get_fiscal_year_start_date(self.env.company, datetime.strptime(options['date']['date_to'], '%Y-%m-%d')))
-            ]
-        )
-        return 'l10n_in_reports.out_of_fiscal_year_reversed_moves_warning', out_of_fiscal_year_reversed_moves
+        """This method is deprecated and will be removed in the next version (master).
+        The warning is now displayed directly on each individual move until it is checked,
+        instead of being shown at the report level.
+        """
+        return 'l10n_in_reports.out_of_fiscal_year_reversed_moves_warning', self.env['account.move']
 
     @api.model
     def _get_unlinked_unregistered_inter_state_reversed_moves(self, options):
@@ -327,11 +322,13 @@ class L10n_InReportHandler(models.AbstractModel):
 
         # Add Section Sheets
         section_data = self._prepare_tds_tcs_report_data(options, is_tds_report)
-        col_widths = [16, 20, 18, 15, 12, 16, 16, 10]
+        col_widths = [6, 16, 12, 18, 14, 18, 16, 14, 10]
         if is_tds_report:
-            col_widths.insert(2, 18)
-            col_widths.insert(4, 22)
-            col_widths.insert(5, 15)
+            col_widths.insert(1, 16)
+            col_widths.insert(3, 22)
+            col_widths.insert(10, 14)
+            col_widths.insert(11, 12)
+            col_widths.insert(12, 12)
         for section_name, section_info in section_data.items():
             sheet = workbook.add_worksheet(section_name)
             for i, width in enumerate(col_widths):
@@ -342,13 +339,14 @@ class L10n_InReportHandler(models.AbstractModel):
     @api.model
     def _prepare_tds_tcs_report_data(self, options, is_tds_report):
         columns = [
-            _("PAN"),
-            _("Customer"),
+            _("Sr. No."),
             _("Bill") if is_tds_report else _("Journal Entry"),
-            _("Payment Date"),
-            _("Amount"),
-            _("TDS Debit Amount") if is_tds_report else _("TCS Debit Amount"),
-            _("TDS Credit Amount") if is_tds_report else _("TCS Credit Amount"),
+            _("PAN"),
+            _("Vendor") if is_tds_report else _("Customer"),
+            _("Bill/Payment Date") if is_tds_report else _("Payment Date"),
+            _("Bill/Payment Amount") if is_tds_report else _("Payment Amount"),
+            _("Credit Note/Refund/TDS Cr. Amount") if is_tds_report else _("TCS Cr. Amount"),
+            _("TDS Dr. Amount") if is_tds_report else _("TCS Dr. Amount"),
             _("TDS Rate") if is_tds_report else _("TCS Rate"),
         ]
 
@@ -366,8 +364,12 @@ class L10n_InReportHandler(models.AbstractModel):
         query.join('account_move__aml', 'tax_line_id', 'account_tax', 'id', 'tax')
         query.join('account_move__aml__tax', 'l10n_in_section_id', 'l10n_in_section_alert', 'id', 'section')
         query.join('account_move__aml__tax__section', 'tax_report_line_id', 'account_report_line', 'id', 'report_line')
+        query.left_join('account_move__aml', 'partner_id', 'res_partner', 'id', 'partner')
+        query.left_join('account_move__aml__partner', 'l10n_in_pan_entity_id', 'l10n_in_pan_entity', 'id', 'pan_entity')
 
         common_cols = [
+            'account_move__aml__partner.name AS partner_name',
+            'account_move__aml__partner__pan_entity.name AS partner_pan',
             'account_move__aml__tax__section.name AS section_name',
             'account_move__aml__tax__section__report_line.name AS section_description',
             'COALESCE(account_move__aml.debit, 0) AS tax_debit_amount',
@@ -376,18 +378,18 @@ class L10n_InReportHandler(models.AbstractModel):
         ]
 
         if is_tds_report:
-            columns.insert(2, _("Journal Entry"))
-            columns.insert(4, _("Bill Ref. (Supplier Inv. No.)"))
-            columns.insert(5, _("Deduction Date"))
+            columns.insert(1, _("Journal Entry"))
+            columns.insert(3, _("Bill Ref. (Supplier Inv. No.)"))
+            columns.insert(10, _("Deduction Date"))
+            columns.insert(11, _("Remarks (Reason for non-deduction/lower deduction/higher deduction/threshold)"))
+            columns.insert(12, _("Deductee Code (1. Company, 2. Other than Company)"))
 
             query.left_join('account_move', 'l10n_in_withholding_ref_move_id', 'account_move', 'id', 'bill_move')
-            query.left_join('account_move__bill_move', 'partner_id', 'res_partner', 'id', 'partner')
-            query.left_join('account_move__bill_move__partner', 'l10n_in_pan_entity_id', 'l10n_in_pan_entity', 'id', 'pan_entity')
 
             qu = query.select(
                 *common_cols,
-                'account_move__bill_move__partner__pan_entity.name AS partner_pan',
-                'account_move__bill_move__partner.name AS partner_name',
+                'account_move__aml__partner__pan_entity.tds_deduction AS tds_remarks',
+                'account_move__aml__partner__pan_entity.type AS deductee_code',
                 'account_move.name AS wh_move_name',
                 'account_move__bill_move.name AS move_name',
                 'account_move__bill_move.invoice_date',
@@ -396,13 +398,8 @@ class L10n_InReportHandler(models.AbstractModel):
                 'account_move.date AS deduction_date',
             )
         else:
-            query.left_join('account_move', 'partner_id', 'res_partner', 'id', 'partner')
-            query.left_join('account_move__partner', 'l10n_in_pan_entity_id', 'l10n_in_pan_entity', 'id', 'pan_entity')
-
             qu = query.select(
                 *common_cols,
-                'account_move__partner__pan_entity.name AS partner_pan',
-                'account_move__partner.name AS partner_name',
                 'account_move.name AS move_name',
                 'account_move.invoice_date',
                 'account_move__aml__tax.amount AS tax_rate',
@@ -411,27 +408,35 @@ class L10n_InReportHandler(models.AbstractModel):
         self.env.cr.execute(qu)
         rows = self.env.cr.dictfetchall()
 
-        section_data = defaultdict(lambda: {'description': '', 'moves': []})
+        section_data = defaultdict(lambda: {'description': '', 'moves': [], 'row_count': 0})
         for row in rows:
             section = row['section_name']
-            section_data[section]['description'] = row['section_description']
-            if not section_data[section]['moves']:
-                section_data[section]['moves'].append(columns)
+            data = section_data[section]
+
+            data['row_count'] += 1
+            sr_no = data['row_count']
+
+            data['description'] = row['section_description']
+            if not data['moves']:
+                data['moves'].append(columns)
 
             line = [
+                sr_no,
+                row['move_name'] or '',
                 row['partner_pan'] or '',
                 row['partner_name'] or '',
-                row['move_name'] or '',
                 row['invoice_date'].strftime("%d/%m/%y") if row['invoice_date'] else '',
                 f"{row['amount']:.2f}",
-                f"{row['tax_debit_amount']:.2f}",
                 f"{row['tax_credit_amount']:.2f}",
+                f"{row['tax_debit_amount']:.2f}",
                 f"{row['tax_rate']}%",
             ]
             if is_tds_report:
-                line.insert(2, row['wh_move_name'])
-                line.insert(4, row['bill_ref'])
-                line.insert(5, row['deduction_date'].strftime("%d/%m/%y") if row['deduction_date'] else '')
-            section_data[section]['moves'].append(line)
+                line.insert(1, row['wh_move_name'])
+                line.insert(3, row['bill_ref'])
+                line.insert(10, row['deduction_date'].strftime("%d/%m/%y") if row['deduction_date'] else '')
+                line.insert(11, row['tds_remarks'])
+                line.insert(12, '' if not row['deductee_code'] else (1 if row['deductee_code'] == 'c' else 2))
+            data['moves'].append(line)
 
         return section_data

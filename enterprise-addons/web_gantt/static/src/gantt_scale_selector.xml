@@ -9,6 +9,16 @@
             <attribute name="state">this.dropdownState</attribute>
             <attribute name="menuClass">'o_gantt_scale_selector_menu'</attribute>
         </xpath>
+        <xpath expr="//Dropdown/button[hasclass('scale_button_selection')]/t" position="replace">
+            <t t-if="props.currentScale === 'custom'">
+                <div class="d-inline-flex gap-1 align-items-center">
+                    <t t-esc="props.scales[props.currentScale].from_date"/>
+                    <i class="fa fa-long-arrow-right"/>
+                    <t t-esc="props.scales[props.currentScale].to_date"/>
+                </div>
+            </t>
+            <t t-else="">$0</t>
+        </xpath>
         <xpath expr="//DropdownItem" position="replace">
             <t t-if="scale.key === 'custom'">
                 <div class="dropdown-divider"/>
@@ -17,13 +27,12 @@
                     closingMode="'none'"
                 >
                     <div class="d-flex align-items-center gap-1">
-                        <label>From </label>
                         <span class="o_gantt_picker o_input cursor-pointer px-1" t-ref="start-picker" t-on-click="() => this.startPicker.open()">
-                            <t t-esc="this.getFormattedDate(this.pickerValues.startDate)" />
+                            <t t-esc="scale.from_date"/>
                         </span>
-                        <label>to </label>
+                        <i class="fa fa-long-arrow-right"/>
                         <span class="o_gantt_picker o_input cursor-pointer px-1" t-ref="stop-picker" t-on-click="() => this.stopPicker.open()">
-                            <t t-esc="this.getFormattedDate(this.pickerValues.stopDate)" />
+                            <t t-esc="scale.to_date"/>
                         </span>
                         <button class="btn btn-sm btn-primary ms-1" t-on-click="() => this.onApply()">Apply</button>
                     </div>

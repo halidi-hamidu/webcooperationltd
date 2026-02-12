@@ -31,3 +31,8 @@ class L10n_Mx_EdiPaymentMethod(models.Model):
         default=True,
         help='If this payment way is not used by the company could be '
         'deactivated.')
+
+    _code_uniq = models.Constraint(
+        'unique(code)',
+        'A payment method with the same code already exists.',
+    )

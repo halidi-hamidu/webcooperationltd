@@ -223,11 +223,11 @@
         </template>
 
         <template id="common_details_info_template">
-            <t t-set="lines" t-value="taxes_data['tax_details_per_record']"/>
-            <detalles t-if="lines">
-                <detalle t-foreach="lines.items()" t-as="line_items">
-                    <t t-set="line" t-value="line_items[0]"/>
-                    <t t-set="line_tax_details" t-value="line_items[1]['tax_details']"/>
+            <t t-set="base_lines" t-value="taxes_data['base_lines']"/>
+            <detalles t-if="base_lines">
+                <detalle t-foreach="base_lines" t-as="base_line">
+                    <t t-set="line" t-value="base_line['record']"/>
+                    <t t-set="line_tax_details" t-value="base_line['tax_details']['taxes_data']"/>
                     <t t-set="product" t-value="line.product_id"/>
                     <t t-set="product_code" t-value="product and (product.barcode or product.default_code or 'N/A')[:25]"/>
                     <t t-set="line_edi_values" t-value="line._l10n_ec_prepare_edi_vals_to_export_USD()"/>
@@ -239,11 +239,11 @@
                     <descripcion t-out="clean_str(line.name or line.product_id and line.product_id.name or 'OTRO')"/>
                     <cantidad t-out="format_num_6(line.quantity)"/>
                     <precioUnitario t-out="format_num_6(line_edi_values['price_unit'])"/>
-                    <descuento t-out="format_num_2(line_edi_values['price_discount'] + abs(line.balance) - line_items[1]['base_amount'])"/>
-                    <precioTotalSinImpuesto t-out="format_num_2(abs(line_items[1]['base_amount']))"/>
+                    <descuento t-out="format_num_2(abs(base_line['discount_amount']))"/>
+                    <precioTotalSinImpuesto t-out="format_num_2(abs(base_line['tax_details']['total_excluded']))"/>
 
                     <impuestos t-if="line_tax_details">
-                        <impuesto t-foreach="line_tax_details.values()" t-as="tax_data">
+                        <impuesto t-foreach="line_tax_details" t-as="tax_data">
                             <t t-call="l10n_ec_edi.common_tax_lines_template">
                                 <t t-set="tarifa_pre_base" t-value="True"/>
                             </t>

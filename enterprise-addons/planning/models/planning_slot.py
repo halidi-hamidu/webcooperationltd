@@ -342,16 +342,16 @@ class PlanningSlot(models.Model):
         else:
             # Allow fetching overlap without id if there is only one record
             # This is to allow displaying the warning when creating a new record without having an ID yet
-            if len(self) == 1 and self.employee_id and self.start_datetime and self.end_datetime:
+            if len(self) == 1 and self.resource_id and self.start_datetime and self.end_datetime:
                 query = """
                     SELECT ARRAY_AGG(s.id) as conflict_ids
                       FROM planning_slot s
-                     WHERE s.employee_id = %s
+                     WHERE s.resource_id = %s
                        AND s.start_datetime < %s
                        AND s.end_datetime > %s
                        AND s.allocated_percentage + %s > 100
                 """
-                self.env.cr.execute(query, (self.employee_id.id, self.end_datetime,
+                self.env.cr.execute(query, (self.resource_id.id, self.end_datetime,
                                             self.start_datetime, self.allocated_percentage))
                 overlaps = self.env.cr.dictfetchall()
                 conflict_slot_ids = overlaps[0]['conflict_ids']
@@ -1577,7 +1577,7 @@ class PlanningSlot(models.Model):
 
     def action_rollback_copy_previous_week(self, copied_slot_ids):
         self.browse(copied_slot_ids).was_copied = False
-        self.unlink()
+        self.exists().unlink()
 
     # ----------------------------------------------------
     # Sending Shifts

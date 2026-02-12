@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from odoo import api, models, _
 from odoo.fields import Domain
 
@@ -12,7 +14,13 @@ class AccountJournal(models.Model):
         return journals
 
     def _documents_configure_sync(self):
-        """Configure the synchronization for the journals (skip the ones with missing data)."""
+        """Configure the synchronization of accounting with documents.
+
+        * Create synchronization settings for the journals (skip if missing data).
+        * Embed relevant server actions on the specific journal folder.
+        * Embed relevant server actions on the company's parent 'Finance' folder.
+        """
+        FolderSetting = self.env['documents.account.folder.setting']
         Journal = self.env['account.journal']
         sync_journals = self.filtered(
             lambda j: j.type and j.name and j.company_id.account_folder_id)
@@ -21,12 +29,56 @@ class AccountJournal(models.Model):
         journal_type_labels = dict(Journal.fields_get(['type'], ['selection'])['type']['selection'])
         folders_by_journal_type = sync_journals._documents_ensure_journal_folder_created(journal_type_labels)
         tag_by_name = sync_journals._documents_ensure_journal_tags_created().grouped('name')
-        self.env['documents.account.folder.setting'].create([{
-            'company_id': journal.company_id.id,
-            'journal_id': journal.id,
-            'folder_id': folders_by_journal_type[journal.company_id, journal.type].id,
-            'tag_ids': tag_by_name[journal.name].ids,
-        } for journal in sync_journals])
+        actions_to_embed = self._documents_get_embed_on_sync_actions()
+
+        settings_to_create = []
+        folders_to_embed = defaultdict(lambda: self.env['documents.document'])
+
+        for journal in sync_journals:
+            company = journal.company_id
+            journal_type = journal.type
+            target_folder = folders_by_journal_type[journal.company_id, journal.type]
+
+            settings_to_create.append({
+                'company_id': company.id,
+                'journal_id': journal.id,
+                'folder_id': target_folder.id,
+                'tag_ids': tag_by_name[journal.name].ids,
+            })
+
+            actions_xml_ids = actions_to_embed.get(journal_type, [])
+            if not actions_xml_ids:
+                continue
+
+            for xml_id in actions_xml_ids:
+                folders_to_embed[xml_id] |= target_folder | company.account_folder_id
+
+        if settings_to_create:
+            FolderSetting.create(settings_to_create)
+
+        for action_xml_id, folders in folders_to_embed.items():
+            if action := self.env.ref(action_xml_id, raise_if_not_found=False):
+                folders._embed_action(action.id)
+
+    @api.model
+    def _documents_get_embed_on_sync_actions(self):
+        """Return a dictionary mapping journal types to action XML IDs to embed."""
+        return {
+            'purchase': [
+                'documents_account.ir_actions_server_create_vendor_bill',
+                'documents_account.ir_actions_server_create_vendor_refund',
+            ],
+            'sale': [
+                'documents_account.ir_actions_server_create_customer_invoice',
+                'documents_account.ir_actions_server_create_credit_note',
+            ],
+            'bank': [
+                'documents_account.ir_actions_server_bank_statement',
+            ],
+            'general': [
+                'documents_account.ir_actions_server_create_misc_entry',
+            ],
+        }
 
     def _documents_ensure_journal_tags_created(self):
         """Create the missing tags and returns all tags for the journals."""

@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from odoo import Command, api, fields, models, _
-from odoo.exceptions import RedirectWarning, UserError
+from odoo.exceptions import AccessError, RedirectWarning, UserError
 from odoo.tools import date_utils, SQL
 
 SDD_MIN_PRENOT_PERIOD = 2
@@ -256,6 +256,8 @@ class SddMandate(models.Model):
     def action_validate_mandate(self):
         """ Called by the 'validate' button of the form view.
         """
+        if not self.env.user.has_group('account.group_validate_bank_account'):
+            raise AccessError(self.env._("You don't have the rights to validate SDD mandates."))
         self._ensure_required_data()
 
         for mandate in self:

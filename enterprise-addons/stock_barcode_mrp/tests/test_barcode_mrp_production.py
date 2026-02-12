@@ -126,13 +126,14 @@ class TestMRPBarcodeClientAction(TestBarcodeClientAction):
 
         url = "/odoo/action-stock_barcode.stock_picking_type_action_kanban"
         self.start_tour(url, 'test_barcode_production_create_bom', login='admin')
-        mo = self.env['mrp.production'].search([], order='id desc', limit=1)
-        self.assertEqual(mo.state, 'done')
-        self.assertEqual(mo.qty_produced, 3)
-        self.assertRecordValues(mo.move_raw_ids, [
-            {'product_id': self.component01.id, 'product_uom_qty': 2, 'quantity': 6},
-            {'product_id': component02.id, 'product_uom_qty': 3, 'quantity': 9},
-        ])
+        manufacturing_orders = self.env['mrp.production'].search([], order='id desc', limit=2)
+        for mo in manufacturing_orders:
+            self.assertEqual(mo.state, 'done')
+            self.assertEqual(mo.qty_produced, 3)
+            self.assertRecordValues(mo.move_raw_ids, [
+                {'product_id': self.component01.id, 'product_uom_qty': 2, 'quantity': 6},
+                {'product_id': component02.id, 'product_uom_qty': 3, 'quantity': 9},
+            ])
 
     def test_barcode_production_create_tracked_bom(self):
         """Create a manufacturing order with bom from barcode app, with byproducts
@@ -765,6 +766,23 @@ class TestMRPBarcodeClientAction(TestBarcodeClientAction):
             [{'quantity': 5, 'product_uom_qty': 5,}]
         )
 
+    def test_backorder_partial_completion_preserves_reserved_qty_on_exit(self):
+        manufacturing_order = self.env['mrp.production'].create({
+            'name': 'TBPCSNS mo',
+            'product_id': self.final_product.id,
+            'product_qty': 1,
+            'move_raw_ids': [
+                Command.create({
+                    'product_id': self.component01.id,
+                    'product_uom_qty': 6,
+                }),
+            ],
+        })
+        manufacturing_order.action_confirm()
+        action_id = self.env.ref('stock_barcode.stock_barcode_action_main_menu')
+        url = f"/web#action={action_id.id}"
+        self.start_tour(url, 'test_backorder_partial_completion_preserves_reserved_qty_on_exit', login='admin', timeout=180)
+
     def test_barcode_mo_creation_in_mo2(self):
         """
         Ensures that MO is created in another manufacturing operation type (MO2)
@@ -1075,3 +1093,37 @@ class TestMRPBarcodeClientAction(TestBarcodeClientAction):
             {'product_id': self.component01.id, 'qty_done': 2, 'location_id': self.stock_location.id, 'lot_id': False, 'package_id': package.id, 'state': 'done'},
             {'product_id': self.component_lot.id, 'qty_done': 2, 'location_id': self.shelf1.id, 'lot_id': lot2.id, 'package_id': False, 'state': 'done'},
         ])
+
+    def test_gs1_qty_final_product(self):
+        barcodes_gs1_nomenclature = self.env.ref("barcodes_gs1_nomenclature.default_gs1_nomenclature")
+        self.env.company.write({
+            'nomenclature_id': barcodes_gs1_nomenclature.id
+        })
+        gs1_final_product = self.env['product.product'].create({
+            'name': 'PRO_FINAL_GTIN_8',
+            'is_storable': True,
+            'barcode': '82655853',  # GTIN-8 format
+            'uom_id': self.uom_unit.id
+        })
+        self.env['stock.quant'].create({
+            'quantity': 8,
+            'product_id': self.component01.id,
+            'location_id': self.stock_location.id,
+        })
+        bom = self.env['mrp.bom'].create({
+            'product_tmpl_id': gs1_final_product.product_tmpl_id.id,
+            'product_qty': 1.0,
+            'bom_line_ids': [
+                Command.create({'product_id': self.component01.id, 'product_qty': 2.0}),
+            ],
+        })
+        mo = self.env['mrp.production'].create({
+            'product_id': gs1_final_product.id,
+            'product_qty': 4,
+            'bom_id': bom.id,
+        })
+        mo.action_confirm()
+        action = self.env.ref('stock_barcode_mrp.stock_barcode_mo_client_action')
+        url = '/web#action=%s&active_id=%s' % (action.id, mo.id)
+        self.start_tour(url, 'test_gs1_qty_final_product', login='admin')
+        self.assertEqual(mo.state, 'done')

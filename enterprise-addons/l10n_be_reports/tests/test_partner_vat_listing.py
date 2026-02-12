@@ -164,7 +164,6 @@ class BelgiumPartnerVatListingTest(TestAccountReportsCommon):
         """
 
         # Following what export_file function does
-        options['export_mode'] = 'file'
         self.assertXmlTreeEqual(
             self.get_xml_tree_from_string(self.env[self.report._get_custom_handler_model()].partner_vat_listing_export_to_xml(options)['file_content']),
             self.get_xml_tree_from_string(expected_xml)
@@ -243,7 +242,6 @@ class BelgiumPartnerVatListingTest(TestAccountReportsCommon):
         """
 
         # Following what export_file function does
-        options['export_mode'] = 'file'
         self.assertXmlTreeEqual(
             self.get_xml_tree_from_string(self.env[self.report._get_custom_handler_model()].partner_vat_listing_export_to_xml(options)['file_content']),
             self.get_xml_tree_from_string(expected_xml)
@@ -591,6 +589,50 @@ class BelgiumPartnerVatListingTest(TestAccountReportsCommon):
                         <Street></Street>
                         <PostCode></PostCode>
                         <City></City>
+                        <CountryCode>BE</CountryCode>
+                        <EmailAddress>jsmith@mail.com</EmailAddress>
+                        <Phone>+32475123456</Phone>
+                    </ns2:Declarant>
+                    <ns2:Period>2018</ns2:Period>
+                    <ns2:Comment></ns2:Comment>
+                </ns2:ClientListing>
+            </ns2:ClientListingConsignment>
+        """ % ref
+
+        self.assertXmlTreeEqual(
+            self.get_xml_tree_from_string(self.env[self.report._get_custom_handler_model()].partner_vat_listing_export_to_xml(options)['file_content']),
+            self.get_xml_tree_from_string(expected_xml)
+        )
+
+    @freeze_time('2019-12-31')
+    def test_generate_xml_minimal_with_invoice_address(self):
+        options = self.report.get_options({})
+
+        # create an invoice address for the company without email and phone
+        self.env['res.partner'].create({
+            'type': 'invoice',
+            'country_id': self.env.ref('base.be').id,
+            'zip': 1000,
+            'city': 'Brussels',
+            'street': 'XYZ street',
+            'parent_id': self.env.company.partner_id.id,
+        })
+
+        # The sequence changes between execution of the test. To handle that, we increase by 1 more, so we can get its value here
+        sequence_number = self.env['ir.sequence'].next_by_code('declarantnum')
+        ref = f"0477472701{str(int(sequence_number) + 1).zfill(4)[-4:]}"
+
+        # This is the minimum expected from the belgian tax report xml.
+        # The address is coming from the invoice address with a fallback on the parent company for email and phone.
+        expected_xml = """
+            <ns2:ClientListingConsignment xmlns="http://www.minfin.fgov.be/InputCommon" xmlns:ns2="http://www.minfin.fgov.be/ClientListingConsignment" ClientListingsNbr="1">
+                <ns2:ClientListing SequenceNumber="1" ClientsNbr="0" DeclarantReference="%s" TurnOverSum="0.00" VATAmountSum="0.00">
+                    <ns2:Declarant>
+                        <VATNumber>0477472701</VATNumber>
+                        <Name>company_1_data</Name>
+                        <Street>XYZ street</Street>
+                        <PostCode>1000</PostCode>
+                        <City>Brussels</City>
                         <CountryCode>BE</CountryCode>
                         <EmailAddress>jsmith@mail.com</EmailAddress>
                         <Phone>+32475123456</Phone>

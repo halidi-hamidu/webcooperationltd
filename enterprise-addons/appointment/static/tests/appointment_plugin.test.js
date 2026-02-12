@@ -96,7 +96,7 @@ test("Replace existing link with '/Appointment' link", async () => {
     const contentBefore = htmlEditor.getContent();
     const paragraph = queryOne(".odoo-editor-editable p");
     expect(paragraph.outerHTML).toBe(
-        `<p>\ufeff<a href="http://odoo.com" class="o_link_in_selection">\ufeffExisting link\ufeff</a>\ufeff</p>`
+        `<p>\ufeff<a href="http://odoo.com">\ufeffExisting link\ufeff</a>\ufeff</p>`
     );
 
     setSelection({

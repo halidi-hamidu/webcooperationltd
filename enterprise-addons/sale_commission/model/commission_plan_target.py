@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 from odoo import api, models, fields
+from odoo.exceptions import ValidationError
 
 
 class SaleCommissionPlanTarget(models.Model):
@@ -19,6 +20,39 @@ class SaleCommissionPlanTarget(models.Model):
     payment_amount = fields.Monetary(compute='_compute_payment_amount', currency_field='currency_id', store=True,
                                      help="Sum of amounts paid on the same payment date")
     currency_id = fields.Many2one('res.currency', related='plan_id.currency_id')
+
+    @api.constrains('plan_id', 'date_from', 'date_to')
+    def _constrains_overlapping_dates(self):
+        targets_by_plans = self._read_group(
+            domain=[('plan_id', 'in', self.plan_id.ids)],
+            groupby=['plan_id'],
+            aggregates=['id:recordset'],
+        )
+        for plan_id, target_ids in targets_by_plans:
+            if len(target_ids) < 2:
+                continue
+            target_ids = target_ids.sorted(lambda t: (t.date_from, t.date_to))
+            for idx in range(len(target_ids) - 1):
+                current = target_ids[idx]
+                next_one = target_ids[idx + 1]
+                if current.date_from >= current.date_to:
+                    raise ValidationError(self.env._(
+                        "The start date must be before the end date.\nPeriod: %s"
+                    ) % current.name)
+                # Overlap detection: sorting can be indeterministic when the same date_from is used
+                if current.date_to >= next_one.date_from:
+                    raise ValidationError(self.env._(
+                        "Overlapping periods detected for plan '%(plan)s':\n"
+                        "- %(c_name)s [%(c_from)s → %(c_to)s]\n"
+                        "- %(n_name)s [%(n_from)s → %(n_to)s]",
+                        plan=plan_id.display_name,
+                        c_name=current.name,
+                        c_from=current.date_from,
+                        c_to=current.date_to,
+                        n_name=next_one.name,
+                        n_from=next_one.date_from,
+                        n_to=next_one.date_to,
+                    ))
 
     @api.depends('date_to')
     def _compute_payment_date(self):

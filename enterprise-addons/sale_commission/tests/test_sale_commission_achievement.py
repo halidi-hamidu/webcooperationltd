@@ -30,8 +30,8 @@ class TestSaleSubCommissionUser(TestSaleCommissionCommon):
         self.env['sale.commission.achievement'].create([{
             'date': '2024-03-03',
             'achieved': 100,
-            'add_user_id': self.commission_plan_manager.user_ids[0].id,
-            'reduce_user_id': self.commission_plan_manager.user_ids[1].id,
+            'add_user_id': self.commission_plan_manager.user_ids[0].id,  # Manager
+            'reduce_user_id': self.commission_plan_manager.user_ids[1].id,  # Sale
         }])
         so = self.env['sale.order'].create({
             'partner_id': self.partner.id,

@@ -3,8 +3,9 @@
 import datetime
 
 from odoo import Command, fields
-from odoo.exceptions import RedirectWarning, UserError, ValidationError
+from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.tests import freeze_time, tagged
+from odoo.tests.common import new_test_user
 
 from odoo.addons.account_sepa_direct_debit.tests.common import SDDTestCommon
 
@@ -346,3 +347,12 @@ class SDDTest(SDDTestCommon):
         res = wizard.action_create_payments()
         payments = self.env['account.payment'].search(res.get('domain', []))
         self.assertTrue(payments, 'A payment should have been generated')
+
+    def test_user_without_bank_account_validation_role_cannot_validate_mandates(self):
+        """User should have `group_validate_bank_account` group to validate SDD mandates."""
+        invoicing_banks_user = new_test_user(
+            self.env, 'invoicing_banks_user', groups='account.group_account_basic'
+        )
+
+        with self.assertRaisesRegex(AccessError, "validate SDD"):
+            self.mandate_agrolait.with_user(invoicing_banks_user).action_validate_mandate()

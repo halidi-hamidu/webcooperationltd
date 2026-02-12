@@ -21,7 +21,10 @@ export const stepUtils = {
             { trigger: "input#manual_barcode+button", run: "click" },
         ];
     },
-    validateBarcodeOperation(trigger = ".o_barcode_client_action .o_barcode_lines") {
+    validateBarcodeOperation(
+        trigger = ".o_barcode_client_action .o_barcode_lines",
+        checkTrigger = ".o_stock_barcode_main_menu"
+    ) {
         return [
             {
                 trigger: "body:not(:has(.modal))",
@@ -31,7 +34,7 @@ export const stepUtils = {
                 run: "scan OBTVALI",
             },
             {
-                trigger: ".o_notification_bar.bg-success",
+                trigger: checkTrigger,
             },
         ];
     },

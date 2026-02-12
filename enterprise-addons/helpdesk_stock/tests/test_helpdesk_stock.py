@@ -339,3 +339,58 @@ class TestHelpdeskStock(common.HelpdeskCommon):
         self.assertEqual(res_picking.product_id.id, product.id, 'the product id should match the product selected in the wizard')
         self.assertEqual(res_picking.picking_type_code, 'incoming', 'the picking type code should be incoming in the return')
         self.assertEqual(res_picking.return_id.id, wizard.picking_id.id, 'the return id should match the wizard picking id')
+
+    def test_return_picking_default_multistep_delivery(self):
+        """
+        Tests that when returning a product from a helpdesk ticket, the correct
+        delivery order is selected by default in multi-step delivery scenarios.
+        The default should always be the final customer-facing operation (Ship/Out).
+        """
+
+        warehouse = self.env['stock.warehouse'].create({
+            'name': 'Multi-Step Test WH',
+            'code': 'MSWH',
+        })
+        product_multi_step = self.env['product.product'].create({
+            'name': 'Multi-Step Test Product',
+            'is_storable': True,
+        })
+
+        routes = ['pick_ship', 'pick_pack_ship']
+        for steps in routes:
+            with self.subTest(delivery_steps=steps):
+                warehouse.write({'delivery_steps': steps})
+
+                so = self.env['sale.order'].create({
+                    'partner_id': self.partner.id,
+                    'warehouse_id': warehouse.id,
+                    'order_line': [Command.create({'product_id': product_multi_step.id, 'product_uom_qty': 1})],
+                })
+                so.action_confirm()
+
+                final_picking = self.env['stock.picking']
+                current_picking = so.picking_ids
+                while current_picking:
+                    current_picking.move_ids.quantity = 1
+                    current_picking.button_validate()
+                    final_picking = current_picking
+                    current_picking = current_picking.move_ids.move_dest_ids.picking_id
+
+                self.assertEqual(final_picking.state, 'done')
+
+                ticket = self.env['helpdesk.ticket'].create({
+                    'name': f'Return for {steps}',
+                    'partner_id': self.partner.id,
+                    'team_id': self.test_team.id,
+                    'sale_order_id': so.id,
+                })
+                return_wizard_form = Form(self.env['stock.return.picking'].with_context({
+                    'active_model': 'helpdesk.ticket',
+                    'default_ticket_id': ticket.id,
+                }))
+
+                self.assertEqual(
+                    return_wizard_form.picking_id,
+                    final_picking,
+                    f"For {steps} delivery, the final OUT operation should be defaulted."
+                )

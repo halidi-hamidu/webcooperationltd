@@ -780,6 +780,61 @@ class TestRentalWizard(TestRentalCommon):
         })
         self.assertEqual(so2.order_line.virtual_available_at_date, 6.0)
 
+    @freeze_time('2020-01-01')
+    def test_reschedule_rental_order_with_rental_transfers(self):
+        """
+        Ensures that rescheduling a rental order will propagate the new
+        schedule to the associated rental pickings.
+        """
+        # Enable "rental transfers" and rely on the qty_in_rent fot the forecast
+        self.env['res.config.settings'].create({'group_rental_stock_picking': True}).execute()
+        self.assertTrue(self.env.user.has_group('sale_stock_renting.group_rental_stock_picking'))
+        self.warehouse_id.write({
+            'reception_steps': 'two_steps',
+            'delivery_steps': 'pick_ship',
+        })
+        self.product_id.preparation_time = 24  # Add one day of preparation_time
+        self.env['stock.quant']._update_available_quantity(self.product_id, self.warehouse_id.lot_stock_id, 10)
+        today = Datetime.today()
+        rental_order = self.env['sale.order'].with_context(in_rental_app=True).create({
+            'partner_id': self.cust1.id,
+            'rental_start_date': today,
+            'rental_return_date': today + timedelta(days=5),
+            'order_line': [Command.create({
+                'product_id': self.product_id.id,
+                'product_uom_qty': 5.0,
+            })],
+            'warehouse_id': self.warehouse_id.id,
+        })
+        rental_order.action_confirm()
+        start_date, return_date = rental_order.rental_start_date, rental_order.rental_return_date
+        self.assertRecordValues(rental_order.picking_ids.move_ids.sorted('date'), [
+            {'location_id': self.warehouse_id.lot_stock_id.id, 'date': start_date, 'date_deadline': start_date},
+            {'location_id': self.warehouse_id.company_id.rental_loc_id.id, 'date': return_date, 'date_deadline': return_date},
+        ])
+        pick_picking = rental_order.picking_ids.filtered(lambda p: p.picking_type_id == self.warehouse_id.pick_type_id)
+        pick_picking.move_ids.quantity = 3.0
+        self.warehouse_id.pick_type_id.create_backorder = "always"
+        pick_picking.button_validate()
+        self.assertRecordValues(rental_order.picking_ids.move_ids.sorted(lambda m: (m.date, m.location_id.id, m.id)), [
+            {'location_id': self.warehouse_id.lot_stock_id.id, 'date': start_date, 'date_deadline': start_date, 'state': 'done'},  # done pick for 3 units
+            {'location_id': self.warehouse_id.lot_stock_id.id, 'date': start_date, 'date_deadline': start_date, 'state': 'assigned'},  # pick for 2 units
+            {'location_id': self.warehouse_id.wh_output_stock_loc_id.id, 'date': start_date, 'date_deadline': start_date, 'state': 'assigned'},  # ship for 3 units
+            {'location_id': self.warehouse_id.company_id.rental_loc_id.id, 'date': return_date, 'date_deadline': return_date, 'state': 'waiting'},  # return for 5 units
+        ])
+        new_start_date = rental_order.rental_start_date + timedelta(days=8)
+        new_return_date = rental_order.rental_return_date + timedelta(days=10)
+        rental_order.write({
+            'rental_start_date': new_start_date,
+            'rental_return_date': new_return_date,
+        })
+        self.assertRecordValues(rental_order.picking_ids.move_ids.sorted(lambda m: (m.date, m.location_id.id, m.id)), [
+            {'location_id': self.warehouse_id.lot_stock_id.id, 'date': start_date, 'date_deadline': start_date, 'state': 'done'},  # done pick for 3 units
+            {'location_id': self.warehouse_id.lot_stock_id.id, 'date': new_start_date, 'date_deadline': new_start_date, 'state': 'assigned'},  # pick for 2 units
+            {'location_id': self.warehouse_id.wh_output_stock_loc_id.id, 'date': new_start_date, 'date_deadline': new_start_date, 'state': 'assigned'},  # ship for 3 units
+            {'location_id': self.warehouse_id.company_id.rental_loc_id.id, 'date': new_return_date, 'date_deadline': new_return_date, 'state': 'waiting'},  # return for 5 units
+        ])
+
     ###############################
     #       PRIVATE METHODS       #
     ###############################

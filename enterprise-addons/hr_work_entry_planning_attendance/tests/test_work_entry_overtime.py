@@ -31,6 +31,7 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
                     'base_off': 'quantity',
                     'expected_hours_from_contract': True,
                     'quantity_period': 'day',
+                    'paid': True,
                 })],
         })
         cls.contract.write({
@@ -187,11 +188,13 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
                         'base_off': 'quantity',
                         'expected_hours_from_contract': True,
                         'quantity_period': 'day',
+                        'paid': True,
                     }),
                     (0, 0, {
                         'name': 'Rule employee is off',
                         'base_off': 'timing',
                         'timing_type': 'leave',
+                        'paid': True,
                     }),
                 ],
             })
@@ -202,7 +205,7 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
 
     def test_07_overtime_public_time_off_whole_day(self):
         self._test_07_overtime_public_time_off_whole_day(self.ruleset, [
-            (date(2022, 12, 26), 5, self.overtime_type),
+            (date(2022, 12, 26), 14, self.overtime_type),
             (date(2022, 12, 26), 8, self.work_entry_type_public_type_off),
         ])
 
@@ -233,6 +236,7 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
 
     def test_08_overtime_public_time_off_half_day(self):
         self._test_08_overtime_public_time_off_half_day(self.ruleset, [
+            (date(2022, 12, 26), 5, self.overtime_type),
             (date(2022, 12, 26), 8, self.work_entry_type_public_type_off),
         ])
 
@@ -263,6 +267,7 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
 
     def test_09_overtime_public_time_off_1_hour(self):
         self._test_09_overtime_public_time_off_1_hour(self.ruleset, [
+            (date(2022, 12, 26), 1, self.overtime_type),
             (date(2022, 12, 26), 8, self.work_entry_type_public_type_off),
         ])
 
@@ -293,6 +298,7 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
 
     def test_10_overtime_public_time_off_1_hour_inside(self):
         self._test_10_overtime_public_time_off_1_hour_inside(self.ruleset, [
+            (date(2022, 12, 26), 1, self.overtime_type),
             (date(2022, 12, 26), 8, self.work_entry_type_public_type_off),
         ])
 
@@ -332,4 +338,21 @@ class TestPayslipOvertime(HrWorkEntryAttendanceCommon):
     def test_12bis_overtime_classic_day_below_threshold(self):
         self._test_12_overtime_classic_day_below_threshold(False, [
             (date(2022, 12, 12), 8, self.attendance_type),
+        ])
+
+    def test_attendance_creation_with_partially_allocated_planning_slot(self):
+        """Test attendance creation when the work entry source is a planning slot
+           with less than 100% allocation."""
+        self.slots[0].allocated_percentage = 50
+        self.env['hr.attendance'].create({
+            'employee_id': self.employee.id,
+            'check_in': datetime(2022, 12, 1, 5),
+            'check_out': datetime(2022, 12, 1, 12),
+        })
+
+        work_entries = self.contract.generate_work_entries(
+            date(2022, 12, 1), date(2022, 12, 1)).sorted('work_entry_type_id')
+        self._check_work_entries(work_entries, [
+            (date(2022, 12, 1), 6, self.attendance_type),
+            (date(2022, 12, 1), 2, self.overtime_type),
         ])

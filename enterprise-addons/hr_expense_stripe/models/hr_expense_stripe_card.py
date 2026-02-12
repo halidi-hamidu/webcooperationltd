@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 
 from odoo import _, _lt, api, fields, models
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import format_date
 
 from odoo.addons.hr_expense_stripe.utils import STRIPE_CURRENCY_MINOR_UNITS, make_request_stripe_proxy
@@ -310,7 +310,7 @@ class HrExpenseStripeCard(models.Model):
             payload.update({
                 'type': self.card_type,
                 'currency': currency_name or False,
-                'cardholder': self.employee_id.private_stripe_id,
+                'cardholder': self.employee_id.sudo().private_stripe_id,
             })
         if (
             self.card_type == 'physical'
@@ -327,8 +327,10 @@ class HrExpenseStripeCard(models.Model):
                 "shipping[address][postal_code]": self.delivery_address_id.zip,
                 "shipping[address][country]": self.delivery_address_id.country_id.code,
             })
-        payload = {key: value for key, value in payload.items() if value is not False}  # Else Stripe consider it a value
-        response = make_request_stripe_proxy(self.company_id.sudo(), route, route_params, payload, method='POST')
+        if not (state == 'canceled' and self.state == 'canceled'):
+            # When canceled by Stripe, we don't need to send anything
+            payload = {key: value for key, value in payload.items() if value is not False}  # Else Stripe consider it a value
+            response = make_request_stripe_proxy(self.company_id.sudo(), route, route_params, payload, method='POST')
 
         if not self.env.context.get('skip_local_update'):
             self._update_from_stripe(response)
@@ -450,6 +452,7 @@ class HrExpenseStripeCard(models.Model):
         :return: (can_pay, refusal_reason)
         :rtype: tuple[bool, str]
         """
+
         def process_existing_expenses_data(data_raw):
             """ Process the existing expenses data to get the amount spent in the different intervals and MCCs """
             today = fields.Date.context_today(self)
@@ -459,27 +462,13 @@ class HrExpenseStripeCard(models.Model):
                 'monthly': fields.Date.start_of(today, 'month'),
                 'yearly': fields.Date.start_of(today, 'year'),
             }
-            data = {
-                'daily': defaultdict(int),
-                'weekly': defaultdict(int),
-                'monthly': defaultdict(int),
-                'yearly': defaultdict(int),
-                'all_time': defaultdict(int),
-            }
-            for date, mcc_id, datum_amount in data_raw:
-                data['all_time'][mcc_id] += datum_amount
+            data = defaultdict(int)
+            for date, amount in data_raw:
+                data['all_time'] += amount
                 for interval in ('daily', 'weekly', 'monthly', 'yearly'):
-                    if today >= limit_interval_start_date[interval]:
-                        data[interval][mcc_id] += datum_amount
+                    if date >= limit_interval_start_date[interval]:
+                        data[interval] += amount
             return data
-
-        def get_already_spent(interval, mccs_to_check, existing_expenses_data):
-            """ Return the summed amount already spent in the given aggregated in the given interval MCCs """
-            return sum(
-                amount
-                for existing_mcc, amount in existing_expenses_data[interval].items()
-                if not mccs_to_check or existing_mcc in mccs_to_check
-            )
 
         card = self.ensure_one().with_company(self.company_id)
         # Validate employee
@@ -497,7 +486,7 @@ class HrExpenseStripeCard(models.Model):
         card_country_ids = set(card.spending_policy_country_tag_ids.ids)
         if not country:
             return False, _("No country found")
-        if country.id not in card_country_ids and card_country_ids:
+        if card_country_ids and country.id not in card_country_ids:
             return False, _("Country not allowed")
 
         # Validate MCC
@@ -508,21 +497,19 @@ class HrExpenseStripeCard(models.Model):
         if not valid_mcc:
             return False, self.env._("No MCC is properly set")
 
-        card_mccs = card.spending_policy_category_tag_ids or valid_mcc  # If no MCC is set, we allow all valid MCCs
-        if mcc not in card_mccs:
+        if mcc not in (card.spending_policy_category_tag_ids or valid_mcc):  # If no MCC is set, we allow all valid MCCs
             return False, _("MCC not allowed")
 
         # Validate Limits
         existing_expenses_data = process_existing_expenses_data(card.env['hr.expense']._read_group(
             domain=[('card_id', '=', card.id), ('state', '!=', 'refused')],
-            groupby=['date:day', 'mcc_tag_id'],
+            groupby=['date:day'],
             aggregates=['total_amount:sum'],
         ))
 
         if not card.currency_id.is_zero(card.spending_policy_interval_amount):
-            mccs = card_mccs
-            amount_already_spent = get_already_spent(card.spending_policy_interval, mccs, existing_expenses_data)
-            if card.currency_id.compare_amounts(amount_already_spent + amount, card.spending_policy_interval_amount) > 0:
+            total_spent = existing_expenses_data[card.spending_policy_interval] + amount
+            if card.currency_id.compare_amounts(total_spent, card.spending_policy_interval_amount) > 0:
                 return False, _("Transaction amount exceeds the interval limit")
 
         return True, _("Transaction accepted")
@@ -537,13 +524,12 @@ class HrExpenseStripeCard(models.Model):
         """ Activates the ability to pay with the card on Stripe and on the record """
         self.ensure_one()
 
-        if (
-            not self.env.user.has_group('hr_expense.group_hr_expense_manager')
-            and (self.state != 'pending' or self.sudo().employee_id.user_id == self.env.user)  # The employee can activate their own card when they receive it
-        ):
-            raise UserError(_("Operation only allowed for expense administrators."))
+        if not self.has_access('write') and (self.state != 'pending' or self.employee_id.sudo().user_id != self.env.user):
+            # The employee can activate their own card when they receive it
+            raise AccessError(self.env._("Operation only allowed for expense administrators."))
 
-        if not self.stripe_id and not self.employee_id.private_stripe_id:
+        employee_stripe_id = self.employee_id.sudo().private_stripe_id
+        if not self.stripe_id and not employee_stripe_id:
             return self.with_context({'stripe_card_action_activate': True}).action_open_cardholder_wizard()
 
         state = 'active'
@@ -565,7 +551,7 @@ class HrExpenseStripeCard(models.Model):
             response = make_request_stripe_proxy(
                 self.company_id.sudo(),
                 'cardholders/{cardholder_id}',
-                route_params={'cardholder_id': self.employee_id.sudo().private_stripe_id},
+                route_params={'cardholder_id': employee_stripe_id},
                 payload={'account': self.company_id.sudo().stripe_id},
                 method='GET',
             )

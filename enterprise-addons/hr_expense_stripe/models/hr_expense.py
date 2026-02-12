@@ -37,6 +37,12 @@ class HrExpense(models.Model):
         for expense in self:
             expense.is_card_expense = bool(expense.card_id)
 
+    def copy_data(self, default=None):
+        if any(self.mapped('is_card_expense')) and not self.env.context.get('from_split_wizard'):
+            raise UserError(self.env._("You cannot duplicate an expense that was created from a Stripe card transaction."))
+
+        return super().copy_data(default=default)
+
     def _get_default_responsible_for_approval(self):
         # EXTEND hr_expense to bypass approval for expenses created from a stripe authorization
         self.ensure_one()

@@ -35,8 +35,9 @@ self.env.cr.execute("""
        AND e.active
 """, [self.env.companies.ids])
 if self.env.cr.rowcount:
+    invalid_employees = [e[0] for e in self.env.cr.fetchall()]
     warning_count = len(invalid_employees)
-    warning_records = self.env['hr.employee'].browse([e[0] for e in self.env.cr.fetchall()])
+    warning_records = self.env['hr.employee'].browse(invalid_employees)
             </field>
         </record>
 

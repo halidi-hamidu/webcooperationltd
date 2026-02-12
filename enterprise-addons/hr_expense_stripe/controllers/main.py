@@ -1,5 +1,6 @@
 import base64
 import logging
+import traceback
 
 from odoo import SUPERUSER_ID, _, api
 from odoo.exceptions import MissingError, ValidationError
@@ -7,7 +8,6 @@ from odoo.http import Controller, request, route
 from odoo.tools.safe_eval import time
 
 from odoo.addons.hr_expense_stripe.utils import STRIPE_REQUEST_REFUSED_REASONS, StripeIssuingDatabaseError, format_amount_from_stripe
-
 
 _logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class StripeIssuingController(Controller):
                 'approved': False,
                 'message': str(e),
             }
-            _logger.error(e)
+            _logger.error(traceback.format_exc())
             # Because the request awaits a response, we decline the authorization request to prevent the webhook from being disabled by Stripe
             status = StripeIssuingDatabaseError.DB_ERROR if event['type'] != 'issuing_authorization.request' else 200
         return request.make_json_response(data=response, headers=response_headers, status=status)
@@ -167,7 +167,7 @@ class StripeIssuingController(Controller):
             card_object['shipping'] and card_object['shipping'].get('status') in {'canceled', 'failure', 'returned'}
             and event['data']["previous_attributes"].get("shipping", {}).get("status")
         ):
-            existing_card.with_context(skip_local_update=True)._create_or_update_card(state='canceled')
+            existing_card.with_context(skip_local_update=existing_card.state == 'canceled')._create_or_update_card(state='canceled')
         else:
             existing_card._update_from_stripe(card_object)
 

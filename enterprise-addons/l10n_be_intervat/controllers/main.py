@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import requests
 import uuid
 
@@ -29,8 +30,33 @@ IAP_ENDPOINT = {
 class L10nBeIntervatController(http.Controller):
     @http.route('/l10n_be_intervat/callback', type='http', auth='user')
     def callback(self, **kwargs):
+        if not request.env.user.has_group("account.group_account_user"):
+            return request.not_found()
+
         state = json.loads(kwargs.get('state', '{}'))
+        company_id = request.env['res.company'].browse(state.get('company_id'))
+        return_id = request.env['account.return'].browse(state.get('return_id'))
+        if not company_id or not return_id:
+            return http.Response(status=404)
+
         if kwargs.get('error') or not kwargs.get('code'):
+            if kwargs.get('error') == 'invalid_scope':
+                if company_id.account_representative_id:
+                    # This is the case when an accounting firm client tries to submit a declaration on his own. It shouldn't happend,
+                    # as it's the firm's role to do that.
+                    message = request.env._("""
+                        Access error: Only the accounting firm can submit the VAT return to Intervat via the API.
+                        To submit it yourself, download the XML file and upload it on Intervat.
+                        If you no longer have an accounting firm, remove it from the Intervat setting to enable API submission.
+                    """)
+                else:
+                    # This is the case when an accounting firm tries to submit a client declaration but without any account_representative_id
+                    # set in the client company.
+                    message = request.env._("""
+                        Access error: You do not have permission to give consent for company %s. If you are an accounting firm,
+                        make sure the Accounting firm field is set in the Intervat settings. Otherwise, only the client can submit the VAT return through API.
+                    """, company_id.vat)
+                return_id._message_log(body=message)
             request.env.user._bus_send('simple_notification', {
                 'type': 'danger',
                 'title': request.env._("Authentication Failed"),
@@ -38,8 +64,6 @@ class L10nBeIntervatController(http.Controller):
                 'sticky': True,
             })
         else:
-            company_id = request.env['res.company'].browse(state.get('company_id'))
-            return_id = request.env['account.return'].browse(state.get('return_id'))
             response = requests.post(
                 url=TOKEN_ENDPOINT[company_id.l10n_be_intervat_mode],
                 data={
@@ -59,44 +83,27 @@ class L10nBeIntervatController(http.Controller):
             response_json, error = company_id._l10n_be_get_error_from_response(response)
             if error:
                 return_id._message_log(body=self.env._("Authentication Error: \n") + error['error_message'])
-                request.env.user._bus_send('simple_notification', {
-                    'type': 'danger',
-                    'title': request.env._("Authentication Failed"),
-                })
                 return request.redirect(state.get('referrer_url', '/web'))
 
             company_id._l10n_be_verify_id_token_signature(response_json['id_token'])
 
-            company_id.l10n_be_intervat_access_token = response_json['access_token']
-            company_id.l10n_be_intervat_refresh_token = response_json['refresh_token']
-            company_id.l10n_be_intervat_last_call_date = fields.Datetime.now()
+            company_id.sudo().write({
+                'l10n_be_intervat_access_token': response_json['access_token'],
+                'l10n_be_intervat_refresh_token': response_json['refresh_token'],
+                'l10n_be_intervat_last_call_date': fields.Datetime.now(),
+            })
 
             request_type = state.get('request_type')
-            notification_message = request.env._("Send your declaration now.")
-            submission_error = False
             try:
                 if request_type == 'submit':
-                    submission_error = return_id._l10n_be_submit_xml() == 'error'
-                    notification_message = request.env._("Your declaration has been sent.")
+                    return_id._l10n_be_submit_xml()
                 elif request_type == 'fetch':
                     return_id.l10n_be_action_fetch_from_intervat()
-                    notification_message = request.env._("Your declaration has been fetched.")
             except UserError as e:
                 error_title = request.env._("Fetching Error: \n") if request_type == 'fetch' else request.env._("Submission Error: \n")
                 error_message = error_title + "\n".join(e.args)
                 return_id._message_log(body=error_message)
-                request.env.user._bus_send('simple_notification', {
-                    'type': 'danger',
-                    'title': error_title,
-                })
                 return request.redirect(state.get('referrer_url', '/web'))
-
-            if submission_error:
-                request.env.user._bus_send('simple_notification', {
-                    'type': 'success',
-                    'title': request.env._("Authentication Successful"),
-                    'message': notification_message,
-                })
 
         return request.redirect(state.get('referrer_url', '/web'))
 
@@ -109,10 +116,11 @@ class L10nBeIntervatController(http.Controller):
             'return_id': return_id,
             'request_type': request_type,
             'referrer_url': request.httprequest.referrer,
-            'company_token': hashlib.sha256(company.l10n_be_intervat_certificate_id.l10n_be_intervat_jwk_token.encode()).hexdigest(),
+            'company_token': hashlib.sha256(company.l10n_be_intervat_certificate_id.sudo().l10n_be_intervat_jwk_token.encode()).hexdigest(),
             'db_uuid': self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
         }
 
+        ecb_number = re.sub(r'[^0-9]', '', company.account_representative_id.vat or company.vat)
         auth_url_params = urlencode({
             'response_type': 'code',
             'client_id': 'odoo',
@@ -120,7 +128,7 @@ class L10nBeIntervatController(http.Controller):
             'code_challenge_method': 'S256',
             'code_challenge': company.l10n_be_intervat_code_challenge,
             'scope': 'openid profile documents-read-api vat-manage-api',
-            'claims': json.dumps({"ecb": company.company_registry}).encode(),
+            'claims': json.dumps({"ecb": ecb_number}).encode(),
             'nonce': f'{uuid.uuid4()}',
             'state': json.dumps(state).encode(),
         })

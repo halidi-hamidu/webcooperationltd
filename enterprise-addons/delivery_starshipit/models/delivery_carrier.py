@@ -282,7 +282,20 @@ class DeliveryCarrier(models.Model):
         if self.delivery_type != 'starshipit':
             raise ValidationError(_('This action requires a Starshipit carrier.'))
         starshipit = self._get_starshipit()
-        available_services = starshipit._get_delivery_services(self.starshipit_origin_address)
+        order_vals = self.env.context.get('order_vals', {})
+        order = self.env['sale.order'].browse(order_vals.get('order_id'))
+        origin_partner = order.warehouse_id.partner_id or self.starshipit_origin_address
+
+        if order_vals.get('destination_partner_id'):
+            available_services = starshipit._get_delivery_services_with_destination(
+                origin_partner,
+                self.env['res.partner'].browse(order_vals.get('destination_partner_id')),
+                order_vals.get('total_weight', None),
+            )
+        else:
+            available_services = starshipit._get_delivery_services(
+                origin_partner
+            )
         if not available_services.get('services'):
             raise UserError(_("There are no shipping services available, please verify the shipping address or activate suitable carriers in your starshipit account."))
 
@@ -294,6 +307,8 @@ class DeliveryCarrier(models.Model):
             'res_model': 'starshipit.shipping.wizard',
             'target': 'new',
             'context': {
+                'create_new_carrier': self.env.context.get('create_new_carrier', False),
+                'order_vals': order_vals,
                 'default_carrier_id': self.id,
                 'default_available_services': available_services['services'],
                 'default_selected_service_code': self.starshipit_service_code,

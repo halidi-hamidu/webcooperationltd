@@ -9,6 +9,7 @@
         'data/code_region_data.xml',
         'data/intrastat_export.xml',
         'views/res_company_settings_view.xml',
+        'data/account_return_data.xml',
     ],
     'installable': True,
     'auto_install': ['l10n_de', 'account_intrastat'],

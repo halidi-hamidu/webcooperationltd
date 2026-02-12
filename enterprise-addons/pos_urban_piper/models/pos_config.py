@@ -233,6 +233,9 @@ class PosConfig(models.Model):
             })
         if not urban_piper_test and new_status == 'Acknowledged':
             up.urbanpiper_order_reference_update(order)
+        if new_status == 'Cancelled':
+            # Prevent loading cancelled orders in `getServerOrders` triggered by `_send_delivery_order_count`
+            order.state = 'cancel'
         self._send_delivery_order_count(order_id)
         return {'is_success': is_success, 'message': message}
 

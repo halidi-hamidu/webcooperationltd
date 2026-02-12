@@ -326,8 +326,8 @@ class TestSingleTouchPayroll(L10nPayrollAccountCommon):
         self.contract_1.write({
             "wage": 2000,
             "schedule_pay": "weekly",
-            "date_start": "2011-09-01",
-            "date_end": "2024-11-01",
+            "contract_date_start": "2011-09-01",
+            "contract_date_end": "2024-11-01",
         })
         self.allocate_leaves(
             self.employee_1,

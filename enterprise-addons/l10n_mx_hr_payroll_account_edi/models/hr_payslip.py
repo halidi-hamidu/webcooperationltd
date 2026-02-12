@@ -425,7 +425,7 @@ class HrPayslip(models.Model):
         }
 
         total_deductions = total_taxes_withheld + total_other_deductions
-        nomina['total_deducciones'] = total_deductions
+        nomina['total_deducciones'] = total_deductions or None
         cfdi_values['nomina_deducciones'] = {
             'total_otras_deducciones': total_other_deductions,
             'total_impuestos_retenidos': total_taxes_withheld,

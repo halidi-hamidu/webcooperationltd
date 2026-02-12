@@ -141,7 +141,7 @@ class AccountMove(models.Model):
     def _get_deferred_entries_method(self):
         self.ensure_one()
         if self.is_entry():
-            move_types = set(self.line_ids.account_id.mapped("internal_group"))
+            move_types = set(self.line_ids.filtered('deferred_start_date').account_id.mapped("internal_group"))
             if (
                 "expense" in move_types and "income" in move_types
                 and self.company_id.generate_deferred_expense_entries_method != self.company_id.generate_deferred_revenue_entries_method

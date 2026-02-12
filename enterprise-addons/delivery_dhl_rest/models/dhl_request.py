@@ -41,6 +41,8 @@ class DHLProvider:
         if res_body.get('additionalDetails'):
             for detail in res_body['additionalDetails']:
                 err_msgs.append(detail)
+        for reason in res_body.get('reasons', []):
+            err_msgs.append(reason['msg'])
         return '\n'.join(err_msgs)
 
     def _check_required_value(self, carrier, recipient, shipper, order=False, picking=False):

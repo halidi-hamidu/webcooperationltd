@@ -1012,14 +1012,15 @@ class AccountOnlineLink(models.Model):
         journal_type = 'bank'
         if data:
             journal_type = data.pop('journal_type', None) or 'bank'
-            self.write(data)
-
-            self._update_connection_status()
-            if data.get('manage_consent'):
-                url = self._get_odoofin_url(f'/manage-consent?client_id={self.client_id}&access_token={self.access_token}')
+            if consent_token := data.pop('manage_consent', None):
+                url = self._get_odoofin_url(f'/manage-consent?consent_token={consent_token}')
                 self.message_post(
                     body=_("You can manage your bank synchronization consent for this connection %s", Markup("<a href='%s' target='_blank'>%s</a>") % (url, _("here.")))
                 )
+
+            self.write(data)
+
+            self._update_connection_status()
 
         # if for some reason we just have to update the record without doing anything else, the mode will be set to 'none'
         if mode == 'none':
@@ -1101,10 +1102,10 @@ class AccountOnlineLink(models.Model):
     def action_new_synchronization(self, preferred_inst=None, journal_id=False, journal_type='bank'):
         # Search for an existing link that was not fully connected
         online_link = self
-        if not online_link:
-            online_link = self.search([('account_online_account_ids', '=', False)], limit=1)
+        if not online_link or online_link.provider_type:
+            online_link = self.search([('account_online_account_ids', '=', False), ('provider_type', '=', False)], limit=1)
         # If not found, create a new one
-        if not online_link:
+        if not online_link or online_link.provider_type:
             online_link = self.create({})
         return online_link._open_iframe('link', preferred_institution=preferred_inst, journal_id=journal_id, journal_type=journal_type)
 

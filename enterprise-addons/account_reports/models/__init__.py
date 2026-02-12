@@ -37,3 +37,4 @@ from . import mail_scheduled_message
 from . import mail_tracking_value
 from . import account_audit_account_status
 from . import kpi_provider
+from . import ir_module

@@ -2,14 +2,12 @@
 
 from datetime import datetime, timedelta
 from freezegun import freeze_time
-from unittest import skip
 
 from odoo import Command
 from odoo.tests import Form, new_test_user
 from odoo.addons.project_mrp_account.tests.test_analytic_account import TestMrpAnalyticAccount
 
 
-@skip('Temporary to fast merge new valuation')
 class TestMrpAnalyticAccountHr(TestMrpAnalyticAccount):
     @classmethod
     def setUpClass(cls):
@@ -267,10 +265,9 @@ class TestMrpAnalyticAccountHr(TestMrpAnalyticAccount):
 
     def test_mrp_aa_employee_without_account_rights(self):
         """
-            Test adding a user time to a work order with
-            a user admin on mrp but no rights on accounting.
+        MRP user who starts and stops a WO of an MO related to a project
         """
-        user = new_test_user(self.env, 'temp_stock_manager', 'hr.group_hr_user,mrp.group_mrp_manager,project.group_project_user')
+        user = new_test_user(self.env, 'mrp_user', 'mrp.group_mrp_user')
         self.env['hr.employee'].create({
             'user_id': user.id,
             'image_1920': False,
@@ -295,16 +292,11 @@ class TestMrpAnalyticAccountHr(TestMrpAnalyticAccount):
         self.assertEqual(employee1_aa_line[self.analytic_plan._column_name()], self.analytic_account)
 
     def test_user_can_complete_workorder_despite_project_restrictions(self):
-        """Ensure that a user who has Manufacturing and Timesheet rights but no access
-        to the project linked to the MO can still start and finish the work order.
         """
-        user = new_test_user(
-            self.env,
-            'mo_manager',
-            'hr_timesheet.group_hr_timesheet_user,'
-            'mrp.group_mrp_manager,'
-            'project.group_project_user'
-        )
+        Ensure that a user who has mrp right can still start and finish a work
+        order of a MO linked to a project
+        """
+        user = new_test_user(self.env, 'mrp_user', 'mrp.group_mrp_user')
 
         self.env['hr.employee'].create({
             'user_id': user.id,

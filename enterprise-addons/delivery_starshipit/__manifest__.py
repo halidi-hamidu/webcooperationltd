@@ -21,6 +21,7 @@ reduce handling time and improve customer experience.
         'views/res_config_settings_views.xml',
         'views/stock_picking_views.xml',
         'wizard/starshipit_shipping_wizard.xml',
+        'wizard/choose_delivery_carrier_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

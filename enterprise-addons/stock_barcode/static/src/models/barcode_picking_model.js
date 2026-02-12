@@ -180,15 +180,16 @@ export default class BarcodePickingModel extends BarcodeModel {
     }
 
     lineCanBeSelected(line) {
-        if (this.selectedLine && this.selectedLine.virtual_id === line.virtual_id) {
-            return true; // We consider an already selected line can always be re-selected.
-        }
         if (
             this.config.restrict_scan_source_location &&
-            !this.lastScanned.sourceLocation &&
-            !line.qty_done
+            !line.qty_done &&
+            (!this.lastScanned.sourceLocation ||
+                this.lastScanned.sourceLocation.id !== line.location_id.id)
         ) {
             return false; // Can't select a line if source is mandatory and wasn't scanned yet.
+        }
+        if (this.selectedLine && this.selectedLine.virtual_id === line.virtual_id) {
+            return true; // We consider an already selected line can always be re-selected.
         }
         if (line.isPackageLine) {
             // The next conditions concern product, skips them in case of package line.
@@ -1041,7 +1042,7 @@ export default class BarcodePickingModel extends BarcodeModel {
             uploadSignature: async (data) => {
                 await this.uploadSignature(data);
                 if (validateAfterSignature) {
-                    await super.validate();
+                    await super._validate();
                 }
             },
         };
@@ -1055,7 +1056,7 @@ export default class BarcodePickingModel extends BarcodeModel {
         );
     }
 
-    async validate() {
+    async _validate() {
         if (
             this.config.lines_need_destination_location &&
             !this.lastScanned.destLocation &&
@@ -1112,7 +1113,7 @@ export default class BarcodePickingModel extends BarcodeModel {
                 return this.dialogService.add(BackorderDialog, {
                     displayUoM: this.groups.group_uom,
                     uncompletedLines,
-                    onApply: () => super.validate(),
+                    onApply: () => super._validate(),
                 });
             }
         }
@@ -1126,7 +1127,7 @@ export default class BarcodePickingModel extends BarcodeModel {
             this.openSignatureDialog(true);
             return;
         }
-        return await super.validate();
+        return await super._validate();
     }
 
     // -------------------------------------------------------------------------
@@ -1770,7 +1771,7 @@ export default class BarcodePickingModel extends BarcodeModel {
      * @returns {boolean}
      */
     _isSublocation(childLocation, parentLocation) {
-        return childLocation.parent_path.includes(parentLocation.parent_path);
+        return childLocation.parent_path.indexOf(parentLocation.parent_path) === 0;
     }
 
     _getLinesToMove() {

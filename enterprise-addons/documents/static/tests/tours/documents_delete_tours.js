@@ -135,3 +135,16 @@ registry.category("web_tour.tours").add("document_delete_tour", {
         },
     ],
 });
+
+registry.category("web_tour.tours").add("document_default_access_view", {
+    steps: () => [
+        {
+            trigger: '.o_record_selected:contains("Chouchou")',
+            content: "Check that Chouchou is selected.",
+        },
+        {
+            trigger: '.o_search_panel_category_value header.active:contains("All")',
+            content: "Check that we are in the All folder.",
+        },
+    ],
+});

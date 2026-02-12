@@ -63,7 +63,20 @@ class HrPayslipRun(models.Model):
                 }
                 payslips_vals.append(values)
             self.slip_ids |= Payslip.with_context(tracking_disable=True).create(payslips_vals)
+            self.slip_ids._compute_name()
             self.slip_ids.compute_sheet()
             self.state = '01_ready'
 
             return 1
+
+    def action_payment_report(self, export_format='iso20022_ch'):
+        action = super().action_payment_report()
+        if self.company_id.country_code != 'CH':
+            return action
+        action.update({
+            'context': {
+                **action['context'],
+                'default_export_format': export_format,
+            },
+        })
+        return action

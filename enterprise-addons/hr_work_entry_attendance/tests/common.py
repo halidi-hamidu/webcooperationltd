@@ -47,6 +47,7 @@ class HrWorkEntryAttendanceCommon(TransactionCase):
                     'base_off': 'quantity',
                     'expected_hours_from_contract': True,
                     'quantity_period': 'day',
+                    'paid': True,
                 })],
         })
 

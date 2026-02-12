@@ -39,7 +39,7 @@ class AccountTestSAFTImport(AccountTestInvoicingCommon):
         self.assertTrue(len(journals.ids) == 3, "Journal creation failed")
 
         # Check partners
-        file_partners = ['Azure Interior', 'Beautiful partner', 'Deco Addict']
+        file_partners = ['Acme Corporation', 'Azure Interior', 'Beautiful partner']
         partners = self.env['res.partner'].search([('name', 'in', file_partners)])
         self.assertEqual(file_partners, partners.mapped('name'), "Partners creation failed")
 

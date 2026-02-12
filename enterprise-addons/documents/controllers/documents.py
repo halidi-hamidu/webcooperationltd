@@ -18,6 +18,7 @@ from odoo.fields import Domain
 from odoo.http import request, content_disposition
 from odoo.tools import replace_exceptions, str2bool, consteq
 
+from odoo.addons.base.models.ir_qweb import keep_query
 from odoo.addons.documents.tools import attachment_read, is_mimetype_textual
 from odoo.addons.mail.controllers.attachment import AttachmentController
 
@@ -111,7 +112,10 @@ class ShareRoute(http.Controller):
         skip_log = skip_log or request.env.user._is_public()
         if not skip_log:
             for doc_sudo in filter(bool, (document_sudo, document_sudo.shortcut_document_id)):
-                cls._upsert_last_access_date(request.env, doc_sudo)
+                new_access = cls._upsert_last_access_date(request.env, doc_sudo)
+                if new_access and doc_sudo._get_permission_without_token() == 'none':
+                    # Used to trigger webclient reload
+                    document_sudo = document_sudo.with_context(document_newly_accessible=True)
 
         # Shortcut
         if follow_shortcut:
@@ -137,7 +141,11 @@ class ShareRoute(http.Controller):
 
     @classmethod
     def _upsert_last_access_date(cls, env, document):
-        """Set or update last_access_date to now() for env user, WITHOUT ACCESS RIGHT CHECK."""
+        """
+        Set or update last_access_date to now() for env user, WITHOUT ACCESS RIGHT CHECK.
+
+        :return: True if a new documents.access record was created
+        """
         if access := env['documents.access'].sudo().search([
             ('partner_id', '=', env.user.partner_id.id),
             ('document_id', '=', document.id),
@@ -149,6 +157,7 @@ class ShareRoute(http.Controller):
                 'partner_id': env.user.partner_id.id,
                 'last_access_date': fields.Datetime.now(),
             })
+        return not bool(access)
 
     def _make_zip(self, name, documents):
         """
@@ -296,22 +305,32 @@ class ShareRoute(http.Controller):
     def documents_home(self, access_token):
         document_sudo = self._from_access_token(access_token)
 
+        member_signup_token = request.params.get('member_signup_token')
+        member_id = int(request.params.get('member_id') or "0")
+
         if not document_sudo:
             Redirect = request.env['documents.redirect'].sudo()
             if document_sudo := Redirect._get_redirection(access_token):
                 return request.redirect(
-                    f'/documents/{quote(document_sudo.access_token, safe="")}',
+                    f'/documents/{quote(document_sudo.access_token, safe="")}?{keep_query("*")}',
                     HTTPStatus.MOVED_PERMANENTLY,
                 )
 
         if request.env.user._is_public():
+            if not document_sudo:
+                redirect_url = f'/documents/{quote(access_token, safe="")}?{keep_query("*")}'
+                if signup_url := request.env["documents.access"]._get_signup_url(
+                    member_id, member_signup_token, access_token, redirect_url):
+                    # Document requires a member to access (not "access_via_link")
+                    # and we have a signup token -> redirect user to signup
+                    return request.redirect(signup_url)
             return self._documents_render_public_view(document_sudo)
         elif request.env.user._is_portal():
             return self._documents_render_portal_view(document_sudo)
         else:  # assume internal user
             # Internal users use the /odoo/documents/<access_token> route
             return request.redirect(
-                f'/odoo/documents/{quote(access_token, safe="")}',
+                f'/odoo/documents/{quote(access_token, safe="")}?{keep_query("*")}',
                 HTTPStatus.TEMPORARY_REDIRECT,
             )
 
@@ -322,7 +341,8 @@ class ShareRoute(http.Controller):
             and target_sudo.access_via_link != 'none'
             and not target_sudo.is_access_via_link_hidden
         ):
-            return request.redirect(f'/odoo/documents/{quote(target_sudo.access_token, safe="")}')
+            return request.redirect(
+                f'/odoo/documents/{quote(target_sudo.access_token, safe="")}?{keep_query("*")}')
         if target_sudo or not document_sudo:
             return request.render(
                 'documents.not_available', {'document': document_sudo}, status=404)
@@ -449,7 +469,9 @@ class ShareRoute(http.Controller):
 
     @http.route('/documents/touch/<access_token>', type='jsonrpc', auth='user')
     def documents_touch(self, access_token):
-        self._from_access_token(access_token)
+        doc = self._from_access_token(access_token)
+        if doc.env.context.get('document_newly_accessible'):
+            return {'reload': True}
         return {}
 
     @http.route(['/documents/thumbnail/<access_token>',

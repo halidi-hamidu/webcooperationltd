@@ -15,7 +15,7 @@ import re
 from ast import literal_eval
 from collections import defaultdict
 from functools import cmp_to_key
-from itertools import groupby
+from itertools import chain, groupby
 
 import markupsafe
 from dateutil.relativedelta import relativedelta
@@ -579,21 +579,8 @@ class AccountReport(models.Model):
             string = record and record.name
         elif period_type == 'return_period' and options_return:
             day = options_return['start_day']
-            month = options_return['start_day']
-            months_per_period = options_return['months_per_period']
-            # We need to format ourselves the date and not switch the period type to the actual period because we do not want to write the actual period in the options but keep tax_period
-            if day == 1 and month == 1 and months_per_period in (1, 3, 12):
-                match months_per_period:
-                    case 1:
-                        string = format_date(self.env, fields.Date.to_string(date_to), date_format='MMM yyyy')
-                    case 3:
-                        string = get_quarter_name(date_to, date_from)
-                    case 12:
-                        string = date_to.strftime('%Y')
-            else:
-                dt_from_str = format_date(self.env, fields.Date.to_string(date_from))
-                dt_to_str = format_date(self.env, fields.Date.to_string(date_to))
-                string = '%s - %s' % (dt_from_str, dt_to_str)
+            month = options_return['start_month']
+            string = self.env['account.return.type']._get_period_name(period_from=fields.Date.to_string(date_from), period_to=fields.Date.to_string(date_to), start_day=day, start_month=month)
 
         if not string:
             fy_day = self.env.company.fiscalyear_last_day
@@ -749,14 +736,22 @@ class AccountReport(models.Model):
             months_per_period = options['return_periodicity']['months_per_period']
             start_day = options['return_periodicity']['start_day']
             start_month = options['return_periodicity']['start_month']
-            if start_day == 1 and start_month == 1 and months_per_period in (1, 3, 12):
+
+            if 'fy_start_day' not in options['return_periodicity'] or 'fy_start_month' not in options['return_periodicity']:
+                fy_start = self.env.company.compute_fiscalyear_dates(fields.Date.from_string(period_date_to) if period_date_to else fields.Date.context_today(self))['date_from']
+                options['return_periodicity']['fy_start_day'] = fy_start.day
+                options['return_periodicity']['fy_start_month'] = fy_start.month
+
+            if start_day == 1 and start_month == 1 and months_per_period in (1, 3):
                 match months_per_period:
                     case 1:
                         options_filter = 'custom_month' if period_date_to else 'previous_month'
                     case 3:
                         options_filter = 'custom_quarter' if period_date_to else 'previous_quarter'
-                    case 12:
-                        options_filter = 'custom_year' if period_date_to else 'previous_year'
+            elif start_day == options['return_periodicity']['fy_start_day'] and start_month == options['return_periodicity']['fy_start_month'] and months_per_period == 12:
+                options_filter = 'custom_year' if period_date_to else 'previous_year'
+            else:
+                options['return_periodicity']['is_filter_visible'] = True
 
         # Compute 'date_from' / 'date_to'.
         if not date_from or not date_to:
@@ -778,13 +773,16 @@ class AccountReport(models.Model):
                 date_from = company_fiscalyear_dates['date_from']
                 date_to = company_fiscalyear_dates['date_to']
             elif 'return_period' in options_filter:
-                if 'custom_return_period' in options_filter:
-                    base_date = fields.Date.from_string(period_date_to)
+                if period_date_from and 'custom_return_period' in options_filter:
+                    date_from = fields.Date.to_date(period_date_from)
+                    date_to = fields.Date.to_date(period_date_to)
                 else:
-                    base_date = fields.Date.context_today(self)
-
-                return_type = self.env['account.return.type'].browse(options['return_periodicity']['return_type_id'])
-                date_from, date_to = return_type._get_period_boundaries(self.env.company, base_date)
+                    if 'custom_return_period' in options_filter:
+                        base_date = fields.Date.to_date(period_date_to)
+                    else:
+                        base_date = fields.Date.context_today(self)
+                    return_type = self.env['account.return.type'].browse(options['return_periodicity']['return_type_id'])
+                    date_from, date_to = return_type._get_period_boundaries(self.env.company, base_date)
                 period_type = 'return_period'
 
         # When the return period matches a standard date filter, fallback to the standard. This way, we can avoid displaying the return period
@@ -830,6 +828,15 @@ class AccountReport(models.Model):
             # This line is useful for the export and tax closing so that the period is set in the options.
             options['date']['period'] = new_period
 
+        if 'custom_return_period' in options_filter:
+            # In case we use a custom period we still use the return_period filter. In that case we still need the shift so we need to compute it manually.
+            return_type = self.env['account.return.type'].browse(options['return_periodicity']['return_type_id'])
+            current_date_to = return_type._get_period_boundaries(self.env.company, fields.Date.context_today(self))[1]
+            delta = relativedelta(fields.Date.from_string(options['date']['date_to']), current_date_to)
+            months = delta.years * 12 + delta.months
+            diffs = months // options['return_periodicity']['months_per_period']
+            options['date']['period'] = diffs
+
         options['date']['filter'] = options_filter
 
     def _init_options_return_periodicity(self, options, previous_options):
@@ -840,7 +847,10 @@ class AccountReport(models.Model):
                 **previous_options['return_periodicity'],
                 'report_id': self.id,
             }
-        elif len(return_type := self.env['account.report'].browse(options['sections_source_id']).return_type_ids) == 1:
+        elif len(return_type := self.env['account.report'].browse(options['sections_source_id']).return_type_ids) == 1 or 'selected_return_type_id' in previous_options:
+            if len(return_type) > 1:
+                return_type = self.env['account.return.type'].browse(previous_options['selected_return_type_id'])
+
             main_company = self.env.company
             start_day, start_month = return_type._get_start_date_elements(main_company)
             options['return_periodicity'] = {
@@ -1006,7 +1016,7 @@ class AccountReport(models.Model):
         selected_partner_ids = [int(partner) for partner in previous_partner_ids]
         # search instead of browse so that record rules apply and filter out the ones the user does not have access to
         selected_partners = selected_partner_ids and self.env['res.partner'].with_context(active_test=False).search([('id', 'in', selected_partner_ids)]) or self.env['res.partner']
-        options['selected_partner_ids'] = selected_partners.filtered('name').mapped('name')
+        options['selected_partner_ids'] = selected_partners.mapped('display_name')
         options['partner_ids'] = selected_partners.ids
 
         selected_partner_category_ids = [int(category) for category in options['partner_categories']]
@@ -3468,7 +3478,7 @@ class AccountReport(models.Model):
                         if (in_monetary_column and not expression.figure_type) or expression.figure_type == 'monetary':
                             method = column_group_options['integer_rounding']
                             if isinstance(expression_value, list):
-                                expression_value = [(key, float_round(value, precision_digits=0, rounding_method=method)) for key, value in expression_value]
+                                expression_value = [(key, float_round(value, precision_digits=0, rounding_method=method) if value is not None else value) for key, value in expression_value]
                             else:
                                 expression_value = float_round(expression_value, precision_digits=0, rounding_method=method)
 
@@ -3679,14 +3689,18 @@ class AccountReport(models.Model):
 
             else:
                 # The formula contains only digits and operators; it can be evaluated
-                if all(expr.subformula == "ignore_zero_division" for expr in formulas_dict[(unexpanded_formula, forced_date_scope)]):
-                    try:
-                        formula_result = expr_eval(formula)
-                    except ZeroDivisionError:
-                        # Arbitrary choice; for clarity of the report. A 0 division could typically happen when there is no result in the period.
-                        formula_result = 0
-                else:
+                try:
                     formula_result = expr_eval(formula)
+                except ZeroDivisionError:
+                    for expr in formulas_dict[unexpanded_formula, forced_date_scope]:
+                        if expr.subformula != "ignore_zero_division":
+                            raise UserError(_(
+                                "Division by zero occurred while evaluating Expression: %(line_name)s > %(label)s.",
+                                line_name=expr.report_line_name,
+                                label=expr.label,
+                            ))
+                    # Arbitrary choice; for clarity of the report. A 0 division could typically happen when there is no result in the period.
+                    formula_result = 0
 
                 for expression in formulas_dict[(unexpanded_formula, forced_date_scope)]:
                     # Apply subformula
@@ -3976,21 +3990,52 @@ class AccountReport(models.Model):
 
         self._check_groupby_fields((next_groupby.split(',') if next_groupby else []) + ([current_groupby] if current_groupby else []))
 
-        rslt = {}
-
+        batchable_domains_data = {}  # In the form {(model name, aml_field):  [(domain, expressions)]}
+        non_batchable_domains_data = []  # In the form [(domain, expressions)]
         for formula, expressions in formulas_dict.items():
             try:
-                line_domain = literal_eval(formula)
+                domain = literal_eval(formula)
             except (ValueError, SyntaxError):
                 raise UserError(_(
                     'Invalid domain formula in expression "%(expression)s" of line "%(line)s": %(formula)s',
-                    expression=expressions.label,
-                    line=expressions.report_line_id.name,
+                    expression=expressions[0].label,
+                    line=expressions[0].report_line_id.name,
                     formula=formula,
                 ))
-            query = self._get_report_query(options, date_scope, domain=line_domain)
+
+            if offset or limit or any(expr.subformula == 'count_rows' for expr in expressions):
+                # count_rows cannot be computed generically with batching (because of the additional groupby we inject in the batch computation)
+                non_batchable_domains_data.append((domain, formula, expressions))
+                continue
+
+            aml_root_fields = set()
+            traversing_model_domain = []
+            for term in domain:
+                match term:
+                    case (aml_field_expr, operator, value):
+                        aml_field, _dot, model_field_expr = aml_field_expr.partition('.')
+                        aml_root_fields.add(aml_field)
+                        traversing_model_domain.append((model_field_expr or 'id', operator, value))
+                    case str():
+                        traversing_model_domain.append(term)
+
+            if len(aml_root_fields) == 1:
+                aml_field = self.env['account.move.line']._fields[next(iter(aml_root_fields))]
+                if aml_field.type == 'many2one':
+                    batchable_domains_data.setdefault((aml_field.comodel_name, aml_field.name), []).append((traversing_model_domain, formula, expressions))
+                else:
+                    non_batchable_domains_data.append((domain, formula, expressions))
+            else:
+                non_batchable_domains_data.append((domain, formula, expressions))
+
+        rslt = {}
+        for (batch_model, batch_aml_field), batch_domains in chain(batchable_domains_data.items(), (((None, None), [data]) for data in non_batchable_domains_data)):
+            aml_domain = batch_domains[0][0] if not batch_model else None  # batch_domains contains only one element if there is not batch_model/batch_aml_field
+            query = self._get_report_query(options, date_scope, domain=aml_domain)
 
             groupby_sql = self.env['account.move.line']._field_to_sql('account_move_line', current_groupby, query) if current_groupby else None
+            batch_groupby_sql = self.env['account.move.line']._field_to_sql('account_move_line', batch_aml_field, query) if batch_aml_field else None
+
             select_count_field = self.env['account.move.line']._field_to_sql('account_move_line', next_groupby.split(',')[0] if next_groupby else 'id', query)
 
             tail_query = self._get_engine_query_tail(offset, limit)
@@ -4000,70 +4045,90 @@ class AccountReport(models.Model):
                     COALESCE(SUM(%(balance_select)s), 0.0) AS sum,
                     COUNT(DISTINCT %(select_count_field)s) AS count_rows
                     %(select_groupby_sql)s
+                    %(select_batch_groupby_sql)s
                 FROM %(table_references)s
                 %(currency_table_join)s
                 WHERE %(search_condition)s
-                %(group_by_groupby_sql)s
+                %(groupby_sql)s
                 %(order_by_sql)s
                 %(tail_query)s
                 """,
                 select_count_field=select_count_field,
                 select_groupby_sql=SQL(', %s AS grouping_key', groupby_sql) if groupby_sql else SQL(),
+                select_batch_groupby_sql=SQL(', %s AS batch_grouping_key', batch_groupby_sql) if batch_groupby_sql else SQL(),
                 table_references=query.from_clause,
                 balance_select=self._currency_table_apply_rate(SQL("account_move_line.balance")),
                 currency_table_join=self._currency_table_aml_join(options),
                 search_condition=query.where_clause,
-                group_by_groupby_sql=SQL('GROUP BY %s', groupby_sql) if groupby_sql else SQL(),
+                groupby_sql=SQL('GROUP BY %s', SQL(',').join(groupby_term for groupby_term in (groupby_sql, batch_groupby_sql) if groupby_term)) if groupby_sql or batch_groupby_sql else SQL(),
                 order_by_sql=SQL(' ORDER BY %s', groupby_sql) if groupby_sql else SQL(),
                 tail_query=tail_query,
             )
 
-            # Fetch the results.
-            formula_rslt = []
             self.env.cr.execute(query)
             all_query_res = self.env.cr.dictfetchall()
 
-            total_sum = 0
-            for query_res in all_query_res:
-                res_sum = query_res['sum']
-                total_sum += res_sum
-                totals = {
-                    'sum': res_sum,
-                    'sum_if_pos': 0,
-                    'sum_if_neg': 0,
-                    'count_rows': query_res['count_rows'],
-                    'has_sublines': query_res['count_rows'] > 0,
-                }
-                formula_rslt.append((query_res.get('grouping_key', None), totals))
+            results_by_batch_grouping_key = {}
+            if batch_model:
+                for query_res in all_query_res:
+                    results_by_batch_grouping_key.setdefault(query_res['batch_grouping_key'], []).append(query_res)
 
-            # Handle sum_if_pos, -sum_if_pos, sum_if_neg and -sum_if_neg
-            expressions_by_sign_policy = defaultdict(lambda: self.env['account.report.expression'])
-            for expression in expressions:
-                subformula_without_sign = expression.subformula.replace('-', '').strip()
-                if subformula_without_sign in ('sum_if_pos', 'sum_if_neg'):
-                    expressions_by_sign_policy[subformula_without_sign] += expression
-                else:
-                    expressions_by_sign_policy['no_sign_check'] += expression
+            for domain, formula, expressions in batch_domains:
+                formula_rslt = []
+                total_sum = 0
+                totals_by_grouping_key = {}
 
-            # Then we have to check the total of the line and only give results if its sign matches the desired policy.
-            # This is important for groupby managements, for which we can't just check the sign query_res by query_res
-            if expressions_by_sign_policy['sum_if_pos'] or expressions_by_sign_policy['sum_if_neg']:
-                sign_policy_with_value = 'sum_if_pos' if self.env.company.currency_id.compare_amounts(total_sum, 0.0) >= 0 else 'sum_if_neg'
-                # >= instead of > is intended; usability decision: 0 is considered positive
+                batch_included_ids = self.env[batch_model].search(domain).ids if batch_model else [None]
+                for batch_included_id in batch_included_ids:
+                    batch_res = results_by_batch_grouping_key.get(batch_included_id, []) if batch_included_id is not None else all_query_res
 
-                formula_rslt_with_sign = [(grouping_key, {**totals, sign_policy_with_value: totals['sum']}) for grouping_key, totals in formula_rslt]
+                    for query_res in batch_res:
+                        totals = totals_by_grouping_key.setdefault(query_res.get('grouping_key'), {
+                            'sum': 0,
+                            'sum_if_pos': 0,
+                            'sum_if_neg': 0,
+                            'count_rows': 0,
+                            'has_sublines': False,
+                        })
 
-                for sign_policy in ('sum_if_pos', 'sum_if_neg'):
-                    policy_expressions = expressions_by_sign_policy[sign_policy]
+                        res_sum = query_res['sum']
+                        totals['sum'] += res_sum
+                        totals['count_rows'] += query_res['count_rows']
+                        totals['has_sublines'] = totals['has_sublines'] or bool(query_res['count_rows'])
 
-                    if policy_expressions:
-                        if sign_policy == sign_policy_with_value:
-                            rslt[(formula, policy_expressions)] = _format_result_depending_on_groupby(formula_rslt_with_sign)
-                        else:
-                            rslt[(formula, policy_expressions)] = _format_result_depending_on_groupby([])
+                        total_sum += res_sum
 
-            if expressions_by_sign_policy['no_sign_check']:
-                rslt[(formula, expressions_by_sign_policy['no_sign_check'])] = _format_result_depending_on_groupby(formula_rslt)
+                for grouping_key, totals in totals_by_grouping_key.items():
+                    formula_rslt.append((grouping_key, totals))
+
+                # Handle sum_if_pos, -sum_if_pos, sum_if_neg and -sum_if_neg
+                expressions_by_sign_policy = defaultdict(lambda: self.env['account.report.expression'])
+                for expression in expressions:
+                    subformula_without_sign = expression.subformula.replace('-', '').strip()
+                    if subformula_without_sign in ('sum_if_pos', 'sum_if_neg'):
+                        expressions_by_sign_policy[subformula_without_sign] += expression
+                    else:
+                        expressions_by_sign_policy['no_sign_check'] += expression
+
+                # Then we have to check the total of the line and only give results if its sign matches the desired policy.
+                # This is important for groupby managements, for which we can't just check the sign query_res by query_res
+                if expressions_by_sign_policy['sum_if_pos'] or expressions_by_sign_policy['sum_if_neg']:
+                    sign_policy_with_value = 'sum_if_pos' if self.env.company.currency_id.compare_amounts(total_sum, 0.0) >= 0 else 'sum_if_neg'
+                    # >= instead of > is intended; usability decision: 0 is considered positive
+
+                    formula_rslt_with_sign = [(grouping_key, {**totals, sign_policy_with_value: totals['sum']}) for grouping_key, totals in formula_rslt]
+
+                    for sign_policy in ('sum_if_pos', 'sum_if_neg'):
+                        policy_expressions = expressions_by_sign_policy[sign_policy]
+
+                        if policy_expressions:
+                            if sign_policy == sign_policy_with_value:
+                                rslt[formula, policy_expressions] = _format_result_depending_on_groupby(formula_rslt_with_sign)
+                            else:
+                                rslt[formula, policy_expressions] = _format_result_depending_on_groupby([])
+
+                if expressions_by_sign_policy['no_sign_check']:
+                    rslt[formula, expressions_by_sign_policy['no_sign_check']] = _format_result_depending_on_groupby(formula_rslt)
 
         return rslt
 
@@ -4434,6 +4499,10 @@ class AccountReport(models.Model):
         """ Generates the account.report.external.value objects for the given dates.
         If is_tax_report, the values are only created for tax reports, else for all other reports.
         """
+        if date_from >= date_to:
+            # This can happen when setting the lock date back in the past
+            return
+
         options_dict = {}
         default_expr_by_report = defaultdict(list)
         tax_report = self.env.ref('account.generic_tax_report')
@@ -4820,7 +4889,41 @@ class AccountReport(models.Model):
         action_domain = [('display_type', 'not in', ('line_section', 'line_subsection', 'line_note'))]
 
         if record_model == 'account.group':
-            action_domain += [('account_id.group_id', '=', False)] if record_id is None else [('account_id.group_id', 'child_of', record_id)]
+            if record_id:
+                query = SQL("""
+                    SELECT a.id
+                      FROM account_account a
+                      JOIN account_group ag
+                           ON ag.code_prefix_start <= LEFT(a.code_store->>'%(root_company_id)s', char_length(ag.code_prefix_start))
+                              AND ag.code_prefix_end >= LEFT(a.code_store->>'%(root_company_id)s', char_length(ag.code_prefix_end))
+                              AND ag.company_id = %(root_company_id)s
+                     WHERE ag.id = %(record_id)s
+                           AND a.code_store ? '%(root_company_id)s'
+                """,
+                    root_company_id=self.env.company.root_id.id,
+                    record_id=record_id
+                )
+            else:
+                query = SQL("""
+                    WITH relevant_accounts AS (
+                        SELECT id, code_store->>%(root_company_id)s AS code
+                          FROM account_account
+                         WHERE code_store ? %(root_company_id)s
+                    )
+                  SELECT a.id
+                    FROM relevant_accounts a
+                   WHERE NOT EXISTS (
+                        SELECT 1
+                          FROM account_group ag
+                         WHERE ag.company_id = %(root_company_id)s
+                               AND LEFT(a.code, char_length(ag.code_prefix_start)) >= ag.code_prefix_start
+                               AND LEFT(a.code, char_length(ag.code_prefix_end))   <= ag.code_prefix_end
+                    )
+                """, root_company_id=str(self.env.company.root_id.id))
+
+            self.env.cr.execute(query)
+            account_ids = [account[0] for account in self.env.cr.fetchall()]
+            action_domain += [('account_id', 'in', account_ids)]
         elif record_id is None:
             # Default filters don't support the 'no set' value. For this case, we use a domain on the action instead
             model_fields_map = {
@@ -6863,7 +6966,8 @@ class AccountReport(models.Model):
                             budget_base_col = line_col
                         elif other_col_options.get('forced_options', {}).get('compute_budget') == budget_id:
                             budget_amount_col = line_col
-
+                if budget_base_col is None or budget_amount_col is None:
+                    continue
                 value = self._compute_column_percent_comparison_data(
                     options,
                     budget_base_col['no_format'],
@@ -7133,6 +7237,8 @@ class AccountReport(models.Model):
 
         # Check that the duplicates are not false positives because of the balance character
         for candidate_duplicate_code, candidate_duplicate_lines in candidate_duplicate_codes.items():
+            if len(set(candidate_duplicate_lines.mapped('name'))) <= 1:
+                continue
             seen_balance_chars = []
             for reported_account_code in reported_account_codes:
                 if candidate_duplicate_code.startswith(reported_account_code['prefix']) and reported_account_code['balance']:

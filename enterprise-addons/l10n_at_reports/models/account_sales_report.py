@@ -21,16 +21,7 @@ class L10n_AtEcSalesReportHandler(models.AbstractModel):
         """
         super()._init_core_custom_options(report, options, previous_options)
         ec_operation_category = options.setdefault('sales_report_taxes', {})
-
-        goods = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_4_8_tag')
-        goods |= self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_4_9_tag')
-        triangular = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_3_zm_igl3_tag')
-        services = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_3_zm_dl_tag')
-
-        ec_operation_category['goods'] = tuple(goods._get_matching_tags().ids)
-        ec_operation_category['triangular'] = tuple(triangular._get_matching_tags().ids)
-        ec_operation_category['services'] = tuple(services._get_matching_tags().ids)
-
+        ec_operation_category.update(self._get_tax_tags_for_at_sales_report())
         # Change the names of the taxes to specific ones that are dependant to the tax type
         ec_operation_category['operation_category'] = {
             'goods': 'L',
@@ -39,3 +30,15 @@ class L10n_AtEcSalesReportHandler(models.AbstractModel):
         }
 
         options.update({'sales_report_taxes': ec_operation_category})
+
+    def _get_tax_tags_for_at_sales_report(self):
+        goods = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_4_8_tag')
+        goods |= self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_4_9_tag')
+        triangular = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_3_zm_igl3_tag')
+        services = self.env.ref('l10n_at.tax_report_line_l10n_at_tva_line_3_zm_dl_tag')
+
+        return {
+            'goods': tuple(goods._get_matching_tags().ids),
+            'triangular': tuple(triangular._get_matching_tags().ids),
+            'services': tuple(services._get_matching_tags().ids),
+        }

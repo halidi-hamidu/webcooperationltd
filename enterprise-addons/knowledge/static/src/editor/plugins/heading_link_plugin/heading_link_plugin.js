@@ -1,10 +1,12 @@
 import { Plugin } from "@html_editor/plugin";
 import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
-import { ancestors, descendants } from "@html_editor/utils/dom_traversal";
+import { ancestors, closestElement, descendants } from "@html_editor/utils/dom_traversal";
 import { scrollAndHighlightHeading } from "@html_editor/utils/url";
 import { xml } from "@odoo/owl";
 import { renderToElement } from "@web/core/utils/render";
+import { uuid } from "@web/core/utils/strings";
+import { debounce } from "@web/core/utils/timing";
 
 export class HeadingLinkPlugin extends Plugin {
     static id = "headingLink";
@@ -15,6 +17,8 @@ export class HeadingLinkPlugin extends Plugin {
         normalize_handlers: (root) => this.updateHeadingIds(root),
         clean_for_save_handlers: ({ root }) => this.cleanForSave(root),
         after_split_element_handlers: ({ secondPart }) => this.onAfterSplitElement(secondPart),
+
+        before_insert_processors: this.ensureIdUniqueness.bind(this),
 
         system_classes: ["o-highlight-heading"],
     };
@@ -42,7 +46,21 @@ export class HeadingLinkPlugin extends Plugin {
         });
         this.addDomListener(this.headingLink, "dragstart", ev => ev.preventDefault());
 
-        this.addDomListener(this.editable, "mousemove", this.onMousemove, true);
+        this.debouncedOnMouseMove = debounce(this.onMousemove.bind(this), 150);
+        this.addDomListener(
+            this.editable,
+            "mousemove",
+            (ev) => {
+                const heading = ev.target
+                    ? closestElement(ev.target, `:is(h1, h2, h3, h4, h5, h6)[data-heading-link-id]`)
+                    : undefined;
+                if (this.lastHeading !== heading) {
+                    this.lastHeading = heading;
+                    this.debouncedOnMouseMove(heading);
+                }
+            },
+            true
+        );
         this.updateHeadingIds();
     }
 
@@ -50,8 +68,7 @@ export class HeadingLinkPlugin extends Plugin {
         scrollAndHighlightHeading(this.editable);
     }
 
-    onMousemove(ev) {
-        const heading = ev.target?.closest?.("h1, h2, h3, h4, h5, h6");
+    onMousemove(heading) {
         if (heading?.textContent) {
             this.currentHeading = heading;
             // Resetting the position of the overlay.
@@ -77,6 +94,22 @@ export class HeadingLinkPlugin extends Plugin {
         }
     }
 
+    destroy() {
+        this.debouncedOnMouseMove.cancel();
+        super.destroy();
+    }
+
+    /**
+     * Always reset the `data-heading-link-id` when inserting a heading which
+     * already has one.
+     */
+    ensureIdUniqueness(insertContainer) {
+        for (const heading of insertContainer.querySelectorAll("[data-heading-link-id]")) {
+            heading.dataset.headingLinkId = uuid();
+        }
+        return insertContainer;
+    }
+
     onAfterSplitElement(secondPart) {
         // Ensure the ID doesn't get cloned.
         secondPart?.removeAttribute("data-heading-link-id");
@@ -91,7 +124,7 @@ export class HeadingLinkPlugin extends Plugin {
         for (const heading of [...new Set(headings)]) {
             const headingId = heading.getAttribute("data-heading-link-id");
             if (!headingId) {
-                heading.setAttribute("data-heading-link-id", "" + Math.floor(Math.random() * Date.now()));
+                heading.setAttribute("data-heading-link-id", uuid());
             }
         }
     }

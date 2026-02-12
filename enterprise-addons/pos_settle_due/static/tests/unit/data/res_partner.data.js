@@ -40,3 +40,31 @@ patch(ResPartner.prototype, {
         };
     },
 });
+
+ResPartner._records = [
+    ...ResPartner._records,
+    {
+        id: 5,
+        name: "User on budget",
+        street: false,
+        street2: false,
+        city: false,
+        state_id: false,
+        country_id: false,
+        vat: false,
+        lang: "en_US",
+        phone: false,
+        zip: false,
+        email: false,
+        barcode: false,
+        write_date: "2025-08-03 12:12:12",
+        property_product_pricelist: false,
+        parent_name: false,
+        pos_contact_address: "\n\n  \n",
+        invoice_emails: "",
+        company_type: "person",
+        fiscal_position_id: false,
+        credit_limit: 10,
+        use_partner_credit_limit: true,
+    },
+];

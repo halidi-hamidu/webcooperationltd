@@ -7,6 +7,11 @@
                 <TaxType>TVA-<t t-out="tax_vals['tax_id']"/></TaxType>
             </t>
         </xpath>
+        <xpath expr="//TaxBaseDescription" position="before">
+            <t t-if="company.account_fiscal_country_id.code == 'LU'">
+                <TaxBase t-out="format_float(abs(tax_vals['tax_base_amount']))"/>
+            </t>
+        </xpath>
     </template>
 
     <template id="saft_move_template">

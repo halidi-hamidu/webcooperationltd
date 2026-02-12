@@ -118,7 +118,6 @@ registry.category("web_tour.tours").add("test_internal_picking_from_scratch", {
                 helper.assertLineIsHighlighted(lineProduct2, true);
             },
         },
-
         // Edits the first line to check the transaction doesn't crash and the form view is correctly filled.
         {
             trigger: ".o_barcode_line:nth-child(2) .o_edit",
@@ -693,6 +692,11 @@ registry
                 trigger: ".o_barcode_line.o_selected.o_line_completed button.o_unpack",
                 run: "click",
             },
+            {
+                content: "Check PAL-01 was correctly unpacked",
+                trigger:
+                    ".o_barcode_line.o_line_not_completed + .o_barcode_line.o_selected.o_line_completed + .o_barcode_line.o_line_completed",
+            },
             // Click on the PAL-02 line, complete it then unpack it.
             {
                 trigger: ".o_barcode_line[data-package='PAL-02']",
@@ -810,12 +814,8 @@ registry.category("web_tour.tours").add("test_receipt_reserved_1", {
         // Try to scan WH/Stock 2 as the destination -> Should display an error notification.
         { trigger: ".o_barcode_line.o_selected.o_line_completed", run: "scan WHSTOCK-2" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage(
-                    "The scanned location doesn't belong to this operation's destination"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned location doesn't belong to this operation's destination)",
         },
         // Scan Shelf1 as scanned product2 destination.
         { trigger: ".o_barcode_client_action", run: "scan LOC-01-01-00" },
@@ -1220,12 +1220,8 @@ registry.category("web_tour.tours").add("test_delivery_source_location", {
         // Tries to scan a location who doesn't belong to the delivery's source location.
         { trigger: ".o_scan_message.o_scan_src", run: "scan WH-SECOND-STOCK" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage(
-                    "The scanned location doesn't belong to this operation's location"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned location doesn't belong to this operation's location)",
         },
         {
             trigger: "button.o_notification_close",
@@ -1247,12 +1243,8 @@ registry.category("web_tour.tours").add("test_delivery_source_location", {
         // Tries to scan a location who doesn't belong to the delivery's source location.
         { trigger: ".o_scan_message.o_scan_src", run: "scan LOC-01-00-00" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage(
-                    "The scanned location doesn't belong to this operation's location"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned location doesn't belong to this operation's location)",
         },
         {
             trigger: "button.o_notification_close",
@@ -1427,13 +1419,10 @@ registry.category("web_tour.tours").add("test_delivery_lot_with_package_delivery
         },
         {
             trigger: '.o_barcode_line:contains("sn")',
-            run: "scan OBTVALI",
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_notification_bar.bg-success",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -2220,15 +2209,7 @@ registry.category("web_tour.tours").add("test_receipt_from_scratch_with_lots_1",
         },
 
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: "click",
-        },
-
-        {
-            trigger: ".o_barcode_client_action",
-            run: function () {
-                helper.assertErrorMessage("This product doesn't exist.");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(This product doesn't exist.)",
         },
 
         {
@@ -2585,10 +2566,8 @@ registry.category("web_tour.tours").add("test_delivery_from_scratch_with_sn_1", 
         },
 
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("The scanned serial number sn1 is already used.");
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned serial number sn1 is already used.)",
         },
 
         {
@@ -2776,10 +2755,8 @@ registry.category("web_tour.tours").add("test_delivery_reserved_with_sn_1", {
         { trigger: ".o_barcode_line.o_selected", run: "scan sn3" },
         { trigger: ".o_barcode_client_action", run: "scan sn3" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("The scanned serial number sn3 is already used.");
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned serial number sn3 is already used.)",
         },
 
         { trigger: ".o_barcode_client_action", run: "scan sn1" },
@@ -2915,10 +2892,8 @@ registry.category("web_tour.tours").add("test_receipt_duplicate_serial_number", 
         },
 
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("The scanned serial number sn1 is already used.");
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned serial number sn1 is already used.)",
         },
 
         {
@@ -2933,13 +2908,10 @@ registry.category("web_tour.tours").add("test_receipt_duplicate_serial_number", 
         {
             trigger:
                 '.o_barcode_line:nth-child(2) .o_line_destination_location:contains("../Section 2")',
-            run: "scan OBTVALI",
         },
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_notification_bar.bg-success",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -2976,10 +2948,8 @@ registry.category("web_tour.tours").add("test_delivery_duplicate_serial_number",
         },
 
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("The scanned serial number sn1 is already used.");
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The scanned serial number sn1 is already used.)",
         },
 
         {
@@ -2991,12 +2961,8 @@ registry.category("web_tour.tours").add("test_delivery_duplicate_serial_number",
             run: "click",
         },
         ...stepUtils.validateBarcodeOperation(),
-
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -3059,12 +3025,8 @@ registry.category("web_tour.tours").add("test_bypass_source_scan", {
         // Tries to scan a pack in a location the delivery shouldn't have access.
         { trigger: ".o_scan_message.o_scan_product", run: "scan SUSPACK" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "You are expected to scan one or more products or a package available at the picking location"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(You are expected to scan one or more products or a package available at the picking location)",
         },
         {
             trigger: "button.o_notification_close",
@@ -3125,10 +3087,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_settin
             run: "scan LOC-01-01-00",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("Not the expected scan. You must scan a product");
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(Not the expected scan. You must scan a product)",
         },
 
         // Scans product1, its buttons should be displayed/enabled.
@@ -3206,25 +3166,53 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_settin
         // Scans a product, it should display an error.
         { trigger: ".o_barcode_client_action", run: "scan product1" },
         {
-            trigger: ".o_notification:has(.o_notification_bar.bg-danger)",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Mandatory Source Location. You are supposed to scan WH/Stock or another source location"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(Mandatory Source Location. You are supposed to scan WH/Stock or another source location)",
         },
         {
             trigger: ".btn-close.o_notification_close",
             run: "click",
         },
 
-        // Scans the source location, the buttons for the product without barcode should be enabled.
+        // Scans the source location, all buttons should still be disabled as this location is not on any line.
         {
             trigger: ".o_barcode_client_action",
             run: "scan LOC-01-00-00",
         },
         {
             trigger: ".o_scan_message.o_scan_product",
+            run: function () {
+                const [lineProductNoBarcode, lineProduct1] = helper.getLines();
+                helper.assert(
+                    lineProduct1.querySelector(".btn.o_edit").disabled,
+                    true,
+                    "Edit button should be disabled until the product was scanned"
+                );
+                helper.assert(
+                    lineProduct1.querySelector(".btn.o_add_remaining_quantity").disabled,
+                    true,
+                    "Button to automatically add the quantity is disabled if the product scan is mandatory"
+                );
+                helper.assert(
+                    lineProductNoBarcode.querySelector(".btn.o_edit").disabled,
+                    true,
+                    "Since the source of this line was not scanned, its buttons should be disabled"
+                );
+                helper.assert(
+                    lineProductNoBarcode.querySelector(".btn.o_add_remaining_quantity").disabled,
+                    true,
+                    "Since the source of this line was not scanned, its buttons should be disabled"
+                );
+            },
+        },
+        // Scans another location, it replaces the previous scanned source as no product was scanned yet.
+        // Now, the buttons on the barcodeless product only should be enabled
+        {
+            trigger: ".o_barcode_client_action",
+            run: "scan LOC-01-01-00",
+        },
+        {
+            trigger: '.o_barcode_location_line[data-location="WH/Stock/Section 1"].text-bg-400',
             run: function () {
                 const [lineProductNoBarcode, lineProduct1] = helper.getLines();
                 helper.assert(
@@ -3248,11 +3236,6 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_settin
                     "Since the source of this line was scanned and it has no barcode, its buttons should be enabled"
                 );
             },
-        },
-        // Scans another location, it replaces the previous scanned source as no product was scanned yet.
-        {
-            trigger: ".o_barcode_client_action",
-            run: "scan LOC-01-01-00",
         },
 
         // Scans product1.
@@ -3279,12 +3262,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_settin
         // Scans another product: it should raise an error as the destination should be scanned between each product.
         { trigger: ".o_barcode_client_action", run: "scan product2" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Mandatory Destination Location. Please scan destination location for product1 before scanning other product"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(Mandatory Destination Location. Please scan destination location for product1 before scanning other product)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -3303,12 +3282,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_settin
         // Scans again product1: should raise an error as it expects the source (should be scanned after each product).
         { trigger: ".o_barcode_client_action", run: "scan product1" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Mandatory Source Location. You are supposed to scan WH/Stock or another source location"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(Mandatory Source Location. You are supposed to scan WH/Stock or another source location)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -3652,12 +3627,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
         { trigger: ".o_barcode_client_action", run: "scan product1" },
         { trigger: ".o_barcode_line.o_selected", run: "scan product2" }, // Should raise an error.
         {
-            trigger: ".o_notification:has(.o_notification_bar.bg-danger)",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Mandatory Destination Location. Please scan destination location for product1 before scanning other product"
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(Mandatory Destination Location. Please scan destination location for product1 before scanning other product)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -3828,12 +3799,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
             run: "scan product1",
         },
         {
-            trigger: ".o_notification",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Mandatory Source Location. You are supposed to scan WH/Stock or another source location"
-                );
-            },
+            trigger:
+                ".o_notification:contains(Mandatory Source Location. You are supposed to scan WH/Stock or another source location)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -3850,7 +3817,7 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
             run: function () {
                 helper.assertLinesCount(7);
                 helper.assertScanMessage("scan_product");
-                const lineProduct2 = document.querySelector(".o_barcode_line");
+                const lineProduct2 = helper.getLine({ barcode: "product2" });
                 helper.assert(
                     lineProduct2.querySelector(".btn.o_edit").disabled,
                     false,
@@ -3867,12 +3834,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
         { trigger: ".o_barcode_client_action", run: "scan product2" },
         { trigger: ".o_barcode_line.o_line_completed", run: "scan shelf3" },
         {
-            trigger: ".o_notification",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Not the expected scan. You must scan a package or put in pack"
-                );
-            },
+            trigger:
+                ".o_notification:contains(Not the expected scan. You must scan a package or put in pack)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -3907,12 +3870,8 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
             run: "scan productlot1",
         },
         {
-            trigger: ".o_notification",
-            run: function () {
-                helper.assertErrorMessage(
-                    "Not the expected scan. You must scan a package or put in pack"
-                );
-            },
+            trigger:
+                ".o_notification:contains(Not the expected scan. You must scan a package or put in pack)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -4122,10 +4081,7 @@ registry.category("web_tour.tours").add("test_picking_type_mandatory_scan_comple
             run: "click",
         },
         {
-            trigger: ".o_notification",
-            run: function () {
-                helper.assertErrorMessage("All products need to be packed");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(All products need to be packed)",
         },
         {
             trigger: ".btn-close.o_notification_close",
@@ -4180,10 +4136,7 @@ registry.category("web_tour.tours").add("test_pack_multiple_scan", {
         { trigger: ".o_barcode_line + .o_barcode_line", run: "scan OBTPACK" },
         ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
         { trigger: ".o_notification_close", run: "click" },
 
@@ -4201,19 +4154,15 @@ registry.category("web_tour.tours").add("test_pack_multiple_scan", {
         },
         { trigger: ".o_barcode_line:nth-child(2)", run: "scan PACK0001000" },
         {
-            trigger: ".o_notification_bar.bg-danger",
+            trigger: ".o_notification:has(.bg-danger):text(This package is already scanned.)",
             run: function () {
-                helper.assertErrorMessage("This package is already scanned.");
                 helper.assertLineIsHighlighted(0, false);
                 helper.assertLineIsHighlighted(0, false);
             },
         },
         ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -4253,12 +4202,8 @@ registry.category("web_tour.tours").add("test_pack_common_content_scan", {
             },
         },
         ...stepUtils.validateBarcodeOperation(),
-
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -4316,13 +4261,9 @@ registry.category("web_tour.tours").add("test_pack_multiple_location", {
             run: "scan LOC-01-02-00",
         },
 
-        ...stepUtils.validateBarcodeOperation(".o_scan_message.o_scan_validate"),
-
+        ...stepUtils.validateBarcodeOperation(),
         {
-            trigger: ".o_stock_barcode_main_menu",
-            run: function () {
-                helper.assertErrorMessage("The transfer has been validated");
-            },
+            trigger: ".o_notification:has(.bg-success):text(The transfer has been validated)",
         },
     ],
 });
@@ -4480,16 +4421,16 @@ registry.category("web_tour.tours").add("test_put_in_pack_in_new_created_package
         },
         {
             trigger: ".o_barcode_line:first-child.o_selected.o_line_completed",
-            run: "scan PACK0000001",
+            run: "scan PACK0000042",
         },
         {
             trigger: ".o_barcode_line:first-child .result-package",
             run: function () {
                 helper.assertLinesCount(2);
                 helper.assertLineProduct(0, "product2");
-                helper.assertLineResultPackage(0, "PACK0000001");
+                helper.assertLineResultPackage(0, "PACK0000042");
                 helper.assertLineProduct(1, "product1");
-                helper.assertLineResultPackage(1, "PACK0000001");
+                helper.assertLineResultPackage(1, "PACK0000042");
             },
         },
         ...stepUtils.validateBarcodeOperation(),
@@ -5762,10 +5703,7 @@ registry.category("web_tour.tours").add("test_avoid_useless_line_creation", {
             run: "scan LOREM",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("This product doesn't exist.");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(This product doesn't exist.)",
         },
         // Open the form view to trigger a save
         {
@@ -5785,12 +5723,8 @@ registry.category("web_tour.tours").add("test_setting_barcode_allow_extra_produc
         // Try to scan a not-reserved product -> Display a warning.
         { trigger: ".o_barcode_line.o_selected.o_line_completed", run: "scan product2" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "The product product2 should not be picked in this operation."
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(The product product2 should not be picked in this operation.)",
         },
         // Valid the delivery, then create another one. Checks any product can be scanned regardless the delivery type config.
         { trigger: ".o_barcode_client_action", run: "scan OBTVALI" },
@@ -5821,12 +5755,8 @@ registry.category("web_tour.tours").add("test_setting_barcode_allow_extra_produc
             run: "scan PACK04",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "This package contains extra products and extra products are not allowed on this operation."
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(This package contains extra products and extra products are not allowed on this operation.)",
         },
         // Scan valid package -> should be processed
         {
@@ -5857,12 +5787,8 @@ registry.category("web_tour.tours").add("test_setting_barcode_allow_extra_produc
             run: "scan PACK04",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage(
-                    "This package contains extra products and extra products are not allowed on this operation."
-                );
-            },
+            trigger:
+                ".o_notification:has(.bg-danger):text(This package contains extra products and extra products are not allowed on this operation.)",
         },
         // Scan valid package -> should be processed
         {
@@ -6401,10 +6327,7 @@ registry.category("web_tour.tours").add("test_editing_done_picking", {
     steps: () => [
         { trigger: ".o_barcode_client_action", run: "scan OBTVALI" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: function () {
-                helper.assertErrorMessage("This picking is already done");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(This picking is already done)",
         },
     ],
 });
@@ -7084,10 +7007,7 @@ registry.category("web_tour.tours").add("test_multi_company_record_access_in_bar
         // Shouldn't have access to company1 prod while in company2 picking type
         { trigger: ".o_barcode_client_action", run: "scan company1_product" },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage("This product doesn't exist.");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(This product doesn't exist.)",
         },
         { trigger: ".o_barcode_client_action", run: "scan company2_product" },
         { trigger: ".o_barcode_line" },
@@ -7268,7 +7188,6 @@ registry.category("web_tour.tours").add("test_validate_uncomplete_return", {
         { trigger: "button.o_create_return", run: "click" },
         { trigger: ".o_barcode_line", run: "scan product1" },
         ...stepUtils.validateBarcodeOperation(".o_barcode_line.o_selected"),
-        { trigger: ".o_stock_barcode_main_menu" },
         { trigger: ".o_web_client:not(.modal-open)" },
     ],
 });
@@ -7648,10 +7567,7 @@ registry.category("web_tour.tours").add("test_no_validate_no_dest_package", {
             run: "click",
         },
         {
-            trigger: ".o_notification_bar.bg-danger",
-            run: () => {
-                helper.assertErrorMessage("Destination location must be scanned");
-            },
+            trigger: ".o_notification:has(.bg-danger):text(Destination location must be scanned)",
         },
     ],
 });
@@ -7786,6 +7702,42 @@ registry.category("web_tour.tours").add("test_rental_partial_reception", {
                     "The notification should contain a link to the created backorder."
                 );
             },
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("test_no_validate_multiple_times", {
+    steps: () => [
+        {
+            trigger: ".o_button_operations",
+            run: "click",
+        },
+        {
+            trigger: ".o_kanban_record:contains(Internal)",
+            run: "click",
+        },
+        {
+            trigger: "button.o-kanban-button-new",
+            run: "click",
+        },
+        {
+            trigger: ".o_barcode_client_action",
+            run: "scan product2",
+        },
+        {
+            trigger: ".o_barcode_client_action",
+            run: "scan LOC-01-01-00",
+        },
+        {
+            trigger: ".o_validate_page.btn-primary",
+            async run(helpers) {
+                for (let i = 0; i < 2; i++) {
+                    helpers.scan("O-BTN.validate");
+                }
+            },
+        },
+        {
+            trigger: ".o_notification_bar.bg-success",
         },
     ],
 });

@@ -3,7 +3,6 @@ from markupsafe import Markup
 
 from odoo import api, fields, models, _
 from odoo.fields import Domain
-from odoo.tools import is_html_empty, plaintext2html
 from odoo.addons.mail.tools.discuss import Store
 
 
@@ -48,26 +47,12 @@ class DiscussChannel(models.Model):
             else:
                 customer = partners[:1]
                 list_value = key[1:]
-                description = ''
-                odoobot = self.env.ref('base.partner_root')
-                for message in self.message_ids.sorted(key=lambda r: r.id):
-                    if (not message.attachment_ids and is_html_empty(message.body)) or message.author_id == odoobot:
-                        continue
-                    name = message.author_id.name or 'Anonymous'
-                    if message.body:
-                        description += '%s: ' % name + '%s\n' % re.sub('<[^>]*>', '', message.body)
-                    attachment_author_shown = False
-                    for attachment in message.attachment_ids:
-                        if not message.body and not attachment_author_shown:
-                            description += '%s:\n' % name
-                            attachment_author_shown = True
-                        description += Markup("%s<br/>") % self._attachment_to_html(attachment)
                 team = self.env['helpdesk.team'].search([('use_website_helpdesk_livechat', '=', True)], order='sequence', limit=1)
                 team_id = team.id if team else False
                 helpdesk_ticket = self.env['helpdesk.ticket'].with_context(with_partner=True).create({
                     "origin_channel_id": self.id,
                     'name': ' '.join(list_value),
-                    'description': plaintext2html(description),
+                    'description': self._get_channel_history(),
                     'partner_id': customer.id if customer else False,
                     'team_id': team_id,
                 })

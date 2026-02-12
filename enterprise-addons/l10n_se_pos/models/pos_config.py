@@ -43,4 +43,4 @@ class PosConfig(models.Model):
             )
 
     def get_order_sequence_number(self):
-        return self.order_seq_id.number_next_actual
+        return self.order_seq_id._next()

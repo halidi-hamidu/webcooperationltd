@@ -88,11 +88,54 @@ registry.category("web_tour.tours").add("sign_template_creation_tour", {
             timeout: 30000, //In view mode, pdf loading can take a long time
         },
         {
+            content: "Enter Template Edit Mode",
+            trigger: ".fa-pencil.me-2:not(:visible)",
+            run: "click",
+        },
+        {
+            content: "Edit Signer Role",
+            trigger: ".o_input.form-control.bg-transparent.rounded-0.pe-1",
+            run: "edit Signer 1-Test && click body",
+        },
+        {
             content: "Drop Signature Item",
             trigger: ".o_sign_field_type_button:contains(" + _t("Signature") + ")",
             run({ queryFirst }) {
                 const to = queryFirst(`:iframe .page[data-page-number="1"]`);
                 tourUtils.dragAndDropSignItemAtHeight(this.anchor, to, 0.5, 0.25);
+            },
+        },
+        {
+            content: "Click on Add Signer",
+            trigger: ".btn.btn-link.fs-5.m-0",
+            run: "click",
+        },
+        {
+            content: "Open Sign Item Dropdown",
+            trigger: ".o_sign_sidebar_signer_selected .o_sign_sidebar_icon.o-dropdown",
+            run: "click",
+        },
+        {
+            content: "Click on Edit",
+            trigger: ".o-dropdown-item:contains('Edit')",
+            run: "click",
+        },
+        {
+            content: "Edit Name",
+            trigger: "#name_0",
+            run: "click && edit Test Signer && click body",
+        },
+        {
+            content: "Click on Save",
+            trigger: ".btn.btn-primary.o_form_button_save",
+            run: "click",
+        },
+        {
+            content: "Drop Signature Item",
+            trigger: ".o_sign_field_type_button:contains(" + _t("Signature") + ")",
+            run({ queryFirst }) {
+                const to = queryFirst(`:iframe .page[data-page-number="1"]`);
+                tourUtils.dragAndDropSignItemAtHeight(this.anchor, to, 0.25, 0.15);
             },
         },
         {

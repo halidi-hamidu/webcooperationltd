@@ -187,6 +187,8 @@ class TestEmployeeSalaryConfigurator(odoo.tests.HttpCase):
         self.assertEqual(len(active_versions), 1)
         self.assertEqual(active_versions[0].contract_date_start, date(2020, 1, 1))
         self.assertFalse(active_versions[0].contract_date_end)
+        employee.private_country_id = self.env.ref('base.be').id
+        employee.private_state_id = self.env.ref('base.state_be_1').id
         with freeze_time("2022-01-01 12:00:00"):
             self.start_tour("/", 'hr_contract_salary_employee_flow_tour', login='admin', timeout=350)
             self.assertEqual(len(active_versions), 1)

@@ -182,19 +182,16 @@ class HrPayslip(models.Model):
         return balance_by_employee
 
     def action_payslip_payment_report(self, export_format='l10n_ae_wps'):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'hr.payroll.payment.report.wizard',
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'new',
+        action = super().action_payslip_payment_report()
+        if self.company_id.country_code != 'AE':
+            return action
+        action.update({
             'context': {
-                'default_payslip_ids': self.ids,
-                'default_payslip_run_id': self.payslip_run_id.id,
+                **action['context'],
                 'default_export_format': export_format,
             },
-        }
+        })
+        return action
 
     def compute_sheet(self):
         ae_payslips = self.filtered(lambda payslip: payslip.country_code == 'AE')

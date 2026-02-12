@@ -41,7 +41,7 @@ export class SendcloudFunctionalitiesField extends Component {
         if (typeof data.sendcloud_shipping_id === "undefined"){
             return false;
         }
-        const newProductId = data.sendcloud_shipping_id[0];
+        const newProductId = data.sendcloud_shipping_id.id;
         if (newProductId === this.sendcloudProductId ){
             return false;
         }

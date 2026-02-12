@@ -5,7 +5,7 @@
     "category": "Productivity/Phone",
     "sequence": 280,
     "version": "2.0",
-    "depends": ["base", "mail", "phone_validation", "web", "web_mobile"],
+    "depends": ["base", "bus", "mail", "phone_validation", "web", "web_mobile"],
     "data": [
         "security/voip_security.xml",
         "data/voip_data.xml",
@@ -30,6 +30,7 @@
         "web.assets_backend": [
             "voip/static/src/**/*",
             ("remove", "voip/static/src/**/*.dark.scss"),
+            ("remove", "voip/static/src/worker/**/*"),
         ],
         "voip.assets_public": [
             'mail/static/src/core/common/**/*',
@@ -39,6 +40,12 @@
         ],
         "web.assets_unit_tests": [
             "voip/static/tests/**/*",
+            "voip/static/src/worker/*",
+            # let the test environment init the worker with its own mocks
+            ("remove", "voip/static/src/worker/init.js"),
+        ],
+        "bus.websocket_worker_assets": [
+            "voip/static/src/worker/*",
         ],
     },
 }

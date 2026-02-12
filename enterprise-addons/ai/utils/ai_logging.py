@@ -52,7 +52,9 @@ def ai_response_logging(llm_model: str):
         "api_calls": 0,
         "tool_calls": 0,
         "tokens_in": 0,
-        "tokens_out": 0,
+        "real_input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
         "api_time": 0.0,
         "tool_time": 0.0,
         "batch_count": 0,
@@ -67,17 +69,18 @@ def ai_response_logging(llm_model: str):
     finally:
         if session["api_calls"]:
             duration = time.perf_counter() - session["start_time"]
-            _logger.debug(
+            _logger.info(
                 "[AI Summary] Total: %.2fs | API calls: %d (%.2fs) | Tools: %d (%.2fs) | "
-                "Tokens: %d (in: %d, out: %d) | Batches: %d",
+                "Tokens: %d (in: %d, out: %d, cached: %d) | Batches: %d",
                 duration,
                 session["api_calls"],
                 session["api_time"],
                 session["tool_calls"],
                 session["tool_time"],
-                session["tokens_in"] + session["tokens_out"],
-                session["tokens_in"],
-                session["tokens_out"],
+                session["real_input_tokens"] + session["output_tokens"],
+                session["real_input_tokens"],
+                session["output_tokens"],
+                session["cached_tokens"],
                 session["batch_count"],
             )
         _logging_sessions.ai_logging_session = None
@@ -110,26 +113,31 @@ def api_call_logging(messages, tools=None):
         tokens_in += estimate_tokens(tool_data)
 
     session["tokens_in"] += tokens_in
-    _logger.debug("[AI API Call #%d] Sending request with %d tokens", call_id, tokens_in)
+    _logger.debug("[AI API Call #%d] Sending request with estimated %d tokens", call_id, tokens_in)
 
     start_time = time.perf_counter()
-    response_data = {"tool_calls": [], "tokens_out": 0}
+    response_data = {"tool_calls": [], "real_input_tokens": 0, "output_tokens": 0, "cached_tokens": 0}
 
-    def record_response(tool_calls, response):
+    def record_response(tool_calls, response, request_token_usage):
         """Record the API response data.
 
         :param tool_calls: List of tool calls in the response
         :param response: The API response
         """
         response_data["tool_calls"] = tool_calls or []
-        response_data["tokens_out"] = estimate_tokens(response) + estimate_tokens(tool_calls)
+        if request_token_usage:
+            response_data["real_input_tokens"] = request_token_usage.get("input_tokens")
+            response_data["output_tokens"] = request_token_usage.get("output_tokens")
+            response_data["cached_tokens"] = request_token_usage.get("cached_tokens")
 
     try:
         yield record_response
     finally:
         duration = time.perf_counter() - start_time
         session["api_time"] += duration
-        session["tokens_out"] += response_data["tokens_out"]
+        session["real_input_tokens"] += response_data["real_input_tokens"]
+        session["output_tokens"] += response_data["output_tokens"]
+        session["cached_tokens"] = response_data["cached_tokens"]  # should already by cumulative
 
         if response_data["tool_calls"]:
             num_tools = len(response_data["tool_calls"])
@@ -143,7 +151,7 @@ def api_call_logging(messages, tools=None):
                     session["current_batch_id"],
                     num_tools,
                     duration,
-                    response_data["tokens_out"],
+                    response_data["output_tokens"],
                 )
             else:
                 session["current_batch_id"] = None
@@ -151,7 +159,7 @@ def api_call_logging(messages, tools=None):
                     "[AI API Call #%d - →] Received single tool call (%.2fs, %d tokens)",
                     call_id,
                     duration,
-                    response_data["tokens_out"],
+                    response_data["output_tokens"],
                 )
         else:
             session["current_batch_id"] = None
@@ -159,5 +167,5 @@ def api_call_logging(messages, tools=None):
                 "[AI API Call #%d] Completed (%.2fs, %d tokens)",
                 call_id,
                 duration,
-                response_data["tokens_out"],
+                response_data["output_tokens"],
             )

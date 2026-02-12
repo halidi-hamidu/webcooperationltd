@@ -22,6 +22,7 @@ class HrWorkEntryContractTest(HttpCase, TransactionCase):
                     'base_off': 'quantity',
                     'expected_hours_from_contract': True,
                     'quantity_period': 'day',
+                    'paid': True,
                 })],
         })
         cls.employee = cls.env['hr.employee'].create({
@@ -81,3 +82,23 @@ class HrWorkEntryContractTest(HttpCase, TransactionCase):
 
         # should not generate the work entry becuase the work entry for that woking day is already generated
         self.assertFalse(another_work_entry)
+
+    def test_attendance_creation_work_entry_by_planning(self):
+        # Ensure that attendance is created correctly when the work entry source
+        # is 'planning', even if there are other published planning slots
+        # for material type resources during the same period.
+        material_resource = self.env['resource.resource'].create({
+            'name': 'Test non human resource',
+            'resource_type': 'material',
+        })
+        self.env['planning.slot'].create({
+            'resource_id': material_resource.id,
+            'state': 'published',
+            'start_datetime': datetime(2024, 7, 15, 0, 0),
+            'end_datetime': datetime(2024, 7, 17, 23, 59, 59, 999999),
+        })
+        self.env['hr.attendance'].create({
+            'employee_id': self.employee.id,
+            'check_in': datetime(2024, 7, 16, 8, 0, 0),
+            'check_out': datetime(2024, 7, 16, 18, 0, 0),
+        })

@@ -42,10 +42,6 @@ class AccountReturn(models.Model):
             response = self.company_id._l10n_be_post_vat_declaration(att.raw, att.name)
         except UserError as e:
             self._message_log(body=self.env._("Submission Error: \n") + e.args[0])
-            self.env.user._bus_send('simple_notification', {
-                'type': 'danger',
-                'title': self.env._("Submission Error"),
-            })
             return 'error'
 
         if response is None:

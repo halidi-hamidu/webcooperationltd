@@ -8,7 +8,7 @@ patch(PaymentPage.prototype, {
     setup() {
         super.setup(...arguments);
         this.hardwareProxy = useService("hardware_proxy");
-        this.iotLongpolling = useService("iot_longpolling");
+        this.iotHttp = useService("iot_http");
 
         const devices = this.selfOrder.models["iot.device"].getAll();
         const paymentTerminals = devices.filter((device) => device.type === "payment");
@@ -16,7 +16,10 @@ patch(PaymentPage.prototype, {
             .getAll()
             .filter((method) => method.iot_device_id);
         for (const paymentTerminal of paymentTerminals) {
-            const deviceProxy = new DeviceController(this.iotLongpolling, paymentTerminal);
+            const deviceProxy = new DeviceController(
+                this.env.services.iot_longpolling,
+                paymentTerminal
+            );
             for (const paymentMethod of iotPaymentMethods) {
                 if (paymentMethod.iot_device_id.id === paymentTerminal.id) {
                     paymentMethod.terminal_proxy = deviceProxy;
@@ -51,14 +54,15 @@ patch(PaymentPage.prototype, {
     },
 
     async onTerminalMessageReceived(data, order, paymentMethod) {
-        if (data.Error) {
+        this._keepListening(order, paymentMethod);
+        if (data.Error || data.Stage === "Cancel") {
             await rpc("/pos-self-order/iot-payment-cancelled", {
                 access_token: this.selfOrder.config.access_token,
                 order_id: order.id,
             });
             this.selfOrder.handleErrorNotification(data.Error);
             this.selfOrder.paymentError = true;
-            paymentMethod.terminal_proxy.removeListener();
+            this.transactionInProgress = false;
         } else if (data.Response === "Approved") {
             await rpc("/pos-self-order/iot-payment-success", {
                 access_token: this.selfOrder.config.access_token,
@@ -66,7 +70,7 @@ patch(PaymentPage.prototype, {
                 payment_method_id: paymentMethod.id,
                 payment_info: data,
             });
-            paymentMethod.terminal_proxy.removeListener();
+            this.transactionInProgress = false;
         }
     },
 
@@ -88,13 +92,40 @@ patch(PaymentPage.prototype, {
             });
             const order = orderResult.order[0];
 
-            paymentMethod.terminal_proxy.addListener((data) =>
-                this.onTerminalMessageReceived(data, order, paymentMethod)
+            this.transactionInProgress = true;
+            const { iot_id, identifier } = paymentMethod.iot_device_id;
+            this.iotHttp.action(
+                iot_id?.id,
+                identifier,
+                this.getPaymentData(order, paymentMethod),
+                (e) => this.onTerminalMessageReceived(e.result, order, paymentMethod),
+                (e) => this._onActionFail(e, order, paymentMethod)
             );
-            await paymentMethod.terminal_proxy.action(this.getPaymentData(order, paymentMethod));
         } catch (error) {
             this.selfOrder.handleErrorNotification(error);
             this.selfOrder.paymentError = true;
+        }
+    },
+
+    _onActionFail(data, order, paymentMethod) {
+        if (data.status === "timeout") {
+            // ignore timeout, we keep waiting for the terminal to respond
+            return this._keepListening(order, paymentMethod);
+        }
+        this.transactionInProgress = false;
+        this.selfOrder.handleErrorNotification(data);
+        this.selfOrder.paymentError = true;
+    },
+
+    _keepListening(order, paymentMethod) {
+        if (this.transactionInProgress) {
+            const { iot_id, identifier } = paymentMethod.iot_device_id;
+            this.iotHttp.onMessage(
+                iot_id?.id,
+                identifier,
+                (e) => this.onTerminalMessageReceived(e.result, order, paymentMethod),
+                (e) => this._onActionFail(e, order, paymentMethod)
+            );
         }
     },
 });

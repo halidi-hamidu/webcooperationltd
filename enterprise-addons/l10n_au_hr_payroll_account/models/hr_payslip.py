@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from odoo import api, Command, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import groupby, format_list
 
 
@@ -375,19 +375,16 @@ class HrPayslip(models.Model):
         return res
 
     def action_payslip_payment_report(self, export_format='aba'):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'hr.payroll.payment.report.wizard',
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'new',
+        action = super().action_payslip_payment_report()
+        if self.company_id.country_code != 'AU':
+            return action
+        action.update({
             'context': {
-                'default_payslip_ids': self.ids,
-                'default_payslip_run_id': self.payslip_run_id.id,
+                **action['context'],
                 'default_export_format': export_format,
             },
-        }
+        })
+        return action
 
     def _l10n_au_get_leaves_for_withhold(self):
         if self:
@@ -407,6 +404,8 @@ class HrPayslip(models.Model):
     def _l10n_au_get_year_to_date_totals(self, fields_to_compute=None, l10n_au_include_current_slip=False, include_ytd_balances=True, zero_amount=False, employee_id=None, start_date=None):
         """ Return the year to date totals for a payslip or employee. One of the two are required. """
         fields_to_compute = fields_to_compute or []
+        employee_id = self.env["hr.employee"].browse(employee_id) if employee_id else self.employee_id
+
         # Change to a parameter in master
         group_income_stream_types = self.env.context.get("group_income_stream_types", False)
         if zero_amount:
@@ -421,10 +420,11 @@ class HrPayslip(models.Model):
                 "fields": {"l10n_au_extra_compulsory_super": 0.0},
             }
             if group_income_stream_types:
-                return {income_stream_type: zeroed_totals for income_stream_type in set(self._l10n_au_get_year_to_date_slips().mapped("l10n_au_income_stream_type"))}
+                slips = self._l10n_au_get_year_to_date_slips()
+                income_stream_types = set(slips.mapped("l10n_au_income_stream_type")) if slips else set(employee_id.l10n_au_income_stream_type)
+                return {income_stream_type: zeroed_totals for income_stream_type in income_stream_types}
             return zeroed_totals
 
-        employee_id = self.env["hr.employee"].browse(employee_id) if employee_id else self.employee_id
         start_date = self.date_from if self else start_date
 
         if self:
@@ -446,14 +446,16 @@ class HrPayslip(models.Model):
             include_ytd_balances: Include the YTD Opening balances for the payslip.
             zero_amount: Return the all inputs with 0 amount for zeroing STP.
         """
+        employee_id = self.env["hr.employee"].browse(employee_id) if employee_id else self.employee_id
         # Change to a parameter in master
         group_income_stream_types = self.env.context.get("group_income_stream_types", False)
         if zero_amount:
             if group_income_stream_types:
-                return {income_stream_type: {} for income_stream_type in set(self._l10n_au_get_year_to_date_slips().mapped("l10n_au_income_stream_type"))}
+                slips = self._l10n_au_get_year_to_date_slips()
+                income_stream_types = set(slips.mapped("l10n_au_income_stream_type")) if slips else set(employee_id.l10n_au_income_stream_type)
+                return {income_stream_type: {} for income_stream_type in income_stream_types}
             return {}
 
-        employee_id = self.env["hr.employee"].browse(employee_id) if employee_id else self.employee_id
         start_date = self.date_from if self else start_date
 
         if self:
@@ -476,6 +478,13 @@ class HrPayslip(models.Model):
         au_slips = self.filtered(lambda x: x.country_code == "AU")
         if not au_slips:
             return lines
+
+        if faulty_employees := au_slips.employee_id.filtered(lambda x: x.structure_type_id.country_id.code != "AU"):
+            raise ValidationError(self.env._(
+                "The selected salary structure (Pay Category) for the following employees is not configured for the Australian payroll. "
+                "Please ensure the correct structure is selected.\n%s",
+                "\n".join(faulty_employees.mapped("name"))
+            ))
         rules = self.env["hr.salary.rule"].search_read([("struct_id.country_id", "=", self.env.ref("base.au").id)], ["code", "category_id"], load="")
         rules = {rule["id"]: rule for rule in rules}
         categories = self.env["hr.salary.rule.category"].search_read([], ["code"])

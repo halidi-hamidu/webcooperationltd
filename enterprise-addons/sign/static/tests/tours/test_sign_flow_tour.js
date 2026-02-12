@@ -78,13 +78,19 @@ registry.category("web_tour.tours").add("test_sign_flow_tour", {
         },
         {
             content: "Click on style button",
-            trigger: ".o_web_sign_auto_select_style > button",
-            run: "click",
-        },
-        {
-            content: "Select a style",
-            trigger: ".dropdown-menu .dropdown-item:nth-child(3)",
-            run: "click",
+            trigger: ".o_web_sign_auto_select_style .dropdown-toggle",
+            async run({ click, waitUntil }) {
+                // Select a style but wait before the response of rpc get_fonts/
+                for (let i = 0; i < 50; i++) {
+                    await click();
+                    const items = document.querySelectorAll(".dropdown-menu .dropdown-item");
+                    if (items.length >= 3) {
+                        await click(".dropdown-menu .dropdown-item:nth-child(3)");
+                        break;
+                    }
+                    await new Promise((r) => setTimeout(r, 200));
+                }
+            },
         },
         {
             content: "Click on style button",

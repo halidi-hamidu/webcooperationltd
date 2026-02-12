@@ -20,8 +20,13 @@ class PlanningSlot(models.Model):
         if (
             not self.env.context.get('rental_order_updated')
             and any(vals.get(k) for k in ['start_datetime', 'end_datetime'])
-            and (rental_orders := self.exists().filtered('role_sync_shift_rental').sale_order_id.filtered('is_rental_order'))
+            and (rental_slots := self.exists().filtered('role_sync_shift_rental'))
         ):
+            if rental_slots.filtered('overlap_slot_count'):
+                raise ValidationError(self.env._('Shift not rescheduled due to conflicts'))
+            rental_orders = rental_slots.sale_order_id.filtered('is_rental_order')
+            if not rental_orders:
+                return res
             shifts_per_sale_order = self.env['planning.slot']._read_group(
                 [
                     ('sale_order_id', 'in', rental_orders.ids),
@@ -51,6 +56,8 @@ class PlanningSlot(models.Model):
 
     def action_create_order(self):
         self.ensure_one()
+        if self.overlap_slot_count:
+            raise ValidationError(self.env._('Impossible to generate a rental order for a shift in conflict.'))
         action = self.env['ir.actions.actions']._for_xml_id('sale_renting.rental_order_action')
         context = literal_eval(action.get('context', '{}'))
         context.update(
@@ -78,6 +85,8 @@ class PlanningSlot(models.Model):
 
     def action_add_last_order(self):
         self.ensure_one()
+        if self.overlap_slot_count:
+            raise ValidationError(self.env._('The shift should not be in conflict to be able to correctly add it to an existing rental order.'))
         order = self.env['sale.order'].search([
             ('is_rental_order', '=', True),
             ('user_id', '=', self.env.uid),

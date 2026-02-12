@@ -6,6 +6,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 
 import re
+import uuid
 
 
 class HrEmployee(models.Model):
@@ -70,6 +71,7 @@ class HrEmployee(models.Model):
     l10n_ch_has_monthly = fields.Boolean(readonly=False, related="version_id.l10n_ch_has_monthly", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_ch_has_hourly = fields.Boolean(readonly=False, related="version_id.l10n_ch_has_hourly", inherited=True, groups="hr_payroll.group_hr_payroll_user")
     l10n_ch_has_lesson = fields.Boolean(readonly=False, related="version_id.l10n_ch_has_lesson", inherited=True, groups="hr_payroll.group_hr_payroll_user")
+    registration_number = fields.Char(default=lambda self: str(uuid.uuid4().hex))
 
     @api.constrains('birthday')
     def _check_birthday(self):
@@ -94,15 +96,16 @@ class HrEmployee(models.Model):
     def _onchange_l10n_ch_has_lesson(self):
         self.version_id._onchange_l10n_ch_has_lesson()
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        employees = super().create(vals_list)
-        employees._create_or_update_snapshot()
-        return employees
-
     def write(self, vals):
         vals = super().write(vals)
-        self._create_or_update_snapshot()
+        # Recompute open payslips automatically on each update since almost all fields cause a change in computation
+        pending_computation_slips = self.sudo().slip_ids.filtered(lambda p: p.state == 'draft' and p.struct_id.code == "CHMONTHLYELM")
+        if pending_computation_slips:
+            earliest_payslip_date = min(pending_computation_slips.mapped('date_from'))
+            self.with_context(l10n_ch_reference_date=earliest_payslip_date)._create_or_update_snapshot()
+            pending_computation_slips.action_refresh_from_work_entries()
+        else:
+            self._create_or_update_snapshot()
         return vals
 
     def _get_certificate_selection(self):
@@ -131,9 +134,9 @@ class HrEmployee(models.Model):
                 first_name = ' '.join(re.sub(r"\([^()]*\)", "", employee.name).strip().split()[:-1])
                 last_name = re.sub(r"\([^()]*\)", "", employee.name).strip().split()[-1]
                 if not employee.l10n_ch_legal_last_name:
-                    employee.l10n_ch_legal_last_name = first_name
+                    employee.l10n_ch_legal_last_name = last_name
                 if not employee.l10n_ch_legal_first_name:
-                    employee.l10n_ch_legal_first_name = last_name
+                    employee.l10n_ch_legal_first_name = first_name
 
     @api.model
     def _create_or_update_snapshot(self):
@@ -143,9 +146,12 @@ class HrEmployee(models.Model):
             return
 
         self.env.flush_all()
-        now = fields.Datetime.now().date()
-        month = now.month
-        year = now.year
+
+        ref_date = self.env.context.get('l10n_ch_reference_date') or fields.Date.context_today(self)
+
+        month = ref_date.month
+        year = ref_date.year
+
         existing_snapshots = self.sudo().env["l10n.ch.employee.yearly.values"].search([
             ('year', '=', year),
             ('employee_id', 'in', swiss_employees.ids)
@@ -166,6 +172,7 @@ class HrEmployee(models.Model):
             ('year', '>', year),
             ('employee_id', 'in', self.ids)
         ])
+        unlock_pay_period = self.env.context.get('unlock_pay_period')
 
         # Mutation insensitive informations, these have to be updated even if the payroll month is closed
         monthly_persons_to_update = existing_snapshots.monthly_value_ids.filtered(lambda s: not s.payroll_month_closed or (s.month >= month and s.year >= year)).sorted(lambda s: (s.year, s.month))
@@ -173,7 +180,7 @@ class HrEmployee(models.Model):
         monthly_persons_to_update._recompute_recordset(['person'])
 
         # Mutation sensitive informations, these should not be recomputed once payroll month is closed
-        monthly_values_to_update = existing_snapshots.monthly_value_ids.filtered(lambda s: not s.payroll_month_closed).sorted(lambda s: (s.year, s.month))
+        monthly_values_to_update = existing_snapshots.monthly_value_ids.filtered(lambda s: not s.payroll_month_closed or (s.month >= month and s.year >= year and unlock_pay_period)).sorted(lambda s: (s.year, s.month))
 
         if self.env.context.get('update_salaries'):
             self.env.add_to_compute(self.env['l10n.ch.employee.monthly.values']._fields['bvg_lpp_annual_basis'], monthly_values_to_update)
@@ -190,16 +197,7 @@ class HrEmployee(models.Model):
         self.env.add_to_compute(self.env['l10n.ch.employee.monthly.values']._fields['monthly_statistics'], monthly_values_to_update)
         monthly_values_to_update._recompute_recordset(['monthly_statistics'])
 
-        if self.env.context.get('lock_pay_period'):
-            existing_snapshots._toggle_pay_period_lock(lock=True)
-
-        if self.env.context.get('unlock_pay_period'):
-            existing_snapshots._toggle_pay_period_lock(lock=False)
-
-        # Recompute open payslips automatically on each update since almost all fields cause a change in computation
-        pending_computation_slips = self.sudo().slip_ids.filtered(lambda p: p.state == 'draft' and p.struct_id.code == "CHMONTHLYELM")
-        if pending_computation_slips:
-            pending_computation_slips.action_refresh_from_work_entries()
+        existing_snapshots._toggle_pay_period_lock()
 
     def action_absence_swiss_employee(self):
         return {

@@ -11,6 +11,7 @@ from odoo.addons.web_studio.wizard.studio_export_wizard import FIELDS_TO_EXPORT
 PRESET_MODELS_DEFAULTS = [
     ("appointment.resource", {}),
     ("res.partner", {"domain": "[('user_ids', '=', False)]", "is_demo_data": True}),
+    ("resource.resource", {"is_demo_data": True}),
     ("hr.employee", {"is_demo_data": True}),
     ("hr.applicant", {"is_demo_data": True}),
     ("hr.department", {"is_demo_data": True}),
@@ -33,7 +34,10 @@ PRESET_MODELS_DEFAULTS = [
     ("crm.team", {"is_demo_data": True}),
     ("crm.stage", {}),
     ("crm.lead", {"is_demo_data": True}),
+    ("event.event", {}),
     ("event.event.ticket", {}),
+    ("event.tag", {}),
+    ("event.tag.category", {}),
     ("helpdesk.ticket", {"is_demo_data": True}),
     ("product.supplierinfo", {"is_demo_data": True}),
     ("sale.order", {"domain": "[('state', 'not in', ['draft', 'cancel'])]", "is_demo_data": True}),
@@ -41,14 +45,18 @@ PRESET_MODELS_DEFAULTS = [
     ("loyalty.program", {"is_demo_data": True}),
     ("loyalty.reward", {"is_demo_data": True}),
     ("loyalty.rule", {"is_demo_data": True}),
+    ("mail.activity", {"is_demo_data": True}),
+    ("mail.activity.type", {"is_demo_data": True}),
     ("mail.template", {}),
     ("maintenance.equipment", {}),
     ("mrp.bom", {"is_demo_data": True}),
     ("mrp.bom.line", {"is_demo_data": True}),
     ("mrp.production", {"is_demo_data": True}),
     ("mrp.routing.workcenter", {"is_demo_data": True}),
+    ("mrp.workcenter", {"is_demo_data": True}),
     ("mrp.workorder", {"is_demo_data": True}),
     ("project.task", {"is_demo_data": True}),
+    ("project.tags", {}),
     ("project.project.stage", {}),
     ("product.attribute", {}),
     ("product.attribute.value", {}),
@@ -115,12 +123,17 @@ DEFAULT_FIELDS_TO_EXCLUDE = {
         "peppol_endpoint",
         "contact_address_complete",
         "tz",
+        "company_type",
     },
-    "hr.employee": {"employee_token", "resource_calendar_id", "resource_id"},
+    "hr.employee": {"employee_token", "resource_calendar_id"},
     "account.analytic.plan": {"complete_name"},
     "product.category": {"complete_name"},
     "product.product": {
         "combination_indices",
+        # the other image fields are excluded through the image.mixin fields to exclude
+        # and we only need the image_variant_1920 for the export
+        "image_1920",
+        "image_variant_128",
         "image_variant_256",
         "image_variant_512",
         "image_variant_1024",
@@ -230,6 +243,7 @@ DEFAULT_FIELDS_TO_EXCLUDE = {
         "automated_probability",
         "date_last_stage_update",
     },
+    "crm.team": {"member_ids"},
     "survey.survey": {"session_question_id"},
     "survey.question": {"page_id"},
 }
@@ -238,10 +252,11 @@ DEFAULT_FIELDS_TO_EXCLUDE = {
 ABSTRACT_MODEL_FIELDS_TO_EXCLUDE = {
     "html.field.history.mixin": {"html_field_history_metadata", "html_field_history"},
     "mail.activity.mixin": {"activity_ids"},
-    "mail.thread": {"message_follower_ids", "message_ids"},
+    "mail.thread": {"message_follower_ids", "message_ids", "message_partner_ids"},
     "mail.thread.blacklist": {"email_normalized", "is_blacklisted", "message_bounce"},
     "mail.alias.mixin": {"alias_id"},
     "portal.mixin": {"access_url", "access_token", "access_warning"},
+    "website.published.mixin": {"website_published"},
     "avatar.mixin": {
         "avatar_1920",
         "avatar_1024",
@@ -325,9 +340,9 @@ class StudioExportModel(models.Model):
         to_reset.excluded_fields = None
         for record in self - to_reset:
             RecordModel = self.env[record.model_name]
-            fields_not_to_export = DEFAULT_FIELDS_TO_EXCLUDE.get(
-                record.model_name, set()
-            )
+            fields_not_to_export = set(DEFAULT_FIELDS_TO_EXCLUDE.get(
+                record.model_name, ()
+            ))
 
             # also exclude fields of abstract models
             to_search = {m for m in RecordModel._base_classes__ if m._abstract}
@@ -350,18 +365,20 @@ class StudioExportModel(models.Model):
             for field_name, field in RecordModel._fields.items():
                 if field_name in fields_not_to_export:
                     continue
-                # exclude computed fields that can't impact the import
-                # exclude one2many fields
-                # exclude many2x if comodel is not to export
-                # exclude fields created in l10n_* modules
                 module = field._modules[0] if field._modules else None
                 if (
-                    (
-                        (field.compute or field.related)
-                        and not (field.store or field.company_dependent)
-                    )
+                    # - exclude computed fields (not related) that can't impact the import because they are not writeable
+                    ((field.compute and not field.related) and not (field.store or field.inverse))
+                    # - exclude related fields:
+                    #    - if they are related to an excluded model
+                    #    - or if they are not stored+readonly (= the field is writeable but on the
+                    #         current record only, not the source record), except if required
+                    or (field.related and (field.related_field.model_name in RELATED_MODELS_TO_EXCLUDE or not ((field.store and field.readonly) or field.required)))
+                    # - exclude one2many fields
                     or (field.type == "one2many")
+                    # - exclude fields created in l10n_* modules
                     or (module and module.startswith("l10n_"))
+                    # - exclude many2x if comodel is not to export
                     or (
                         field.type in ["many2one", "many2many"]
                         and field.comodel_name in RELATED_MODELS_TO_EXCLUDE

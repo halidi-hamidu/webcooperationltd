@@ -530,7 +530,7 @@ class TestReconciliationMatchingRules(AccountTestInvoicingCommon):
         ], reconciled_amls=[invoice_2, invoice_1])
 
     def test_matching_rules_with_duplicate_payment_memo(self):
-        """Test that if a statement line contains a string identifying more than 1 invoice, we don't reconcile"""
+        """Test that if an invoice contains a string identifying another invoice, we don't reconcile"""
         self._create_invoice_line(100, self.partner_a, 'out_invoice', ref="INV Admin - SO2025/127326425")
         self._create_invoice_line(100, self.partner_a, 'out_invoice', ref="INV Admin - SO2025/12237246-13")
         self._create_invoice_line(200, self.partner_a, 'out_invoice', ref="INV Admin - SO2025/127326425 - SO2025/12237246-13")
@@ -550,6 +550,19 @@ class TestReconciliationMatchingRules(AccountTestInvoicingCommon):
             {'account_id': bank_line_2.journal_id.default_account_id.id, 'balance': 200.0, 'reconciled': False},
             {'account_id': bank_line_2.journal_id.suspense_account_id.id, 'balance': -200.0, 'reconciled': False},
         ])
+
+    def test_matching_rules_with_invoice_having_the_same_reference_and_payment_reference(self):
+        """ A statement line without a partner should be able to match an invoice even when the reference and the
+        payement reference of the invoice are the same.
+        """
+        lines = self._create_invoice_line(1000, self.partner_a, 'out_invoice', ref="SO2025/127326425")
+        invoice = lines.move_id
+        invoice.payment_reference = 'SO2025/127326425'
+        bank_line_1 = self._create_st_line(amount=1000, payment_ref='SO2025/127326425', partner_id=False)
+        bank_line_1._try_auto_reconcile_statement_lines()
+        self.assertTrue(bank_line_1.is_reconciled, "The statement line should have match the invoice")
+        self.assertIn(invoice, bank_line_1.line_ids.full_reconcile_id.reconciled_line_ids.move_id)
+        self.assertEqual(invoice.payment_state, 'paid')
 
     def test_matching_rules_with_same_ref_on_st_line_and_aml(self):
         """Test reconciliation if move_id of st_line have the same ref"""

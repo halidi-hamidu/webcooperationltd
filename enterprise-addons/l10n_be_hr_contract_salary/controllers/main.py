@@ -4,9 +4,11 @@
 from collections import OrderedDict
 
 from odoo import fields, _
+from odoo.tools import format_date
 from odoo.addons.hr_contract_salary.controllers import main
 from odoo.addons.sign.controllers.main import Sign
 from odoo.http import route, request
+from odoo.tools.float_utils import float_round
 
 ODOMETER_UNITS = {'kilometers': 'km', 'miles': 'mi'}
 
@@ -236,13 +238,13 @@ class HrContractSalary(main.HrContractSalary):
                     cars = available.filtered_domain(domain)
                     car_values.extend([(
                         'old-%s' % (car.id),
-                        '%s/%s \u2022 %s € \u2022 %s%s%s' % (
+                        '%s/%s • %s € • %s%s%s' % (
                             car.model_id.brand_id.name,
                             car.model_id.name,
                             round(car.total_depreciated_cost, 2),
                             car._get_acquisition_date() if vehicle_type == 'Car' else '',
-                            _('\u2022 Available in %s', car.next_assignation_date.strftime('%B %Y')) if car.next_assignation_date else u'',
-                            ' \u2022 %s %s' % (car.odometer, ODOMETER_UNITS[car.odometer_unit]) if vehicle_type == 'Car' else '',
+                            _('• Available in %s', format_date(request.env, car.next_assignation_date, date_format='MMMM yyyy')) if car.next_assignation_date else '',
+                            ' • %s %s' % (car.odometer, ODOMETER_UNITS[car.odometer_unit]) if vehicle_type == 'Car' else '',
                         )
                     ) for car in cars])
 
@@ -252,7 +254,7 @@ class HrContractSalary(main.HrContractSalary):
                     ])
                     car_values.extend([(
                         'new-%s' % (model.id),
-                        '%s \u2022 %s € \u2022 New %s' % (
+                        '%s • %s € • New %s' % (
                             model.display_name,
                             round(model.default_total_depreciated_cost, 2),
                             vehicle_type,
@@ -268,19 +270,19 @@ class HrContractSalary(main.HrContractSalary):
             if not only_new_cars:
                 result.extend([(
                     'old-%s' % (car.id),
-                    '%s/%s \u2022 %s € \u2022 %s%s%s' % (
+                    '%s/%s • %s € • %s%s%s' % (
                         car.model_id.brand_id.name,
                         car.model_id.name,
                         round(car.total_depreciated_cost, 2),
                         car._get_acquisition_date() if vehicle_type == 'Car' else '',
-                        _('\u2022 Available in %s', car.next_assignation_date.strftime('%B %Y')) if car.next_assignation_date else u'',
-                        ' \u2022 %s %s' % (car.odometer, ODOMETER_UNITS[car.odometer_unit]) if vehicle_type == 'Car' else '',
+                        _('• Available in %s', format_date(request.env, car.next_assignation_date, date_format='MMMM yyyy')) if car.next_assignation_date else '',
+                        ' • %s %s' % (car.odometer, ODOMETER_UNITS[car.odometer_unit]) if vehicle_type == 'Car' else '',
                     )
                 ) for car in available])
             if allow_new_cars:
                 result.extend([(
                     'new-%s' % (model.id),
-                    '%s \u2022 %s € \u2022 New %s' % (
+                    '%s • %s € • New %s' % (
                         model.display_name,
                         round(model.default_total_depreciated_cost, 2),
                         vehicle_type,
@@ -473,8 +475,8 @@ class HrContractSalary(main.HrContractSalary):
 
             offer = request.env['hr.contract.salary.offer'].sudo().browse(offer_id)
             minimum_gross_wage = request.env['hr.rule.parameter'].sudo()._get_parameter_from_code(
-                'cp200_min_gross_wage', offer.contract_start_date, raise_if_not_found=False)
-
+                'cp200_min_gross_wage', offer.contract_start_date, raise_if_not_found=False) or 0
+            minimum_gross_wage = float_round(minimum_gross_wage * version.work_time_rate, precision_digits=2)
             if result.get('l10n_be_wage_with_mobility_budget', False):
                 gross_to_compare = result['l10n_be_wage_with_mobility_budget']
             else:

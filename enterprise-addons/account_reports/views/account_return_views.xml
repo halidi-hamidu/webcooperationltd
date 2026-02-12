@@ -27,7 +27,7 @@
                         <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="not context.get('in_checks_view') or active"/>
                         <div class="w-100 p-2 px-3" >
                             <div class="row h-full position-relative">
-                                <div class="col-12 col-lg-3">
+                                <div class="col-12" t-att-class="{'col-lg-3': record.return_type_category.raw_value != 'audit', 'col-lg-5': record.return_type_category.raw_value == 'audit'}">
                                     <div class="row">
                                         <div class="o_field_widget">
                                             <field class="oe_state_value pe-2 fs-5" name="name"/>
@@ -51,7 +51,7 @@
                                     </div>
                                 </div>
 
-                                <div id="account_tax_return_amount" class="col-12 col-lg-2 px-lg-0 d-flex align-items-center text-end">
+                                <div id="account_tax_return_amount" class="col-12 col-lg-2 px-lg-0 d-flex align-items-center text-end" invisible="return_type_category == 'audit'">
                                     <field name="amount_to_pay_currency_id" invisible="1"/>
                                     <div id="return_amount_to_pay" invisible="not show_amount_to_pay or not is_main_company_active or return_type_category == 'audit'">
                                         <h2 class="o_account_return_amount o_field_widget">

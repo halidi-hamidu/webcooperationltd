@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from odoo.tools.misc import format_date
+from odoo.tools.misc import format_date, format_time
 
 
 class L10nBeSocialSecurityCertificate(models.TransientModel):
@@ -310,7 +310,11 @@ class L10nBeSocialSecurityCertificate(models.TransientModel):
             },
             'established': {
                 'header': _('Established on'),
-                'value': self.create_date.strftime("%d %B %Y at %H:%M:%S"),
+                'value': _(
+                    "%(established_date)s at %(established_time)s",
+                    established_date=format_date(self.env, self.create_date, date_format='long'),
+                    established_time=format_time(self.env, self.create_date),
+                )
             },
             'joint_committees': {
                 'header': _('Number of joint committees'),
@@ -318,7 +322,11 @@ class L10nBeSocialSecurityCertificate(models.TransientModel):
             },
             'period': {
                 'header': _('Period'),
-                'value': _('%(date_from)s to %(date_to)s', date_from=self.date_from.strftime("%d %B %Y"), date_to=self.date_to.strftime("%d %B %Y")),
+                'value': _(
+                    "%(date_from)s to %(date_to)s",
+                    date_from=format_date(self.env, self.date_from, date_format="long"),
+                    date_to=format_date(self.env, self.date_to, date_format="long"),
+                ),
             },
             'currency': {
                 'header': _('Currency'),

@@ -1,5 +1,4 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-import unittest
 
 from odoo import Command
 
@@ -9,10 +8,7 @@ from odoo.addons.mrp_workorder.tests.test_shopfloor import TestShopFloor
 
 @tagged('post_install', '-at_install')
 class TestShopFloorWorksheet(TestShopFloor, TestQualityWorksheet):
-    @unittest.skip  # TODO: tour needs to be updated.
     def test_worksheet_quality_check(self):
-        self.env.ref("base.user_admin").group_ids += self.env.ref('mrp.group_mrp_routings')
-        warehouse = self.env.ref("stock.warehouse0")
         final_product, component = self.env['product.product'].create([
             {
                 'name': 'Lovely Product',
@@ -25,7 +21,7 @@ class TestShopFloorWorksheet(TestShopFloor, TestQualityWorksheet):
                 'tracking': 'none',
             },
         ])
-        self.env['stock.quant']._update_available_quantity(component, warehouse.lot_stock_id, quantity=10)
+        self.env['stock.quant']._update_available_quantity(component, self.stock_location, quantity=10)
         workcenter = self.env['mrp.workcenter'].create({
             'name': 'Lovely Workcenter',
         })
@@ -41,7 +37,7 @@ class TestShopFloorWorksheet(TestShopFloor, TestQualityWorksheet):
         })
         self.env['quality.point'].create([
             {
-                'picking_type_ids': [Command.link(warehouse.manu_type_id.id)],
+                'picking_type_ids': [Command.link(self.warehouse.manu_type_id.id)],
                 'product_ids': [Command.link(final_product.id)],
                 'operation_id': bom.operation_ids.id,
                 'title': 'Lovely Worksheet',

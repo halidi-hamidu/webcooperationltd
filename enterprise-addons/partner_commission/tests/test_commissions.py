@@ -130,7 +130,8 @@ class TestCommissions(TestCommissionsSetup):
         reverse_move.action_post()
         self._pay_invoice(reverse_move)
         self.assertEqual(reverse_move.referrer_id, inv.referrer_id, 'Referrer should have been forwarded to credit note')
-        self.assertEqual(reverse_move.commission_po_line_id, inv.commission_po_line_id)
+        self.assertNotEqual(reverse_move.commission_po_line_id, inv.commission_po_line_id, 'Credit note should have its own commission line')
+        self.assertTrue(reverse_move.commission_po_line_id, 'Credit note should have a commission line')
 
         # check purchase order
         po = inv.commission_po_line_id.order_id

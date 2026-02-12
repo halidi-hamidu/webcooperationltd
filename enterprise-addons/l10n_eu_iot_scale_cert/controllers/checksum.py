@@ -12,6 +12,7 @@ SCALE_FILES = [
     'l10n_eu_iot_scale_cert/static/src/pos_overrides/components/scale_screen/certified_scale_screen.xml',
     'l10n_eu_iot_scale_cert/static/src/pos_overrides/components/order_receipt/certified_order_receipt.xml',
     'l10n_eu_iot_scale_cert/static/src/pos_overrides/components/orderline/certified_orderline.xml',
+    'l10n_eu_iot_scale_cert/static/src/pos_overrides/components/product_screen/certified_product_screen.js',
     'iot_drivers/iot_handlers/drivers/serial_scale_driver.py',
 ]
 

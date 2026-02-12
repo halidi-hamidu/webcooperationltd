@@ -36,7 +36,8 @@ class SaleOrderLine(models.Model):
             if not sol.is_rental:
                 continue
             available_resources = sol.product_id.planning_role_id.resource_ids
-            if not available_resources:
+            sync_shift_rental = sol.product_id.planning_role_id.sync_shift_rental
+            if not available_resources and sync_shift_rental:
                 problematic_services.append(sol.product_id.name)
                 continue
 
@@ -51,7 +52,7 @@ class SaleOrderLine(models.Model):
                 ('date_to', '>=', sol.start_date),
             ])
             available_resources -= (unavailable_resource_slots.resource_id + resource_leaves.resource_id)
-            if not available_resources:
+            if not available_resources and sync_shift_rental:
                 problematic_services.append(sol.product_id.name)
                 continue
 
@@ -88,16 +89,16 @@ class SaleOrderLine(models.Model):
                             {**sol._planning_slot_values(), 'resource_id': free_resource_ids[i]}
                             for i in range(1, nb_shifts_to_generate)
                         ])
-                    elif sol.product_id.planning_role_id.sync_shift_rental:
+                    elif sync_shift_rental:
                         raise ValidationError(
                             self.env._(
                                 "This Sales Order can't be confirmed. No enough resources are available for the shifts in: %(product_name)s.",
                                 product_name=sol.product_id.name,
                             )
                         )
-            else:
+            elif sync_shift_rental:
                 problematic_services.append(sol.product_id.name)
-        if problematic_services and sol.product_id.planning_role_id.sync_shift_rental:
+        if problematic_services:
             raise ValidationError(
                 self.env._(
                     "This Sales Order can't be confirmed. No resources are available for the shifts in: %(problematic_services)s.",

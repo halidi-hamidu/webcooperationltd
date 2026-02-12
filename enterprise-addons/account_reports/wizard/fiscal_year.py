@@ -20,5 +20,8 @@ class AccountFinancialYearOp(models.TransientModel):
     def action_save_onboarding_fiscal_year(self):
         result_action = super().action_save_onboarding_fiscal_year()
         if self.env.context.get('open_account_return_on_save'):
-            return self.env['account.return'].action_open_tax_return_view()
+            return self.env['account.return'].action_open_tax_return_view(
+                self.env.context.get('additional_return_domain'),
+                self.env.context.get('additional_return_context')
+            )
         return result_action

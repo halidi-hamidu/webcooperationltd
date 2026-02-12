@@ -58,7 +58,7 @@ class EsgHrDashboard(EsgDashboard):
 
     def _get_dashboard_data(self):
         data = super()._get_dashboard_data()
-        if not self.env.user.has_group('hr.group_hr_user'):
+        if not request.env.user.has_group('hr.group_hr_user'):
             return data
         sex_distribution_data = self._get_sex_distribution_data()
         graph_config = self._build_graph_config(sex_distribution_data['data'], sex_distribution_data['is_sample'])

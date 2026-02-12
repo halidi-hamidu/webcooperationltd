@@ -207,7 +207,7 @@ class AccountReport(models.Model):
             if model == 'account.account':
                 line_account_ids.append(res_id)
 
-        accounts_by_ids = {account.id: account for account in self.env['account.account'].browse()(line_account_ids)}
+        accounts_by_ids = {account.id: account for account in self.env['account.account'].browse(line_account_ids)}
 
         for line in report_lines:
             model, res_id = report._get_model_info_from_id(line['id'])

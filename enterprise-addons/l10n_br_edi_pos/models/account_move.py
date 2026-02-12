@@ -10,7 +10,7 @@ class AccountMove(models.Model):
         # EXTENDS 'account.external.tax.mixin'. This is called for invoiced refunds. It will return the original POS
         # order for which the refund was issued.
         res = super()._get_l10n_br_avatax_service_params()
-        if 'invoice_refs' not in res and self.move_type == "out_refund":
+        if not res.get('invoice_refs') and self.move_type == "out_refund":
             related_pos_order = self.env["pos.order"].search([("account_move", "=", self.id)], limit=1)
             refunded_order = related_pos_order.refunded_order_id
             if related_pos_order and refunded_order.l10n_br_last_avatax_status != "accepted":

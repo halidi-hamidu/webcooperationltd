@@ -52,12 +52,12 @@ class L10nEsReportsModelosSubmissionWizard(models.TransientModel):
     def _compute_submission_instructions(self):
         for wizard in self:
             parts = []
-            parts.append(Markup('<li>%s <a href="%s" target="_blank">%s</a>.</li>') % (LOGIN_PREFIX, AGENCIA_URL, AGENCIA_LABEL))
+            parts.append(Markup('<li>%s <a href="%s" target="_blank">%s</a>.</li>') % (str(LOGIN_PREFIX), str(AGENCIA_URL), str(AGENCIA_LABEL)))
             specific_instructions = INSTRUCTIONS_BY_MODELO.get(wizard._name, {})
             if specific_instructions:
-                parts.append(Markup('<li>%s</li>') % specific_instructions.get('navigate'))
-                parts.append(Markup('<li>%s</li>') % IMPORT_INSTRUCTIONS)
-                parts.append(Markup('<li>%s</li>') % specific_instructions.get('review'))
+                parts.append(Markup('<li>%s</li>') % str(specific_instructions.get('navigate')))
+                parts.append(Markup('<li>%s</li>') % str(IMPORT_INSTRUCTIONS))
+                parts.append(Markup('<li>%s</li>') % str(specific_instructions.get('review')))
                 wizard.submission_instructions = ''.join(parts)
 
     def export_boe(self):

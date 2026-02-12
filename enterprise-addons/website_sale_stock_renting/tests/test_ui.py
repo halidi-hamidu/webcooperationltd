@@ -7,6 +7,7 @@ from odoo.fields import Command
 from odoo.tests import HttpCase, tagged
 
 from odoo.addons.website_sale_renting.tests.common import TestWebsiteSaleRentingCommon
+from datetime import datetime
 
 
 @tagged('-at_install', 'post_install')
@@ -111,6 +112,27 @@ class TestUi(HttpCase, TestWebsiteSaleRentingCommon):
         })
 
         self.start_tour("/web", 'website_availability_update', login='admin')
+
+    @freezegun.freeze_time('2024-12-18 12:00:00')
+    def test_website_availability_while_continuing_selling(self):
+        self.computer.allow_out_of_stock_order = True
+        rental = self.env['sale.order'].with_context(in_rental_app=True).create({
+            'partner_id': self.partner.id,
+            'company_id': self.env.company.id,
+            'rental_start_date': datetime(2024, 12, 18, 0, 0),
+            'rental_return_date': datetime(2024, 12, 21, 0, 0),
+            'warehouse_id': self.env.user._get_default_warehouse_id().id,
+            'order_line': [
+                Command.create({
+                    'product_id': self.computer.id,
+                    'product_uom_qty': 3,
+                }),
+            ]
+        })
+
+        rental.action_confirm()
+
+        self.start_tour("/web", 'test_website_availability_while_continuing_selling', login='admin')
 
     @freezegun.freeze_time('2020-01-01')
     def test_visitor_browse_rental_products(self):

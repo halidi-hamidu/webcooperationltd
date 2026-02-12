@@ -107,7 +107,7 @@ registry.category("web_tour.tours").add('knowledge_history_tour', {
         trigger: '.history-container .history-comparison-view',
         run: function () {
             const comparisonHtml = document.querySelector('.history-container .history-comparison-unified .o_readonly').innerHTML
-                .replace(/ data-heading-link-id="\d+"/, "");
+                .replace(/ data-heading-link-id="[0-9a-fA-F]+"/, "");
             const correctHtml = `<h1 class="oe-hint" data-oe-version="${CURRENT_VERSION}"><added>Modified Title 03</added><removed>` + testArticleName + '</removed></h1>';
             if (comparisonHtml !== correctHtml) {
                 throw new Error('Expect comparison to be ' + correctHtml + ', got ' + comparisonHtml);

@@ -5,8 +5,8 @@ API_PATHS = {
     'production_singapore': 'https://partner.shopeemobile.com',
     'production_china': 'https://openplatform.shopee.cn',
     'production_brazil': 'https://openplatform.shopee.com.br',
-    'test': 'https://partner.test-stable.shopeemobile.com',
-    'test_china': 'https://openplatform.test-stable.shopee.cn',
+    'test': 'https://openplatform.sandbox.test-stable.shopee.sg',
+    'test_china': 'https://openplatform.sandbox.test-stable.shopee.cn',
 }
 
 # Mapping of Shopee API operations to their respective URL path, HTTP method, and API type

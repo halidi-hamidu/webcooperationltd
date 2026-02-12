@@ -24,15 +24,15 @@
 # Łukasz Grzenkowicz <lukasz.grzenkowicz@gmail.com>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# "Marta (wacm)" <wacm@odoo.com>, 2025.
+# "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 18:42+0000\n"
-"PO-Revision-Date: 2025-11-08 19:46+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-01-09 18:43+0000\n"
+"PO-Revision-Date: 2026-02-04 16:38+0000\n"
+"Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/planning/"
 "pl/>\n"
 "Language: pl\n"
@@ -40,9 +40,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
-"(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
-"n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 5.12.2\n"
+"(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || "
+"(n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: planning
 #. odoo-python
@@ -54,7 +54,7 @@ msgstr "%(resource_name)s (%(role)s)"
 #. odoo-python
 #: code:addons/planning/models/planning_role.py:0
 msgid "%s (copy)"
-msgstr "%s (kopiuj)"
+msgstr "%s (kopia)"
 
 #. module: planning
 #: model:ir.actions.report,print_report_name:planning.report_planning_slot
@@ -208,68 +208,70 @@ msgid ""
 "            "
 msgstr ""
 "<div>\n"
-"                    <p t-if=\"ctx.get('old_assignee_name')\">Drogi/-a <t t-"
-"out=\"ctx['old_assignee_name']\">Anita Oliver</t>,</p>\n"
+"                    <p t-if=\"ctx.get('old_assignee_name')\">Dzień dobry <t "
+"t-out=\"ctx['old_assignee_name']\">Anita Oliver</t>,</p>\n"
 "                    <p t-else=\"\">Dzień dobry,</p>\n"
 "                    <br/>\n"
 "                    <p>\n"
-"                        Następująca zmiana, o którą poprosiłeś/-aś zosta ka "
-"ponownie przydzielona\n"
-"                        <t t-if=\"ctx.get('new_assignee_name')\"> do <t t-"
-"out=\"ctx['new_assignee_name']\">Marc Demo</t></t>.\n"
+"                        Następująca zmiana, o którą poprosiłeś/-aś została "
+"ponownie przypisana\n"
+"                        <t t-if=\"ctx.get('new_assignee_name')\"> do <t "
+"t-out=\"ctx['new_assignee_name']\">Marc Demo</t></t>.\n"
 "                    </p>\n"
 "                    <table style=\"margin-left: 30px;\">\n"
-"                        <tr t-if=\"(ctx.get('start_datetime') and "
-"ctx.get('end_datetime'))                                   or "
-"ctx.get('allocated_hours')                                   or "
-"ctx.get('allocated_percentage')\">\n"
-"                            <th style=\"padding: 5px; text-align: left;"
-"\">Data</th>\n"
+"                        <tr t-if=\"(ctx.get('start_datetime') and ctx.get"
+"('end_datetime'))                                   or ctx.get"
+"('allocated_hours')                                   or ctx.get"
+"('allocated_percentage')\">\n"
+"                            <th style=\"padding: 5px; text-align: left;\""
+">Data</th>\n"
 "                            <td style=\"padding: 5px;\">\n"
-"                                <span t-if=\"ctx.get('start_datetime') and "
-"ctx.get('end_datetime')\" t-out=\"'%s ⟶ %s' % "
-"(                                     ctx['start_datetime'],                                     "
-"ctx['end_datetime'],                                 )\">\n"
+"                                <span t-if="
+"\"ctx.get('start_datetime') and ctx.get('end_datetime')\" t-out=\"'%s ⟶ %s' "
+"% (                                     ctx['start_datetime']"
+",                                     ctx['end_datetime']"
+",                                 )\">\n"
 "                                    05/31/2021, 08:00 ⟶ 05/31/2021, 16:00\n"
 "                                </span>\n"
 "                                <span t-if=\"ctx.get('allocated_hours')\" "
 "style=\"opacity: 0.5;\">\n"
-"                                    (<t t-out=\"ctx['allocated_hours']"
-"\">4:00</t>h)\n"
+"                                    "
+"(<t t-out=\"ctx['allocated_hours']\">4:00</t>h)\n"
 "                                </span>\n"
-"                                <span t-if=\"ctx.get('allocated_percentage') "
-"and ctx['allocated_percentage'] != '100'\" style=\"opacity: 0.5;\">\n"
-"                                    (<t t-out=\"ctx['allocated_percentage']"
-"\">50</t>%)\n"
+"                                <span t-if="
+"\"ctx.get('allocated_percentage') and ctx['allocated_percentage'] != '100'\" "
+"style=\"opacity: 0.5;\">\n"
+"                                    "
+"(<t t-out=\"ctx['allocated_percentage']\">50</t>%)\n"
 "                                </span>\n"
 "                            </td>\n"
 "                        </tr>\n"
 "                        <tr t-if=\"object.role_id\">\n"
-"                            <th style=\"padding: 5px; text-align: left;"
-"\">Rola</th>\n"
-"                            <td style=\"padding: 5px;\" t-"
-"out=\"object.role_id.name or ''\">Barman</td>\n"
+"                            <th style=\"padding: 5px; text-align: left;\""
+">Rola</th>\n"
+"                            <td style=\"padding: 5px;\" t-out="
+"\"object.role_id.name or ''\">Barman</td>\n"
 "                        </tr>\n"
-"                        <tr t-if=\"hasattr(object, 'project_id') and "
-"object.project_id\">\n"
-"                            <th style=\"padding: 5px; text-align: left;"
-"\">Projekt</th>\n"
-"                            <td style=\"padding: 5px;\" t-"
-"out=\"object.sudo().project_id.name or ''\">Zgromadzenie</td>\n"
+"                        <tr t-if="
+"\"hasattr(object, 'project_id') and object.project_id\">\n"
+"                            <th style=\"padding: 5px; text-align: left;\""
+">Projekt</th>\n"
+"                            <td style=\"padding: 5px;\" t-out="
+"\"object.sudo().project_id.name or ''\">Zgromadzenie</td>\n"
 "                        </tr>\n"
-"                        <tr t-if=\"hasattr(object, 'sale_line_id') and "
-"object.sale_line_id\">\n"
-"                            <th style=\"padding: 5px; text-align: left;"
-"\">Element zamówienia sprzedaży</th>\n"
-"                            <td style=\"padding: 5px;\" t-"
-"out=\"object.sudo().sale_line_id.name or ''\">Kawa</td>\n"
+"                        <tr t-if="
+"\"hasattr(object, 'sale_line_id') and object.sale_line_id\">\n"
+"                            <th style=\"padding: 5px; text-align: left;\""
+">Element zamówienia sprzedaży</th>\n"
+"                            <td style=\"padding: 5px;\" t-out="
+"\"object.sudo().sale_line_id.name or ''\">Kawa</td>\n"
 "                        </tr>\n"
-"                        <tr t-if=\"hasattr(object, 'name') and "
-"object.name\">\n"
-"                            <th style=\"padding: 5px; text-align: left;"
-"\">Notatka</th>\n"
-"                            <td style=\"padding: 5px;\" t-out=\"object.name "
-"or ''\">/</td>\n"
+"                        <tr t-if=\"hasattr(object, 'name') and object.name\">"
+"\n"
+"                            <th style=\"padding: 5px; text-align: left;\""
+">Notatka</th>\n"
+"                            <td style=\"padding: 5px;\" t-out="
+"\"object.name or ''\">/</td>\n"
 "                        </tr>\n"
 "                    </table>\n"
 "                    <br/>\n"
@@ -744,6 +746,68 @@ msgid ""
 "                </div>\n"
 "            </body>"
 msgstr ""
+"<style>\n"
+"                .planning_mail_template_button {\n"
+"                    padding: 5px 10px;\n"
+"                    text-decoration: none;\n"
+"                    border: 1px;\n"
+"                    border-radius: 3px;\n"
+"                    display: inline-block; \n"
+"                    width: 190px;\n"
+"                    text-align: center;\n"
+"                }\n"
+"                </style>\n"
+"                <body><div>\n"
+"                    <p t-if=\"ctx.get('employee')\">Dzień dobry <t t-out="
+"\"ctx['employee'].name or ''\">Anita Oliver</t>,</p>\n"
+"                    <p t-else=\"\">Dzień dobry,</p>\n"
+"                    <br/>\n"
+"                    <p t-if="
+"\"ctx.get('start_datetime') and ctx.get('end_datetime')\">\n"
+"                        Twoje nadchodzące zmiany od <t t-out="
+"\"format_date(ctx['start_datetime'])\">05-05-2021</t>\n"
+"                        do <t t-out=\"format_date(ctx['end_datetime'])\""
+">05-11-2021</t> zostały opublikowane.\n"
+"                    </p>\n"
+"                    <div style=\"display: flex; margin: 15px;\">\n"
+"                        <div t-if=\"ctx.get('planning_url')\" style=\"margin-"
+"right: 15px;\">\n"
+"                            <a t-att-href=\"ctx['planning_url']\" target="
+"\"_blank\" class=\"planning_mail_template_button\" t-attf-style=\"color: {{"
+"object.company_id.email_primary_color or '#FFFFFF'}}; background-color: {{"
+"object.company_id.email_secondary_color or '#875A7B'}};\">Zobacz swój "
+"plan</a>\n"
+"                        </div>\n"
+"                        <div t-if=\"ctx.get('planning_url_ics')\">\n"
+"                            <a t-att-href=\"ctx['planning_url_ics']\" target="
+"\"_blank\" class=\"planning_mail_template_button\" style="
+"\"color: #374151; background-color: #E7E9ED; border: solid #E7E9ED;\">Dodaj "
+"do kalendarza</a>\n"
+"                        </div>\n"
+"                    </div>\n"
+"                    <br/>\n"
+"                    <p t-if=\"ctx.get('slot_unassigned') or "
+"(object.allow_self_unassign and object.self_unassign_days_before)\">\n"
+"                        <t t-if=\"ctx.get('slot_unassigned')\">\n"
+"                            Pragniemy Cię także poinformować, że są dostępne "
+"wolne zmiany. Nie wahaj się ich sobie przypisać, jeśli masz czas i chęci.\n"
+"                        </t>\n"
+"                        <t t-if="
+"\"object.allow_self_unassign and object.self_unassign_days_before\">\n"
+"                            Jeśli nie możesz wziąć zmiany, która została do "
+"Ciebie przypisana, wypisz się z niej w przeciągu <t t-out="
+"\"object.self_unassign_days_before or ''\">5</t> dni przed rozpoczęciem "
+"zmiany.\n"
+"                        </t>\n"
+"                    </p>\n"
+"                    <p t-if=\"ctx.get('message')\" t-out=\"ctx['message']\"/>"
+"\n"
+"                    <p t-if=\"object.allow_self_unassign\">W przypadku, że "
+"Twój aktualny harmonogram Ci nie odpowiada, prosimy skontaktuj się ze swoimi "
+"współpracownikami i poproś o zamianę. Być może ktoś będzie zainteresowany "
+"zamianą z Tobą.</p>\n"
+"                </div>\n"
+"            </body>"
 
 #. module: planning
 #: model:ir.model.constraint,message:planning.constraint_planning_recurrency_check_until_limit
@@ -1059,6 +1123,8 @@ msgid ""
 "<br>\n"
 "                Allocate open shifts to resources based on their roles."
 msgstr ""
+"Utwórz otwarte zmiany dla ról, które będą potrzebne do wykonania misji.\n"
+"Przydziel otwarte zmiany zasobom w oparciu o ich role."
 
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_calendar_resource__create_uid
@@ -1155,6 +1221,10 @@ msgid ""
 "Create open shifts based on the roles needed for a mission, then assign "
 "those shifts to available resources."
 msgstr ""
+"Określ role, które będą pełnić Twoi pracownicy "
+"(np. szef kuchni, barman, kelner). Utwórz otwarte zmiany w oparciu o role "
+"potrzebne do realizacji zadania, a następnie przypisz te zmiany do "
+"dostępnych pracowników."
 
 #. module: planning
 #. odoo-javascript
@@ -1350,7 +1420,7 @@ msgstr "Dodatkowa wiadomość"
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Failed to undo reschedule"
-msgstr ""
+msgstr "Nie udało się cofnąć zmiany harmonogramu"
 
 #. module: planning
 #: model_terms:ir.actions.act_window,help:planning.planning_action_my_calendar
@@ -1453,7 +1523,7 @@ msgstr "Biorę to"
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.period_report_template
 msgid "I Take it"
-msgstr ""
+msgstr "Biorę to"
 
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.period_report_template
@@ -1513,7 +1583,7 @@ msgstr "Uwzględnia dostępne zmiany"
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_planning__is_planning_preview
 msgid "Is Planning Preview"
-msgstr ""
+msgstr "Podgląd planowania"
 
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.hr_employee_view_form_simplified
@@ -1651,7 +1721,7 @@ msgstr "Materiały"
 #. odoo-python
 #: code:addons/planning/wizard/planning_preview.py:0
 msgid "Missing start or end datetime in context."
-msgstr ""
+msgstr "Brakuje daty lub godziny rozpoczęcia lub zakończenia w kontekście."
 
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_analysis_report__publication_warning
@@ -1776,7 +1846,7 @@ msgstr "Nie znaleziono zmian. Utwórz nową!"
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_hooks.js:0
 msgid "No shifts to print"
-msgstr ""
+msgstr "Brak zmian do wydrukowania"
 
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_analysis_report__name
@@ -1940,7 +2010,7 @@ msgstr "Raport z analizy planistycznej"
 #. module: planning
 #: model:ir.model,name:planning.model_planning_preview
 msgid "Planning Preview"
-msgstr ""
+msgstr "Podgląd planowania"
 
 #. module: planning
 #: model:ir.model,name:planning.model_planning_recurrency
@@ -2048,7 +2118,7 @@ msgstr "Podgląd"
 #. module: planning
 #: model:ir.actions.act_window,name:planning.resource_preview_action
 msgid "Preview Planning"
-msgstr ""
+msgstr "Podgląd planowania"
 
 #. module: planning
 #. odoo-javascript
@@ -2062,7 +2132,7 @@ msgstr "Drukuj"
 #: code:addons/planning/static/src/views/planning_calendar/planning_calendar_controller.xml:0
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_controller.xml:0
 msgid "Print resource calendar"
-msgstr ""
+msgstr "Wydrukuj kalendarz zasobów"
 
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_res_config_settings__module_project_forecast
@@ -2209,7 +2279,7 @@ msgstr "Raportowanie"
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.period_report_template
 msgid "Request to Switch"
-msgstr ""
+msgstr "Wniosek o zamianę"
 
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.planning_view_search_base
@@ -2464,31 +2534,31 @@ msgstr "Szablony zmian"
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Shift could not be removed"
-msgstr ""
+msgstr "Zmiana nie może być usunięta"
 
 #. module: planning
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Shift duplicated"
-msgstr ""
+msgstr "Zmiana powielona"
 
 #. module: planning
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Shift removed"
-msgstr ""
+msgstr "Zmiana usunięta"
 
 #. module: planning
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Shift reschedule undone"
-msgstr ""
+msgstr "Cofnięto zmiana harmonogramu"
 
 #. module: planning
 #. odoo-javascript
 #: code:addons/planning/static/src/views/planning_gantt/planning_gantt_renderer.js:0
 msgid "Shift rescheduled"
-msgstr ""
+msgstr "Zmiana harmonogramu"
 
 #. module: planning
 #. odoo-javascript
@@ -2531,6 +2601,13 @@ msgstr "Zmiany członków twojego zespołu"
 
 #. module: planning
 #. odoo-python
+#: code:addons/planning/wizard/planning_send.py:0
+msgid "Shifts published — employees without a work email were skipped"
+msgstr ""
+"Opublikowano zmiany — pominięto pracowników bez służbowego adresu e-mail"
+
+#. module: planning
+#. odoo-python
 #: code:addons/planning/models/planning_slot.py:0
 msgid "Shifts reset to draft"
 msgstr "Zmiany zresetowane do wersji roboczej"
@@ -2543,7 +2620,7 @@ msgstr "Współpracownik ds. wysyłki"
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_preview__slot_count
 msgid "Slot Count"
-msgstr ""
+msgstr "Liczba slotów"
 
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.planning_view_kanban_inherit
@@ -2678,12 +2755,6 @@ msgstr ""
 
 #. module: planning
 #. odoo-python
-#: code:addons/planning/wizard/planning_send.py:0
-msgid "The work email is missing for the following employees:"
-msgstr "Brakuje e-maila pracowniczego dla następujących pracowników:"
-
-#. module: planning
-#. odoo-python
 #: code:addons/planning/models/planning_slot.py:0
 msgid "There are no resources available for this open shift."
 msgstr "Nie ma dostępnych zasobów dla tej otwartej zmiany."
@@ -2736,7 +2807,7 @@ msgstr "Ta i kolejne zmiany"
 #. module: planning
 #: model_terms:ir.ui.view,arch_db:planning.planning_preview_view_form
 msgid "This employee has no published shifts scheduled for this period."
-msgstr ""
+msgstr "Ten pracownik nie ma opublikowanych zmian zaplanowanych na ten okres."
 
 #. module: planning
 #. odoo-python
@@ -2817,6 +2888,9 @@ msgid ""
 "always come after the shift start date. It's like trying to eat your "
 "breakfast before waking up - not possible!"
 msgstr ""
+"Oho! Zachowajmy właściwą kolejność: data zakończenia cyklu powinna zawsze "
+"następować po dacie rozpoczęcia zmiany. To tak, jakby próbować zjeść "
+"śniadanie przed przebudzeniem – niemożliwe!"
 
 #. module: planning
 #: model:ir.model.fields.selection,name:planning.selection__res_company__planning_employee_unavailabilities__unassign
@@ -2827,7 +2901,7 @@ msgstr "Usuwanie przypisania siebie ze zmian"
 #. odoo-python
 #: code:addons/planning/models/planning_slot.py:0
 msgid "Undefined %(group)s"
-msgstr ""
+msgstr "Nieokreślone %(group)s"
 
 #. module: planning
 #: model:ir.model.fields.selection,name:planning.selection__planning_recurrency__repeat_type__until
@@ -2868,7 +2942,7 @@ msgstr "Tydzień"
 #. odoo-python
 #: code:addons/planning/models/planning_slot.py:0
 msgid "Week from %(start_date)s to %(end_date)s"
-msgstr ""
+msgstr "Tydzień od %(start_date)s do %(end_date)s"
 
 #. module: planning
 #: model:ir.model.fields,field_description:planning.field_planning_recurrency__repeat_type
@@ -2934,7 +3008,7 @@ msgstr "Nie można anulować przypisania pracownika innego niż on sam."
 #. odoo-python
 #: code:addons/planning/models/planning_slot.py:0
 msgid "You cannot assign yourself to a shift belonging to another company."
-msgstr ""
+msgstr "Nie można przydzielić się do zmiany należącej do innej firmy."
 
 #. module: planning
 #. odoo-python
@@ -3086,7 +3160,7 @@ msgstr "inne zmiany w konflikcie."
 #. module: planning
 #: model:ir.model,name:planning.model_planning_calendar_resource
 msgid "planning calendar resource"
-msgstr ""
+msgstr "kalendarz planowania zasobów"
 
 #. module: planning
 #. odoo-python
@@ -3115,6 +3189,9 @@ msgstr "do"
 #: model:mail.template,subject:planning.email_template_slot_single
 msgid "{{ ctx.get('mail_subject', '') }} {{ ctx.get('start_datetime' , '') }}"
 msgstr "{{ ctx.get('mail_subject', '') }} {{ ctx.get('start_datetime' , '') }}"
+
+#~ msgid "The work email is missing for the following employees:"
+#~ msgstr "Brakuje e-maila pracowniczego dla następujących pracowników:"
 
 #~ msgid "04:00"
 #~ msgstr "04:00"

@@ -397,13 +397,6 @@ export function assertFormQuantity(expected) {
     assert(quantityField.value, expected, "Wrong quantity");
 }
 
-export function assertErrorMessage(expected) {
-    const errorMessage = document.querySelector(
-        ".o_notification:last-child .o_notification_content"
-    );
-    assert(errorMessage.innerText, expected, "wrong or absent error message");
-}
-
 export function assertKanbanRecordsCount(expected) {
     const kanbanRecords = document.querySelectorAll(
         ".o_kanban_view .o_kanban_record:not(.o_kanban_ghost)"

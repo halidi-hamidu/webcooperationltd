@@ -42,6 +42,7 @@ export class HREmployeePublic extends models.Model {
 export class HRTimesheet extends hrTimesheetModels.HRTimesheet {
     timer_start = fields.Datetime();
     timer_pause = fields.Datetime();
+    is_timer_running = fields.Boolean({ compute: "_compute_is_timer_running" });
     company_id = fields.Many2one({ relation: "res.company" });
     employee_id = fields.Many2one({ relation: "hr.employee.public" });
     date = fields.Date({ default: "2017-01-31" });
@@ -53,6 +54,12 @@ export class HRTimesheet extends hrTimesheetModels.HRTimesheet {
             ["ghi", "GHI"],
         ],
     });
+
+    _compute_is_timer_running() {
+        for (const record of this) {
+            record.is_timer_running = record.timer_start && !record.timer_pause;
+        }
+    }
 
     action_start_new_timesheet_timer(vals = {}) {
         if (!vals.project_id) {
@@ -217,7 +224,7 @@ export class HRTimesheet extends hrTimesheetModels.HRTimesheet {
             </form>
         `,
         list: `
-            <list js_class="timesheet_timer_list">
+            <list js_class="timesheet_timer_list" sample="1">
                 <field name="timer_start" column_invisible="1"/>
                 <field name="name" />
                 <field name="date" />
@@ -225,6 +232,7 @@ export class HRTimesheet extends hrTimesheetModels.HRTimesheet {
                 <field name="task_id" />
                 <field name="selection_field" />
                 <field name="unit_amount" />
+                <field name="is_timer_running" />
             </list>
         `,
         kanban: `

@@ -92,17 +92,17 @@ class AccountMove(models.Model):
             else:
                 move.l10n_in_transaction_type = False
 
-    @api.depends('move_type', 'reversed_entry_id', 'state', 'invoice_date', 'invoice_line_ids.tax_ids')
+    @api.depends('move_type', 'reversed_entry_id', 'state', 'invoice_date', 'invoice_line_ids.tax_ids', 'checked')
     def _compute_l10n_in_reversed_entry_warning(self):
         for move in self:
             if (
                 move.country_code == 'IN'
                 and move.l10n_in_gst_efiling_feature_enabled
                 and move.move_type == 'out_refund'
-                and move.state == 'draft'
                 and move.invoice_date
                 and move.reversed_entry_id
                 and move.invoice_line_ids.tax_ids
+                and (move.state == 'draft' or (move.state == 'posted' and not move.checked))
             ):
                 move.l10n_in_reversed_entry_warning = move.reversed_entry_id.invoice_date < move._l10n_in_get_fiscal_year_start_date(
                     move.company_id, move.invoice_date)
@@ -117,10 +117,18 @@ class AccountMove(models.Model):
         return fiscal_year_start_date
 
     def _post(self, soft=True):
+        """
+        The parent `_post` method sets the `checked` flag based on the journal
+        configuration. After posting, we explicitly reset `checked` to False
+        for invoices that have a credit note (reversed entry) warning.
+        """
+        warning_invoices = self.filtered(lambda i: i.l10n_in_reversed_entry_warning)
+        to_post = super()._post(soft=soft)
         for invoice in self:
             if invoice.l10n_in_gstr2b_reconciliation_status == "gstr2_bills_not_in_odoo":
                 invoice.l10n_in_gstr2b_reconciliation_status = "pending"
-        return super(AccountMove, self)._post(soft=soft)
+        warning_invoices.checked = False
+        return to_post
 
     def button_draft(self):
         res = super().button_draft()

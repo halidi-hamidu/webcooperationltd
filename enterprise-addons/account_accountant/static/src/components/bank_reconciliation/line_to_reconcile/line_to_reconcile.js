@@ -120,12 +120,15 @@ export class BankRecLineToReconcile extends Component {
         if (this.lineInfoPopOver.isOpen || !this.showLineInfo) {
             this.lineInfoPopOver.close();
         } else {
-            this.lineInfoPopOver.open(this.lineInfoRef.el, {
+            const popoverConfig = {
                 statementLineData: this.statementLineData,
                 lineData: this.lineData,
-                exchangeMove: this.exchangeMove,
                 isPartiallyReconciled: this.isPartiallyReconciled,
-            });
+            };
+            if (this.exchangeMove) {
+                popoverConfig.exchangeMove = this.exchangeMove;
+            }
+            this.lineInfoPopOver.open(this.lineInfoRef.el, popoverConfig);
         }
     }
 

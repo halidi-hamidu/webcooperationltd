@@ -3,6 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { rpc } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
+import { isEmail } from "@web/core/utils/strings";
 
 export class PublicSignerDialog extends Component {
     static template = "sign.PublicSignerDialog";
@@ -54,7 +55,7 @@ export class PublicSignerDialog extends Component {
     }
 
     validateForm(name, mail) {
-        const isEmailInvalid = !mail || mail.indexOf("@") < 0;
+        const isEmailInvalid = !mail || !isEmail(mail);
         if (!name || isEmailInvalid) {
             this.nameInput.el.classList.toggle("is-invalid", !name);
             this.mailInput.el.classList.toggle("is-invalid", isEmailInvalid);

@@ -178,7 +178,7 @@ class SocialStreamPost(models.Model):
             'likes': None if is_facebook else {'summary': {'total_count': 4}},
             'reactions': {"LIKE": 3, "CARE": 1} if is_facebook else None,
             'from': {
-                'name': 'Deco Addict',
+                'name': 'Acme Corporation',
                 'profile_image_url_https': '/web/image/res.partner/%s/avatar_128' % res_partner_2.id,
                 'id': 'urn:li:organization:2414183',
             },
