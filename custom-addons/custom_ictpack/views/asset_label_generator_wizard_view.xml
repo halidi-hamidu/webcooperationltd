@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Asset Label Generator Wizard Form View -->
+    <record id="view_asset_label_generator_wizard_form" model="ir.ui.view">
+        <field name="name">asset.label.generator.wizard.form</field>
+        <field name="model">asset.label.generator.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Asset Labels">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="asset_id" invisible="1"/>
+                            <field name="generation_mode" widget="radio"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Single Label" invisible="generation_mode != 'single'">
+                            <group>
+                                <group>
+                                    <field name="label_prefix" required="generation_mode == 'single'"/>
+                                    <field name="custom_label" placeholder="e.g., IPS/FU/001"/>
+                                </group>
+                                <group>
+                                    <label for="preview_labels" string="Preview"/>
+                                    <div>
+                                        <field name="preview_labels" nolabel="1" readonly="1"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>Prefix Information:</strong>
+                                <ul>
+                                    <li>The prefix is automatically set from the Asset Model if available</li>
+                                    <li>You can modify it here if needed</li>
+                                    <li>Leave custom label empty for auto-generation with the prefix</li>
+                                </ul>
+                            </div>
+                        </page>
+                        
+                        <page string="Bulk Generation" invisible="generation_mode != 'bulk'">
+                            <group>
+                                <group string="Unit Range">
+                                    <field name="start_unit" required="generation_mode == 'bulk'"/>
+                                    <field name="end_unit" required="generation_mode == 'bulk'"/>
+                                    <field name="total_labels_count" string="Total Units" readonly="1"/>
+                                </group>
+                                <group string="Label Format">
+                                    <field name="bulk_label_format" required="generation_mode == 'bulk'"/>
+                                    <field name="label_prefix" 
+                                           invisible="bulk_label_format != 'sequential'"
+                                           required="generation_mode == 'bulk' and bulk_label_format == 'sequential'"/>
+                                    <field name="custom_format" 
+                                           placeholder="e.g., {name}-U{unit:03d}"
+                                           invisible="bulk_label_format != 'custom'"
+                                           required="generation_mode == 'bulk' and bulk_label_format == 'custom'"/>
+                                </group>
+                            </group>
+                            
+                            <group string="Label Preview">
+                                <field name="preview_labels" nolabel="1" widget="text" readonly="1"/>
+                            </group>
+                            
+                            <div>
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Label Format Options:</strong>
+                                    <ul>
+                                        <li><strong>Sequential:</strong> Generates labels like IPS/FU/000001, IPS/FU/000002, etc.</li>
+                                        <li><strong>With Unit Number:</strong> Includes unit number in label like JT701T-U001, JT701T-U002, etc.</li>
+                                        <li><strong>Custom Format:</strong> Use {name} for asset name and {unit} for unit number</li>
+                                    </ul>
+                                    
+                                    <strong>Note:</strong> All labels will be generated and stored on the current asset record as a list.
+                                </div>
+                            </div>
+                            <div class="alert alert-warning" role="alert" invisible="total_labels_count &lt; 500">
+                                <strong>Warning:</strong> You are about to generate <field name="total_labels_count" readonly="1"/> labels. 
+                                This may take some time. Consider processing in smaller batches.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_generate_labels" string="Generate Labels" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action to open the wizard -->
+    <record id="action_asset_label_generator_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Asset Labels</field>
+        <field name="res_model">asset.label.generator.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account_asset.model_account_asset"/>
+        <field name="binding_view_types">form</field>
+    </record>
+
+</odoo>

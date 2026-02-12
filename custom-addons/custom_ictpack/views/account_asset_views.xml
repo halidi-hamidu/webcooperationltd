@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Inherit Asset Form View to Add Label Fields and Button -->
+    <record id="view_account_asset_form_inherit_label" model="ir.ui.view">
+        <field name="name">account.asset.form.inherit.label</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add Generate Label button in header -->
+            <xpath expr="//header" position="inside">
+                <button name="%(custom_ictpack.action_asset_label_generator_wizard)d" 
+                        string="Generate Label" 
+                        type="action" 
+                        class="oe_highlight"
+                        attrs="{'invisible': ['|', ('state', 'in', ['cancelled', 'close', 'model']), ('asset_label', '!=', False)]}"/>
+            </xpath>
+            
+            
+            <!-- Add label_prefix field for models after name -->
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <group>
+                    <field name="label_prefix" string="Label Prefix"
+                       placeholder="e.g., FUR, ICT, VEH"
+                       attrs="{'invisible': [('state', '!=', 'model')],
+                               'required': [('state', '=', 'model')]}"/>
+                </group>
+                
+            </xpath>
+            
+            <!-- Add label field after name (for non-models) -->
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <group>
+                    <field name="asset_label" 
+                       attrs="{'invisible': [('state', '=', 'model')],
+                               'readonly': [('state', 'in', ['open', 'close', 'cancelled'])]}"/>
+                </group>
+                
+            </xpath>
+            
+            <!-- Add bulk entry fields in a group -->
+            <xpath expr="//page[@name='related_items']" position="after">
+                <page string="Asset Labels" attrs="{'invisible': [('is_bulk_entry', '=', False)]}">
+                    <field name="is_bulk_entry" invisible="1"/>
+
+                    <field name="asset_label_ids" nolabel="1">
+                        <tree name="generated_labels" create="0" delete="0" editable="bottom">
+                            <field name="label_number" string="Unit #" readonly="1"/>
+                            <field name="label" readonly="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Inherit Asset Model Tree View to Show Label Prefix -->
+    <record id="view_account_asset_model_tree_inherit_prefix" model="ir.ui.view">
+        <field name="name">account.asset.model.tree.inherit.prefix</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_model_purchase_tree"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add label_prefix column after name -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="label_prefix" optional="show"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Inherit Asset Tree View to Show Label -->
+    <record id="view_account_asset_asset_tree_inherit_label" model="ir.ui.view">
+        <field name="name">account.asset.tree.inherit.label</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_purchase_tree"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add label column after name -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="asset_label" optional="show"/>
+                <field name="unit_number" optional="hide"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Add search by label -->
+    <record id="view_account_asset_search_inherit_label" model="ir.ui.view">
+        <field name="name">account.asset.search.inherit.label</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_search"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="asset_label"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>

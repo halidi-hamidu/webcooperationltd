@@ -6,3 +6,4 @@
 #################################################################################
 
 from . import payment_reference_warning_wizard
+from . import asset_label_generator_wizard
