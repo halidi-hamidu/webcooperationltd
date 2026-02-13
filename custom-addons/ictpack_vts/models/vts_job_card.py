@@ -138,7 +138,7 @@ class VtsJobCard(models.Model):
         for attachment in attachment_vals:
             attachment.update({
                 'res_model': 'vts.job.card',
-                'res_id': rec_id,
+                'res_id': rec_id.id,
             })
             self.env['ir.attachment'].create(attachment)
 
