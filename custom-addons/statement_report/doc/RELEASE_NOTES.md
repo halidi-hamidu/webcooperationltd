@@ -1,17 +1,11 @@
 ## Module <statement_report>
 
-#### 16.02.2023
-#### Version 16.0.1.0.0
-#### ADD
+#### 09.10.2024
+#### Version 18.0.1.0.0
+##### ADD
 - Initial commit for Customer/ Supplier Payment Statement Report
 
-#### 05.04.2024
-#### Version 16.0.1.0.1
-#### UPDATED
-- Added the case of credit and debit notes in to the statement
-
-
-#### 11.09.2024
-#### Version 16.0.1.0.1
-#### UPDATED
-- Resolve the issue when the 'xlsx' report type more than once in the registry
+#### 10.11.2025
+#### Version 18.0.1.0.1
+##### FIX
+- Updated the function which process the auto weekly and monthly statement report.

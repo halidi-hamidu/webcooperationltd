@@ -1,28 +1,35 @@
-.. image:: https://img.shields.io/badge/licence-LGPL--3-blue.svg
-    :target: http://www.gnu.org/licenses/opl-1.0-standalone.html
+.. image:: https://img.shields.io/badge/license-LGPL--3-green.svg
+    :target: https://www.gnu.org/licenses/lgpl-3.0-standalone.html
     :alt: License: LGPL-3
 
 Customer/ Supplier Payment Statement Report
-=======================
-This module allow to view and send  payment statement report in pdf and xlsx format, for both invoices and bills.
+===========================================
+This module helps to generate Customer/Supplier Payment Statement Reports, automatically send monthly statements to customers, and provides the option to share Pdf and Excel reports.
+
+Configuration
+=============
+* No additional configuration is needed.
 
 Company
 -------
 * `Cybrosys Techno Solutions <https://cybrosys.com/>`__
 
+License
+-------
+Lesser General Public License, v3.0 (LGPL v3).
+(https://www.gnu.org/licenses/lgpl-3.0-standalone.html)
+
 Credits
 -------
-Developer: Ayisha Sumayya K @cybrosys, Contact: odoo@cybrosys.com
+* Developers: (V16) Ayisha Sumayya K,
+              (V17) Jumana Haseen,
+              (V18) Aysha Shalin,
+  Contact: odoo@cybrosys.com
 
 Contacts
 --------
 * Mail Contact : odoo@cybrosys.com
 * Website : https://cybrosys.com
-
-License
--------
-General Public License, Version 3 (LGPL v3).
-(https://www.odoo.com/documentation/user/13.0/legal/licenses/licenses.html)
 
 Bug Tracker
 -----------
