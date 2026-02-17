@@ -310,3 +310,14 @@ class HrAttendance(models.Model):
             }
         else:
             raise UserError('Invalid coordinates format.')
+
+class HrEmployeePublic(models.Model):
+    _inherit = 'hr.employee.public'
+
+    is_vts_employee = fields.Boolean(readonly=True)
+    vts_employee_role = fields.Selection(VTS_EMPLOYEE_ROLES_SELECTION, readonly=True)
+    vts_password = fields.Char(readonly=True)
+    employee_stock_location = fields.Many2one('stock.location', readonly=True)
+    reset_token = fields.Char(readonly=True)
+    reset_token_expiry = fields.Datetime(readonly=True)
+    reset_password_link = fields.Char(readonly=True)
