@@ -149,55 +149,56 @@ class VtsJobCard(models.Model):
             record.name = f'{record.vts_employee.barcode}{self.env["ir.sequence"].next_by_code("vts.job.card")}'
 
     @api.model_create_multi
-    def create(self, vals):
-        try:
-            # Ensure the name is set
-            if 'name' not in vals or not vals['name']:
-                employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
-                if employee:
-                    vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
-                else:
-                    vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
+    def create(self, vals_list):
+        for vals in vals_list:
+            try:
+                # Ensure the name is set
+                if 'name' not in vals or not vals['name']:
+                    employee = self.env['hr.employee'].browse(vals.get('vts_employee'))
+                    if employee:
+                        vals['name'] = f'{employee.barcode}-{self.env["ir.sequence"].next_by_code("vts.job.card")}'
+                    else:
+                        vals['name'] = self.env["ir.sequence"].next_by_code("vts.job.card")
 
-            # Auto-populate customer_id for service routine from project
-            if vals.get('service_type') == 'service-routine' and not vals.get('customer_id'):
-                license_plate = vals.get('license_plate')
-                if license_plate:
-                    # Search for project with name matching the license plate
-                    project = self.env['project.project'].search([('name', '=', license_plate)], limit=1)
-                    if project and project.partner_id:
-                        vals['customer_id'] = project.partner_id.id
-                        vals['project_id'] = project.id
+                # Auto-populate customer_id for service routine from project
+                if vals.get('service_type') == 'service-routine' and not vals.get('customer_id'):
+                    license_plate = vals.get('license_plate')
+                    if license_plate:
+                        # Search for project with name matching the license plate
+                        project = self.env['project.project'].search([('name', '=', license_plate)], limit=1)
+                        if project and project.partner_id:
+                            vals['customer_id'] = project.partner_id.id
+                            vals['project_id'] = project.id
 
-            # Extract and handle attachments
-            attachment_vals = vals.pop('attachments', [])
-            res = super(VtsJobCard, self).create(vals)
+                # Extract and handle attachments
+                attachment_vals = vals.pop('attachments', [])
+                res = super(VtsJobCard, self).create(vals)
 
-            if res:
-                self._handle_attachments(attachment_vals, res)
-                res.service_date = fields.Datetime.now()
-                res.state = "draft"
+                if res:
+                    self._handle_attachments(attachment_vals, res)
+                    res.service_date = fields.Datetime.now()
+                    res.state = "draft"
 
-            jobcard_vars = {
-                'id': res.id,
-                'name': res.name,
-                'customer_name': res.customer_id.name if res.customer_id else '',
-                'technician': res.vts_employee.name if res.vts_employee else '',
-                'service_type': res.service_type,
-                'state': res.state,
-            }
+                jobcard_vars = {
+                    'id': res.id,
+                    'name': res.name,
+                    'customer_name': res.customer_id.name if res.customer_id else '',
+                    'technician': res.vts_employee.name if res.vts_employee else '',
+                    'service_type': res.service_type,
+                    'state': res.state,
+                }
 
 
-            return format_response('success', 'Job card created successfully.', jobcard_vars)
-        except Exception as e:
-            return format_response('error', str(e), None)
+                return format_response('success', 'Job card created successfully.', jobcard_vars)
+            except Exception as e:
+                return format_response('error', str(e), None)
     
     def write(self, vals):
         attachment_vals = vals.pop('attachments', [])
         res = super(VtsJobCard, self).write(vals)
         if res:
             for record in self:
-                self._handle_attachments(attachment_vals, record.id)
+                self._handle_attachments(attachment_vals, record)
         return format_response('success', 'Job card updated successfully.', res)
 
     def _action_submit(self):
