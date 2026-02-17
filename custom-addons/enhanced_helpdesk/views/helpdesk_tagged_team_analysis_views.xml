@@ -7,9 +7,15 @@
         <field name="arch" type="xml">
             <pivot string="Tagged Team Analysis" display_quantity="1" disable_linking="1" sample="1" default_order="team_id asc">
                 <field name="team_id" type="row"/>
-                <field name="total_response_time" widget="float_time" type="measure"/>
-                <field name="avg_response_time" widget="float_time" type="measure"/>
-                <field name="tag_count" type="measure"/>
+                <field name="contributor_id" type="row"/>
+                <field name="priority" type="col"/>
+                <field name="tag_count" string="Times Tagged" type="measure"/>
+                <field name="closed_count" string="Completed Tasks" type="measure"/>
+                <field name="hold_count" string="Times Put on Hold" type="measure"/>
+                <field name="total_response_time" string="Total Response Time" type="measure" widget="float_time"/>
+                <field name="avg_response_time" string="Avg Response Time" type="measure" widget="float_time"/>
+                <field name="total_resolution_time" string="Total Resolution Time" type="measure" widget="float_time"/>
+                <field name="avg_resolution_time" string="Avg Resolution Time" type="measure" widget="float_time"/>
             </pivot>
         </field>
     </record>
@@ -21,7 +27,8 @@
         <field name="arch" type="xml">
             <graph string="Tagged Team Analysis" type="bar" sample="1">
                 <field name="team_id"/>
-                <field name="total_response_time" type="measure" widget="float_time"/>
+                <field name="tag_count" type="measure"/>
+                <field name="closed_count" type="measure"/>
             </graph>
         </field>
     </record>
@@ -31,17 +38,22 @@
         <field name="name">helpdesk.tagged.team.analysis.tree</field>
         <field name="model">helpdesk.tagged.team.analysis</field>
         <field name="arch" type="xml">
-            <tree string="Tagged Team Analysis" create="false" edit="false">
+            <list string="Tagged Team Analysis" create="false" edit="false">
+                <field name="contributor_id" string="Tagged Member"/>
                 <field name="ticket_id"/>
                 <field name="ticket_name"/>
-                <field name="team_id"/>
-                <field name="ticket_team_id"/>
-                <field name="tag_count"/>
-                <field name="total_response_time" widget="float_time"/>
-                <field name="avg_response_time" widget="float_time"/>
+                <field name="team_id" string="Tagged Team"/>
+                <field name="ticket_team_id" string="Ticket Team"/>
+                <field name="tag_count" string="Times Tagged"/>
+                <field name="total_response_time_desc" string="Total Response Time"/>
+                <field name="avg_response_time_desc" string="Average Response Time"/>
+                <field name="total_resolution_time_desc" string="Total Resolution Time"/>
+                <field name="avg_resolution_time_desc" string="Average Resolution Time"/>
+                <field name="closed_count" string="Completed"/>
+                <field name="hold_count" string="Hold Count"/>
                 <field name="ticket_stage_id"/>
                 <field name="priority"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -57,20 +69,24 @@
                 <field name="ticket_team_id"/>
                 <field name="partner_id"/>
                 <field name="user_id"/>
+                <field name="contributor_id"/>
+                <separator/>
                 <filter string="High Priority" name="high_priority" 
                         domain="[('priority', 'in', ['2', '3'])]"/>
                 <filter string="My Tickets" name="my_tickets" 
                         domain="[('user_id', '=', uid)]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Ticket" name="group_ticket" context="{'group_by': 'ticket_id'}"/>
-                    <filter string="Tagged Team" name="group_team" context="{'group_by': 'team_id'}"/>
-                    <filter string="Ticket Team" name="group_ticket_team" context="{'group_by': 'ticket_team_id'}"/>
-                    <filter string="Stage" name="group_stage" context="{'group_by': 'ticket_stage_id'}"/>
-                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
-                    <filter string="Assigned To" name="group_user" context="{'group_by': 'user_id'}"/>
-                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
-                    <filter string="Create Date" name="group_create_date" context="{'group_by': 'create_date'}"/>
-                </group>
+                <filter string="Has Hold Actions" name="has_holds"
+                        domain="[('hold_count', '>', 0)]"/>
+                <separator/>
+                <filter string="Ticket" name="group_ticket" context="{'group_by': 'ticket_id'}"/>
+                <filter string="Tagged Team" name="group_team" context="{'group_by': 'team_id'}"/>
+                <filter string="Ticket Team" name="group_ticket_team" context="{'group_by': 'ticket_team_id'}"/>
+                <filter string="Stage" name="group_stage" context="{'group_by': 'ticket_stage_id'}"/>
+                <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                <filter string="Assigned To" name="group_user" context="{'group_by': 'user_id'}"/>
+                <filter string="Tagged Member" name="group_contributor" context="{'group_by': 'contributor_id'}"/>
+                <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                <filter string="Create Date" name="group_create_date" context="{'group_by': 'create_date:month'}"/>
             </search>
         </field>
     </record>
@@ -79,7 +95,7 @@
     <record id="action_helpdesk_tagged_team_analysis" model="ir.actions.act_window">
         <field name="name">Tagged Team Analysis</field>
         <field name="res_model">helpdesk.tagged.team.analysis</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="search_view_id" ref="helpdesk_tagged_team_analysis_search"/>
         <field name="context">{}</field>
         <field name="help" type="html">

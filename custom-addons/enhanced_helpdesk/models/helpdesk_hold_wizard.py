@@ -36,6 +36,59 @@ class HelpdeskTicketHoldWizard(models.TransientModel):
         help='Select all predefined reasons that apply'
     )
     
+    # Success message display
+    success_message = fields.Text(
+        string='Status Message',
+        readonly=True,
+        help='Display success or status messages'
+    )
+    
+    show_success_info = fields.Boolean(
+        string='Show Success Info',
+        default=False,
+        help='Flag to show success message section'
+    )
+    
+    @api.model
+    def default_get(self, fields_list):
+        """Override to handle context values and auto-refresh functionality"""
+        result = super().default_get(fields_list)
+        
+        # Handle success message from context (after submit)
+        if self.env.context.get('show_success_message'):
+            result['success_message'] = self.env.context.get('success_message', '')
+            result['show_success_info'] = True
+            
+        return result
+    
+    def action_refresh_wizard(self):
+        """Action to refresh the wizard - used for auto-refresh functionality"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Hold Assignment',
+            'res_model': 'helpdesk.ticket.hold.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'res_id': self.id,
+            'context': dict(
+                self.env.context,
+                default_ticket_id=self.ticket_id.id,
+                default_tag_transfer_id=self.tag_transfer_id.id,
+            ),
+        }
+    
+    def action_clear_form(self):
+        """Clear the form fields after successful submission"""
+        self.ensure_one()
+        self.write({
+            'predefined_reasons': [(6, 0, [])],  # Clear many2many field
+            'hold_reason': '',
+            'success_message': '',
+            'show_success_info': False,
+        })
+        return self.action_refresh_wizard()
+    
     def action_submit_hold(self):
         """Submit the hold request with reasons and post to chatter"""
         self.ensure_one()
@@ -68,6 +121,34 @@ class HelpdeskTicketHoldWizard(models.TransientModel):
             'hold_timestamp': now
         }
         self.tag_transfer_id.write(hold_data)
+        
+        # IMPORTANT: Also change the ticket stage to "On Hold" to pause SLA counting
+        # Find the "On Hold" stage
+        on_hold_stage = self.env['helpdesk.stage'].search([
+            ('name', '=', 'On Hold')
+        ], limit=1)
+        
+        if on_hold_stage:
+            # Use the predefined reasons directly (helpdesk.hold.reason model)
+            ticket_hold_reasons = []
+            if self.predefined_reasons:
+                ticket_hold_reasons = self.predefined_reasons.ids
+            
+            # Update ticket stage and hold reasons
+            ticket_update_vals = {
+                'stage_id': on_hold_stage.id,
+            }
+            
+            # Add hold reasons if found
+            if ticket_hold_reasons:
+                ticket_update_vals['common_reasons_to_hold_ticket'] = [(6, 0, ticket_hold_reasons)]
+            
+            # Add hold description if provided
+            if self.hold_reason:
+                ticket_update_vals['reason_description_to_hold_ticket'] = self.hold_reason
+                
+            # Update the ticket
+            self.ticket_id.write(ticket_update_vals)
         
         # Build structured message for chatter
         user_name = self.tagged_user_id.name
@@ -133,13 +214,22 @@ class HelpdeskTicketHoldWizard(models.TransientModel):
         elif has_details:
             success_msg += " (Additional details provided)"
         
+        # Clear form fields and show success message
+        self.write({
+            'predefined_reasons': [(6, 0, [])],  # Clear many2many field
+            'hold_reason': '',
+            'success_message': success_msg,
+            'show_success_info': True,
+        })
+        
+        # Return action to close all wizards and refresh the page
         return {
             'type': 'ir.actions.client',
-            'tag': 'display_notification',
+            'tag': 'reload',
             'params': {
                 'message': success_msg,
                 'type': 'success',
-                'sticky': False,
+                'title': 'Hold Request Submitted!',
             }
         }
 

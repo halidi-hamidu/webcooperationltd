@@ -28,8 +28,8 @@
                     <td colspan="3"><t t-esc="ticket.name"/></td>
                   </tr>
                   <tr>
-                    <td><strong>Type:</strong></td>
-                    <td><t t-esc="ticket.ticket_type_id.name or 'N/A'"/></td>
+                    <td><strong>Team:</strong></td>
+                    <td><t t-esc="ticket.team_id.name or 'N/A'"/></td>
                     <td><strong>Priority:</strong></td>
                     <td><t t-esc="dict(ticket._fields['priority'].selection).get(ticket.priority, 'N/A')"/></td>
                   </tr>
@@ -96,6 +96,7 @@
                         <th>Status</th>
                         <th>Responded At</th>
                         <th>Response Time</th>
+                        <th>Resolution Time</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -142,6 +143,27 @@
                             </t>
                             <t t-else="">
                               <span style="color: #999;">Awaiting Response</span>
+                            </t>
+                          </td>
+                          <td>
+                            <t t-if="transfer.resolution_time and transfer.closed_at">
+                              <t t-set="res_hours" t-value="int(transfer.resolution_time)"/>
+                              <t t-set="res_minutes" t-value="int((transfer.resolution_time - res_hours) * 60)"/>
+                              <strong style="color: #28a745;">
+                                <t t-if="res_hours > 0">
+                                  <t t-esc="res_hours"/> hour<t t-if="res_hours != 1">s</t>
+                                </t>
+                                <t t-if="res_minutes > 0">
+                                  <t t-if="res_hours > 0"> </t>
+                                  <t t-esc="res_minutes"/> min<t t-if="res_minutes != 1">s</t>
+                                </t>
+                                <t t-if="res_hours == 0 and res_minutes == 0">
+                                  Less than 1 minute
+                                </t>
+                              </strong>
+                            </t>
+                            <t t-else="">
+                              <span style="color: #999;">Not Closed</span>
                             </t>
                           </td>
                         </tr>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_helpdesk_transfer_close_wizard_form" model="ir.ui.view">
+        <field name="name">helpdesk.transfer.close.wizard.form</field>
+        <field name="model">helpdesk.transfer.close.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Close Assignment">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <i class="fa fa-check-circle text-success"/> Close Assignment
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="ticket_id" readonly="1"/>
+                            <field name="tagged_user_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="date_tagged" readonly="1"/>
+                            <field name="estimated_resolution_time" readonly="1" widget="float_time"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Work Summary" name="work_summary">
+                          
+                                <field name="work_summary" nolabel="1" placeholder="Briefly describe what you did to complete this assignment..." widget="text"/>
+                         
+                        </page>
+                        <page string="Notes" name="notes">
+                            <group>
+                                <field name="closing_notes" nolabel="1" placeholder="Any additional notes or comments..." widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_close" string="Close Assignment" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.1" encoding="UTF-8"?>
 <odoo>
     <record id="view_helpdesk_ticket_form_inherit_sla_desc" model="ir.ui.view">
         <field name="name">helpdesk.ticket.form.inherit.sla.description</field>
@@ -10,6 +10,9 @@
             <xpath expr="//field[@name='team_id'][1]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='ticket_type_id'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
              <xpath expr="//field[@name='user_id'][1]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -18,10 +21,11 @@
             </xpath>
            
 
-            <!-- Insert canonical placement at top-left: Team -> Tags -> Assigned to -->
+            <!-- Insert canonical placement at top-left: Team -> Type -> Tags -> Assigned to -->
             <xpath expr="//field[@name='priority']" position="before">
                 <group colspan="4" col="4">
                     <field name="team_id"/>
+                    <field name="ticket_type_id"/>
                      <field name="user_id" colspan="2"/>
                     <!-- <field name="tag_ids" widget="many2many_tags" colspan="2"/> -->
                    
@@ -33,14 +37,14 @@
                 <label for="sla_description" string="Description"/>
                 <field name="sla_description" widget="html" readonly="1"/>
                 
-                <group string="SLA Information" invisible="not sla_deadline">
+                <group string="SLA Information" attrs="{'invisible': [('sla_deadline', '=', False)]}">
                     <field name="sla_status" widget="badge" 
                            decoration-success="sla_status == 'safe'"
                            decoration-warning="sla_status == 'warning'"
-                           decoration-danger="sla_status in ('critical', 'breached')"/>
+                           decoration-danger="sla_status in ['critical', 'breached']"/>
                     <field name="sla_deadline"/>
-                    <field name="sla_breached" invisible="not sla_breached"/>
-                    <field name="sla_breach_time" invisible="not sla_breach_time"/>
+                    <field name="sla_breached" attrs="{'invisible': [('sla_breached', '=', False)]}"/>
+                    <field name="sla_breach_time" attrs="{'invisible': [('sla_breach_time', '=', False)]}"/>
                 </group>
             </xpath>
 

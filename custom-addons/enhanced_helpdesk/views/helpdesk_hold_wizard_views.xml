@@ -19,6 +19,21 @@
 
                 <sheet class="o_dialog_sheet">
                     <field name="tag_transfer_id" invisible="1"/>
+                    <field name="show_success_info" invisible="1"/>
+                    
+                    <!-- Success Message Section (shown after submission) -->
+                    <div class="alert alert-success mb-4" role="alert" invisible="not show_success_info">
+                        <h5><i class="fa fa-check-circle"></i> Hold Request Submitted Successfully!</h5>
+                        <field name="success_message" nolabel="1" readonly="1" class="mb-3"/>
+                        <div class="text-center">
+                            <button name="action_clear_form" type="object" string="Submit Another Hold Request" 
+                                    class="btn btn-success mr-2" icon="fa-plus"/>
+                            <button special="cancel" string="Close Wizard" class="btn btn-secondary" icon="fa-times"/>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Form Content (hidden after successful submission) -->
+                    <div invisible="show_success_info" />
                     
                     <!-- Assignment Information Card -->
                     <div class="card mb-4 border-info">
@@ -112,6 +127,9 @@
 
                 </sheet>
                 
+                <!-- End Main Form Content div -->
+                
+                
                 <!-- Enhanced Footer -->
                 <footer class="modal-footer bg-light border-top">
                     <div class="container-fluid">
@@ -126,6 +144,12 @@
                                 </div>
                             </div>
                             <div class="col-md-6 text-right">
+                                <button name="action_refresh_wizard" 
+                                        string="Refresh" 
+                                        type="object"
+                                        class="btn btn-light border mr-2" 
+                                        icon="fa-refresh"
+                                        title="Refresh wizard to update information"/>
                                 <button string="Cancel" 
                                         class="btn btn-light border mr-3" 
                                         special="cancel">
@@ -150,12 +174,12 @@
         <field name="name">helpdesk.hold.reason.tree</field>
         <field name="model">helpdesk.hold.reason</field>
         <field name="arch" type="xml">
-            <tree string="Hold Reasons" editable="bottom">
+            <list string="Hold Reasons" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="description"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -185,7 +209,7 @@
     <record id="action_helpdesk_hold_reason" model="ir.actions.act_window">
         <field name="name">Hold Reasons</field>
         <field name="res_model">helpdesk.hold.reason</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

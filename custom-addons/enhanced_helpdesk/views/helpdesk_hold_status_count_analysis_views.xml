@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- On Hold Status Count Analysis Tree View -->
+    <record id="helpdesk_hold_status_count_analysis_tree" model="ir.ui.view">
+        <field name="name">helpdesk.hold.status.count.analysis.tree</field>
+        <field name="model">helpdesk.hold.status.count.analysis</field>
+        <field name="arch" type="xml">
+            <list string="Reasons Counter" create="false" edit="false" 
+                  decoration-muted="not is_active" decoration-bf="usage_count > 0">
+                <field name="reason_name" string="Reason"/>
+                <field name="usage_count" sum="Total Count"/>
+            
+                <field name="avg_hold_duration" widget="float_time"/>
+                <field name="total_hold_duration" widget="float_time" sum="Total Duration"/>
+                <field name="last_used_date"/>
+                <field name="is_active"/>
+               
+                <field name="reason_description" optional="hide"/>
+                <field name="first_used_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- On Hold Status Count Analysis Pivot View -->
+    <record id="helpdesk_hold_status_count_analysis_pivot" model="ir.ui.view">
+        <field name="name">helpdesk.hold.status.count.analysis.pivot</field>
+        <field name="model">helpdesk.hold.status.count.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Hold Reasons Usage Analysis" display_quantity="1" disable_linking="1" sample="1">
+                <field name="reason_name" type="row"/>
+                <field name="is_active" type="col"/>
+                <field name="usage_count" type="measure"/>
+                <field name="unique_tickets_count" type="measure"/>
+                <field name="unique_users_count" type="measure"/>
+                <field name="avg_hold_duration" widget="float_time" type="measure"/>
+                <field name="total_hold_duration" widget="float_time" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- On Hold Status Count Analysis Graph View -->
+    <record id="helpdesk_hold_status_count_analysis_graph" model="ir.ui.view">
+        <field name="name">helpdesk.hold.status.count.analysis.graph</field>
+        <field name="model">helpdesk.hold.status.count.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Hold Reasons Usage" type="bar" sample="1">
+                <field name="reason_name"/>
+                <field name="usage_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- On Hold Status Count Analysis Form View -->
+    <record id="helpdesk_hold_status_count_analysis_form" model="ir.ui.view">
+        <field name="name">helpdesk.hold.status.count.analysis.form</field>
+        <field name="model">helpdesk.hold.status.count.analysis</field>
+        <field name="arch" type="xml">
+            <form string="Hold Reason Analysis" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="reason_name" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="usage_count" readonly="1"/> times used
+                        </h3>
+                    </div>
+                    <group>
+                        <group string="Usage Statistics">
+                            <field name="usage_count"/>
+                            <field name="unique_tickets_count"/>
+                            <field name="unique_users_count"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group string="Duration Statistics">
+                            <field name="avg_hold_duration" widget="float_time"/>
+                            <field name="total_hold_duration" widget="float_time"/>
+                        </group>
+                        <group string="Date Information" col="2">
+                            <field name="first_used_date"/>
+                            <field name="last_used_date"/>
+                        </group>
+                    </group>
+                    <group string="Description" col="1">
+                        <field name="reason_description" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- On Hold Status Count Analysis Search View -->
+    <record id="helpdesk_hold_status_count_analysis_search" model="ir.ui.view">
+        <field name="name">helpdesk.hold.status.count.analysis.search</field>
+        <field name="model">helpdesk.hold.status.count.analysis</field>
+        <field name="arch" type="xml">
+            <search string="Hold Status Count Analysis">
+                <field name="reason_name"/>
+                <field name="reason_description"/>
+                
+                <separator/>
+                <filter string="Active Reasons" name="active_reasons" 
+                        domain="[('is_active', '=', True)]"/>
+                <filter string="Used Reasons" name="used_reasons" 
+                        domain="[('usage_count', '>', 0)]"/>
+                <filter string="Unused Reasons" name="unused_reasons" 
+                        domain="[('usage_count', '=', 0)]"/>
+                <filter string="Most Used" name="most_used" 
+                        domain="[('usage_count', '>', 5)]"/>
+                
+                <separator/>
+                <filter string="Recently Used (30 Days)" name="recent_usage"
+                        domain="[('last_used_date', '>=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'is_active'}"/>
+                <filter string="Usage Count Range" name="group_usage" 
+                        context="{'group_by': 'usage_count'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- On Hold Status Count Analysis Action -->
+    <record id="action_helpdesk_hold_status_count_analysis" model="ir.actions.act_window">
+        <field name="name">On Hold Status Count Analysis</field>
+        <field name="res_model">helpdesk.hold.status.count.analysis</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="view_id" ref="helpdesk_hold_status_count_analysis_tree"/>
+        <field name="search_view_id" ref="helpdesk_hold_status_count_analysis_search"/>
+        <field name="context">{'search_default_active_reasons': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hold reason usage data yet!
+            </p>
+            <p>
+                This analysis shows statistics for each hold reason configured in the system.
+                You can see how many times each reason was used, by how many users, and for how many tickets.
+            </p>
+            <p>
+                To configure hold reasons, go to <b>Configuration → Hold Reasons</b>.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item under Reporting -->
+    <menuitem 
+        id="menu_helpdesk_hold_status_count_analysis"
+        name="On Hold Status Count Analysis"
+        parent="helpdesk.helpdesk_ticket_report_menu_main"
+        action="action_helpdesk_hold_status_count_analysis"
+        sequence="46"/>
+
+</odoo>
