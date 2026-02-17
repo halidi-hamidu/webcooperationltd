@@ -23,41 +23,56 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
+
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def action_post(self):
         if self.move_type == 'entry':
-            return super(AccountMove, self).action_post()
+            return super().action_post()
         else:
             indicator = True
             for line in self.invoice_line_ids:
-                if line.crossovered_budget_id.type == 'expenditure' or line.crossovered_budget_id.type == 'project':
+                if line.budget_analytic_id.budget_type in ('expense', 'project'):
                     total_sum = line.price_subtotal
                     for sm in self.invoice_line_ids:
                         if (sm.budget_line_id == line.budget_line_id) and (sm.id != line.id):
                             total_sum += line.price_subtotal
-                            
+
                     if line.budget_line_id.allocated_balance >= total_sum:
-                        indicator =  True
+                        indicator = True
                     else:
-                        indicator =  False
+                        indicator = False
 
             if indicator:
-                return super(AccountMove, self).action_post()
+                return super().action_post()
             else:
-                raise ValidationError(_("Can not Authorize the invoice, as the Budget line(s) chosen do not have enough funds or No Bugdet Lines have been added"))
+                raise ValidationError(_(
+                    "Can not Authorize the invoice, as the Budget line(s) chosen "
+                    "do not have enough funds or No Budget Lines have been added"))
 
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
-    crossovered_budget_id = fields.Many2one('crossovered.budget', 'Budget', domain="[('state','=','validate')]")
-    budget_line_id = fields.Many2one('crossovered.budget.lines', 'Budget Line',
-                                     domain="[('crossovered_budget_state','=','validate'),('crossovered_budget_id','=?',crossovered_budget_id)]")
+    budget_type_filter = fields.Selection(
+        selection=[('revenue', 'Revenue'), ('expense', 'Expense')],
+        compute='_compute_budget_type_filter',
+        string='Budget Type Filter',
+    )
+    budget_analytic_id = fields.Many2one(
+        'budget.analytic', 'Budget',
+        domain="[('state', '=', 'confirmed'), ('budget_type', '=?', budget_type_filter)]")
+    budget_line_id = fields.Many2one(
+        'budget.line', 'Budget Line',
+        domain="[('budget_analytic_state', '=', 'confirmed'), ('budget_analytic_id', '=?', budget_analytic_id), ('budget_analytic_id.budget_type', '=?', budget_type_filter)]")
 
-    @api.onchange('budget_line_id')
-    def budget_line_id_change(self):
-        if self.budget_line_id:
-            setattr(self, 'analytic_distribution',{self.budget_line_id.analytic_account_id.id:100})
-            setattr(self, 'account_id', self.budget_line_id.general_budget_id.account_ids.id)
+    @api.depends('move_type')
+    def _compute_budget_type_filter(self):
+        for line in self:
+            if line.move_type in ('out_invoice', 'out_refund'):
+                line.budget_type_filter = 'revenue'
+            elif line.move_type in ('in_invoice', 'in_refund', 'in_receipt'):
+                line.budget_type_filter = 'expense'
+            else:
+                line.budget_type_filter = False

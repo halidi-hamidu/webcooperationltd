@@ -6,10 +6,11 @@
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='account_id']" position="before">
-                    <field name="move_type" invisible="1"/>
-                    <field name="crossovered_budget_id" options="{'no_create': True}" attrs="{'required':[('move_type','!=','entry')]}"/>
-                    <field name="budget_line_id" options="{'no_create': True}" attrs="{'required':[('move_type','!=','entry')]}"/>
+                <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="before">
+                    <field name="move_type" column_invisible="1"/>
+                    <field name="budget_type_filter" column_invisible="1"/>
+                    <field name="budget_analytic_id" options="{'no_create': True}" required="move_type != 'entry'"/>
+                    <field name="budget_line_id" options="{'no_create': True}" required="move_type != 'entry'"/>
                 </xpath>
             </field>
         </record>

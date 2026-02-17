@@ -21,16 +21,17 @@
 #############################################################################
 {
     'name': 'Account Budget Control',
-    'version': '16.0.1.0.0',
-    'summary': 'Customer Project',
-    'description': 'Helps control expenditure and project budgets',
+    'version': '19.0.1.0',
+    'summary': 'Budget Expenditure and Project Control',
+    'description': 'Helps control expenditure and project budgets with allocation and relocation features',
     'category': 'Accounting',
     'author': 'IctPack Solutions Ltd',
     'maintainer': 'IctPack Solutions Ltd',
     'company': 'IctPack Solutions Ltd',
     'website': 'https://www.ictpack.com',
     'depends': [
-     'account_budget'
+     'account_budget',
+     'account',
     ],
     'data': [
         'security/ir.model.access.csv',
