@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Hold Analysis Pivot View -->
+    <record id="helpdesk_hold_analysis_pivot" model="ir.ui.view">
+        <field name="name">helpdesk.hold.analysis.pivot</field>
+        <field name="model">helpdesk.hold.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Hold Analysis Report" display_quantity="1" disable_linking="1" sample="1" default_order="hold_date desc">
+                <field name="hold_user_id" type="row"/>
+                <field name="tagged_team_id" type="row"/>
+                <field name="priority" type="col"/>
+                <field name="hold_count" type="measure"/>
+                <field name="hold_duration_hours" widget="float_time" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Hold Analysis Graph View -->
+    <record id="helpdesk_hold_analysis_graph" model="ir.ui.view">
+        <field name="name">helpdesk.hold.analysis.graph</field>
+        <field name="model">helpdesk.hold.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Hold Analysis" type="bar" sample="1">
+                <field name="hold_user_id"/>
+                <field name="hold_count" type="measure"/>
+                <field name="hold_duration_hours" type="measure" widget="float_time"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Hold Analysis Tree View -->
+    <record id="helpdesk_hold_analysis_tree" model="ir.ui.view">
+        <field name="name">helpdesk.hold.analysis.tree</field>
+        <field name="model">helpdesk.hold.analysis</field>
+        <field name="arch" type="xml">
+            <list string="Hold Analysis" create="false" edit="false" decoration-danger="is_currently_on_hold">
+                <field name="ticket_id"/>
+                <field name="ticket_name"/>
+                <field name="hold_user_id"/>
+                <field name="tagged_team_id"/>
+                <field name="hold_date"/>
+                <field name="hold_duration_hours" widget="float_time"/>
+                <field name="hold_reasons_text"/>
+                <field name="is_currently_on_hold"/>
+                <field name="priority"/>
+                <field name="partner_id"/>
+                <field name="assigned_user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Hold Analysis Search View -->
+    <record id="helpdesk_hold_analysis_search" model="ir.ui.view">
+        <field name="name">helpdesk.hold.analysis.search</field>
+        <field name="model">helpdesk.hold.analysis</field>
+        <field name="arch" type="xml">
+            <search string="Hold Analysis">
+                <field name="ticket_id"/>
+                <field name="ticket_name"/>
+                <field name="hold_user_id"/>
+                <field name="tagged_team_id"/>
+                <field name="partner_id"/>
+                <field name="assigned_user_id"/>
+                <field name="hold_reasons_text"/>
+                
+                <filter string="Currently on Hold" name="currently_on_hold" 
+                        domain="[('is_currently_on_hold', '=', True)]"/>
+                <filter string="High Priority" name="high_priority" 
+                        domain="[('priority', 'in', ['2', '3'])]"/>
+                <filter string="My Holds" name="my_holds" 
+                        domain="[('hold_user_id', '=', uid)]"/>
+                <filter string="Last 30 Days" name="last_30_days"
+                        domain="[('hold_date', '>=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                
+                <separator/>
+                <filter string="Long Holds (>24h)" name="long_holds"
+                        domain="[('hold_duration_hours', '>', 24)]"/>
+                
+                <separator/>
+                <filter string="User Who Put on Hold" name="group_hold_user" context="{'group_by': 'hold_user_id'}"/>
+                <filter string="Tagged Team" name="group_tagged_team" context="{'group_by': 'tagged_team_id'}"/>
+                <filter string="Ticket Team" name="group_ticket_team" context="{'group_by': 'ticket_team_id'}"/>
+                <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                <filter string="Hold Status" name="group_hold_status" context="{'group_by': 'is_currently_on_hold'}"/>
+                <filter string="Hold Date" name="group_hold_date" context="{'group_by': 'hold_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Hold Analysis Action -->
+    <record id="action_helpdesk_hold_analysis" model="ir.actions.act_window">
+        <field name="name">On Hold Analysis Report</field>
+        <field name="res_model">helpdesk.hold.analysis</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="helpdesk_hold_analysis_search"/>
+        <field name="context">{'search_default_last_30_days': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hold data yet!
+            </p>
+            <p>
+                This report shows detailed analysis of tickets that have been put on hold,
+                including who put them on hold, duration, and reasons.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem 
+        id="menu_helpdesk_hold_analysis"
+        name="On Hold Analysis"
+        parent="helpdesk.helpdesk_ticket_report_menu_main"
+        action="action_helpdesk_hold_analysis"
+        sequence="45"/>
+
+</odoo>
