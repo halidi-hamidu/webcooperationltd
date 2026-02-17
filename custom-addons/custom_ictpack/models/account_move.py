@@ -116,7 +116,7 @@ class AccountMove(models.Model):
             return ['payment']
         elif self.is_purchase_document(include_receipts=True):
             return ['purchase']
-        elif self.payment_id or self.env.context.get('is_payment'):
+        elif self.payment_ids or self.env.context.get('is_payment'):
             return ['bank', 'cash']
         return ['general']
 

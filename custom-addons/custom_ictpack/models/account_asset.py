@@ -116,13 +116,14 @@ class AccountAsset(models.Model):
         # Format with leading zeros
         return f"{prefix}{str(next_number).zfill(padding)}"
     
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """Override create to auto-generate label if not provided."""
-        # Auto-generate label only if not provided and not a model
-        if not vals.get('asset_label') and vals.get('state') != 'model':
-            # Get prefix from model_id or from the record's label_prefix
-            prefix = 'AST'  # Default prefix
+        for vals in vals_list:
+            # Auto-generate label only if not provided and not a model
+            if not vals.get('asset_label') and vals.get('state') != 'model':
+                # Get prefix from model_id or from the record's label_prefix
+                prefix = 'AST'  # Default prefix
             
             if vals.get('model_id'):
                 # Get prefix from the asset model
@@ -135,4 +136,4 @@ class AccountAsset(models.Model):
             
             vals['asset_label'] = self.generate_asset_label(prefix=prefix)
         
-        return super(AccountAsset, self).create(vals)
+        return super(AccountAsset, self).create(vals_list)
