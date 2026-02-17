@@ -36,7 +36,9 @@ class HelpdeskTicketTagTransfer(models.Model):
         ('pending', 'Pending'),
         ('accept', 'Accept'),
         ('reject', 'Reject'),
-        ('hold', 'Hold')
+        ('hold', 'Hold'),
+        ('in_progress', 'In Progress'),
+        ('closed', 'Closed')
     ], string='Action', default='pending', required=True)
     
     response_time = fields.Datetime(
@@ -55,11 +57,21 @@ class HelpdeskTicketTagTransfer(models.Model):
         string='Put on Hold At',
         help='Date and time when the user put the assignment on hold'
     )
+    closed_at = fields.Datetime(
+        string='Closed At',
+        help='Date and time when the user closed/completed the assignment'
+    )
     response_duration = fields.Float(
         string='Response Duration (Hours)',
         compute='_compute_response_duration',
         store=True,
         help='Time taken to respond in hours'
+    )
+    resolution_time = fields.Float(
+        string='Resolution Time (Hours)',
+        compute='_compute_resolution_time',
+        store=True,
+        help='Time taken to close/resolve the assignment in hours'
     )
     
     # Additional information fields
@@ -145,6 +157,15 @@ class HelpdeskTicketTagTransfer(models.Model):
                 record.response_duration = delta.total_seconds() / 3600  # Convert to hours
             else:
                 record.response_duration = 0.0
+    
+    @api.depends('date_tagged', 'closed_at')
+    def _compute_resolution_time(self):
+        for record in self:
+            if record.date_tagged and record.closed_at:
+                delta = record.closed_at - record.date_tagged
+                record.resolution_time = delta.total_seconds() / 3600  # Convert to hours
+            else:
+                record.resolution_time = 0.0
 
     def action_accept(self):
         """Show confirmation dialog for accepting the transfer"""
@@ -211,18 +232,39 @@ class HelpdeskTicketTagTransfer(models.Model):
         }
 
     def action_hold(self):
-        """Open dialog to put the transfer on hold with reasons"""
+        """Show confirmation dialog before opening hold wizard"""
+        self.ensure_one()
+        
+        # Create confirmation wizard
+        confirmation_wizard = self.env['helpdesk.hold.confirmation.wizard'].create({
+            'tag_transfer_id': self.id,
+            'tagged_user_name': self.tagged_user_id.name,
+            'ticket_name': self.ticket_id.name,
+        })
+        
+        return {
+            'name': 'Confirm Hold Action',
+            'type': 'ir.actions.act_window',
+            'res_model': 'helpdesk.hold.confirmation.wizard',
+            'res_id': confirmation_wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': self.env.context,
+        }
+    
+    def action_close(self):
+        """Open wizard to close/complete the assignment"""
         self.ensure_one()
         
         # Create wizard record
-        wizard = self.env['helpdesk.ticket.hold.wizard'].create({
+        wizard = self.env['helpdesk.transfer.close.wizard'].create({
             'tag_transfer_id': self.id,
         })
         
         return {
-            'name': 'Put Assignment On Hold',
+            'name': 'Close Assignment',
             'type': 'ir.actions.act_window',
-            'res_model': 'helpdesk.ticket.hold.wizard',
+            'res_model': 'helpdesk.transfer.close.wizard',
             'res_id': wizard.id,
             'view_mode': 'form',
             'target': 'new',
@@ -247,13 +289,86 @@ class HelpdeskTicketTagTransfer(models.Model):
             'target': 'new',
             'context': self.env.context,
         }
+        
+    def action_unhold_ticket(self):
+        """Action to remove ticket from hold and resume SLA"""
+        self.ensure_one()
+        
+        # Find the 'In Progress' stage
+        in_progress_stage = self.env.ref('helpdesk.stage_in_progress', raise_if_not_found=False)
+        if not in_progress_stage:
+            # Try to find any stage with 'In Progress' or 'progress' in the name
+            in_progress_stage = self.env['helpdesk.stage'].search([
+                '|', ('name', 'ilike', 'progress'),
+                     ('name', 'ilike', 'in progress')
+            ], limit=1)
+        
+        if in_progress_stage:
+            # Update the ticket stage
+            self.ticket_id.write({'stage_id': in_progress_stage.id})
+            
+            # Update this tag transfer record to in_progress
+            self.write({'action': 'in_progress'})
+            
+            # Update any other tag transfer records that are on hold to in_progress
+            other_hold_transfers = self.ticket_id.tag_transfer_ids.filtered(
+                lambda t: t.action == 'hold' and t.id != self.id
+            )
+            if other_hold_transfers:
+                other_hold_transfers.write({'action': 'in_progress'})
+            
+            # End any active hold logs on the ticket
+            active_hold_logs = self.ticket_id.hold_time_logs.filtered(lambda log: not log.end_time)
+            if active_hold_logs:
+                now = fields.Datetime.now()
+                active_hold_logs.write({'end_time': now})
+                
+                # Recompute hold time
+                self.ticket_id._compute_total_hold_time()
+                
+                # Recalculate SLA status
+                self.ticket_id._compute_sla_status()
+            
+            # Post a message to the ticket
+            self.ticket_id.message_post(
+                body=f"⏯️ Ticket removed from hold by <b>{self.env.user.name}</b>. SLA timer resumed.",
+                subtype_xmlid="mail.mt_note"
+            )
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Action Completed',
+                    'message': 'Ticket has been removed from hold and SLA timer resumed. Page will refresh to show changes.',
+                    'type': 'success',
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.client',
+                        'tag': 'reload',
+                    }
+                }
+            }
+        else:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Warning',
+                    'message': 'Could not find In Progress stage to move ticket to.',
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
 
-    def name_get(self):
-        result = []
+
+
+    @api.depends('tagged_user_id', 'tagged_by_user_id')
+    def _compute_display_name(self):
         for record in self:
-            name = f"{record.tagged_user_id.name} tagged by {record.tagged_by_user_id.name}"
-            result.append((record.id, name))
-        return result
+            tagged = record.tagged_user_id.name or ''
+            tagged_by = record.tagged_by_user_id.name or ''
+            record.display_name = f"{tagged} tagged by {tagged_by}"
         
     @api.model
     def create_transfer_from_mention(self, ticket_id, tagged_user_id, tagged_by_user_id, message_id=None):

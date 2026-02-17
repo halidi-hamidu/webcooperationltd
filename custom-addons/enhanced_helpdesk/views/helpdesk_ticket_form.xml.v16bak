@@ -17,11 +17,11 @@
       
       <xpath expr="//field[@name='description']" position="before">
         <field name="is_on_hold" invisible="1" />
-        <div invisible="not is_on_hold">
+        <div attrs="{'invisible': [('is_on_hold', '=', False)]}">
           <label for="common_reasons_to_hold_ticket" string="Select That Apply" />
         </div>
-        <field name="common_reasons_to_hold_ticket" widget="many2many_checkboxes" string="Select Reasons" invisible="not is_on_hold"/>
-        <field name="reason_description_to_hold_ticket" invisible="not is_on_hold" placeholder="Briefly Describe" />
+        <field name="common_reasons_to_hold_ticket" widget="many2many_checkboxes" string="Select Reasons" attrs="{'invisible': [('is_on_hold', '=', False)]}"/>
+        <field name="reason_description_to_hold_ticket" attrs="{'invisible': [('is_on_hold', '=', False)]}" placeholder="Briefly Describe" />
       </xpath>
       
       <!-- Add label to Tags field -->
@@ -38,9 +38,9 @@
       <xpath expr="//field[@name='description']" position="after">
         <separator string="Ticket Transfer History"/>
         <field name="tag_transfer_ids" nolabel="1">
-          <list string="Tag Transfer Lines" create="false" edit="false" delete="false">
+          <tree string="Tag Transfer Lines" create="false" edit="false" delete="false">
             <field name="tagged_user_id" string="Tagged User"/>
-            <field name="team_id" string="Team"/>
+              <field name="team_id" string="Team"/>
             <field name="tagged_by_user_id" string="Tagged By"/>
             <field name="date_tagged" string="Date Tagged"/>
             <field name="action" string="Status" 
@@ -50,65 +50,68 @@
                    decoration-warning="action == 'hold'"
                    decoration-muted="action == 'closed'"
                    decoration-primary="action == 'in_progress'"/>
-            <field name="accepted_at" string="Accepted At" column_invisible="True" invisible="action != 'accept'"/>
-            <field name="rejected_at" string="Rejected At" column_invisible="True" invisible="action != 'reject'"/>
-            <field name="held_at" string="Put on Hold At" column_invisible="True" invisible="action != 'hold'"/>
+            <field name="accepted_at" string="Accepted At" attrs="{'invisible': [('action', '!=', 'accept')]}"/>
+            <field name="rejected_at" string="Rejected At" attrs="{'invisible': [('action', '!=', 'reject')]}"/>
+            <field name="held_at" string="Put on Hold At" attrs="{'invisible': [('action', '!=', 'hold')]}"/>
             <field name="closed_at" string="Closed At" optional="show"/>
             <field name="response_duration" string="Response Time (Hours)" widget="float_time" optional="hide"/>
-            <field name="resolution_time" string="Resolution Time (Hours)" widget="float_time" optional="show"/>
-            <field name="can_user_act" column_invisible="True"/>
+            <field name="resolution_time" string="Resolution Time (Hours)" widget="float_time"   optional="show"/>
+            <field name="can_user_act" invisible="1"/>
             <button name="action_accept" 
                     string="Accept" 
                     type="object" 
                     class="btn-success"
-                    invisible="action != 'pending' or not can_user_act"
+                    attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
                     groups="base.group_user"/>
             <button name="action_reject" 
                     string="Reject" 
                     type="object" 
                     class="btn-danger"
-                    invisible="action != 'pending' or not can_user_act"
+                    attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
                     groups="base.group_user"/>
             <button name="action_close" 
                     string="Close" 
                     type="object" 
                     class="btn-primary"
-                    invisible="action not in ('accept', 'in_progress') or not can_user_act or closed_at"/>
+                    attrs="{'invisible': ['|', '|', ('action', 'not in', ['accept', 'in_progress']), ('can_user_act', '=', False), ('closed_at', '!=', False)]}"/>
             <button name="action_hold" 
                     string="Put on Hold" 
                     type="object" 
                     class="btn-warning"
-                    invisible="action != 'pending' or not can_user_act"
+                    attrs="{'invisible': ['|', ('action', '!=', 'pending'), ('can_user_act', '=', False)]}"
                     groups="base.group_user"/>
             <button name="action_view_details" 
                     string="View Details" 
                     type="object" 
                     class="btn-info"
                     icon="fa-info-circle"
-                    invisible="action in ('pending', 'accept')"
+                    attrs="{'invisible': [('action', 'in', ['pending', 'accept'])]}"
                     groups="base.group_user"/>
             <button name="action_unhold_ticket"
                     string="Unhold"
                     type="object"
                     class="btn-success"
-                    invisible="action != 'hold'"
+                    attrs="{'invisible': [('action', '!=', 'hold')]}"
                     help="Remove ticket from hold and resume SLA timer"
                     groups="base.group_user"/>
-          </list>
+
+          </tree>
         </field>
         
+       
+        
         <!-- Add Hold Time Logs -->
-        <separator string="Hold Time Tracking" invisible="total_hold_time_hours == 0.0"/>
-        <group invisible="total_hold_time_hours == 0.0">
+        <separator string="Hold Time Tracking" attrs="{'invisible': [('total_hold_time_hours', '=', 0.0)]}"/>
+        <group attrs="{'invisible': [('total_hold_time_hours', '=', 0.0)]}">
           <field name="total_hold_time_hours" widget="float_time" readonly="1"/>
         </group>
-        <field name="hold_time_logs" nolabel="1" invisible="total_hold_time_hours == 0.0">
-          <list string="Hold Time Logs" create="false" edit="false" delete="false">
+        <field name="hold_time_logs" nolabel="1" attrs="{'invisible': [('total_hold_time_hours', '=', 0.0)]}">
+          <tree string="Hold Time Logs" create="false" edit="false" delete="false">
             <field name="start_time" string="Hold Started"/>
             <field name="end_time" string="Hold Ended"/>
             <field name="duration_hours" string="Duration (Hours)" widget="float_time"/>
             <field name="reason" string="Reason"/>
-          </list>
+          </tree>
         </field>
       </xpath>
 

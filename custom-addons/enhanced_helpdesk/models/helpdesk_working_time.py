@@ -33,9 +33,11 @@ class HelpdeskWorkingTime(models.Model):
             if record.hour_to < 0 or record.hour_to > 24:
                 raise models.ValidationError('Work end time must be between 0 and 24.')
 
-    def name_get(self):
-        result = []
+    @api.depends('name', 'day_of_week')
+    def _compute_display_name(self):
         for record in self:
-            name = f"{record.name} - {dict(record._fields['day_of_week'].selection)[record.day_of_week]}"
-            result.append((record.id, name))
-        return result
+            if record.name and record.day_of_week:
+                day_label = dict(record._fields['day_of_week'].selection).get(record.day_of_week, '')
+                record.display_name = f"{record.name} - {day_label}"
+            else:
+                record.display_name = record.name or ''

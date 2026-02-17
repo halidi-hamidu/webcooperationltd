@@ -1,7 +1,7 @@
 from odoo import models, fields
 
 class TicketHoldReason(models.Model):
-    _name = 'helpdesk.ticket.hold.reason'
+    _name = 'helpdesk.hold.reason'
     _description = 'Reason for Putting Ticket on Hold'
     _order = 'name'
 

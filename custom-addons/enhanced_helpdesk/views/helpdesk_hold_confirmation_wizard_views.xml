@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Hold Confirmation Wizard Form View -->
+    <record id="view_helpdesk_hold_confirmation_wizard_form" model="ir.ui.view">
+        <field name="name">helpdesk.hold.confirmation.wizard.form</field>
+        <field name="model">helpdesk.hold.confirmation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Hold Action" class="o_form_view o_hold_confirmation_dialog" noSaveDiscardButtons="1">
+                
+                <style>
+                    .o_hold_confirmation_dialog {
+                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                        border-radius: 12px;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                    }
+                    .confirmation-header {
+                        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 12px 12px 0 0;
+                        text-align: center;
+                        margin: -15px -15px 20px -15px;
+                    }
+                    .confirmation-icon {
+                        font-size: 48px;
+                        margin-bottom: 15px;
+                        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                    }
+                    .confirmation-title {
+                        font-size: 24px;
+                        font-weight: 600;
+                        margin: 0;
+                        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                    }
+                    .confirmation-subtitle {
+                        font-size: 14px;
+                        opacity: 0.9;
+                        margin: 5px 0 0 0;
+                    }
+                    .confirmation-content {
+                        padding: 30px 20px;
+                    }
+                    .confirmation-main-card {
+                        background: white;
+                        border-radius: 10px;
+                        border: none;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                        margin-bottom: 20px;
+                        overflow: hidden;
+                    }
+                    .confirmation-card-header {
+                        background: linear-gradient(90deg, #ffc107 0%, #ff8f00 100%);
+                        color: #333;
+                        padding: 15px 20px;
+                        font-weight: 600;
+                        border-bottom: 2px solid #ffecb3;
+                    }
+                    .confirmation-card-body {
+                        padding: 20px;
+                    }
+                    .user-info, .ticket-info {
+                        display: flex;
+                        align-items: center;
+                        margin: 10px 0;
+                        padding: 10px 15px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        border-left: 4px solid #007bff;
+                    }
+                    .info-icon {
+                        font-size: 20px;
+                        margin-right: 12px;
+                        color: #007bff;
+                    }
+                    .info-label {
+                        font-weight: 600;
+                        color: #495057;
+                        margin-right: 8px;
+                    }
+                    .info-value {
+                        color: #212529;
+                        font-weight: 500;
+                    }
+                    .next-steps-card {
+                        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                        border-radius: 10px;
+                        border: 1px solid #2196f3;
+                        margin-bottom: 20px;
+                    }
+                    .next-steps-header {
+                        background: #2196f3;
+                        color: white;
+                        padding: 12px 20px;
+                        font-weight: 600;
+                        font-size: 16px;
+                    }
+                    .next-steps-body {
+                        padding: 20px;
+                    }
+                    .steps-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .steps-list li {
+                        padding: 8px 0;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .steps-list li:before {
+                        content: '✓';
+                        background: #4caf50;
+                        color: white;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        font-weight: bold;
+                        margin-right: 12px;
+                        flex-shrink: 0;
+                    }
+                    .action-buttons {
+                        background: #f8f9fa;
+                        padding: 20px;
+                        margin: 20px -15px -15px -15px;
+                        border-radius: 0 0 12px 12px;
+                        text-align: center;
+                        border-top: 1px solid #dee2e6;
+                    }
+                    .btn-cancel-hold {
+                        background: #6c757d;
+                        border-color: #6c757d;
+                        color: white;
+                        padding: 12px 30px;
+                        border-radius: 25px;
+                        font-weight: 500;
+                        margin-right: 15px;
+                        transition: all 0.3s ease;
+                    }
+                    .btn-cancel-hold:hover {
+                        background: #5a6268;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    }
+                    .btn-confirm-hold {
+                        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                        border: none;
+                        color: white;
+                        padding: 12px 35px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+                    }
+                    .btn-confirm-hold:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+                    }
+                </style>
+
+                <!-- Header Section -->
+                <div class="confirmation-header">
+                    <div class="confirmation-icon">
+                        <i class="fa fa-pause-circle"></i>
+                    </div>
+                    <h2 class="confirmation-title">Confirmation</h2>
+                    <p class="confirmation-subtitle">Please confirm this action before proceeding</p>
+                </div>
+
+                <!-- Hidden fields -->
+                <field name="tag_transfer_id" invisible="1"/>
+                
+                <!-- Content Section -->
+                <div class="confirmation-content">
+                    <!-- Main Information Card -->
+                    <div class="confirmation-main-card">
+                        <div class="confirmation-card-header">
+                            <i class="fa fa-exclamation-triangle mr-2"></i>
+                            Are you sure you want to put this assignment on hold?
+                        </div>
+                        <div class="confirmation-card-body">
+                            <!-- <div class="user-info">
+                                <i class="fa fa-user info-icon"></i>
+                                <span class="info-label">Tagged User:</span>
+                                <span class="info-value">
+                                    <field name="tagged_user_name" readonly="1" nolabel="1"/>
+                                </span>
+                            </div> -->
+                            <div class="ticket-info">
+                                <i class="fa fa-ticket info-icon"></i>
+                                <span class="info-label">Ticket:</span>
+                                <span class="info-value">
+                                    <field name="ticket_name" readonly="1" nolabel="1"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Steps Information -->
+                    <div class="next-steps-card">
+                        <div class="next-steps-header">
+                            <i class="fa fa-info-circle mr-2"></i>
+                            What happens next?
+                        </div>
+                        <div class="next-steps-body">
+                            <ul class="steps-list">
+                                <li>You'll provide specific reasons for putting the assignment on hold</li>
+                                <li>The assignment status will be updated to "On Hold"</li>
+                                <li>All involved team members will be automatically notified</li>
+                                <li>The action will be logged with a timestamp for tracking</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button name="action_cancel_hold" 
+                            string="Cancel" 
+                            type="object"
+                            class="btn btn-cancel-hold" 
+                            special="cancel">
+                        <i class="fa fa-times mr-2"></i>Cancel
+                    </button>
+                    <button name="action_confirm_hold" 
+                            string="Yes, Proceed with Hold" 
+                            type="object" 
+                            class="btn btn-confirm-hold">
+                        <i class="fa fa-check mr-2"></i>Yes, Proceed with Hold
+                    </button>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>
