@@ -109,41 +109,42 @@ class AccountBudgetAllocation(models.Model):
         'budget.line', 'Destination Budget Line',
         domain="[('budget_analytic_state', '=', 'confirmed'), ('budget_analytic_id', '=?', budget_analytic_id)]")
 
-    @api.model
-    def create(self, values):
-        context = self.env.context
-        is_relocation = context.get('is_relocation', False)
+    @api.model_create_multi
+    def create(self, values_list):
+        for values in values_list:
+            context = self.env.context
+            is_relocation = context.get('is_relocation', False)
 
-        if is_relocation:
-            from_budget_line_id = context.get('budget_line_id', False)
-            to_budget_line_id = values['to_budget_line_id']
-            from_budget_line = self.env['budget.line'].browse(from_budget_line_id)
-            if from_budget_line.allocated_balance >= values['amount']:
-                ###### for credit move
-                values['budget_line_id'] = to_budget_line_id
-                values['to_budget_line_id'] = False
-                record = super().create(values)
-                ###### for debit move
-                values['budget_line_id'] = from_budget_line_id
-                values['to_budget_line_id'] = to_budget_line_id
-                values['amount'] = -values['amount']
-                record = super().create(values)
-                return record
-            else:
-                raise ValidationError(_("You can not Relocate more than Allocated Balance"))
-        else:
-            budget_line_id = context.get('budget_line_id', False)
-            if not budget_line_id:
-                budget_line_id = values['budget_line_id']
-            budget_line = self.env['budget.line'].browse(budget_line_id)
-
-            if budget_line:
-                if values['amount'] > budget_line.budget_balance:
-                    raise ValidationError(_("You can not Allocate more than Budgeted Amount"))
+            if is_relocation:
+                from_budget_line_id = context.get('budget_line_id', False)
+                to_budget_line_id = values['to_budget_line_id']
+                from_budget_line = self.env['budget.line'].browse(from_budget_line_id)
+                if from_budget_line.allocated_balance >= values['amount']:
+                    ###### for credit move
+                    values['budget_line_id'] = to_budget_line_id
+                    values['to_budget_line_id'] = False
+                    record = super().create(values)
+                    ###### for debit move
+                    values['budget_line_id'] = from_budget_line_id
+                    values['to_budget_line_id'] = to_budget_line_id
+                    values['amount'] = -values['amount']
+                    record = super().create(values)
+                    return record
                 else:
-                    return super().create(values)
+                    raise ValidationError(_("You can not Relocate more than Allocated Balance"))
             else:
-                raise ValidationError(_("No budget line selected!"))
+                budget_line_id = context.get('budget_line_id', False)
+                if not budget_line_id:
+                    budget_line_id = values['budget_line_id']
+                budget_line = self.env['budget.line'].browse(budget_line_id)
+
+                if budget_line:
+                    if values['amount'] > budget_line.budget_balance:
+                        raise ValidationError(_("You can not Allocate more than Budgeted Amount"))
+                    else:
+                        return super().create(values)
+                else:
+                    raise ValidationError(_("No budget line selected!"))
 
     def create_allocation(self):
         if self.id:
