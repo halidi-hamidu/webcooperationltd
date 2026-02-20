@@ -90,7 +90,7 @@
                                                     <strong class="text-primary-alt">PRO-FORMA</strong>
                                                 </span>
                                                 <span t-if="o.move_type == 'out_invoice' and o.state == 'draft'">
-                                                    <strong class="text-primary-alt">Draft Invoice</strong>
+                                                    <strong class="text-primary-alt">Invoice</strong>
                                                 </span>
                                                 <span t-if="o.move_type == 'out_invoice' and o.state == 'cancel'">
                                                     <strong class="text-primary-alt">Cancelled Invoice</strong>
@@ -109,9 +109,13 @@
                                                     </strong>
                                                 </span>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-6" t-if="o.state == 'draft'">
+                                                <span class="text-primary-alt" t-esc="o.id"/>
+                                            </div>
+                                            <div class="col-6" t-if="o.state != 'draft'">
                                                 <span class="text-primary-alt" t-field="o.name"/>
                                             </div>
+
                                         </div>
                                         <div class="row">
                                             <div class="col-6">

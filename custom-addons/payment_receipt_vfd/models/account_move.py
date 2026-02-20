@@ -17,6 +17,18 @@ class AccountMove(models.Model):
     def _get_exchange_rate(self, currency, date):
             rate = self.env['res.currency.rate'].search([('currency_id', '=', currency.id), ('name', '<=', date)], limit=1, order='name desc')
             return rate.rate if rate else 1
+    
+    def action_post(self):
+        res = super(AccountMove, self).action_post()
+        for rec in self:
+            if rec.move_type in ['out_invoice', 'out_refund'] and not rec.is_vfd_receipt_generated:
+                try:
+                    rec.generate_vfd_receipt()
+                except Exception as e:
+                    # Log the error but don't block the posting
+                    rec.message_post(body=f"VFD Receipt generation failed: {str(e)}")
+        return res
+
 
     def generate_vfd_receipt(self):
         for rec in self:
@@ -37,8 +49,8 @@ class AccountMove(models.Model):
                 "invoice_id": rec.id,
                 "receipt_id": rec.get_receipt_id(),
                 "receipt_no": receipt_no_,
-                "receipt_date": fields.date.today(),
-                "receipt_time": fields.datetime.now(),
+                "receipt_date": fields.Date.today(),
+                "receipt_time": fields.Datetime.now(),
                 "receipt_z_no": rec.get_z_number(),
                 "customer_name": rec.partner_id.name,
                 "customer_phone": rec.partner_id.phone,
