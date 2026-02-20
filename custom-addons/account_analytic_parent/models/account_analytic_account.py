@@ -93,9 +93,8 @@ class AccountAnalyticAccount(models.Model):
 
     @api.constrains("parent_id")
     def check_recursion(self):
-        for account in self:
-            if not super(AccountAnalyticAccount, account)._check_recursion():
-                raise UserError(_("You can not create recursive analytic accounts."))
+        if self._has_cycle():
+            raise UserError(_("You can not create recursive analytic accounts."))
         return True
 
     @api.onchange("parent_id")
@@ -129,21 +128,16 @@ class AccountAnalyticAccount(models.Model):
 
     @api.depends("complete_name", "code", "partner_id.commercial_partner_id.name")
     def _compute_display_name(self):
-        return super()._compute_display_name()
-
-    def name_get(self):
-        res = []
         for analytic in self:
             name = analytic.complete_name
             if analytic.code:
-                name = ("[%(code)s] %(name)s") % {"code": analytic.code, "name": name}
+                name = f"[{analytic.code}] {name}"
             if analytic.partner_id:
                 name = _("%(name)s - %(partner)s") % {
                     "name": name,
                     "partner": analytic.partner_id.commercial_partner_id.name,
                 }
-            res.append((analytic.id, name))
-        return res
+            analytic.display_name = name
 
     def write(self, vals):
         if self and "active" in vals and not vals["active"]:
