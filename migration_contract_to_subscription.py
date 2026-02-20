@@ -7,10 +7,8 @@ Usage:
     python migration_contract_to_subscription.py
 """
 
-import json
 import logging
 import sys
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import requests
@@ -77,6 +75,7 @@ class OdooJSONRPC:
     
     def call(self, endpoint: str, params: Dict) -> Any:
         """Make JSON-RPC call using authenticated session"""
+        self.last_error = None
         headers = {'Content-Type': 'application/json'}
         payload = {
             'jsonrpc': '2.0',
@@ -103,11 +102,15 @@ class OdooJSONRPC:
                     if self.authenticate():
                         # Retry the call
                         return self.call(endpoint, params)
-                logger.error(f"RPC Error: {result['error']}")
+                # Extract meaningful error message
+                error_msg = error_data.get('data', {}).get('message', '') or error_data.get('message', '')
+                self.last_error = error_msg
+                logger.debug(f"RPC Error: {error_msg}")
                 return None
             
             return result.get('result')
         except requests.exceptions.RequestException as e:
+            self.last_error = str(e)
             logger.error(f"Request error: {e}")
             return None
     
@@ -137,7 +140,12 @@ class OdooJSONRPC:
     def create(self, model: str, values: Dict) -> Optional[int]:
         """Create a record"""
         result = self.execute_kw(model, 'create', [[values]])
-        return result if isinstance(result, int) else None
+        if isinstance(result, int):
+            return result
+        # Odoo 17+ returns a list of IDs from create([vals])
+        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], int):
+            return result[0]
+        return None
     
     def write(self, model: str, record_id: int, values: Dict) -> bool:
         """Update a record"""
@@ -149,9 +157,10 @@ class ContractToSubscriptionMigration:
     """Migrate contracts from Odoo 16 to subscriptions in Odoo 19"""
     
     # Field mapping: Contract (v16) -> Sale Order (Subscription) (v19)
+    # Note: partner_id, invoice_partner_id, pricelist_id handled separately
+    # Note: tag_ids skipped (contract.tag vs sale.order tags are different models)
+    # Note: currency_id skipped (computed from pricelist on sale.order)
     CONTRACT_FIELD_MAP = {
-        'partner_id': 'partner_id',
-        'pricelist_id': 'pricelist_id',
         'payment_term_id': 'payment_term_id',
         'fiscal_position_id': 'fiscal_position_id',
         'user_id': 'user_id',
@@ -160,14 +169,12 @@ class ContractToSubscriptionMigration:
         'date_end': 'end_date',
         'code': 'client_order_ref',
         'note': 'note',
-        'tag_ids': 'tag_ids',
-        'business_line': 'business_line',
-        'currency_id': 'currency_id',
-        'invoice_partner_id': 'partner_invoice_id',
+        'business_line': 'business_line',       # custom field (custom_ictpack)
         'journal_id': 'journal_id',
         'recurring_next_date': 'next_invoice_date',
     }
     
+    # Note: recurring_invoice is a related/computed field on sale.order.line, cannot be set directly
     LINE_FIELD_MAP = {
         'name': 'name',
         'product_id': 'product_id',
@@ -176,16 +183,18 @@ class ContractToSubscriptionMigration:
         'discount': 'discount',
         'uom_id': 'product_uom_id',
         'sequence': 'sequence',
-        'recurring_invoice': 'recurring_invoice',
     }
     
-    # Recurrency mapping
+    # Recurrency mapping: contract recurring_rule_type -> subscription plan billing_period_unit
+    # Subscription plans only support: week, month, year
     RECURRING_RULE_TYPE_MAP = {
-        'daily': 'day',
+        'daily': 'week',            # No 'day' in subscription plans, fallback to week
         'weekly': 'week',
         'monthly': 'month',
+        'monthlylastday': 'month',
+        'quarterly': 'month',       # 3 months (interval adjusted in code)
+        'semesterly': 'month',      # 6 months (interval adjusted in code)
         'yearly': 'year',
-        'monthlylastday': 'month',  # Special handling needed
     }
     
     def __init__(self, source: OdooJSONRPC, target: OdooJSONRPC):
@@ -195,9 +204,9 @@ class ContractToSubscriptionMigration:
             'contracts_processed': 0,
             'contracts_migrated': 0,
             'contracts_failed': 0,
+            'contracts_skipped_no_partner': 0,
             'lines_migrated': 0,
-            'partners_created': 0,
-            'products_created': 0,
+            'lines_skipped_no_product': 0,
             'errors': []
         }
         # Mapping of old IDs to new IDs
@@ -205,6 +214,10 @@ class ContractToSubscriptionMigration:
         self.product_map = {}
         self.pricelist_map = {}
         self.contract_map = {}
+        # Default product for atras lines without product (PD032)
+        self.atras_default_product_id = None
+        # TZS pricelist for atras contracts
+        self.atras_pricelist_id = None
         
     def migrate(self, domain: Optional[List] = None, limit: Optional[int] = None):
         """Main migration process"""
@@ -234,7 +247,8 @@ class ContractToSubscriptionMigration:
                 'pricelist_id', 'journal_id', 'payment_term_id', 'fiscal_position_id',
                 'user_id', 'company_id', 'recurring_rule_type', 'recurring_interval',
                 'recurring_next_date', 'contract_type', 'invoice_partner_id',
-                'contract_line_ids', 'note'
+                'contract_line_ids', 'note', 'business_line', 'currency_id',
+                'is_terminated',
             ],
             limit=limit
         )
@@ -273,31 +287,20 @@ class ContractToSubscriptionMigration:
                 ]
                 target_partners = self.target.search_read('res.partner', target_domain, ['id'], limit=1)
             
-            # Strategy 2: Match by name + phone
-            if not target_partners and partner.get('name') and partner.get('phone'):
-                target_domain = [
-                    ('name', '=', partner['name']),
-                    ('phone', '=', partner['phone'])
-                ]
-                target_partners = self.target.search_read('res.partner', target_domain, ['id'], limit=1)
-            
-            # Strategy 3: Match by email (if unique and exists)
+            # Strategy 2: Match by email (if unique and exists)
             if not target_partners and partner.get('email'):
                 target_domain = [('email', '=', partner['email'])]
                 target_partners = self.target.search_read('res.partner', target_domain, ['id'], limit=1)
             
-            # Strategy 4: Match by reference code
+            # Strategy 3: Match by reference code
             if not target_partners and partner.get('ref'):
                 target_domain = [('ref', '=', partner['ref'])]
                 target_partners = self.target.search_read('res.partner', target_domain, ['id'], limit=1)
             
-            # Strategy 5: Match by name only (least reliable, skipped to avoid false matches)
-            # We'll let the create function handle this if no match is found
-            
             if target_partners:
                 self.partner_map[partner['id']] = target_partners[0]['id']
         
-        logger.info(f"Mapped {len(self.partner_map)} partners (will create missing ones during migration)")
+        logger.info(f"Mapped {len(self.partner_map)} partners (unmatched partners will be skipped)")
         
         # Map products by default_code or name
         source_products = self.source.search_read(
@@ -346,6 +349,32 @@ class ContractToSubscriptionMigration:
                 self.pricelist_map[pricelist['id']] = target_pricelists[0]['id']
         
         logger.info(f"Mapped {len(self.pricelist_map)} pricelists")
+        
+        # Resolve default atras product (PD032 - ATRAS Service Charges)
+        atras_products = self.target.search_read(
+            'product.product',
+            [('default_code', '=', 'PD032')],
+            ['id'],
+            limit=1
+        )
+        if atras_products:
+            self.atras_default_product_id = atras_products[0]['id']
+            logger.info(f"Resolved atras default product PD032 (ID: {self.atras_default_product_id})")
+        else:
+            logger.warning("⚠ Default atras product PD032 not found in target!")
+        
+        # Resolve TZS pricelist for atras contracts
+        tzs_pricelists = self.target.search_read(
+            'product.pricelist',
+            [('name', 'ilike', 'TZS')],
+            ['id', 'name'],
+            limit=1
+        )
+        if tzs_pricelists:
+            self.atras_pricelist_id = tzs_pricelists[0]['id']
+            logger.info(f"Resolved atras TZS pricelist: {tzs_pricelists[0]['name']} (ID: {self.atras_pricelist_id})")
+        else:
+            logger.warning("⚠ TZS pricelist not found in target for atras contracts!")
     
     def _migrate_contract(self, contract: Dict):
         """Migrate a single contract to subscription"""
@@ -355,10 +384,12 @@ class ContractToSubscriptionMigration:
         try:
             logger.info(f"\n[{self.stats['contracts_processed']}] Migrating: {contract_name}")
             
-            # Map or create partner
-            partner_id = self._map_partner(contract.get('partner_id'), create_if_missing=True)
+            # Map partner (must exist in target)
+            partner_id = self._map_partner(contract.get('partner_id'))
             if not partner_id:
-                raise ValueError(f"Failed to map/create partner: {contract.get('partner_id')}")
+                self.stats['contracts_skipped_no_partner'] += 1
+                logger.warning(f"  ⚠ Skipping contract: partner not found in target: {contract.get('partner_id')}")
+                return
             
             # Prepare subscription data
             order_vals = self._prepare_subscription_values(contract, partner_id)
@@ -366,14 +397,17 @@ class ContractToSubscriptionMigration:
             # Create sale order (subscription)
             order_id = self.target.create('sale.order', order_vals)
             if not order_id:
-                raise ValueError("Failed to create sale order")
+                raise ValueError(f"Failed to create sale order: {self.target.last_error}")
             
             logger.info(f"  ✓ Created sale order (subscription) ID: {order_id}")
             self.contract_map[contract['id']] = order_id
             
             # Migrate contract lines
             if contract.get('contract_line_ids'):
-                self._migrate_contract_lines(contract['contract_line_ids'], order_id)
+                self._migrate_contract_lines(
+                    contract['contract_line_ids'], order_id,
+                    business_line=contract.get('business_line')
+                )
             
             self.stats['contracts_migrated'] += 1
             logger.info(f"  ✓ Successfully migrated contract: {contract_name}")
@@ -388,27 +422,25 @@ class ContractToSubscriptionMigration:
         """Prepare sale order values with subscription data"""
         vals = {
             'partner_id': partner_id,
-            'is_subscription': True,  # Mark as subscription
+            # is_subscription is computed from plan_id, don't set it directly
         }
         
         # Map basic fields
         for source_field, target_field in self.CONTRACT_FIELD_MAP.items():
-            if source_field in ['partner_id', 'invoice_partner_id', 'pricelist_id']:  # Handle separately
-                continue
             
             value = contract.get(source_field)
             if value is not False and value is not None:
-                # Handle Many2one fields
+                # Handle Many2one fields (returned as [id, name])
                 if isinstance(value, list) and len(value) >= 2:
                     vals[target_field] = value[0]
-                # Handle Many2many fields
-                elif isinstance(value, list) and source_field in ['tag_ids']:
-                    vals[target_field] = [(6, 0, value)] if value else False
                 elif value:
                     vals[target_field] = value
         
         # Handle pricelist (needs mapping)
-        if contract.get('pricelist_id'):
+        # For atras contracts, force TZS pricelist
+        if contract.get('business_line') == 'atras' and self.atras_pricelist_id:
+            vals['pricelist_id'] = self.atras_pricelist_id
+        elif contract.get('pricelist_id'):
             pricelist_id = contract['pricelist_id'][0] if isinstance(contract['pricelist_id'], list) else contract['pricelist_id']
             if pricelist_id in self.pricelist_map:
                 vals['pricelist_id'] = self.pricelist_map[pricelist_id]
@@ -418,14 +450,18 @@ class ContractToSubscriptionMigration:
         # Handle recurrence
         if contract.get('recurring_rule_type'):
             rule_type = contract['recurring_rule_type']
-            vals['plan_id'] = self._get_or_create_recurrence_plan(
-                self.RECURRING_RULE_TYPE_MAP.get(rule_type, 'month'),
-                contract.get('recurring_interval', 1)
-            )
+            interval = contract.get('recurring_interval', 1)
+            plan_unit = self.RECURRING_RULE_TYPE_MAP.get(rule_type, 'month')
+            # Adjust interval for quarterly (3 months) and semesterly (6 months)
+            if rule_type == 'quarterly':
+                interval = interval * 3
+            elif rule_type == 'semesterly':
+                interval = interval * 6
+            vals['plan_id'] = self._get_or_create_recurrence_plan(plan_unit, interval)
         
         # Handle invoice partner (needs mapping)
         if contract.get('invoice_partner_id'):
-            invoice_partner = self._map_partner(contract['invoice_partner_id'], create_if_missing=True)
+            invoice_partner = self._map_partner(contract['invoice_partner_id'])
             if invoice_partner:
                 vals['partner_invoice_id'] = invoice_partner
         
@@ -435,7 +471,7 @@ class ContractToSubscriptionMigration:
         
         return vals
     
-    def _migrate_contract_lines(self, line_ids: List[int], order_id: int):
+    def _migrate_contract_lines(self, line_ids: List[int], order_id: int, business_line: str = None):
         """Migrate contract lines to sale order lines"""
         # Get contract lines
         lines = self.source.search_read(
@@ -443,8 +479,9 @@ class ContractToSubscriptionMigration:
             [('id', 'in', line_ids)],
             [
                 'name', 'product_id', 'quantity', 'price_unit', 'discount',
-                'uom_id', 'date_start', 'date_end', 'sequence', 'tax_id',
-                'recurring_rule_type', 'recurring_interval', 'display_type'
+                'uom_id', 'date_start', 'date_end', 'sequence',
+                'recurring_rule_type', 'recurring_interval', 'display_type',
+                'is_canceled',
             ]
         )
         
@@ -461,11 +498,8 @@ class ContractToSubscriptionMigration:
                         'sequence': line.get('sequence', 10),
                     }
                 else:
-                    # Map product
+                    # Map product if it exists
                     product_id = self._map_product(line.get('product_id'))
-                    if not product_id:
-                        logger.warning(f"    ⚠ Product not found: {line.get('product_id')}, skipping line")
-                        continue
                     
                     line_vals = {
                         'order_id': order_id,
@@ -480,19 +514,27 @@ class ContractToSubscriptionMigration:
                             elif value is not None:
                                 line_vals[target_field] = value
                     
-                    # Ensure product_id is set
-                    line_vals['product_id'] = product_id
+                    if product_id:
+                        # Product found in target, use it
+                        line_vals['product_id'] = product_id
+                    elif business_line == 'atras' and self.atras_default_product_id:
+                        # Atras contract — fallback to default PD032 product, keep description
+                        line_vals['product_id'] = self.atras_default_product_id
+                        line_vals['name'] = line.get('name') or 'ATRAS Service Charges'
+                        self.stats['lines_skipped_no_product'] += 1
+                        logger.info(f"    ℹ Atras line using PD032 default: {line.get('name', '')[:60]}")
+                    else:
+                        # No product match — create line with description only
+                        line_vals.pop('product_id', None)
+                        line_vals['name'] = line.get('name') or 'N/A'
+                        self.stats['lines_skipped_no_product'] += 1
+                        logger.info(f"    ℹ Line without product, using description: {line.get('name', '')[:60]}")
                     
                     # Set defaults if not present
                     if 'product_uom_qty' not in line_vals:
                         line_vals['product_uom_qty'] = 1.0
                     if 'sequence' not in line_vals:
                         line_vals['sequence'] = 10
-                    
-                    # Handle taxes
-                    if line.get('tax_id'):
-                        tax_ids = [tax[0] for tax in line['tax_id']] if isinstance(line['tax_id'][0], list) else line['tax_id']
-                        line_vals['tax_id'] = [(6, 0, tax_ids)]
                 
                 # Create sale order line
                 line_id = self.target.create('sale.order.line', line_vals)
@@ -504,8 +546,8 @@ class ContractToSubscriptionMigration:
             except Exception as e:
                 logger.error(f"    ✗ Error migrating line '{line.get('name')}': {e}")
     
-    def _map_partner(self, partner_value, create_if_missing: bool = True) -> Optional[int]:
-        """Map partner from source to target, creating if necessary"""
+    def _map_partner(self, partner_value) -> Optional[int]:
+        """Map partner from source to target (must already exist in target)"""
         if not partner_value:
             return None
         
@@ -515,111 +557,10 @@ class ContractToSubscriptionMigration:
         if partner_id in self.partner_map:
             return self.partner_map[partner_id]
         
-        # If not mapped and create_if_missing is True, fetch and create
-        if create_if_missing:
-            return self._create_partner_in_target(partner_id)
-        
         return None
     
-    def _create_partner_in_target(self, partner_id: int) -> Optional[int]:
-        """Fetch partner from source and create in target"""
-        try:
-            # Get full partner data from source
-            partners = self.source.search_read(
-                'res.partner',
-                [('id', '=', partner_id)],
-                ['name', 'email', 'phone', 'street', 'street2', 
-                 'city', 'zip', 'country_id', 'state_id', 'ref', 'vat',
-                 'company_type', 'is_company', 'parent_id'],
-                limit=1
-            )
-            
-            if not partners:
-                logger.warning(f"    ⚠ Partner {partner_id} not found in source")
-                return None
-            
-            partner = partners[0]
-            
-            # Before creating, do a final check if partner exists with name+phone
-            existing_partner = None
-            if partner.get('name') and partner.get('phone'):
-                existing = self.target.search_read(
-                    'res.partner',
-                    [('name', '=', partner['name']), ('phone', '=', partner['phone'])],
-                    ['id'],
-                    limit=1
-                )
-                if existing:
-                    existing_partner = existing[0]['id']
-                    self.partner_map[partner_id] = existing_partner
-                    logger.info(f"    ✓ Found existing partner: {partner['name']} (ID: {existing_partner})")
-                    return existing_partner
-            
-            # If still no match with phone
-            if not existing_partner and partner.get('name') and partner.get('phone'):
-                existing = self.target.search_read(
-                    'res.partner',
-                    [('name', '=', partner['name']), ('phone', '=', partner['phone'])],
-                    ['id'],
-                    limit=1
-                )
-                if existing:
-                    existing_partner = existing[0]['id']
-                    self.partner_map[partner_id] = existing_partner
-                    logger.info(f"    ✓ Found existing partner: {partner['name']} (ID: {existing_partner})")
-                    return existing_partner
-            
-            # Prepare partner values for target
-            partner_vals = {
-                'name': partner['name'],
-                'email': partner.get('email') or False,
-                'phone': partner.get('phone') or False,
-                'street': partner.get('street') or False,
-                'street2': partner.get('street2') or False,
-                'city': partner.get('city') or False,
-                'zip': partner.get('zip') or False,
-                'ref': partner.get('ref') or False,
-                'vat': partner.get('vat') or False,
-                'company_type': partner.get('company_type') or 'person',
-                'is_company': partner.get('is_company') or False,
-            }
-            
-            # Handle country
-            if partner.get('country_id'):
-                # Try to find country by name or code
-                country_name = partner['country_id'][1] if isinstance(partner['country_id'], list) else None
-                if country_name:
-                    countries = self.target.search_read(
-                        'res.country',
-                        [('name', '=', country_name)],
-                        ['id'],
-                        limit=1
-                    )
-                    if countries:
-                        partner_vals['country_id'] = countries[0]['id']
-            
-            # Handle parent company
-            if partner.get('parent_id'):
-                parent_target_id = self._map_partner(partner['parent_id'], create_if_missing=True)
-                if parent_target_id:
-                    partner_vals['parent_id'] = parent_target_id
-            
-            # Create partner in target
-            target_partner_id = self.target.create('res.partner', partner_vals)
-            
-            if target_partner_id:
-                self.partner_map[partner_id] = target_partner_id
-                self.stats['partners_created'] += 1
-                logger.info(f"    ✓ Created partner: {partner['name']} (ID: {target_partner_id})")
-                return target_partner_id
-            
-        except Exception as e:
-            logger.error(f"    ✗ Error creating partner {partner_id}: {e}")
-        
-        return None
-    
-    def _map_product(self, product_value, create_if_missing: bool = True) -> Optional[int]:
-        """Map product from source to target, creating if necessary"""
+    def _map_product(self, product_value) -> Optional[int]:
+        """Map product from source to target (must already exist in target)"""
         if not product_value:
             return None
         
@@ -628,71 +569,6 @@ class ContractToSubscriptionMigration:
         # Check if already mapped
         if product_id in self.product_map:
             return self.product_map[product_id]
-        
-        # If not mapped and create_if_missing is True, fetch and create
-        if create_if_missing:
-            return self._create_product_in_target(product_id)
-        
-        return None
-    
-    def _create_product_in_target(self, product_id: int) -> Optional[int]:
-        """Fetch product from source and create in target"""
-        try:
-            # Get full product data from source
-            products = self.source.search_read(
-                'product.product',
-                [('id', '=', product_id)],
-                ['name', 'default_code', 'list_price', 'standard_price',
-                 'type', 'uom_id', 'uom_po_id', 'description', 'description_sale',
-                 'sale_ok', 'purchase_ok', 'recurring_invoice'],
-                limit=1
-            )
-            
-            if not products:
-                logger.warning(f"    ⚠ Product {product_id} not found in source")
-                return None
-            
-            product = products[0]
-            
-            # Prepare product values for target
-            product_vals = {
-                'name': product['name'],
-                'default_code': product.get('default_code') or False,
-                'list_price': product.get('list_price', 0.0),
-                'standard_price': product.get('standard_price', 0.0),
-                'type': product.get('type', 'service'),
-                'description': product.get('description') or False,
-                'description_sale': product.get('description_sale') or False,
-                'sale_ok': product.get('sale_ok', True),
-                'purchase_ok': product.get('purchase_ok', False),
-                'recurring_invoice': product.get('recurring_invoice', True),
-            }
-            
-            # Handle UoM
-            if product.get('uom_id'):
-                uom_name = product['uom_id'][1] if isinstance(product['uom_id'], list) else None
-                if uom_name:
-                    uoms = self.target.search_read(
-                        'uom.uom',
-                        [('name', '=', uom_name)],
-                        ['id'],
-                        limit=1
-                    )
-                    if uoms:
-                        product_vals['uom_id'] = uoms[0]['id']
-                        product_vals['uom_po_id'] = uoms[0]['id']
-            
-            # Create product in target
-            target_product_id = self.target.create('product.product', product_vals)
-            
-            if target_product_id:
-                self.product_map[product_id] = target_product_id
-                self.stats['products_created'] += 1
-                logger.info(f"    ✓ Created product: {product['name']} (ID: {target_product_id})")
-                return target_product_id
-            
-        except Exception as e:
-            logger.error(f"    ✗ Error creating product {product_id}: {e}")
         
         return None
     
@@ -741,12 +617,6 @@ class ContractToSubscriptionMigration:
         
         return None
     
-    def _get_subscription_stage(self, contract: Dict) -> Optional[int]:
-        """Get appropriate subscription stage based on contract dates (not used for sale.order)"""
-        # Sale orders don't use stages like subscriptions did
-        # They use state (draft, sent, sale, done, cancel)
-        return None
-    
     def _print_statistics(self):
         """Print migration statistics"""
         logger.info("\n" + "=" * 60)
@@ -755,9 +625,9 @@ class ContractToSubscriptionMigration:
         logger.info(f"Contracts processed: {self.stats['contracts_processed']}")
         logger.info(f"Contracts migrated: {self.stats['contracts_migrated']}")
         logger.info(f"Contracts failed: {self.stats['contracts_failed']}")
-        logger.info(f"Lines migrated: {self.stats['lines_migrated']}")        
-        logger.info(f"Partners created: {self.stats['partners_created']}")
-        logger.info(f"Products created: {self.stats['products_created']}")        
+        logger.info(f"Contracts skipped (no partner): {self.stats['contracts_skipped_no_partner']}")
+        logger.info(f"Lines migrated: {self.stats['lines_migrated']}")
+        logger.info(f"Lines skipped (no product): {self.stats['lines_skipped_no_product']}")
         if self.stats['errors']:
             logger.info(f"\nErrors ({len(self.stats['errors'])}):")
             for error in self.stats['errors'][:10]:  # Show first 10 errors
@@ -777,18 +647,18 @@ def main():
     
     # Source: Odoo 16 with contract module
     SOURCE_CONFIG = {
-        'url': 'https://fundiapp.demo.ictpack.net',
-        'db': 'fundiapp',
-        'username': 'admin',
-        'password': '0000',
+        'url': 'https://odoo.ictpack.net',
+        'db': 'ictpack',
+        'username': 'innocent@ictpack.com',
+        'password': '1--_Ips2015-',
     }
     
     # Target: Odoo 19 with subscription module
     TARGET_CONFIG = {
         'url': 'http://127.0.0.1:8069',
-        'db': 'upgrade',
-        'username': 'admin',
-        'password': '0000',
+        'db': 'upgraded',
+        'username': 'innocent@ictpack.com',
+        'password': '1--_Ips2015-',
     }
     
     # Migration options
