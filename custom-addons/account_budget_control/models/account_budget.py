@@ -55,6 +55,25 @@ class BudgetLine(models.Model):
     budget_analytic_type = fields.Selection(related='budget_analytic_id.budget_type', string='Budget Type')
     allocation_lines = fields.One2many('account.budget.allocation', 'budget_line_id', 'Allocation Lines')
 
+    def _compute_display_name(self):
+        """Build a descriptive display name for budget lines so they are
+        distinguishable in dropdowns (e.g. on invoices).
+        Format: "Budget Name / Analytic Account(s) / Budgeted Amount"
+        """
+        project_plan, other_plans = self.env['account.analytic.plan']._get_all_plans()
+        all_plans = project_plan + other_plans
+        for line in self:
+            parts = [line.budget_analytic_id.name or _('New')]
+            # Append analytic account names from dynamic plan columns
+            for plan in all_plans:
+                fname = plan._column_name()
+                if fname in self._fields and line[fname] and line[fname].display_name:
+                    parts.append(str(line[fname].display_name))
+            # # Append budgeted amount for extra clarity
+            # if line.budget_amount:
+            #     parts.append(f"{line.budget_amount:,.2f} {line.currency_id.name or ''}")
+            line.display_name = ' / '.join(parts)
+
     @api.depends('budget_amount', 'allocated_amount')
     def _compute_budget_balance(self):
         for line in self:
