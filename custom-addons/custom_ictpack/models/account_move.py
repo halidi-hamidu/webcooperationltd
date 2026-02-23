@@ -123,8 +123,11 @@ class AccountMove(models.Model):
     @api.depends('name')
     def _compute_reference(self):
         for record in self:
-            invoice_number = record.name.replace("INV", "")
-            record.inv_reference = invoice_number.replace("/","")
+            if record.name:
+                invoice_number = record.name.replace("INV", "")
+                record.inv_reference = invoice_number.replace("/","")
+            else:
+                record.inv_reference = record.id
 
     @api.depends('amount_total')
     def _compute_text(self):
