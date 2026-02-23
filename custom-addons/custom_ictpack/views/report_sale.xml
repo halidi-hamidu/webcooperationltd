@@ -287,10 +287,17 @@
                             </tr>
                         </thead>
                         <tbody class="sale_tbody">
+                            <t t-if="not lines_to_report">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <em>No lines to display</em>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-else="">
+                                <t t-set="current_subtotal" t-value="0"/>
 
-                            <t t-set="current_subtotal" t-value="0"/>
-
-                            <t t-foreach="lines_to_report" t-as="line">
+                                <t t-foreach="lines_to_report" t-as="line">
 
                                 <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
                                    groups="account.group_show_line_subtotals_tax_excluded"/>
@@ -298,7 +305,20 @@
                                    groups="account.group_show_line_subtotals_tax_included"/>
 
                                 <tr t-att-class="'bg-200 fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''">
-                                    <t t-if="line.display_type == 'product'">
+                                    <t t-if="line.display_type == 'line_section'">
+                                        <td name="td_section_line" colspan="99">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <t t-set="current_section" t-value="line"/>
+                                        <t t-set="current_subtotal" t-value="0"/>
+                                    </t>
+                                    <t t-elif="line.display_type == 'line_note'">
+                                        <td name="td_note_line" colspan="99">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                    </t>
+                                    <t t-else="">
+                                        <!-- Regular product lines -->
                                         <td name="td_name">
                                             <span t-field="line.name"/>
                                         </td>
@@ -316,26 +336,13 @@
                                         <td name="td_taxes" class="text-end">
                                             <span t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))"/>
                                         </td>
-                                        <td t-if="not line.is_downpayment" name="td_subtotal"
-                                            class="text-end o_price_total">
+                                        <td name="td_subtotal" class="text-end o_price_total">
                                             <span t-field="line.price_subtotal"/>
-                                        </td>
-                                    </t>
-                                    <t t-elif="line.display_type == 'line_section'">
-                                        <td name="td_section_line" colspan="99">
-                                            <span t-field="line.name"/>
-                                        </td>
-                                        <t t-set="current_section" t-value="line"/>
-                                        <t t-set="current_subtotal" t-value="0"/>
-                                    </t>
-                                    <t t-elif="line.display_type == 'line_note'">
-                                        <td name="td_note_line" colspan="99">
-                                            <span t-field="line.name"/>
                                         </td>
                                     </t>
                                 </tr>
 
-                                <t t-if="current_section and (line_last or lines_to_report[line_index+1].display_type == 'line_section') and not line.is_downpayment">
+                                <t t-if="current_section and (line_last or lines_to_report[line_index+1].display_type == 'line_section')">
                                     <tr class="is-subtotal text-end">
                                         <td name="td_section_subtotal" colspan="99">
                                             <strong class="me-3">Subtotal</strong>
@@ -346,11 +353,11 @@
                                         </td>
                                     </tr>
                                 </t>
+                                </t>
                             </t>
                         </tbody>
-                    </table>
-
-                    <div class="clearfix" name="so_total_summary">
+                    </table>  
+                                      <div class="clearfix" name="so_total_summary">
                         <div id="total" class="row" name="total">
                             <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
                                 <table class="table table-sm">
