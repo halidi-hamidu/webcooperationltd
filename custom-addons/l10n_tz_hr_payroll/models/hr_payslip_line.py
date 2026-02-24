@@ -9,19 +9,17 @@ class HrPayslipLine(models.Model):
     _inherit = 'hr.payslip.line'
 
     def get_payslip_styling_dict(self):
+        """Override to apply custom styling for Tanzania payslip lines.
+
+        In Odoo 19, get_payslip_styling_dict returns a dict with keys:
+            'line_style', 'line_class', 'o_title'
+        Styling is now primarily driven by hr.salary.rule fields:
+            bold, italic, underline, space_above, indented, color, title
+        """
         result = super().get_payslip_styling_dict()
-        result.update({
-            'INSURANCE_RELIEF': {
-                'line_style': 'color:#00A09D;',
-                'line_class': 'o_subtotal o_border_bottom',
-            },
-            'STATUTORY_DED': {
-                'line_style': 'color:#00A09D;',
-                'line_class': 'o_subtotal o_border_bottom',
-            },
-            'OTHER_DED': {
-                'line_style': 'color:#00A09D;',
-                'line_class': 'o_subtotal o_border_bottom',
-            },
-        })
+        # Apply custom teal color for subtotal lines
+        subtotal_codes = ('INSURANCE_RELIEF', 'STATUTORY_DED', 'OTHER_DED')
+        if self.salary_rule_id.code in subtotal_codes:
+            result['line_style'] = 'color:#00A09D;'
+            result['line_class'] = result.get('line_class', '') + ' o_subtotal o_border_bottom'
         return result

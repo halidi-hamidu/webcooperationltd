@@ -24,8 +24,8 @@
         'data/hr_payslip_input_type_data.xml',
         'data/hr_rule_parameters_data.xml',
         'data/hr_salary_rule_data.xml',
-        # 'views/hr_contract_views.xml',
         'views/report_payslip_templates.xml',
+        'views/hr_payroll_report.xml',
     ],
     'license': 'OEEL-1',
 }
