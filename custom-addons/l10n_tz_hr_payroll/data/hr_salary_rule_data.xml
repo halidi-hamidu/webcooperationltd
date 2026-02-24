@@ -8,8 +8,8 @@
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = version.hra ]]>
-</field>
+result = version.hra
+        </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
     </record>
     <!--  GROSS  -->
@@ -34,7 +34,7 @@ result = categories['BASIC'] + categories['ALW']
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = result_rules['GROSS']['total'] - categories['TZ_UT_ALW'] - categories['RELIEF'] ]]>
+<![CDATA[result = result_rules['GROSS']['total'] - categories['TZ_UT_ALW'] - categories['RELIEF']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -48,13 +48,13 @@ result = categories['BASIC'] + categories['ALW']
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ pensionable = categories['BASIC'] + categories['ALW']
+<![CDATA[pensionable = categories['BASIC'] + categories['ALW']
 security_breakdown = payslip._rule_parameter('l10n_tz_security_breakdown')
 for amount, coefficient, default in security_breakdown:
     if pensionable > amount:
         result = pensionable * coefficient
     else:
-        result = default ]]>
+        result = default]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -68,14 +68,14 @@ for amount, coefficient, default in security_breakdown:
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ remaining_gross = result_rules['GROSS_TAXABLE']['total'] - result_rules['NSSF_EMPLOYEE_TIER_1']['total']
+<![CDATA[remaining_gross = result_rules['GROSS_TAXABLE']['total'] - result_rules['NSSF_EMPLOYEE_TIER_1']['total']
 income_tax_breakdown = payslip._rule_parameter('l10n_tz_income_tax_breakdown')
 income_tax = 0
 for min_amount, max_amount, coefficient, extra_amount in income_tax_breakdown:
     if remaining_gross >= min_amount and remaining_gross < max_amount:
         income_tax += ((remaining_gross - min_amount) * coefficient) + extra_amount
         break
-result = income_tax ]]>
+result = income_tax]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -89,14 +89,14 @@ result = income_tax ]]>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ insurance_breakdown = payslip._rule_parameter('l10n_tz_insurance_breakdown')
+<![CDATA[insurance_breakdown = payslip._rule_parameter('l10n_tz_insurance_breakdown')
 employee_contribution = payslip._rule_parameter('l10n_tz_nhif_employee_contribution')
 total_nhif = categories['BASIC'] * insurance_breakdown
 employer_contribution = total_nhif - employee_contribution
 if employer_contribution < employee_contribution:
     result = employee_contribution
 else:
-    result = employer_contribution ]]>
+    result = employer_contribution]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -109,11 +109,11 @@ else:
         <field name="sequence">50</field>
         <field name="condition_select">python</field>
         <field name="condition_python">
-<![CDATA[ result = result_rules['GROSS_TAXABLE']['total'] > 270000 ]]>
+<![CDATA[result = result_rules['GROSS_TAXABLE']['total'] > 270000]]>
 </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = result_rules['INCOME_TAX']['total'] + categories['RELIEF'] ]]>
+<![CDATA[result = result_rules['INCOME_TAX']['total'] + categories['RELIEF']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -125,7 +125,7 @@ else:
         <field name="sequence">53</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = result_rules['NSSF_EMPLOYEE_TIER_1']['total'] ]]>
+<![CDATA[result = result_rules['NSSF_EMPLOYEE_TIER_1']['total']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -137,11 +137,11 @@ else:
         <field name="sequence">53</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ heslb_breakdown = payslip._rule_parameter('l10n_tz_heslb_breakdown')
+<![CDATA[heslb_breakdown = payslip._rule_parameter('l10n_tz_heslb_breakdown')
 if version.x_heslb:
     result = categories['BASIC'] * heslb_breakdown
 else:
-    result = 0 ]]>
+    result = 0]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -153,7 +153,7 @@ else:
         <field name="sequence">61</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = result_rules['NHIF_AMOUNT_HIDDEN']['total'] ]]>
+<![CDATA[result = result_rules['NHIF_AMOUNT_HIDDEN']['total']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -165,7 +165,7 @@ else:
         <field name="sequence">60</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = result_rules['NSSF_EMPLOYEE_TIER_1']['total'] ]]>
+<![CDATA[result = result_rules['NSSF_EMPLOYEE_TIER_1']['total']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -177,11 +177,11 @@ else:
         <field name="sequence">54</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ sacco_saving = version.x_savings
+<![CDATA[sacco_saving = version.x_savings
 if sacco_saving and sacco_saving > 0:
     result = sacco_saving
 else:
-    result = 0 ]]>
+    result = 0]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -193,11 +193,11 @@ else:
         <field name="sequence">55</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ sacco_loan = version.x_sacco_loan
+<![CDATA[sacco_loan = version.x_sacco_loan
 if sacco_loan and sacco_loan > 0:
     result = sacco_loan
 else:
-    result = 0 ]]>
+    result = 0]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -209,11 +209,11 @@ else:
         <field name="sequence">56</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ manual_ded = version.x_manual_deductions
+<![CDATA[manual_ded = version.x_manual_deductions
 if manual_ded and manual_ded > 0:
     result = manual_ded
 else:
-    result = 0 ]]>
+    result = 0]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -225,8 +225,8 @@ else:
         <field name="sequence">62</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ wcf_breakdown = payslip._rule_parameter('l10n_tz_wcf_breakdown')
-result = result_rules['GROSS']['total'] * wcf_breakdown ]]>
+<![CDATA[wcf_breakdown = payslip._rule_parameter('l10n_tz_wcf_breakdown')
+result = result_rules['GROSS']['total'] * wcf_breakdown]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -238,8 +238,8 @@ result = result_rules['GROSS']['total'] * wcf_breakdown ]]>
         <field name="sequence">63</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ sdl_breakdown = payslip._rule_parameter('l10n_tz_sdl_breakdown')
-result = result_rules['GROSS']['total'] * sdl_breakdown ]]>
+<![CDATA[sdl_breakdown = payslip._rule_parameter('l10n_tz_sdl_breakdown')
+result = result_rules['GROSS']['total'] * sdl_breakdown]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -251,8 +251,8 @@ result = result_rules['GROSS']['total'] * sdl_breakdown ]]>
         <field name="sequence">52</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ employee_contribution = payslip._rule_parameter('l10n_tz_nhif_employee_contribution')
-result = employee_contribution ]]>
+<![CDATA[employee_contribution = payslip._rule_parameter('l10n_tz_nhif_employee_contribution')
+result = employee_contribution]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
@@ -264,11 +264,11 @@ result = employee_contribution ]]>
         <field name="sequence">57</field>
         <field name="condition_select">python</field>
         <field name="condition_python">
-<![CDATA[ result = categories['STATUTORY_DED'] ]]>
+<![CDATA[result = categories['STATUTORY_DED']]]>
 </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = categories['STATUTORY_DED'] ]]>
+<![CDATA[result = categories['STATUTORY_DED']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -280,11 +280,11 @@ result = employee_contribution ]]>
         <field name="sequence">58</field>
         <field name="condition_select">python</field>
         <field name="condition_python">
-<![CDATA[ result = categories['OTHER_DED'] ]]>
+<![CDATA[result = categories['OTHER_DED']]]>
 </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = categories['OTHER_DED'] ]]>
+<![CDATA[result = categories['OTHER_DED']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="False" />
@@ -296,11 +296,11 @@ result = employee_contribution ]]>
         <field name="sequence">59</field>
         <field name="condition_select">python</field>
         <field name="condition_python">
-<![CDATA[ result = categories['TOTAL_DED'] ]]>
+<![CDATA[result = categories['TOTAL_DED']]]>
 </field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">
-<![CDATA[ result = categories['TOTAL_DED'] ]]>
+<![CDATA[result = categories['TOTAL_DED']]]>
 </field>
         <field name="struct_id" ref="l10n_tz_hr_payroll.hr_payroll_structure_tz_employee_salary" />
         <field name="appears_on_payslip" eval="True" />
