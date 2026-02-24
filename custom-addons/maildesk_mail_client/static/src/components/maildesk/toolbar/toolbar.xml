@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Toolbar Component Template
+    Unified action buttons for bulk selection and single message modes
+-->
+<templates xml:space="preserve">
+
+    <t t-name="maildesk_mail_client.ToolbarComponent" owl="1">
+        <div class="maildesk-toolbar d-flex gap-2 align-items-center">
+            <!-- Bulk Mode Actions -->
+            <t t-if="isBulkMode">
+                <span class="text-muted me-2">
+                    <t t-out="props.selectedCount"/> selected
+                </span>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onArchive" data-tooltip="Archive selected messages to clear them from Inbox">
+                    <img src="/maildesk_mail_client/static/src/icons/archive.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Archive</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger" t-on-click="onDelete" data-tooltip="Move selected messages to Trash">
+                    <img src="/maildesk_mail_client/static/src/icons/trash.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Delete</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onMarkRead" data-tooltip="Mark selected messages as Read">
+                    <img src="/maildesk_mail_client/static/src/icons/read.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Read</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onMarkUnread" data-tooltip="Mark selected messages as Unread">
+                    <img src="/maildesk_mail_client/static/src/icons/unread.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Unread</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onMove" data-tooltip="Move selected messages to another folder">
+                    <img src="/maildesk_mail_client/static/src/icons/move.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Move</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-warning" t-on-click="onToggleStar" data-tooltip="Star/Unstar selected messages">
+                    <img src="/maildesk_mail_client/static/src/icons/starred.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-md-inline ms-1">Star</span>
+                </button>
+            </t>
+
+            <!-- Single Message Mode Actions -->
+            <t t-if="isSingleMode and hasMessage">
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onReply" data-tooltip="Reply to sender">
+                    <img src="/maildesk_mail_client/static/src/icons/reply.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-lg-inline ms-1">Reply</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onReplyAll" data-tooltip="Reply to all recipients">
+                    <img src="/maildesk_mail_client/static/src/icons/reply_all.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-lg-inline ms-1">Reply All</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onForward" data-tooltip="Forward this message">
+                    <img src="/maildesk_mail_client/static/src/icons/forward.svg" class="icon" loading="lazy"/>
+                    <span class="d-none d-lg-inline ms-1">Forward</span>
+                </button>
+
+                <div class="vr mx-1"/>
+
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onArchive" data-tooltip="Archive this message">
+                    <img src="/maildesk_mail_client/static/src/icons/archive.svg" class="icon" loading="lazy"/>
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger" t-on-click="onDelete" data-tooltip="Move to Trash">
+                    <img src="/maildesk_mail_client/static/src/icons/trash.svg" class="icon" loading="lazy"/>
+                </button>
+
+                <button class="btn btn-sm btn-outline-warning" t-on-click="onToggleStar" data-tooltip="Toggle star">
+                    <i t-att-class="isStarred ? 'fa fa-star' : 'fa fa-star-o'"/>
+                </button>
+
+                <div class="ms-auto d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary" t-on-click="onPrint" data-tooltip="Print email">
+                        <i class="fa fa-print"/>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-secondary" t-on-click="onTagAssign" data-tooltip="Assign tags">
+                        <img src="/maildesk_mail_client/static/src/icons/tags.svg" class="icon" loading="lazy"/>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-secondary" t-on-click="onMove" data-tooltip="Move to folder">
+                        <img src="/maildesk_mail_client/static/src/icons/move.svg" class="icon" loading="lazy"/>
+                    </button>
+
+                    <div class="vr mx-1"/>
+
+                    <!-- Debug Stats -->
+                    <DebugStats accountId="props.accountId" folderId="props.folderId"/>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

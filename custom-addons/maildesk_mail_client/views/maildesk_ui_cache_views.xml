@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+-->
+<odoo>
+    <!-- list View -->
+    <record id="view_maildesk_ui_cache_list" model="ir.ui.view">
+        <field name="name">maildesk.ui_cache.list</field>
+        <field name="model">maildesk.ui_cache</field>
+        <field name="arch" type="xml">
+            <list string="UI Cache" decoration-muted="json_cache_until &lt; context_today()">
+                <field name="id"/>
+                <field name="index_id"/>
+                <field name="json_cache_until"/>
+                <field name="cache_until"/>
+                <field name="json_cache" widget="json"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_maildesk_ui_cache_form" model="ir.ui.view">
+        <field name="name">maildesk.ui_cache.form</field>
+        <field name="model">maildesk.ui_cache</field>
+        <field name="arch" type="xml">
+            <form string="UI Cache Entry" create="false">
+                <sheet>
+                    <group name="main">
+                        <group name="cache_key" string="Cache Key">
+                            <field name="index_id" readonly="1"/>
+                        </group>
+                        <group name="metadata" string="Cache Metadata">
+                            <field name="json_cache_until" readonly="1"/>
+                            <field name="cache_until" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="content" string="Content Summary">
+                        <p>JSON cache size: <field name="json_cache" readonly="1" widget="binary_size"/></p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_maildesk_ui_cache" model="ir.actions.act_window">
+        <field name="name">UI Cache</field>
+        <field name="res_model">maildesk.ui_cache</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No cached entries
+            </p>
+            <p>
+                This cache is disposable and can be safely purged.
+                It will be regenerated on demand.
+            </p>
+        </field>
+    </record>
+
+    <!-- Server Action: Purge Expired -->
+    <record id="action_purge_expired_ui_cache" model="ir.actions.server">
+        <field name="name">Purge Expired</field>
+        <field name="model_id" ref="model_maildesk_ui_cache"/>
+        <field name="binding_model_id" ref="model_maildesk_ui_cache"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('maildesk_mail_client.group_mailbox_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.action_purge_expired()
+        </field>
+    </record>
+
+    <!-- Server Action: Purge All -->
+    <record id="action_purge_all_ui_cache" model="ir.actions.server">
+        <field name="name">Purge All Cache</field>
+        <field name="model_id" ref="model_maildesk_ui_cache"/>
+        <field name="binding_model_id" ref="model_maildesk_ui_cache"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('maildesk_mail_client.group_mailbox_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.action_purge_all()
+        </field>
+    </record>
+</odoo>

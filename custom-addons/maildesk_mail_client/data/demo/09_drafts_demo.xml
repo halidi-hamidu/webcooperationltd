@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+
+    <!-- Demo Draft Emails -->
+
+    <!-- Draft 1: Reply to Customer Inquiry -->
+    <record id="draft_support_reply_chairs" model="maildesk.draft">
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="subject">RE: Product Inquiry - Office Chairs</field>
+        <field name="body_html"><![CDATA[
+<p>Dear Willie,</p>
+<p>Following up on our previous conversation, I wanted to confirm that our bulk discount offer of 15% for 20-30 units is still available.</p>
+<p>Additionally, we now have a new ergonomic model that might interest you - the ErgoMax Pro Series with:</p>
+<ul>
+<li>Advanced lumbar support system</li>
+<li>Breathable mesh back</li>
+<li>3D adjustable armrests</li>
+<li>10-year warranty</li>
+</ul>
+<p>Would you like to schedule a demo?</p>
+<p>Best regards,<br/>Support Team</p>
+        ]]></field>
+        <field name="to_emails">willie.burke80@example.com</field>
+        <field name="cc_emails"></field>
+        <field name="bcc_emails"></field>
+        <field name="reply_to_message_id">&lt;msg101@customer.example.com&gt;</field>
+    </record>
+
+    <!-- Draft 2: Forward Information to Colleague -->
+    <record id="draft_sales_forward_lead" model="maildesk.draft">
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="subject">FWD: Partnership Opportunity</field>
+        <field name="body_html"><![CDATA[
+<p>Hi Team,</p>
+<p>This looks like a great opportunity - a chain of co-working spaces expanding to 10 cities!</p>
+<p>Can someone from sales follow up with Kim Snyder and prepare a partnership proposal?</p>
+<p>Priority: HIGH</p>
+<p>---------- Forwarded message ----------<br/>
+From: Kim Snyder &lt;kim.snyder96@example.com&gt;<br/>
+Date: [Date]<br/>
+Subject: Partnership Opportunity</p>
+<p>We represent a chain of co-working spaces and are looking for a reliable furniture supplier for our expansion plans across 10 cities...</p>
+<p>Best regards,<br/>Sales Team</p>
+        ]]></field>
+        <field name="to_emails">admin@example.com</field>
+        <field name="cc_emails"></field>
+        <field name="bcc_emails"></field>
+    </record>
+
+    <!-- Draft 3: New Outgoing Email to Vendor -->
+    <record id="draft_finance_vendor_payment" model="maildesk.draft">
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="subject">Payment Schedule for Q1 2025</field>
+        <field name="body_html"><![CDATA[
+<p>Dear Vendor Team,</p>
+<p>I am writing to confirm our payment schedule for Q1 2025:</p>
+<table border="1" cellpadding="5">
+<tr><th>Invoice Date</th><th>Amount</th><th>Payment Date</th></tr>
+<tr><td>Jan 31, 2025</td><td>$15,000</td><td>Feb 15, 2025</td></tr>
+<tr><td>Feb 28, 2025</td><td>$15,000</td><td>Mar 15, 2025</td></tr>
+<tr><td>Mar 31, 2025</td><td>$15,000</td><td>Apr 15, 2025</td></tr>
+</table>
+<p>Please confirm receipt of this schedule.</p>
+<p>Best regards,<br/>Finance Department</p>
+        ]]></field>
+        <field name="to_emails">vendor@supplies.example.com</field>
+        <field name="cc_emails"></field>
+        <field name="bcc_emails"></field>
+    </record>
+
+    <!-- Draft 4: HR New Employee Welcome -->
+    <record id="draft_hr_welcome_employee" model="maildesk.draft">
+        <field name="user_id" ref="base.user_demo"/>
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="subject">Welcome to YourCompany - Onboarding Information</field>
+        <field name="body_html"><![CDATA[
+<p>Dear Colleen,</p>
+<p>Welcome to YourCompany! We're excited to have you join our team.</p>
+<p>Here is your onboarding information for Monday:</p>
+<ul>
+<li><strong>Start Time:</strong> 9:00 AM</li>
+<li><strong>Location:</strong> Main Office, Reception Desk</li>
+<li><strong>What to Bring:</strong> Government ID, signed employment contract</li>
+</ul>
+<p>Your IT equipment will be ready and waiting for you. Our IT team will help you set up your laptop and accounts.</p>
+<p>Looking forward to seeing you!</p>
+<p>Best regards,<br/>HR Department</p>
+        ]]></field>
+        <field name="to_emails">colleen.diaz83@example.com</field>
+        <field name="cc_emails">admin@example.com</field>
+        <field name="bcc_emails"></field>
+        <field name="reply_to_message_id">&lt;msg702@newemployee.example.com&gt;</field>
+    </record>
+
+    <!-- Draft 5: Support Response with TAG -->
+    <record id="draft_support_urgent_delivery" model="maildesk.draft">
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="subject">RE: Urgent: Delivery Status Update</field>
+        <field name="body_html"><![CDATA[
+<p>Dear Edwin,</p>
+<p>I sincerely apologize for the delay. I've just checked with our logistics team.</p>
+<p>Your order SO-5678 is currently in transit and should arrive within the next 2 hours.</p>
+<p>Tracking number: TRK-1234567890</p>
+<p>I will personally monitor this delivery and call you once it's confirmed.</p>
+<p>Again, my apologies for the inconvenience.</p>
+<p>Best regards,<br/>Support Team</p>
+        ]]></field>
+        <field name="to_emails">edwin.hansen58@example.com</field>
+        <field name="cc_emails"></field>
+        <field name="bcc_emails"></field>
+        <field name="reply_to_message_id">&lt;msg104@partner.example.com&gt;</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_urgent')])]"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+# You may use this file only in accordance with the license terms.
+# For more information, visit: https://www.odoo.com/documentation/19.0/legal/licenses/licenses.html#odoo-proprietary-license
+-->
+<odoo noupdate="1">
+    <record id="ir_cron_maildesk_gmail_history_sync" model="ir.cron">
+        <field name="name">MailDesk Gmail Incremental Sync</field>
+        <field name="model_id" ref="model_mailbox_account"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_gmail_history_sync(batch=5, lease_ttl=300)</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_imap_inbox_sync" model="ir.cron">
+        <field name="name">MailDesk IMAP INBOX Sync</field>
+        <field name="model_id" ref="model_mailbox_account"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_imap_inbox_incremental_sync(batch=5, lease_ttl=300)</field>
+        <field name="interval_number">3</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_outlook_delta_sync" model="ir.cron">
+        <field name="name">MailDesk Outlook Delta Sync</field>
+        <field name="model_id" ref="model_mailbox_account"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_outlook_delta_sync(batch=5, lease_ttl=300)</field>
+        <field name="interval_number">3</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_ingest_scan" model="ir.cron">
+        <field name="name">MailDesk: Alias Scan (Index -&gt; Queue)</field>
+        <field name="model_id" ref="model_maildesk_ingest_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_scan_aliases()</field>
+        <field name="interval_number">3</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_ingest_process" model="ir.cron">
+        <field name="name">MailDesk: Process Queue (Odoo Import)</field>
+        <field name="model_id" ref="model_maildesk_ingest_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_import(batch=40, max_attempts=5)</field>
+        <field name="interval_number">3</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_bootstrap_folders" model="ir.cron">
+        <field name="name">MailDesk: Bootstrap Pending Folders</field>
+        <field name="model_id" ref="model_mailbox_folder"/>
+        <field name="state">code</field>
+        <field name="code">model.bootstrap_if_pending()</field>
+        <field name="interval_number">4</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+
+    <record id="ir_cron_maildesk_progressive_backfill" model="ir.cron">
+        <field name="name">MailDesk: Progressive Backfill</field>
+        <field name="model_id" ref="model_mailbox_folder"/>
+        <field name="state">code</field>
+        <field name="code">
+folders = model.search([
+    ('sync_state', '=', 'incremental'),
+    ('backfill_completed_at', '=', False),
+], limit=5, order='backfill_fetched_count ASC')
+
+if folders:
+    model.env.cr.execute("""
+        SELECT id FROM mailbox_folder
+        WHERE id IN %s
+        FOR UPDATE SKIP LOCKED
+    """, (tuple(folders.ids),))
+    locked_ids = [row[0] for row in model.env.cr.fetchall()]
+    locked_folders = model.browse(locked_ids)
+    locked_folders.progressive_backfill()
+        </field>
+        <field name="interval_number">4</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maildesk_cache_cleanup" model="ir.cron">
+        <field name="name">MailDesk: Clean Expired Cache</field>
+        <field name="model_id" ref="model_maildesk_ui_cache"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_cleanup_expired_cache()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

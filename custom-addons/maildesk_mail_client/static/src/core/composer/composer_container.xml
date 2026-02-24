@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+-->
+<!--
+    ComposerContainer Template
+    Pattern mirrored from Odoo Mail: odoo/addons/mail/static/src/core/common/chat_hub.xml
+-->
+<templates xml:space="preserve">
+    <t t-name="maildesk_mail_client.ComposerContainer" owl="1">
+        <!--
+            Container for all composer windows.
+            Positioned fixed at bottom-right, with flex layout for stacking.
+            Pattern: ChatHub uses grid/flex for window positioning.
+        -->
+        <div class="o-maildesk-composer-container">
+            <!-- FIX B: Global Overlay (Moved from ComposerWindow) -->
+            <div t-if="dragState.activeComposerId"
+                 style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; cursor: grabbing;"
+                 t-on-mousemove="_onMouseMove"
+                 t-on-mouseup="_onMouseUp"
+                 t-on-mouseleave="_onMouseUp"/>
+
+            <t t-foreach="composers" t-as="composer" t-key="composer.id">
+                <ComposerWindow
+                    composer="composer"
+                    onDragStart.bind="onDragStart"
+                    onDragEnd.bind="onDragEnd"
+                />
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+# You may use this file only in accordance with the license terms.
+# For more information, visit: https://www.odoo.com/documentation/19.0/legal/licenses/licenses.html#odoo-proprietary-license
+-->
+<odoo noupdate="1">
+
+        <!-- Rule for Regular Users: Strict access based on access_user_ids -->
+        <record id="rule_mailbox_account_user_strict" model="ir.rule">
+            <field name="name">Mailbox Account: Strict User Access</field>
+            <field name="model_id" ref="model_mailbox_account"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('access_user_ids', 'in', user.id)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Rule for Admins: Full access -->
+        <record id="rule_mailbox_account_admin_all" model="ir.rule">
+            <field name="name">Mailbox Account: Admin Full Access</field>
+            <field name="model_id" ref="model_mailbox_account"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_mailbox_folder_user_strict" model="ir.rule">
+            <field name="name">Mailbox Folder: Strict User Access</field>
+            <field name="model_id" ref="model_mailbox_folder"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_mailbox_folder_admin_all" model="ir.rule">
+            <field name="name">Mailbox Folder: Admin Full Access</field>
+            <field name="model_id" ref="model_mailbox_folder"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_maildesk_message_index_user_strict" model="ir.rule">
+            <field name="name">Message Index: Strict User Access</field>
+            <field name="model_id" ref="model_maildesk_message_index"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_maildesk_message_index_admin_all" model="ir.rule">
+            <field name="name">Message Index: Admin Full Access</field>
+            <field name="model_id" ref="model_maildesk_message_index"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_maildesk_ui_cache_user_strict" model="ir.rule">
+            <field name="name">UI Cache: Strict User Access</field>
+            <field name="model_id" ref="model_maildesk_ui_cache"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('index_id.account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_maildesk_ui_cache_admin_all" model="ir.rule">
+            <field name="name">UI Cache: Admin Full Access</field>
+            <field name="model_id" ref="model_maildesk_ui_cache"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_maildesk_email_state_user_strict" model="ir.rule">
+            <field name="name">Email State: Strict User Access</field>
+            <field name="model_id" ref="model_maildesk_email_state"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_maildesk_email_state_admin_all" model="ir.rule">
+            <field name="name">Email State: Admin Full Access</field>
+            <field name="model_id" ref="model_maildesk_email_state"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_maildesk_ingest_queue_user_strict" model="ir.rule">
+            <field name="name">Ingest Queue: Strict User Access</field>
+            <field name="model_id" ref="model_maildesk_ingest_queue"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('index_id.account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_maildesk_ingest_queue_admin_all" model="ir.rule">
+            <field name="name">Ingest Queue: Admin Full Access</field>
+            <field name="model_id" ref="model_maildesk_ingest_queue"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="rule_maildesk_draft_user_strict" model="ir.rule">
+            <field name="name">Draft: Strict User Access</field>
+            <field name="model_id" ref="model_maildesk_draft"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_user'))]"/>
+            <field name="domain_force">[('account_id.access_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="rule_maildesk_draft_admin_all" model="ir.rule">
+            <field name="name">Draft: Admin Full Access</field>
+            <field name="model_id" ref="model_maildesk_draft"/>
+            <field name="groups" eval="[(4, ref('group_mailbox_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+</odoo>

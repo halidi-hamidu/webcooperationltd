@@ -1,0 +1,2330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="msg_support_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">101</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg101@customer.example.com&gt;</field>
+        <field name="thread_id">th_support_chairs_001</field>
+        <field name="subject">Product Inquiry - Office Chairs</field>
+        <field name="from_addr">willie.burke80@example.com</field>
+        <field name="sender_display_name">Willie Burke</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=2)" />
+        <field name="preview">Hello, I am interested in purchasing office chairs for our new branch. Could you send me pricing information for quantities of 20-30 units?</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">102</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg102@client.example.com&gt;</field>
+        <field name="thread_id">th_support_install_001</field>
+        <field name="subject">Installation Support Request</field>
+        <field name="from_addr">douglas.fletcher51@example.com</field>
+        <field name="sender_display_name">Douglas Fletcher</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=1)" />
+        <field name="preview">Hello Support Team, we have an on-site installation scheduled next week for our recent delivery (Order SO-4588). Could you confirm technician availability and the expected installation timeline?</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">103</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg103@newclient.example.com&gt;</field>
+        <field name="subject">Warranty Information Needed</field>
+        <field name="from_addr">floyd.steward34@example.com</field>
+        <field name="sender_display_name">Floyd Steward</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=5)" />
+        <field name="preview">Hi Support Team, attached is our completed warranty registration sheet for Order #SO-1234. Could you confirm coverage and advise if anything is missing? Thanks!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_followup'), ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">104</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg104@partner.example.com&gt;</field>
+        <field name="subject">Urgent: Delivery Status Update</field>
+        <field name="from_addr">edwin.hansen58@example.com</field>
+        <field name="sender_display_name">Edwin Hansen</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=2)" />
+        <field name="preview">Our delivery was scheduled for today but we haven't received anything yet. Can you check the tracking status for order SO-5678?</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_urgent'), ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_sent_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">201</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;sent201@example.com&gt;</field>
+        <field name="thread_id">th_support_chairs_001</field>
+        <field name="in_reply_to">&lt;msg101@customer.example.com&gt;</field>
+        <field name="references_hdr">&lt;msg101@customer.example.com&gt;</field>
+        <field name="subject">RE: Product Inquiry - Office Chairs</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">willie.burke80@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=2, hours=2)" />
+        <field name="preview">Hello Willie, thank you for your interest. I've attached our bulk pricing catalog for office chairs. For 20-30 units, we can offer a 15% discount...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">301</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg301gmail@prospect.example.com&gt;</field>
+        <field name="thread_id">th_sales_rfq_001</field>
+        <field name="subject">Request for Quote - Modern Office Furniture</field>
+        <field name="from_addr">soham.palmer15@example.com</field>
+        <field name="sender_display_name">Soham Palmer</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=5)" />
+        <field name="preview">Good morning, we are renovating our headquarters and need modern office furniture for approximately 50 workstations. We would appreciate a quote...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">302</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg302gmail@corporate.example.com&gt;</field>
+        <field name="subject">Partnership Opportunity</field>
+        <field name="from_addr">kim.snyder96@example.com</field>
+        <field name="sender_display_name">Kim Snyder</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=3)" />
+        <field name="preview">We represent a chain of co-working spaces and are looking for a reliable furniture supplier for our expansion plans across 10 cities...</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">303</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg303gmail@client.example.com&gt;</field>
+        <field name="thread_id">th_sales_rfq_001</field>
+        <field name="in_reply_to">&lt;sent401gmail@example.com&gt;</field>
+        <field name="references_hdr">&lt;msg301gmail@prospect.example.com&gt; &lt;sent401gmail@example.com&gt;</field>
+        <field name="subject">Follow-up on Proposal Sent Last Week</field>
+        <field name="from_addr">edith.sanchez68@example.com</field>
+        <field name="sender_display_name">Edith Sanchez</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=1)" />
+        <field name="preview">Hi Sales Team, I reviewed the proposal you sent. Everything looks good but I have a few questions about the payment terms and delivery schedule...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_sent_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">401</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;sent401gmail@example.com&gt;</field>
+        <field name="thread_id">th_sales_rfq_001</field>
+        <field name="in_reply_to">&lt;msg301gmail@prospect.example.com&gt;</field>
+        <field name="references_hdr">&lt;msg301gmail@prospect.example.com&gt;</field>
+        <field name="subject">RE: Request for Quote - Modern Office Furniture</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">soham.palmer15@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=4)" />
+        <field name="preview">Dear Soham, thank you for reaching out! We have prepared a comprehensive quote for 50 modern workstations. Please find the attached proposal...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_info_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">501</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg501@contact.example.com&gt;</field>
+        <field name="subject">General Inquiry About Products</field>
+        <field name="from_addr">brandon.freeman55@example.com</field>
+        <field name="sender_display_name">Brandon Freeman</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=7)" />
+        <field name="preview">Hello, could you send me your product catalog? I'm interested in browsing your office furniture collection. Thank you!</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">502</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg502@website.example.com&gt;</field>
+        <field name="subject">Website Contact Form Submission</field>
+        <field name="from_addr">nicole.ford75@example.com</field>
+        <field name="sender_display_name">Nicole Ford</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=4)" />
+        <field name="preview">Message from contact form: I would like to know your business hours and store locations. Do you have showrooms I can visit?</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">503</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg503@inquiry.example.com&gt;</field>
+        <field name="subject">Sustainability Practices Question</field>
+        <field name="from_addr">toni.rhodes11@example.com</field>
+        <field name="sender_display_name">Toni Rhodes</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=2)" />
+        <field name="preview">Hello, our company is committed to sustainable procurement. Do you use eco-friendly materials? Can you provide certifications?</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">601</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg601gmail@internal.example.com&gt;</field>
+        <field name="thread_id">th_admin_meeting_001</field>
+        <field name="subject">Q1 Planning Meeting - Action Items</field>
+        <field name="from_addr">gordon.owens47@example.com</field>
+        <field name="sender_display_name">Gordon Owens</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=8)" />
+        <field name="preview">Hi Mitchell, here are the action items from yesterday's planning meeting: 1) Finalize budget allocations 2) Review vendor contracts...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">602</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg602gmail@vendor.example.com&gt;</field>
+        <field name="subject">Invoice #INV-2025-0142</field>
+        <field name="from_addr">theodore.gardner36@example.com</field>
+        <field name="sender_display_name">Theodore Gardner</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=6)" />
+        <field name="preview">Please find attached invoice for services rendered in December 2024. Payment due within 30 days. Total amount: $12,450.00...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">603</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg603gmail@team.example.com&gt;</field>
+        <field name="subject">Team Lunch This Friday</field>
+        <field name="from_addr">oscar.morgan11@example.com</field>
+        <field name="sender_display_name">Oscar Morgan</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=3)" />
+        <field name="preview">Hey Mitchell! Don't forget we're doing team lunch this Friday at 1 PM. I made a reservation at that new Italian place downtown...</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">701</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg701@employee.example.com&gt;</field>
+        <field name="thread_id">th_hr_vacation_001</field>
+        <field name="subject">Vacation Request - January 2025</field>
+        <field name="from_addr">tom.ruiz89@example.com</field>
+        <field name="sender_display_name">Tom Ruiz</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=10)" />
+        <field name="preview">Dear HR Team, I would like to request vacation leave from January 15-22, 2025. I have already coordinated with my team...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">702</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg702@newemployee.example.com&gt;</field>
+        <field name="subject">New Employee Onboarding Documents</field>
+        <field name="from_addr">colleen.diaz83@example.com</field>
+        <field name="sender_display_name">Colleen Diaz</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=5)" />
+        <field name="preview">Hi HR, I'm starting next Monday. Could you please send me the onboarding documentation and IT setup instructions? Thanks!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">703</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg703@payroll.example.com&gt;</field>
+        <field name="subject">Payroll Question - Benefits Enrollment</field>
+        <field name="from_addr">lorraine.douglas35@example.com</field>
+        <field name="sender_display_name">Lorraine Douglas</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=2)" />
+        <field name="preview">Hello, I have questions about the benefits enrollment process. The deadline is next week and I need clarification on health insurance options...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">801</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg801outlook@vendor.example.com&gt;</field>
+        <field name="thread_id">th_finance_payment_001</field>
+        <field name="subject">Payment Confirmation - Order #PO-8765</field>
+        <field name="from_addr">addison.olson28@example.com</field>
+        <field name="sender_display_name">Addison Olson</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=12)" />
+        <field name="preview">Dear Finance Team, this is to confirm that we received your payment of $25,000 for Purchase Order #PO-8765. Thank you...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_finance_002" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">802</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg802outlook@bank.example.com&gt;</field>
+        <field name="subject">Monthly Statement - December 2024</field>
+        <field name="from_addr">sandra.neal80@example.com</field>
+        <field name="sender_display_name">Sandra Neal</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=8)" />
+        <field name="preview">Your bank statement for December 2024 is now available. Please review the attached PDF. Total balance: $1,245,678.90...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_finance_003" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">803</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg803outlook@auditor.example.com&gt;</field>
+        <field name="subject">Urgent: Q4 Audit Documents Required</field>
+        <field name="from_addr">julie.richards84@example.com</field>
+        <field name="sender_display_name">Julie Richards</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=1)" />
+        <field name="preview">Hello Finance Team, we need the following documents for the Q4 audit by end of week: 1) General Ledger 2) Bank Reconciliations...</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_005" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">105</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg105@happyclient.example.com&gt;</field>
+        <field name="subject">Thank You - Excellent Service!</field>
+        <field name="from_addr">billy.fox45@example.com</field>
+        <field name="sender_display_name">Billy Fox</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=15)" />
+        <field name="preview">I just wanted to say thank you for the outstanding support. Your technician was professional and the installation went smoothly!</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_006" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">106</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg106@techissue.example.com&gt;</field>
+        <field name="subject">Desk Assembly Instructions Missing</field>
+        <field name="from_addr">jesse.brown74@example.com</field>
+        <field name="sender_display_name">Jesse Brown</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=4)" />
+        <field name="preview">We received our office desks but the assembly instructions are missing from the package. Could you email us a PDF copy?</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">304</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg304gmail@newlead.example.com&gt;</field>
+        <field name="subject">Bulk Order Inquiry - 100+ Units</field>
+        <field name="from_addr">ron.gibson76@example.com</field>
+        <field name="sender_display_name">Ron Gibson</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=12)" />
+        <field name="preview">We're opening 3 new branches and need 100+ chairs and desks. Can we schedule a call to discuss volume pricing and delivery timelines?</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_urgent'), ref('demo_tag_sales'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_sales_005" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">305</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg305gmail@oldclient.example.com&gt;</field>
+        <field name="subject">Order Completed - Feedback</field>
+        <field name="from_addr">travis.mendoza24@example.com</field>
+        <field name="sender_display_name">Travis Mendoza</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">Just wanted to let you know that our order was completed and everything looks great. We'll definitely order from you again!</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">604</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg604gmail@newsletter.example.com&gt;</field>
+        <field name="subject">Industry Weekly Newsletter - January 2025</field>
+        <field name="from_addr">newsletter@industry.example.com</field>
+        <field name="sender_display_name">Industry Insights</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=1)" />
+        <field name="preview">This week's top stories: 1) New office design trends for 2025 2) Sustainability in workplace furniture 3) Hybrid work solutions...</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_hr_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">704</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;sent704@example.com&gt;</field>
+        <field name="thread_id">th_hr_vacation_001</field>
+        <field name="in_reply_to">&lt;msg701@employee.example.com&gt;</field>
+        <field name="references_hdr">&lt;msg701@employee.example.com&gt;</field>
+        <field name="subject">RE: Vacation Request - January 2025</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">HR Department</field>
+        <field name="to_addrs">tom.ruiz89@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=9)" />
+        <field name="preview">Dear Tom, your vacation request for January 15-22 has been approved. Please remember to update your out-of-office status...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_hr'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_finance_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">804</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;sent804outlook@example.com&gt;</field>
+        <field name="thread_id">th_finance_payment_001</field>
+        <field name="in_reply_to">&lt;msg801outlook@vendor.example.com&gt;</field>
+        <field name="references_hdr">&lt;msg801outlook@vendor.example.com&gt;</field>
+        <field name="subject">RE: Payment Confirmation - Order #PO-8765</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Department</field>
+        <field name="to_addrs">addison.olson28@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=11)" />
+        <field name="preview">Thank you for the confirmation. Please send us the final invoice and we will process it for our records...</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_support_007" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">107</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg107@resolved.example.com&gt;</field>
+        <field name="subject">RESOLVED: Damaged Item Replacement</field>
+        <field name="from_addr">chester.reed79@example.com</field>
+        <field name="sender_display_name">Chester Reed</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">Thank you for sending the replacement chair so quickly. The issue has been completely resolved and we're very satisfied!</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_004" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Spam</field>
+        <field name="uid">504</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;spam504@marketing.suspicious.com&gt;</field>
+        <field name="subject">LIMITED TIME OFFER - 90% OFF FURNITURE!!!</field>
+        <field name="from_addr">promo@suspicious.com</field>
+        <field name="sender_display_name">Amazing Deals</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=3)" />
+        <field name="preview">CLICK HERE NOW!!! Get 90% off all furniture! Limited time only! Act fast before this deal expires!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+
+
+     Due to character limits, I'll create the continuation as a second write operation instead. Let me use a more efficient approach:
+
+
+    <record id="msg_support_0100" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">120</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg120imap@example0.com&gt;</field>
+        <field name="subject">Support Ticket #10000</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Support Ticket #10000. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_0101" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">121</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg121imap@example1.com&gt;</field>
+        <field name="thread_id">th_support_install_001</field>
+        <field name="in_reply_to">&lt;msg102@client.example.com&gt;</field>
+        <field name="references_hdr">&lt;msg102@client.example.com&gt;</field>
+        <field name="subject">RE: Installation Support Request</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">douglas.fletcher51@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=18)" />
+        <field name="preview">Thanks for reaching out. We can schedule an on-site technician on Wednesday or Thursday next week. Standard installation for a 12-desk setup takes ~3 hours; please confirm preferred date, access instructions, and a local contact person.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0102" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">122</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg122imap@example2.com&gt;</field>
+        <field name="subject">Support Ticket #10002</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Support Ticket #10002. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0103" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">123</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg123imap@example3.com&gt;</field>
+        <field name="subject">Support Ticket #10003</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">This is message content for Support Ticket #10003. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0104" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">124</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg124imap@example4.com&gt;</field>
+        <field name="subject">Support Ticket #10004</field>
+        <field name="from_addr">contact4@client4.example.com</field>
+        <field name="sender_display_name">External Contact 4</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for Support Ticket #10004. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_0105" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">125</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg125imap@example5.com&gt;</field>
+        <field name="subject">Response: Support Ticket #10005</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">contact5@client5.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Response: Support Ticket #10005. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0106" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">126</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg126imap@example6.com&gt;</field>
+        <field name="subject">Support Ticket #10006</field>
+        <field name="from_addr">contact6@client6.example.com</field>
+        <field name="sender_display_name">External Contact 6</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for Support Ticket #10006. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0107" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">127</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg127imap@example7.com&gt;</field>
+        <field name="subject">Support Ticket #10007</field>
+        <field name="from_addr">contact7@client7.example.com</field>
+        <field name="sender_display_name">External Contact 7</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">This is message content for Support Ticket #10007. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0108" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">128</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg128imap@example8.com&gt;</field>
+        <field name="subject">Support Ticket #10008</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">This is message content for Support Ticket #10008. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_0109" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">129</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg129imap@example9.com&gt;</field>
+        <field name="subject">Response: Support Ticket #10009</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">contact9@client9.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Response: Support Ticket #10009. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0110" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">130</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg130imap@example10.com&gt;</field>
+        <field name="subject">Support Ticket #10010</field>
+        <field name="from_addr">contact10@client10.example.com</field>
+        <field name="sender_display_name">External Contact 10</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for Support Ticket #10010. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0111" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">131</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg131imap@example11.com&gt;</field>
+        <field name="subject">Support Ticket #10011</field>
+        <field name="from_addr">contact11@client11.example.com</field>
+        <field name="sender_display_name">External Contact 11</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">This is message content for Support Ticket #10011. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0112" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">132</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg132imap@example12.com&gt;</field>
+        <field name="subject">Support Ticket #10012</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Support Ticket #10012. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_0113" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">133</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg133imap@example13.com&gt;</field>
+        <field name="subject">Response: Support Ticket #10013</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">contact13@client13.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">This is message content for Response: Support Ticket #10013. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0114" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">134</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg134imap@example14.com&gt;</field>
+        <field name="subject">Support Ticket #10014</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Support Ticket #10014. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0115" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">135</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg135imap@example15.com&gt;</field>
+        <field name="subject">Support Ticket #10015</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">This is message content for Support Ticket #10015. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_support_0116" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">136</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg136imap@example16.com&gt;</field>
+        <field name="subject">Support Ticket #10016</field>
+        <field name="from_addr">contact16@client16.example.com</field>
+        <field name="sender_display_name">External Contact 16</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for Support Ticket #10016. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_support_0117" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">137</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg137imap@example17.com&gt;</field>
+        <field name="subject">Response: Support Ticket #10017</field>
+        <field name="from_addr">support@example.com</field>
+        <field name="sender_display_name">Support Team</field>
+        <field name="to_addrs">contact17@client17.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Response: Support Ticket #10017. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0118" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">310</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg310gmail@example0.com&gt;</field>
+        <field name="subject">Inquiry: Order #20000</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Inquiry: Order #20000. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0119" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">311</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg311gmail@example1.com&gt;</field>
+        <field name="subject">Proposal Sent: Order #20001</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">contact1@client1.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=21)" />
+        <field name="preview">This is message content for Proposal Sent: Order #20001. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0120" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">312</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg312gmail@example2.com&gt;</field>
+        <field name="subject">Inquiry: Order #20002</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Inquiry: Order #20002. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_0121" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Spam</field>
+        <field name="uid">313</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg313gmail@example3.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 121!!!</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0122" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">314</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg314gmail@example4.com&gt;</field>
+        <field name="subject">Inquiry: Order #20004</field>
+        <field name="from_addr">contact4@client4.example.com</field>
+        <field name="sender_display_name">External Contact 4</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for Inquiry: Order #20004. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0123" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">315</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg315gmail@example5.com&gt;</field>
+        <field name="subject">Proposal Sent: Order #20005</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">contact5@client5.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Proposal Sent: Order #20005. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0124" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">316</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg316gmail@example6.com&gt;</field>
+        <field name="subject">Inquiry: Order #20006</field>
+        <field name="from_addr">contact6@client6.example.com</field>
+        <field name="sender_display_name">External Contact 6</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for Inquiry: Order #20006. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_0125" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Spam</field>
+        <field name="uid">317</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg317gmail@example7.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 125!!!</field>
+        <field name="from_addr">contact7@client7.example.com</field>
+        <field name="sender_display_name">External Contact 7</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0126" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">318</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg318gmail@example8.com&gt;</field>
+        <field name="subject">Inquiry: Order #20008</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">This is message content for Inquiry: Order #20008. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0127" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">319</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg319gmail@example9.com&gt;</field>
+        <field name="subject">Proposal Sent: Order #20009</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">contact9@client9.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Proposal Sent: Order #20009. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0128" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">320</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg320gmail@example10.com&gt;</field>
+        <field name="subject">Inquiry: Order #20010</field>
+        <field name="from_addr">contact10@client10.example.com</field>
+        <field name="sender_display_name">External Contact 10</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for Inquiry: Order #20010. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_0129" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Spam</field>
+        <field name="uid">321</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg321gmail@example11.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 129!!!</field>
+        <field name="from_addr">contact11@client11.example.com</field>
+        <field name="sender_display_name">External Contact 11</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0130" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">322</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg322gmail@example12.com&gt;</field>
+        <field name="subject">Inquiry: Order #20012</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Inquiry: Order #20012. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0131" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">323</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg323gmail@example13.com&gt;</field>
+        <field name="subject">Proposal Sent: Order #20013</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">contact13@client13.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">This is message content for Proposal Sent: Order #20013. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0132" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">324</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg324gmail@example14.com&gt;</field>
+        <field name="subject">Inquiry: Order #20014</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Inquiry: Order #20014. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_sales_0133" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Spam</field>
+        <field name="uid">325</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg325gmail@example15.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 133!!!</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0134" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">326</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg326gmail@example16.com&gt;</field>
+        <field name="subject">Inquiry: Order #20016</field>
+        <field name="from_addr">contact16@client16.example.com</field>
+        <field name="sender_display_name">External Contact 16</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for Inquiry: Order #20016. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_sales_0135" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">327</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg327gmail@example17.com&gt;</field>
+        <field name="subject">Proposal Sent: Order #20017</field>
+        <field name="from_addr">sales@example.com</field>
+        <field name="sender_display_name">Sales Team</field>
+        <field name="to_addrs">contact17@client17.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Proposal Sent: Order #20017. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0136" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">510</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg510imap@example0.com&gt;</field>
+        <field name="subject">Message 136</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Message 136. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0137" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">511</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg511imap@example1.com&gt;</field>
+        <field name="subject">RE: Message 137</field>
+        <field name="from_addr">info@example.com</field>
+        <field name="sender_display_name">Info Team</field>
+        <field name="to_addrs">contact1@client1.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=21)" />
+        <field name="preview">This is message content for RE: Message 137. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0138" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">512</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg512imap@example2.com&gt;</field>
+        <field name="subject">Message 138</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Message 138. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_info_0139" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Spam</field>
+        <field name="uid">513</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg513imap@example3.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 139!!!</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0140" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">514</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg514imap@example4.com&gt;</field>
+        <field name="subject">Message 140</field>
+        <field name="from_addr">contact4@client4.example.com</field>
+        <field name="sender_display_name">External Contact 4</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for Message 140. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0141" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">515</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg515imap@example5.com&gt;</field>
+        <field name="subject">Message 141</field>
+        <field name="from_addr">contact5@client5.example.com</field>
+        <field name="sender_display_name">External Contact 5</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Message 141. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0142" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">516</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg516imap@example6.com&gt;</field>
+        <field name="subject">RE: Message 142</field>
+        <field name="from_addr">info@example.com</field>
+        <field name="sender_display_name">Info Team</field>
+        <field name="to_addrs">contact6@client6.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for RE: Message 142. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_info_0143" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">517</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg517imap@example7.com&gt;</field>
+        <field name="subject">Message 143</field>
+        <field name="from_addr">contact7@client7.example.com</field>
+        <field name="sender_display_name">External Contact 7</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">This is message content for Message 143. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0144" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Spam</field>
+        <field name="uid">518</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg518imap@example8.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 144!!!</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0145" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">519</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg519imap@example9.com&gt;</field>
+        <field name="subject">Message 145</field>
+        <field name="from_addr">contact9@client9.example.com</field>
+        <field name="sender_display_name">External Contact 9</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Message 145. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0146" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">520</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg520imap@example10.com&gt;</field>
+        <field name="subject">Message 146</field>
+        <field name="from_addr">contact10@client10.example.com</field>
+        <field name="sender_display_name">External Contact 10</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for Message 146. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_info_0147" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">521</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg521imap@example11.com&gt;</field>
+        <field name="subject">RE: Message 147</field>
+        <field name="from_addr">info@example.com</field>
+        <field name="sender_display_name">Info Team</field>
+        <field name="to_addrs">contact11@client11.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">This is message content for RE: Message 147. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0148" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">522</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg522imap@example12.com&gt;</field>
+        <field name="subject">Message 148</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Message 148. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0149" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Spam</field>
+        <field name="uid">523</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg523imap@example13.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 149!!!</field>
+        <field name="from_addr">contact13@client13.example.com</field>
+        <field name="sender_display_name">External Contact 13</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0150" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">524</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg524imap@example14.com&gt;</field>
+        <field name="subject">Message 150</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Message 150. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_info_0151" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX</field>
+        <field name="uid">525</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg525imap@example15.com&gt;</field>
+        <field name="subject">Message 151</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">This is message content for Message 151. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0152" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">526</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg526imap@example16.com&gt;</field>
+        <field name="subject">RE: Message 152</field>
+        <field name="from_addr">info@example.com</field>
+        <field name="sender_display_name">Info Team</field>
+        <field name="to_addrs">contact16@client16.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for RE: Message 152. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_info_0153" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_info" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">527</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg527imap@example17.com&gt;</field>
+        <field name="subject">Message 153</field>
+        <field name="from_addr">contact17@client17.example.com</field>
+        <field name="sender_display_name">External Contact 17</field>
+        <field name="to_addrs">info@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Message 153. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0154" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">610</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg610gmail@example0.com&gt;</field>
+        <field name="subject">Message 154</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Message 154. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0155" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">611</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg611gmail@example1.com&gt;</field>
+        <field name="subject">RE: Message 155</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact1@client1.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=21)" />
+        <field name="preview">This is message content for RE: Message 155. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0156" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">612</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg612gmail@example2.com&gt;</field>
+        <field name="subject">Message 156</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Message 156. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_0157" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">613</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg613gmail@example3.com&gt;</field>
+        <field name="subject">Message 157</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">This is message content for Message 157. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0158" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">614</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg614gmail@example4.com&gt;</field>
+        <field name="subject">RE: Message 158</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact4@client4.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for RE: Message 158. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0159" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">615</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg615gmail@example5.com&gt;</field>
+        <field name="subject">Message 159</field>
+        <field name="from_addr">contact5@client5.example.com</field>
+        <field name="sender_display_name">External Contact 5</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Message 159. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0160" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">616</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg616gmail@example6.com&gt;</field>
+        <field name="subject">Message 160</field>
+        <field name="from_addr">contact6@client6.example.com</field>
+        <field name="sender_display_name">External Contact 6</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for Message 160. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_0161" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">617</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg617gmail@example7.com&gt;</field>
+        <field name="subject">RE: Message 161</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact7@client7.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">This is message content for RE: Message 161. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0162" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">618</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg618gmail@example8.com&gt;</field>
+        <field name="subject">Message 162</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">This is message content for Message 162. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0163" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">619</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg619gmail@example9.com&gt;</field>
+        <field name="subject">Message 163</field>
+        <field name="from_addr">contact9@client9.example.com</field>
+        <field name="sender_display_name">External Contact 9</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Message 163. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0164" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">620</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg620gmail@example10.com&gt;</field>
+        <field name="subject">RE: Message 164</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact10@client10.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for RE: Message 164. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_0165" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">621</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg621gmail@example11.com&gt;</field>
+        <field name="subject">Message 165</field>
+        <field name="from_addr">contact11@client11.example.com</field>
+        <field name="sender_display_name">External Contact 11</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">This is message content for Message 165. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0166" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">622</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg622gmail@example12.com&gt;</field>
+        <field name="subject">Message 166</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Message 166. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0167" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">623</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg623gmail@example13.com&gt;</field>
+        <field name="subject">RE: Message 167</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact13@client13.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">This is message content for RE: Message 167. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0168" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">624</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg624gmail@example14.com&gt;</field>
+        <field name="subject">Message 168</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Message 168. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal')])]" />
+    </record>
+    <record id="msg_admin_0169" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">INBOX</field>
+        <field name="uid">625</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg625gmail@example15.com&gt;</field>
+        <field name="subject">Message 169</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">This is message content for Message 169. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0170" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/Sent Mail</field>
+        <field name="uid">626</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg626gmail@example16.com&gt;</field>
+        <field name="subject">RE: Message 170</field>
+        <field name="from_addr">admin@example.com</field>
+        <field name="sender_display_name">Admin Team</field>
+        <field name="to_addrs">contact16@client16.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for RE: Message 170. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_admin_0171" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_admin" />
+        <field name="folder">[Gmail]/All Mail</field>
+        <field name="uid">627</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;msg627gmail@example17.com&gt;</field>
+        <field name="subject">Message 171</field>
+        <field name="from_addr">contact17@client17.example.com</field>
+        <field name="sender_display_name">External Contact 17</field>
+        <field name="to_addrs">admin@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Message 171. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0172" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">710</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg710imap@example0.com&gt;</field>
+        <field name="subject">Employee Request #30000</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Employee Request #30000. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0173" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">711</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg711imap@example1.com&gt;</field>
+        <field name="subject">Approved: Employee Request #30001</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">Hr Team</field>
+        <field name="to_addrs">contact1@client1.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=21)" />
+        <field name="preview">This is message content for Approved: Employee Request #30001. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0174" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">712</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg712imap@example2.com&gt;</field>
+        <field name="subject">Employee Request #30002</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Employee Request #30002. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_hr'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_hr_0175" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">713</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg713imap@example3.com&gt;</field>
+        <field name="subject">Employee Request #30003</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">This is message content for Employee Request #30003. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0176" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">714</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg714imap@example4.com&gt;</field>
+        <field name="subject">Employee Request #30004</field>
+        <field name="from_addr">contact4@client4.example.com</field>
+        <field name="sender_display_name">External Contact 4</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for Employee Request #30004. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0177" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">715</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg715imap@example5.com&gt;</field>
+        <field name="subject">Approved: Employee Request #30005</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">Hr Team</field>
+        <field name="to_addrs">contact5@client5.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Approved: Employee Request #30005. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0178" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">716</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg716imap@example6.com&gt;</field>
+        <field name="subject">Employee Request #30006</field>
+        <field name="from_addr">contact6@client6.example.com</field>
+        <field name="sender_display_name">External Contact 6</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for Employee Request #30006. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_hr'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_hr_0179" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">717</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg717imap@example7.com&gt;</field>
+        <field name="subject">Employee Request #30007</field>
+        <field name="from_addr">contact7@client7.example.com</field>
+        <field name="sender_display_name">External Contact 7</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">This is message content for Employee Request #30007. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0180" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">718</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg718imap@example8.com&gt;</field>
+        <field name="subject">Employee Request #30008</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">This is message content for Employee Request #30008. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0181" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">719</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg719imap@example9.com&gt;</field>
+        <field name="subject">Approved: Employee Request #30009</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">Hr Team</field>
+        <field name="to_addrs">contact9@client9.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Approved: Employee Request #30009. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0182" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">720</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg720imap@example10.com&gt;</field>
+        <field name="subject">Employee Request #30010</field>
+        <field name="from_addr">contact10@client10.example.com</field>
+        <field name="sender_display_name">External Contact 10</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for Employee Request #30010. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_hr'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_hr_0183" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">721</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg721imap@example11.com&gt;</field>
+        <field name="subject">Employee Request #30011</field>
+        <field name="from_addr">contact11@client11.example.com</field>
+        <field name="sender_display_name">External Contact 11</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">This is message content for Employee Request #30011. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0184" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">722</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg722imap@example12.com&gt;</field>
+        <field name="subject">Employee Request #30012</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Employee Request #30012. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0185" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">723</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg723imap@example13.com&gt;</field>
+        <field name="subject">Approved: Employee Request #30013</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">Hr Team</field>
+        <field name="to_addrs">contact13@client13.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">This is message content for Approved: Employee Request #30013. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0186" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Archive</field>
+        <field name="uid">724</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg724imap@example14.com&gt;</field>
+        <field name="subject">Employee Request #30014</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Employee Request #30014. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_hr'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_hr_0187" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Trash</field>
+        <field name="uid">725</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg725imap@example15.com&gt;</field>
+        <field name="subject">Employee Request #30015</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">This is message content for Employee Request #30015. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0188" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX</field>
+        <field name="uid">726</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg726imap@example16.com&gt;</field>
+        <field name="subject">Employee Request #30016</field>
+        <field name="from_addr">contact16@client16.example.com</field>
+        <field name="sender_display_name">External Contact 16</field>
+        <field name="to_addrs">hr@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for Employee Request #30016. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_hr_0189" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_hr" />
+        <field name="folder">INBOX.Sent</field>
+        <field name="uid">727</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;msg727imap@example17.com&gt;</field>
+        <field name="subject">Approved: Employee Request #30017</field>
+        <field name="from_addr">hr@example.com</field>
+        <field name="sender_display_name">Hr Team</field>
+        <field name="to_addrs">contact17@client17.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Approved: Employee Request #30017. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0190" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">810</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg810outlook@example0.com&gt;</field>
+        <field name="subject">Invoice #40000</field>
+        <field name="from_addr">contact0@client0.example.com</field>
+        <field name="sender_display_name">External Contact 0</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=20)" />
+        <field name="preview">This is message content for Invoice #40000. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0191" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">811</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg811outlook@example1.com&gt;</field>
+        <field name="subject">Payment Sent: Invoice #40001</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Team</field>
+        <field name="to_addrs">contact1@client1.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=21)" />
+        <field name="preview">This is message content for Payment Sent: Invoice #40001. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0192" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Archive</field>
+        <field name="uid">812</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg812outlook@example2.com&gt;</field>
+        <field name="subject">Invoice #40002</field>
+        <field name="from_addr">contact2@client2.example.com</field>
+        <field name="sender_display_name">External Contact 2</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=22)" />
+        <field name="preview">This is message content for Invoice #40002. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_finance_0193" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Junk Email</field>
+        <field name="uid">813</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg813outlook@example3.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 193!!!</field>
+        <field name="from_addr">contact3@client3.example.com</field>
+        <field name="sender_display_name">External Contact 3</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=23)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0194" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">814</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg814outlook@example4.com&gt;</field>
+        <field name="subject">Invoice #40004</field>
+        <field name="from_addr">contact4@client4.example.com</field>
+        <field name="sender_display_name">External Contact 4</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=24)" />
+        <field name="preview">This is message content for Invoice #40004. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0195" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">815</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg815outlook@example5.com&gt;</field>
+        <field name="subject">Payment Sent: Invoice #40005</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Team</field>
+        <field name="to_addrs">contact5@client5.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=25)" />
+        <field name="preview">This is message content for Payment Sent: Invoice #40005. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0196" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Archive</field>
+        <field name="uid">816</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg816outlook@example6.com&gt;</field>
+        <field name="subject">Invoice #40006</field>
+        <field name="from_addr">contact6@client6.example.com</field>
+        <field name="sender_display_name">External Contact 6</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=26)" />
+        <field name="preview">This is message content for Invoice #40006. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_finance_0197" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Junk Email</field>
+        <field name="uid">817</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg817outlook@example7.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 197!!!</field>
+        <field name="from_addr">contact7@client7.example.com</field>
+        <field name="sender_display_name">External Contact 7</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=27)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0198" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">818</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg818outlook@example8.com&gt;</field>
+        <field name="subject">Invoice #40008</field>
+        <field name="from_addr">contact8@client8.example.com</field>
+        <field name="sender_display_name">External Contact 8</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=28)" />
+        <field name="preview">This is message content for Invoice #40008. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0199" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">819</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg819outlook@example9.com&gt;</field>
+        <field name="subject">Payment Sent: Invoice #40009</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Team</field>
+        <field name="to_addrs">contact9@client9.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=29)" />
+        <field name="preview">This is message content for Payment Sent: Invoice #40009. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0200" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Archive</field>
+        <field name="uid">820</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg820outlook@example10.com&gt;</field>
+        <field name="subject">Invoice #40010</field>
+        <field name="from_addr">contact10@client10.example.com</field>
+        <field name="sender_display_name">External Contact 10</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=30)" />
+        <field name="preview">This is message content for Invoice #40010. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_finance_0201" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Junk Email</field>
+        <field name="uid">821</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg821outlook@example11.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 201!!!</field>
+        <field name="from_addr">contact11@client11.example.com</field>
+        <field name="sender_display_name">External Contact 11</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=31)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0202" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">822</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg822outlook@example12.com&gt;</field>
+        <field name="subject">Invoice #40012</field>
+        <field name="from_addr">contact12@client12.example.com</field>
+        <field name="sender_display_name">External Contact 12</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=32)" />
+        <field name="preview">This is message content for Invoice #40012. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0203" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">823</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg823outlook@example13.com&gt;</field>
+        <field name="subject">Payment Sent: Invoice #40013</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Team</field>
+        <field name="to_addrs">contact13@client13.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=33)" />
+        <field name="preview">This is message content for Payment Sent: Invoice #40013. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0204" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Archive</field>
+        <field name="uid">824</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg824outlook@example14.com&gt;</field>
+        <field name="subject">Invoice #40014</field>
+        <field name="from_addr">contact14@client14.example.com</field>
+        <field name="sender_display_name">External Contact 14</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=34)" />
+        <field name="preview">This is message content for Invoice #40014. This has been resolved.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_finance_0205" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Junk Email</field>
+        <field name="uid">825</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg825outlook@example15.com&gt;</field>
+        <field name="subject">SPAM ALERT - Win Free Items 205!!!</field>
+        <field name="from_addr">contact15@client15.example.com</field>
+        <field name="sender_display_name">External Contact 15</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=35)" />
+        <field name="preview">CLICK HERE NOW!!! Limited time offer! Act fast!!!</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0206" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">826</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg826outlook@example16.com&gt;</field>
+        <field name="subject">Invoice #40016</field>
+        <field name="from_addr">contact16@client16.example.com</field>
+        <field name="sender_display_name">External Contact 16</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=36)" />
+        <field name="preview">This is message content for Invoice #40016. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_finance_0207" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Sent Items</field>
+        <field name="uid">827</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;msg827outlook@example17.com&gt;</field>
+        <field name="subject">Payment Sent: Invoice #40017</field>
+        <field name="from_addr">finance@example.com</field>
+        <field name="sender_display_name">Finance Team</field>
+        <field name="to_addrs">contact17@client17.example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=37)" />
+        <field name="preview">This is message content for Payment Sent: Invoice #40017. Please review at your earliest convenience.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+    </record>
+    <record id="msg_pro_invoice_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_finance" />
+        <field name="folder">Inbox</field>
+        <field name="uid">2001</field>
+        <field name="provider">outlook</field>
+        <field name="message_id">&lt;inv2025001@vendor.example.com&gt;</field>
+        <field name="subject">Invoice #INV-2025-001 - Q1 Services</field>
+        <field name="from_addr">billing@vendor.example.com</field>
+        <field name="sender_display_name">Vendor Billing</field>
+        <field name="to_addrs">finance@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=2)" />
+        <field name="preview">Please find attached the invoice for Q1 services. Total amount: $12,500.00. Payment due within 30 days.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="True" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_finance'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_pro_design_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_support" />
+        <field name="folder">INBOX</field>
+        <field name="uid">2002</field>
+        <field name="provider">imap</field>
+        <field name="message_id">&lt;design2025001@studio.example.com&gt;</field>
+        <field name="subject">New Logo Concepts</field>
+        <field name="from_addr">alex@studio.example.com</field>
+        <field name="sender_display_name">Alex Designer</field>
+        <field name="to_addrs">support@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(hours=4)" />
+        <field name="preview">Here are the new logo concepts we discussed. Let me know which one you prefer.</field>
+        <field name="is_read" eval="True" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="True" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_internal'), ref('demo_tag_customer')])]" />
+    </record>
+    <record id="msg_pro_project_001" model="maildesk.message_index">
+        <field name="account_id" ref="demo_mailbox_sales" />
+        <field name="folder">INBOX</field>
+        <field name="uid">2003</field>
+        <field name="provider">gmail</field>
+        <field name="message_id">&lt;proj2025001@partner.example.com&gt;</field>
+        <field name="subject">Weekly Project Status</field>
+        <field name="from_addr">sarah.jones@partner.example.com</field>
+        <field name="sender_display_name">Sarah Jones</field>
+        <field name="to_addrs">sales@example.com</field>
+        <field name="date" eval="datetime.now() - relativedelta(days=1)" />
+        <field name="preview">Here is the status of our current milestones. We are on track for Q2 delivery.</field>
+        <field name="is_read" eval="False" />
+        <field name="is_starred" eval="False" />
+        <field name="has_attachments" eval="False" />
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_sales'), ref('demo_tag_customer')])]" />
+    </record>
+</odoo>

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+
+    <!-- Support Account Folders -->
+    <record id="demo_folder_support_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">INBOX</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_support_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Sent</field>
+        <field name="imap_name">INBOX.Sent</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_support_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">INBOX.Drafts</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_support_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Archive</field>
+        <field name="imap_name">INBOX.Archive</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_support_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Spam</field>
+        <field name="imap_name">INBOX.Spam</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_support_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_support"/>
+        <field name="name">Trash</field>
+        <field name="imap_name">INBOX.Trash</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <!-- Sales Account Folders (Gmail) -->
+    <record id="demo_folder_sales_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">INBOX</field>
+        <field name="gmail_label_id">INBOX</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_sales_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">Sent</field>
+        <field name="imap_name">[Gmail]/Sent Mail</field>
+        <field name="gmail_label_id">SENT</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_sales_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">[Gmail]/Drafts</field>
+        <field name="gmail_label_id">DRAFT</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_sales_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">All Mail</field>
+        <field name="imap_name">[Gmail]/All Mail</field>
+        <field name="gmail_label_id">ALL_MAIL</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_sales_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">Spam</field>
+        <field name="imap_name">[Gmail]/Spam</field>
+        <field name="gmail_label_id">SPAM</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_sales_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_sales"/>
+        <field name="name">Trash</field>
+        <field name="imap_name">[Gmail]/Trash</field>
+        <field name="gmail_label_id">TRASH</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <!-- Info Account Folders -->
+    <record id="demo_folder_info_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">INBOX</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_info_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Sent</field>
+        <field name="imap_name">INBOX.Sent</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_info_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">INBOX.Drafts</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_info_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Archive</field>
+        <field name="imap_name">INBOX.Archive</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_info_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Spam</field>
+        <field name="imap_name">INBOX.Spam</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_info_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_info"/>
+        <field name="name">Trash</field>
+        <field name="imap_name">INBOX.Trash</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <!-- Admin Account Folders (Gmail) -->
+    <record id="demo_folder_admin_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">INBOX</field>
+        <field name="gmail_label_id">INBOX</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_admin_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">Sent</field>
+        <field name="imap_name">[Gmail]/Sent Mail</field>
+        <field name="gmail_label_id">SENT</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_admin_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">[Gmail]/Drafts</field>
+        <field name="gmail_label_id">DRAFT</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_admin_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">All Mail</field>
+        <field name="imap_name">[Gmail]/All Mail</field>
+        <field name="gmail_label_id">ALL_MAIL</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_admin_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">Spam</field>
+        <field name="imap_name">[Gmail]/Spam</field>
+        <field name="gmail_label_id">SPAM</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_admin_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_admin"/>
+        <field name="name">Trash</field>
+        <field name="imap_name">[Gmail]/Trash</field>
+        <field name="gmail_label_id">TRASH</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <!-- HR Account Folders -->
+    <record id="demo_folder_hr_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">INBOX</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_hr_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Sent</field>
+        <field name="imap_name">INBOX.Sent</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_hr_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">INBOX.Drafts</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_hr_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Archive</field>
+        <field name="imap_name">INBOX.Archive</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_hr_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Spam</field>
+        <field name="imap_name">INBOX.Spam</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_hr_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_hr"/>
+        <field name="name">Trash</field>
+        <field name="imap_name">INBOX.Trash</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <!-- Finance Account Folders (Outlook) -->
+    <record id="demo_folder_finance_inbox" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Inbox</field>
+        <field name="imap_name">Inbox</field>
+        <field name="outlook_graph_id">inbox</field>
+        <field name="folder_type">inbox</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">10</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_finance_sent" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Sent Items</field>
+        <field name="imap_name">Sent Items</field>
+        <field name="outlook_graph_id">sentitems</field>
+        <field name="folder_type">sent</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">20</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_finance_drafts" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Drafts</field>
+        <field name="imap_name">Drafts</field>
+        <field name="outlook_graph_id">drafts</field>
+        <field name="folder_type">drafts</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">30</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_finance_archive" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Archive</field>
+        <field name="imap_name">Archive</field>
+        <field name="outlook_graph_id">archive</field>
+        <field name="folder_type">archive</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">40</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_finance_spam" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Junk Email</field>
+        <field name="imap_name">Junk Email</field>
+        <field name="outlook_graph_id">junkemail</field>
+        <field name="folder_type">spam</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">50</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+    <record id="demo_folder_finance_trash" model="mailbox.folder">
+        <field name="account_id" ref="demo_mailbox_finance"/>
+        <field name="name">Deleted Items</field>
+        <field name="imap_name">Deleted Items</field>
+        <field name="outlook_graph_id">deleteditems</field>
+        <field name="folder_type">trash</field>
+        <field name="sync_state">incremental</field>
+        <field name="backfill_completed_at" eval="datetime.now() - relativedelta(days=14)"/>
+        <field name="sequence">60</field>
+
+        <field name="is_visible" eval="True"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+
+ComposerBubble Template
+Pattern mirrored from Odoo Mail: chat_bubble.xml
+-->
+<templates xml:space="preserve">
+<t t-name="maildesk_mail_client.ComposerBubble" owl="1">
+
+    <div t-ref="root"
+         class="o-maildesk-composer-bubble o-mail-ChatBubble"
+         t-on-click="onClick"
+         t-on-mouseenter="onMouseEnter"
+         t-on-mouseleave="onMouseLeave">
+
+        <!-- Bubble Icon -->
+        <div class="o-bubble-icon d-flex align-items-center justify-content-center">
+            <div class="maildesk-icon-envelope"/>
+        </div>
+
+        <!-- Hover Preview — Pattern mirrored from Odoo Mail: ChatBubble dropdown -->
+        <div t-if="isHovered"
+             class="o-bubble-preview shadow rounded"
+             t-on-mouseenter="onPreviewEnter"
+             t-on-mouseleave="onPreviewLeave">
+
+            <!-- Header with Close Button -->
+            <div class="o-bubble-preview-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold small flex-grow-1 text-truncate" t-out="title"/>
+                <button class="btn btn-sm btn-link p-0 text-danger o-bubble-close ms-2"
+                        t-on-click.stop.prevent="onClose"
+                        title="Close">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+
+            <!-- Content with Line Clamping -->
+            <div class="o-bubble-preview-body small text-muted">
+                <div class="d-flex">
+                    <span class="fw-bold me-1 flex-shrink-0">To:</span>
+                    <span class="text-truncate" t-out="previewRecipients"/>
+                </div>
+                <div class="d-flex">
+                    <span class="fw-bold me-1 flex-shrink-0">Subject:</span>
+                    <span class="text-truncate" t-out="previewSubject"/>
+                </div>
+                <!-- Body with 3-line clamp (CSS applied in SCSS) -->
+                <div class="mt-1 fst-italic o-body-clamp" t-out="previewBody"/>
+            </div>
+        </div>
+
+    </div>
+
+</t>
+</templates>

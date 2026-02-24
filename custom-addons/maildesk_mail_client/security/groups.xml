@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+# You may use this file only in accordance with the license terms.
+# For more information, visit: https://www.odoo.com/documentation/19.0/legal/licenses/licenses.html#odoo-proprietary-license
+-->
+<odoo noupdate="1">
+  <record id="module_category_maildesk" model="ir.module.category">
+    <field name="name">MailDesk</field>
+    <field name="description">Manage MailDesk access rights.</field>
+    <field name="sequence">10</field>
+  </record>
+
+  <record id="privilege_maildesk" model="res.groups.privilege">
+    <field name="name">MailDesk</field>
+    <field name="category_id" ref="maildesk_mail_client.module_category_maildesk"/>
+  </record>
+
+  <record id="group_mailbox_user" model="res.groups">
+    <field name="name">User</field>
+    <field name="privilege_id" ref="privilege_maildesk"/>
+  </record>
+
+  <record id="group_mailbox_admin" model="res.groups">
+    <field name="name">Administrator</field>
+    <field name="privilege_id" ref="privilege_maildesk"/>
+    <field name="implied_ids" eval="[(4, ref('maildesk_mail_client.group_mailbox_user'))]" />
+  </record>
+</odoo>

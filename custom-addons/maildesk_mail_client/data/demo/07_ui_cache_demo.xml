@@ -1,0 +1,1063 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+
+    <!-- CRITICAL: json_cache uses CDATA to preserve real HTML -->
+
+    <!-- Attachments must be defined BEFORE ui_cache records that reference them via ref() -->
+
+    <!-- PDF: Pricing Catalog -->
+    <record id="attach_pricing_catalog" model="ir.attachment">
+        <field name="name">Office_Chairs_Pricing_Catalog.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="product/static/demo/customizable_desk_document.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_support_sent_001"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="index_content"></field>
+        <field name="description">Bulk pricing catalog for office chairs</field>
+    </record>
+
+    <!-- PDF: Proposal Document -->
+    <record id="attach_proposal" model="ir.attachment">
+        <field name="name">Modern_Furniture_Proposal_50_Workstations.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="website_slides/static/src/img/presentation.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_sales_sent_001"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="description">Comprehensive furniture proposal</field>
+    </record>
+
+    <!-- Image: Floor Plan -->
+    <record id="attach_floor_plan" model="ir.attachment">
+        <field name="name">Office_Floor_Plan_Layout.png</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="google_calendar/static/description/the_calendar.png"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_sales_001"/>
+        <field name="mimetype">image/png</field>
+        <field name="description">Office renovation floor plan</field>
+    </record>
+
+    <!-- PDF: Invoice -->
+    <record id="attach_invoice" model="ir.attachment">
+        <field name="name">Invoice_INV-2025-0142.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="account/static/demo/in_invoice_yourcompany_demo_1.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_admin_002"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="description">Vendor invoice for December 2024</field>
+    </record>
+
+    <!-- PDF: Meeting Minutes -->
+    <record id="attach_meeting_minutes" model="ir.attachment">
+        <field name="name">Q1_Planning_Meeting_Minutes.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="mrp/static/img/assebly-worksheet.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_admin_001"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="description">Q1 planning meeting action items and notes</field>
+    </record>
+
+    <!-- PDF: Bank Statement -->
+    <record id="attach_bank_statement" model="ir.attachment">
+        <field name="name">Bank_Statement_December_2024.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="account/static/demo/in_invoice_yourcompany_demo_2.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_finance_002"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="description">Monthly bank account statement</field>
+    </record>
+
+    <!-- PDF: Payment Confirmation -->
+    <record id="attach_payment_confirm" model="ir.attachment">
+        <field name="name">Payment_Confirmation_PO-8765.pdf</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="mrp/static/img/assebly-worksheet.pdf"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_finance_001"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="description">Payment confirmation and receipt</field>
+    </record>
+
+    <!-- Excel: Warranty Documentation -->
+    <record id="attach_warranty_docs" model="ir.attachment">
+        <field name="name">Warranty_Documentation_SO-1234.xlsx</field>
+        <field name="type">binary</field>
+        <field name="datas" type="base64" file="test_import_export/data/test_import.xlsx"/>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="res_id" ref="msg_support_003"/>
+        <field name="mimetype">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</field>
+        <field name="description">Product warranty information</field>
+    </record>
+
+    <record id="cache_msg_support_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello Support Team,&lt;/p&gt;&lt;p&gt;We are opening a new branch office and would like to place an order for office chairs. Could you please share pricing and availability for a quantity of 20–30 units?&lt;/p&gt;&lt;p&gt;A few details so you can recommend the right model:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Daily use (8–10 hours)&lt;/li&gt;&lt;li&gt;Prefer breathable mesh back, adjustable armrests, and lumbar support&lt;/li&gt;&lt;li&gt;Color: black or dark gray&lt;/li&gt;&lt;li&gt;Delivery location: Munich (ZIP 80331)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;If you have a catalog or tiered pricing, please include it. We would like to finalize this week.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Willie Burke&lt;br/&gt;Operations&lt;/p&gt;', 'body_text': 'Hello Support Team,\\n\\nWe are opening a new branch office and would like to place an order for office chairs. Could you please share pricing and availability for a quantity of 20–30 units?\\n\\nDetails: daily use (8–10 hours), breathable mesh back, adjustable armrests and lumbar support, color black/dark gray, delivery Munich 80331.\\n\\nIf you have a catalog or tiered pricing, please include it. We would like to finalize this week.\\n\\nBest regards,\\nWillie Burke\\nOperations', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_002"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello Support Team,&lt;/p&gt;&lt;p&gt;We received our delivery for &lt;strong&gt;Order SO-4588&lt;/strong&gt; and would like to schedule an on-site installation for next week.&lt;/p&gt;&lt;p&gt;Could you please confirm:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Which dates you can offer (Wed/Thu preferred)&lt;/li&gt;&lt;li&gt;Estimated duration for installing 12 desks + 12 chairs&lt;/li&gt;&lt;li&gt;Whether we need to prepare any tools or space in advance&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Site details:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Address: Leopoldstr. 1, 80802 Munich&lt;/li&gt;&lt;li&gt;Access: loading bay via courtyard (height limit 2.2m)&lt;/li&gt;&lt;li&gt;Contact on site: Douglas Fletcher, +49 89 555 0102&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Thank you in advance.&lt;/p&gt;&lt;p&gt;Regards,&lt;br/&gt;Douglas Fletcher&lt;/p&gt;', 'body_text': 'Hello Support Team,\\n\\nWe received our delivery for Order SO-4588 and would like to schedule an on-site installation for next week.\\n\\nCould you confirm dates (Wed/Thu preferred), estimated duration for installing 12 desks + 12 chairs, and whether we need to prepare any tools or space in advance.\\n\\nSite details: Leopoldstr. 1, 80802 Munich; loading bay via courtyard (2.2m height limit); contact Douglas Fletcher, +49 89 555 0102.\\n\\nRegards,\\nDouglas Fletcher', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_003"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hi Support Team,&lt;/p&gt;&lt;p&gt;We purchased desks last month (Order &lt;strong&gt;SO-1234&lt;/strong&gt;). Attached is our completed warranty registration sheet so you have all serial numbers and installation details on file.&lt;/p&gt;&lt;p&gt;Could you please confirm:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;that the warranty is active for all items on the order,&lt;/li&gt;&lt;li&gt;the warranty term (standard vs extended), and&lt;/li&gt;&lt;li&gt;the recommended process if we ever need to open a claim.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Thanks a lot,&lt;br/&gt;Floyd Steward&lt;/p&gt;', 'body_text': 'Hi Support Team,\\n\\nWe purchased desks last month (Order SO-1234). Attached is our completed warranty registration sheet so you have all serial numbers and installation details on file.\\n\\nCould you please confirm that the warranty is active for all items, the term (standard vs extended), and the process to open a claim if needed.\\n\\nThanks,\\nFloyd Steward', 'attachments': [{'id': ref('maildesk_mail_client.attach_warranty_docs'), 'name': 'Warranty_Documentation_SO-1234.xlsx', 'filename': 'Warranty_Documentation_SO-1234.xlsx', 'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_004"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello Support Team,&lt;/p&gt;&lt;p&gt;Our delivery for &lt;strong&gt;Order SO-5678&lt;/strong&gt; was scheduled for today, but nothing has arrived yet and we have not received an updated ETA.&lt;/p&gt;&lt;p&gt;Could you please check the current status and share:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;the latest tracking status,&lt;/li&gt;&lt;li&gt;the carrier contact/dispatch number,&lt;/li&gt;&lt;li&gt;an expected delivery window today.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Delivery address is unchanged and the site is staffed until 18:00.&lt;/p&gt;&lt;p&gt;This is urgent because the installation team is on standby.&lt;/p&gt;&lt;p&gt;Regards,&lt;br/&gt;Edwin Hansen&lt;/p&gt;', 'body_text': 'Hello Support Team,\\n\\nOur delivery for Order SO-5678 was scheduled for today, but nothing has arrived yet and we have not received an updated ETA.\\n\\nCould you please check the current status and share the latest tracking status, the carrier contact/dispatch number, and an expected delivery window today.\\n\\nThis is urgent because the installation team is on standby.\\n\\nRegards,\\nEdwin Hansen', 'attachments': []}}"/>
+    </record>
+
+    <record id="cache_msg_support_sent_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_sent_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello Willie,&lt;/p&gt;&lt;p&gt;Thank you for your inquiry. I have attached our current pricing catalog for office chairs and highlighted the models that work well for daily use.&lt;/p&gt;&lt;p&gt;For an order of &lt;strong&gt;20–30 units&lt;/strong&gt; we can offer:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;15% volume discount on our ErgoMesh and FlexComfort lines&lt;/li&gt;&lt;li&gt;Standard delivery 7–10 business days (Munich area)&lt;/li&gt;&lt;li&gt;Optional assembly service on request&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;If you can confirm preferred model, color, and quantity split, we can issue a formal quote the same day.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Support Team&lt;br/&gt;YourCompany&lt;/p&gt;', 'body_text': 'Hello Willie,\\n\\nThank you for your inquiry. I have attached our current pricing catalog for office chairs and highlighted the models that work well for daily use.\\n\\nFor an order of 20–30 units we can offer a 15% volume discount, standard delivery 7–10 business days (Munich area), and optional assembly service.\\n\\nIf you confirm preferred model, color, and quantity split, we can issue a formal quote the same day.\\n\\nBest regards,\\nSupport Team\\nYourCompany', 'attachments': [{'id': ref('maildesk_mail_client.attach_pricing_catalog'), 'name': 'Office_Chairs_Pricing_Catalog.pdf', 'filename': 'Office_Chairs_Pricing_Catalog.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Good morning,&lt;/p&gt;&lt;p&gt;We are renovating our headquarters and need modern office furniture for approximately &lt;strong&gt;50 workstations&lt;/strong&gt;.&lt;/p&gt;&lt;p&gt;Scope:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;50 desks (cable management preferred)&lt;/li&gt;&lt;li&gt;50 ergonomic chairs&lt;/li&gt;&lt;li&gt;Storage solutions (mix of pedestals + cabinets)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please provide a quote with lead times and delivery/assembly options. Our target delivery window is the second half of next month.&lt;/p&gt;&lt;p&gt;I attached a simple floor plan so you can validate spacing assumptions.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Soham Palmer&lt;br/&gt;Gemini Furniture&lt;/p&gt;', 'body_text': 'Good morning,\\n\\nWe are renovating our headquarters and need modern office furniture for approximately 50 workstations.\\n\\nScope: 50 desks (cable management preferred), 50 ergonomic chairs, storage solutions (mix of pedestals and cabinets).\\n\\nPlease provide a quote with lead times and delivery/assembly options. Target delivery is the second half of next month.\\n\\nI attached a simple floor plan so you can validate spacing assumptions.\\n\\nBest regards,\\nSoham Palmer\\nGemini Furniture', 'attachments': [{'id': ref('maildesk_mail_client.attach_floor_plan'), 'name': 'Office_Floor_Plan_Layout.png', 'filename': 'Office_Floor_Plan_Layout.png', 'mimetype': 'image/png', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_002"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_003"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hi Sales Team,&lt;/p&gt;&lt;p&gt;I reviewed the proposal you sent. The overall package looks good, but I have a few questions before we confirm:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Payment terms: do you offer Net 30 for first-time customers?&lt;/li&gt;&lt;li&gt;Delivery schedule: can desks and chairs be delivered in two waves (floor 1 then floor 2)?&lt;/li&gt;&lt;li&gt;Warranty: what is the standard term for chair mechanisms?&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Could we schedule a 20-minute call tomorrow afternoon?&lt;/p&gt;&lt;p&gt;Thanks,&lt;br/&gt;Edith Sanchez&lt;/p&gt;', 'body_text': 'Hi Sales Team,\\n\\nI reviewed the proposal you sent. It looks good, but I have questions about payment terms (Net 30), delivery schedule (two waves), and warranty term for chair mechanisms.\\n\\nCould we schedule a 20-minute call tomorrow afternoon?\\n\\nThanks,\\nEdith Sanchez', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_sent_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_sent_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Dear Soham,&lt;/p&gt;&lt;p&gt;Thank you for reaching out. We prepared a detailed proposal for 50 modern workstations including desks, chairs, and storage options.&lt;/p&gt;&lt;p&gt;The attached PDF includes:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Three package variants (Standard / Premium / Executive)&lt;/li&gt;&lt;li&gt;Delivery and assembly options&lt;/li&gt;&lt;li&gt;Lead times and warranty terms&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;If you can share your preferred delivery window and any brand/style constraints, we can finalize the quote and reserve inventory.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;br/&gt;YourCompany&lt;/p&gt;', 'body_text': 'Dear Soham,\\n\\nThank you for reaching out. We prepared a detailed proposal for 50 modern workstations including desks, chairs, and storage options.\\n\\nThe attached PDF includes package variants, delivery/assembly options, lead times, and warranty terms.\\n\\nIf you share your preferred delivery window and any brand/style constraints, we can finalize the quote and reserve inventory.\\n\\nBest regards,\\nSales Team\\nYourCompany', 'attachments': [{'id': ref('maildesk_mail_client.attach_proposal'), 'name': 'Modern_Furniture_Proposal_50_Workstations.pdf', 'filename': 'Modern_Furniture_Proposal_50_Workstations.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_001"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_002"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_003"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hi Mitchell,&lt;/p&gt;&lt;p&gt;As discussed in the Q1 planning meeting, here are the action items and owners. Full minutes are attached.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Budget allocations&lt;/strong&gt; (Finance) – finalize by Friday&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Vendor contract review&lt;/strong&gt; (Legal + Admin) – schedule for next week&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Q2 kickoff&lt;/strong&gt; (PMO) – propose dates and agenda&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;If you want me to convert this into tasks in Odoo, share the preferred project and I will set it up.&lt;/p&gt;&lt;p&gt;Thanks,&lt;br/&gt;Gordon Owens&lt;/p&gt;', 'body_text': 'Hi Mitchell,\\n\\nHere are the action items from the Q1 planning meeting. Full minutes are attached.\\n\\n- Budget allocations (Finance) – finalize by Friday\\n- Vendor contract review (Legal + Admin) – schedule for next week\\n- Q2 kickoff (PMO) – propose dates and agenda\\n\\nThanks,\\nGordon Owens', 'attachments': [{'id': ref('maildesk_mail_client.attach_meeting_minutes'), 'name': 'Q1_Planning_Meeting_Minutes.pdf', 'filename': 'Q1_Planning_Meeting_Minutes.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_002"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello,&lt;/p&gt;&lt;p&gt;Please find attached &lt;strong&gt;Invoice INV-2025-0142&lt;/strong&gt; for IT services rendered in December 2024.&lt;/p&gt;&lt;p&gt;Summary:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Service period: 2024-12-01 to 2024-12-31&lt;/li&gt;&lt;li&gt;Amount due: $12,450.00&lt;/li&gt;&lt;li&gt;Due date: 30 days&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;If you have any questions, reply to this email and we will assist.&lt;/p&gt;&lt;p&gt;Kind regards,&lt;br/&gt;Vendor Billing&lt;/p&gt;', 'body_text': 'Hello,\\n\\nPlease find attached Invoice INV-2025-0142 for IT services rendered in December 2024.\\n\\nSummary: service period 2024-12-01 to 2024-12-31; amount due $12,450.00; due date 30 days.\\n\\nKind regards,\\nVendor Billing', 'attachments': [{'id': ref('maildesk_mail_client.attach_invoice'), 'name': 'Invoice_INV-2025-0142.pdf', 'filename': 'Invoice_INV-2025-0142.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_003"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Dear HR Team,&lt;/p&gt;&lt;p&gt;I would like to request vacation leave from &lt;strong&gt;January 15–22, 2025&lt;/strong&gt;.&lt;/p&gt;&lt;p&gt;I have already coordinated coverage with my team and my current tasks will be closed or handed over before I leave.&lt;/p&gt;&lt;p&gt;Please let me know if you need any additional information or approvals.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Tom Ruiz&lt;/p&gt;', 'body_text': 'Dear HR Team,\\n\\nI would like to request vacation leave from January 15–22, 2025.\\n\\nI have already coordinated coverage with my team and my current tasks will be closed or handed over before I leave.\\n\\nBest regards,\\nTom Ruiz', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_002"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1016&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1016 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_003"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1017&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1017 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_001" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_001"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;This is to confirm we received your payment of &lt;strong&gt;$25,000&lt;/strong&gt; for Purchase Order &lt;strong&gt;PO-8765&lt;/strong&gt;.&lt;/p&gt;&lt;p&gt;For your records, the confirmation document is attached.&lt;/p&gt;&lt;p&gt;If you need the final invoice or remittance advice in a different format, let me know.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Addison Olson&lt;br/&gt;Accounts Receivable&lt;/p&gt;', 'body_text': 'Dear Finance Team,\\n\\nThis is to confirm we received your payment of $25,000 for Purchase Order PO-8765.\\n\\nFor your records, the confirmation document is attached.\\n\\nBest regards,\\nAddison Olson\\nAccounts Receivable', 'attachments': [{'id': ref('maildesk_mail_client.attach_payment_confirm'), 'name': 'Payment_Confirmation_PO-8765.pdf', 'filename': 'Payment_Confirmation_PO-8765.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_002" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_002"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hello,&lt;/p&gt;&lt;p&gt;Your &lt;strong&gt;December 2024&lt;/strong&gt; bank statement is now available. The statement PDF is attached for download and archiving.&lt;/p&gt;&lt;p&gt;If you require a CSV export for reconciliation, we can provide it on request.&lt;/p&gt;&lt;p&gt;Kind regards,&lt;br/&gt;Sandra Neal&lt;br/&gt;Account Services&lt;/p&gt;', 'body_text': 'Hello,\\n\\nYour December 2024 bank statement is now available. The statement PDF is attached for download and archiving.\\n\\nKind regards,\\nSandra Neal\\nAccount Services', 'attachments': [{'id': ref('maildesk_mail_client.attach_bank_statement'), 'name': 'Bank_Statement_December_2024.pdf', 'filename': 'Bank_Statement_December_2024.pdf', 'mimetype': 'application/pdf', 'type': 'binary'}]}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_003" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_003"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1020&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1020 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_005" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_005"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1021&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1021 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_006" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_006"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1022&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1022 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_004"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_005" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_005"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_004"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_004"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Dear Tom,&lt;/p&gt;&lt;p&gt;Your vacation request for &lt;strong&gt;January 15–22, 2025&lt;/strong&gt; has been approved.&lt;/p&gt;&lt;p&gt;Please remember to:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;set your out-of-office message,&lt;/li&gt;&lt;li&gt;update your calendar availability,&lt;/li&gt;&lt;li&gt;inform your direct manager if not already done.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Enjoy your vacation.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;', 'body_text': 'Dear Tom,\\n\\nYour vacation request for January 15–22, 2025 has been approved.\\n\\nPlease set your out-of-office message, update your calendar, and inform your direct manager if not already done.\\n\\nBest regards,\\nHR Department', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_004"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Thank you for the confirmation.&lt;/p&gt;&lt;p&gt;Could you please send us the final invoice and (if available) the remittance advice so we can close the transaction in our records?&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Finance Department&lt;/p&gt;', 'body_text': 'Thank you for the confirmation.\\n\\nPlease send us the final invoice and (if available) the remittance advice so we can close the transaction in our records.\\n\\nBest regards,\\nFinance Department', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_007" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_007"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1028&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1028 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_004" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_004"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0100" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0100"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1030&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1030 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0101" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0101"/>
+        <field name="json_cache" eval="{'body': {'body_html': '&lt;p&gt;Hi Douglas,&lt;/p&gt;&lt;p&gt;Thanks for the details. We can schedule an on-site technician on &lt;strong&gt;Wednesday&lt;/strong&gt; or &lt;strong&gt;Thursday&lt;/strong&gt; next week.&lt;/p&gt;&lt;p&gt;For a 12-desk + 12-chair setup, installation typically takes about &lt;strong&gt;3 hours&lt;/strong&gt; assuming the delivery is already in the room(s) and parking/loading access is available.&lt;/p&gt;&lt;p&gt;Please confirm your preferred date and:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;building access instructions (key cards / reception / loading bay),&lt;/li&gt;&lt;li&gt;floor and room numbers,&lt;/li&gt;&lt;li&gt;any time restrictions for the loading bay.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Once confirmed, we will send a calendar invite and technician contact details.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Support Team&lt;/p&gt;', 'body_text': 'Hi Douglas,\\n\\nWe can schedule an on-site technician on Wednesday or Thursday next week. Installation for 12 desks + 12 chairs is typically about 3 hours.\\n\\nPlease confirm preferred date and building access instructions (reception/loading bay), floor/room numbers, and any loading time restrictions.\\n\\nBest regards,\\nSupport Team', 'attachments': []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0102" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0102"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1032&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1032 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0103" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0103"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1033&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1033 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0104" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0104"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1034&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1034 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0105" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0105"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1035&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1035 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0106" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0106"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1036&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1036 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0107" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0107"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1037&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1037 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0108" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0108"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1038&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1038 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0109" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0109"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1039&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1039 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0110" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0110"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1040&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1040 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0111" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0111"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1041&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1041 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0112" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0112"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1042&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1042 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0113" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0113"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1043&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1043 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0114" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0114"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1044&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1044 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0115" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0115"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1045&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1045 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0116" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0116"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1046&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1046 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_support_0117" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_support_0117"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Customer,&lt;/p&gt;&lt;p&gt;Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Your request has been assigned ticket #SUP-1047&lt;/li&gt;&lt;li&gt;Expected response time: 24 hours&lt;/li&gt;&lt;li&gt;Priority: Normal&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;For urgent matters, please call our hotline.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;&lt;strong&gt;Support Team&lt;/strong&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Customer, Thank you for contacting our support team. We have reviewed your inquiry and are preparing a detailed response. Your request has been assigned ticket #SUP-1047 Expected response time: 24 hours Priority: Normal For urgent matters, pleas&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0118" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0118"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0119" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0119"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0120" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0120"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0121" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0121"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0122" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0122"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0123" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0123"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0124" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0124"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0125" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0125"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0126" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0126"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0127" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0127"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0128" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0128"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0129" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0129"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0130" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0130"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0131" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0131"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0132" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0132"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0133" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0133"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0134" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0134"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_sales_0135" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_sales_0135"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Prospect,&lt;/p&gt;&lt;p&gt;Thank you for your interest! Here is a summary quote:&lt;/p&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;5&quot;&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Office Chairs&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$9,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Desks&lt;/td&gt;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;$15,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;$24,000&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Volume discount available!&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Sales Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Prospect, Thank you for your interest! Here is a summary quote: Item Qty Price Office Chairs 20 $9,000 Desks 20 $15,000 Total $24,000 Volume discount available! Best regards, Sales Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0136" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0136"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0137" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0137"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0138" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0138"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0139" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0139"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0140" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0140"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0141" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0141"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0142" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0142"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0143" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0143"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0144" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0144"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0145" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0145"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0146" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0146"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0147" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0147"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0148" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0148"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0149" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0149"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0150" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0150"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0151" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0151"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0152" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0152"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_info_0153" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_info_0153"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0154" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0154"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0155" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0155"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0156" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0156"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0157" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0157"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0158" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0158"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0159" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0159"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0160" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0160"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0161" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0161"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0162" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0162"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0163" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0163"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0164" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0164"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0165" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0165"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0166" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0166"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0167" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0167"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0168" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0168"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0169" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0169"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0170" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0170"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_admin_0171" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_admin_0171"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;This is a professional email message.&lt;/p&gt;&lt;p&gt;Content for demonstration purposes.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Team&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;This is a professional email message. Content for demonstration purposes. Best regards, Team&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0172" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0172"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1102&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1102 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0173" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0173"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1103&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1103 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0174" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0174"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1104&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1104 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0175" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0175"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1105&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1105 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0176" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0176"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1106&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1106 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0177" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0177"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1107&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1107 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0178" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0178"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1108&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1108 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0179" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0179"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1109&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1109 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0180" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0180"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1110&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1110 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0181" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0181"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1111&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1111 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0182" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0182"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1112&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1112 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0183" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0183"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1113&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1113 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0184" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0184"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1114&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1114 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0185" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0185"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1115&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1115 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0186" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0186"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1116&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1116 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0187" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0187"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1117&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1117 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0188" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0188"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1118&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1118 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_hr_0189" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_hr_0189"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Employee,&lt;/p&gt;&lt;p&gt;Your request has been &lt;strong style=&quot;color:green;&quot;&gt;APPROVED&lt;/strong&gt;.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Request ID: #1119&lt;/li&gt;&lt;li&gt;Type: Vacation Leave&lt;/li&gt;&lt;li&gt;Dates: Jan 15-22, 2025&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Please set your out-of-office status.&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;HR Department&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Employee, Your request has been APPROVED . Request ID: #1119 Type: Vacation Leave Dates: Jan 15-22, 2025 Please set your out-of-office status. Best regards, HR Department&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0190" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0190"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1120&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1120 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0191" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0191"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1121&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1121 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0192" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0192"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1122&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1122 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0193" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0193"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1123&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1123 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0194" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0194"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1124&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1124 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0195" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0195"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1125&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1125 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0196" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0196"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1126&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1126 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0197" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0197"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1127&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1127 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0198" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0198"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1128&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1128 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0199" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0199"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1129&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1129 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0200" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0200"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1130&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1130 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0201" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0201"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1131&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1131 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0202" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0202"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1132&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1132 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0203" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0203"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1133&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1133 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0204" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0204"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1134&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1134 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0205" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0205"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1135&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1135 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0206" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0206"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1136&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1136 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+    <record id="cache_msg_finance_0207" model="maildesk.ui_cache">
+        <field name="index_id" ref="msg_finance_0207"/>
+        <field name="json_cache" eval="{&#x27;body&#x27;: {&#x27;body_html&#x27;: &#x27;&lt;html&gt;&lt;body&gt;&lt;p&gt;Dear Finance Team,&lt;/p&gt;&lt;p&gt;Invoice &lt;strong&gt;#INV-2025-1137&lt;/strong&gt;&lt;/p&gt;&lt;table border=&quot;1&quot;&gt;&lt;tr&gt;&lt;td&gt;Services&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$8,000&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;License&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$3,500&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;&lt;strong&gt;$11,500&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Due: 30 days&lt;/p&gt;&lt;p&gt;Best regards,&lt;br/&gt;Accounts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&#x27;, &#x27;body_text&#x27;: &#x27;Dear Finance Team, Invoice #INV-2025-1137 Services $8,000 License $3,500 Total $11,500 Due: 30 days Best regards, Accounts&#x27;, &#x27;attachments&#x27;: []}}"/>
+        <field name="json_cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+        <field name="cache_until" eval="datetime.now() + relativedelta(days=30)"/>
+    </record>
+
+</odoo>

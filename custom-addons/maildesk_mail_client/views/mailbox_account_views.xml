@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+# You may use this file only in accordance with the license terms.
+# For more information, visit: https://www.odoo.com/documentation/19.0/legal/licenses/licenses.html#odoo-proprietary-license
+-->
+<odoo>
+  <record id="view_mailbox_account_list" model="ir.ui.view">
+    <field name="name">mailbox.account.list</field>
+    <field name="model">mailbox.account</field>
+    <field name="arch" type="xml">
+      <list string="Mailbox Accounts" decoration-muted="not active">
+        <field name="sequence" widget="handle" />
+        <field name="name" />
+        <field name="email" />
+        <field name="sender_name" />
+        <field name="owner_id" />
+        <field name="active" widget="boolean_toggle" />
+      </list>
+    </field>
+  </record>
+  <record id="view_mailbox_account_form" model="ir.ui.view">
+    <field name="name">mailbox.account.form</field>
+    <field name="model">mailbox.account</field>
+    <field name="arch" type="xml">
+      <form string="Mailbox Account">
+        <header>
+          <button name="sync_imap_folders" class="btn-primary" icon="fa-refresh" type="object" string="Fetch folders" />
+          <button
+            type="object"
+            name="action_auth_outlook_graph"
+            string="Connect Microsoft Graph (OAuth)"
+            class="btn-primary"
+            invisible="not is_outlook"
+          />
+          <button
+            string="Test Incoming Server"
+            type="object"
+            name="button_test_incoming"
+          />
+          <button
+            string="Test Outgoing Server"
+            type="object"
+            name="button_test_outgoing"
+          />
+          <button
+            type="object"
+            name="action_view_documentation"
+            string="Documentation"
+            icon="fa-book"
+            class="btn-secondary ms-4"
+          />
+          <button
+            type="object"
+            name="action_setup_gmail"
+            string="How to setup Gmail"
+            icon="fa-book"
+            class="btn-secondary"
+          />
+          <button
+            type="object"
+            name="action_setup_outlook"
+            string="How to setup Outlook"
+            icon="fa-book"
+            class="btn-secondary"
+          />
+          <button
+            type="object"
+            name="action_setup_imap"
+            string="IMAP setup"
+            icon="fa-book"
+            class="btn-secondary"
+          />
+        </header>
+        <sheet>
+          <field name="active" invisible="1" />
+          <group>
+            <group>
+              <field name="name" />
+              <field name="email" />
+              <field name="sender_name" />
+              <field name="is_shared"
+                string="Allow Personal Connection" widget="boolean_toggle"
+                help="If enabled, users can connect to this mailbox account themselves by entering the email and password."/>
+              <field name="password" password="True" invisible="not is_shared"/>
+              <field name="access_user_ids" widget="many2many_tags" />
+            </group>
+            <group>
+              <field name="mail_server_id" required="1" />
+              <field name="mail_send_server_id" required="1" />
+            </group>
+          </group>
+          <notebook>
+            <page string="Folders">
+              <field name="folder_ids">
+                <list editable="bottom">
+                  <field name="sequence" widget="handle" />
+                  <field name="is_visible" width="50px" />
+                  <field name="name" />
+                  <field name="parent_id" domain="[('account_id', '=', parent.id)]" />
+                  <field name="folder_type" />
+                  <field name="backfill_status_display" string="Backfill Status" width="150"/>
+                  <field name="backfill_progress" widget="progressbar" string="Progress" width="150"/>
+                  <button name="trigger_backfill"
+                          type="object"
+                          string="Trigger Backfill"
+                          icon="fa-refresh"
+                          invisible="sync_state != 'incremental'" width="150"/>
+                  <field name="sync_state" column_invisible="1"/>
+                  <field name="sync_modseq" optional="hide" />
+                  <field name="last_uid" optional="hide" />
+                  <field name="imap_name" optional="hide" />
+                </list>
+              </field>
+            </page>
+            <page string="Signature">
+              <field name="signature" widget="html" />
+            </page>
+            <page string="Settings">
+              <group>
+                <group string="Sent Settings">
+                  <div colspan="2" class="d-flex justify-content-between">
+                      <div>
+                          <label for="max_email_size"
+                                  string="Convert attachments to links for emails over"/>
+                          <field name="max_email_size" class="oe_inline mx-1"/>
+                          <span class="o_form_label">MB</span>
+                      </div>
+                  </div>
+                  <field name="append_sent_to_imap" />
+                </group>
+                <group string="Email Settings">
+                  <field
+                    name="attach_mail_server_id"
+                      help="If set, attachments will not be stored in Odoo. Only links to attachments on this mail server will be saved and fetched when needed."
+                  /><field
+                    name="block_tracking_urls"
+                    help="Removes tracking links (e.g. /L0/...) from incoming emails to protect user privacy."
+                  />
+                </group>
+              </group>
+            </page>
+            <page string="Maintenance" groups="maildesk_mail_client.group_mailbox_admin">
+                <div class="alert alert-warning" role="alert">
+                  <strong>Reset Mailbox Sync State</strong>
+                  <div>
+                    This will reset synchronization state for this mailbox. Emails will be temporarily unavailable until resynchronization completes automatically.
+                  </div>
+                <button
+                  type="object"
+                  name="action_reset_mailbox_sync_state"
+                  string="Reset Mailbox Sync State"
+                  class="btn-danger mt-3 mb-2"
+                  confirm="This will reset synchronization state for this mailbox.\nEmails will be temporarily unavailable until resynchronization completes automatically."
+                />
+                </div>
+            </page>
+          </notebook>
+          <div class="mt-4 mb-4" style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background: radial-gradient(at 0% 0%, #f0f7ff 0, transparent 40%), radial-gradient(at 100% 100%, #fdfcfb 0, transparent 40%), #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);">
+
+    <div style="padding: 24px 32px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+            <div style="width: 52px; height: 52px; background: #0f172a; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 18px; box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);">
+                <i class="fa fa-envelope" style="color: #3b82f6; font-size: 20px;" title="MailDesk Integration"></i>
+            </div>
+            <div>
+                <h4 style="margin: 0; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; font-size: 1.35rem;">
+                    Email Infrastructure &amp; Integration
+                </h4>
+                <p style="margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; font-weight: 700;">
+                    Metzler IT GmbH
+                </p>
+            </div>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 100px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Assistant</span>
+            <field name="show_recommendation" widget="boolean_toggle"/>
+        </div>
+    </div>
+
+    <div invisible="not show_recommendation" style="padding: 40px;">
+        <div class="row g-5">
+            <div class="col-lg-8">
+                <div style="margin-bottom: 35px;">
+                    <h5 style="font-weight: 700; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center;">
+                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-right: 12px;"></span>
+                        Professional Email for Business
+                    </h5>
+                    <p style="font-size: 1.05rem; line-height: 1.6; color: #475569;">
+                        We support companies in designing and operating reliable email infrastructures.
+                        Depending on requirements, this can range from classic IMAP setups to fully managed, dedicated email environments with tight Odoo integration.
+                    </p>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 24px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                            <div style="color: #0d6efd; background: #eff6ff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i class="fa fa-lock" title="Data Control"></i>
+                            </div>
+                            <h6 style="font-weight: 700; color: #1e293b;">Data Control</h6>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.5;">
+                                Email data can be hosted on dedicated or isolated systems, aligned with internal policies and compliance requirements.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 24px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                            <div style="color: #0d6efd; background: #eff6ff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i class="fa fa-cog" title="Odoo Integration"></i>
+                            </div>
+                            <h6 style="font-weight: 700; color: #1e293b;">Odoo Integration</h6>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.5;">
+                                Native integration into Odoo allows emails to be linked with CRM, tickets and internal workflows.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px;">
+                    <div style="margin-bottom: 20px;">
+                        <h6 style="font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; color: #94a3b8;">
+                            Configuration &amp; Resources
+                        </h6>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="object" name="action_view_documentation" string="Documentation" icon="fa-book"
+                                style="border-radius: 10px; padding: 10px 18px; font-weight: 600; background: #ffffff; border: 1px solid #d1d5db; color: #374151; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"/>
+
+                        <button type="object" name="action_setup_gmail" string="Gmail Information" icon="fa-google"
+                                style="border-radius: 10px; padding: 10px 18px; font-weight: 600; background: #ffffff; border: 1px solid #d1d5db; color: #374151;"/>
+
+                        <button type="object" name="action_setup_outlook" string="Outlook Information" icon="fa-windows"
+                                style="border-radius: 10px; padding: 10px 18px; font-weight: 600; background: #ffffff; border: 1px solid #d1d5db; color: #374151;"/>
+                    </div>
+                    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+                        <a href="https://m.youtube.com/@MITOdoo" target="_blank" style="text-decoration: none; color: #ef4444; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center;">
+                            <i class="fa fa-youtube-play" style="font-size: 1.2rem; margin-right: 8px;"></i> Technical Videos
+                        </a>
+                        <span style="color: #cbd5e1;">|</span>
+                        <span style="font-size: 0.85rem; color: #64748b;">
+                            Dedicated or on-premise email servers can be provided if required.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div style="background: #0f172a; background: linear-gradient(145deg, #1e293b 0%, #020617 100%); border-radius: 24px; padding: 35px 30px; color: #ffffff; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                    <div style="position: absolute; top: -10px; right: -10px; font-size: 80px; color: rgba(255,255,255,0.03); transform: rotate(15deg); pointer-events: none;">
+                        <i class="fa fa-diamond" title="Diamond"></i>
+                    </div>
+
+                    <div style="display: inline-flex; align-items: center; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; margin-bottom: 20px;">
+                        Optional Extension
+                    </div>
+
+                    <h3 style="font-weight: 800; margin-bottom: 10px; letter-spacing: -0.02em;">MailDesk Ultimate</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 30px; line-height: 1.5;">
+                        An extended module for organizations with higher synchronization, automation and security requirements.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 18px; margin-bottom: 35px;">
+                        <div style="display: flex; align-items: flex-start;">
+                            <i class="fa fa-refresh" style="color: #3b82f6; margin-right: 12px; margin-top: 3px;" title="Two-way Sync"></i>
+                            <span>Two-way synchronization options</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <i class="fa fa-cogs" style="color: #3b82f6; margin-right: 12px; margin-top: 3px;" title="Automation"></i>
+                            <span>Advanced automation and workflows</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <i class="fa fa-shield" style="color: #3b82f6; margin-right: 12px; margin-top: 3px;" title="Security"></i>
+                            <span>Extended security and control features</span>
+                        </div>
+                    </div>
+
+                    <a href="https://mit-odoo.de/shop/maildesk-ultimate-odoo-e-mail-mit-2-wege-sync-ki-3" target="_blank"
+                      style="display: block; text-align: center; background: #3b82f6; color: white; padding: 16px; border-radius: 16px; text-decoration: none; font-weight: 700;">
+                        View Module Details
+                    </a>
+                </div>
+
+                <div style="margin-top: 24px; padding: 24px; border: 1px solid #e2e8f0; border-radius: 20px; background: #ffffff;">
+                    <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 15px;">
+                        Contact
+                    </span>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <a href="mailto:support@mit-odoo.com" style="display: flex; align-items: center; color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                            <i class="fa fa-life-ring me-3" style="color: #cbd5e1;" title="Support"></i> support@mit-odoo.com
+                        </a>
+                        <a href="mailto:info@mit-odoo.com" style="display: flex; align-items: center; color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                            <i class="fa fa-info-circle me-3" style="color: #cbd5e1;" title="Info"></i> info@mit-odoo.com
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_mailbox_account" model="ir.actions.act_window">
+    <field name="name">Mailbox Accounts</field>
+    <field name="res_model">mailbox.account</field>
+    <field name="view_mode">list,form</field>
+    <field name="context">{'active_test': False}</field>
+    <field name="domain">[]</field>
+  </record>
+  <record id="action_mailbox_account_create_folders" model="ir.actions.server">
+    <field name="name">Fetch Folders</field>
+    <field name="model_id" ref="model_mailbox_account" />
+    <field name="binding_model_id" ref="model_mailbox_account" />
+    <field name="state">code</field>
+    <field name="code">records.sync_imap_folders()</field>
+    <field name="binding_type">action</field>
+  </record>
+</odoo>

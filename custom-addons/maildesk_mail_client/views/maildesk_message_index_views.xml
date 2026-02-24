@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+-->
+<odoo>
+    <!-- list View -->
+    <record id="view_maildesk_message_index_list" model="ir.ui.view">
+        <field name="name">maildesk.message_index.list</field>
+        <field name="model">maildesk.message_index</field>
+        <field name="arch" type="xml">
+            <list string="Message Index (SSOT)" decoration-muted="deleted_on_server==True">
+                <field name="account_id"/>
+                <field name="provider"/>
+                <field name="folder"/>
+                <field name="uid"/>
+                <field name="date"/>
+                <field name="from_addr"/>
+                <field name="subject"/>
+                <field name="is_read"/>
+                <field name="is_starred"/>
+                <field name="has_attachments"/>
+                <field name="deleted_on_server"/>
+                <field name="indexed_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_maildesk_message_index_form" model="ir.ui.view">
+        <field name="name">maildesk.message_index.form</field>
+        <field name="model">maildesk.message_index</field>
+        <field name="arch" type="xml">
+            <form string="Message Index Entry" create="false" delete="false">
+                <header>
+                    <button name="action_reenqueue_for_ingestion"
+                            string="Re-enqueue for Ingestion"
+                            type="object"
+                            groups="maildesk_mail_client.group_mailbox_admin"
+                            invisible="deleted_on_server"/>
+                </header>
+                <sheet>
+                    <group name="main">
+                        <group name="message_info" string="Message Info">
+                            <field name="account_id" readonly="1"/>
+                            <field name="provider" readonly="1"/>
+                            <field name="folder" readonly="1"/>
+                            <field name="uid" readonly="1"/>
+                            <field name="message_id" readonly="1"/>
+                        </group>
+                        <group name="content" string="Content">
+                            <field name="subject" readonly="1"/>
+                            <field name="from_addr" readonly="1"/>
+                            <field name="sender_display_name" readonly="1"/>
+                            <field name="date" readonly="1"/>
+                            <field name="has_attachments" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="addresses" string="Recipients">
+                        <field name="to_addrs" readonly="1"/>
+                        <field name="cc_addrs" readonly="1"/>
+                        <field name="bcc_addrs" readonly="1"/>
+                    </group>
+                    <group name="threading" string="Threading">
+                        <field name="thread_id" readonly="1"/>
+                        <field name="in_reply_to" readonly="1"/>
+                        <field name="references_hdr" readonly="1"/>
+                    </group>
+                    <group name="status">
+                        <group name="flags" string="Flags">
+                            <field name="is_read" readonly="1"/>
+                            <field name="is_starred" readonly="1"/>
+                            <field name="flags" readonly="1"/>
+                        </group>
+                        <group name="metadata" string="Metadata">
+                            <field name="sort_ts" readonly="1"/>
+                            <field name="indexed_at" readonly="1"/>
+                            <field name="deleted_on_server" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="preview" string="Preview">
+                        <field name="preview" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_maildesk_message_index" model="ir.actions.act_window">
+        <field name="name">Message Index (SSOT)</field>
+        <field name="res_model">maildesk.message_index</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No messages indexed yet
+            </p>
+            <p>
+                This is the Single Source of Truth (SSOT) for all messages.
+                Messages are indexed during sync and then queued for ingestion.
+            </p>
+        </field>
+    </record>
+</odoo>

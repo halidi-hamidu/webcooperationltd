@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="maildesk_mail_client.DebugStatsComponent" owl="1">
+        <Dropdown>
+            <button class="btn btn-sm btn-outline-secondary" title="Debug: Cache and State Info" t-on-click="loadStats">
+                <i class="fa fa-bug"/>
+            </button>
+
+            <t t-set-slot="content">
+                <div class="p-3" style="min-width: 300px;">
+                    <h6 class="mb-3">Debug Statistics</h6>
+
+                    <t t-if="state.loading">
+                        <div class="text-muted">
+                            <i class="fa fa-spinner fa-spin"/> Loading...
+                        </div>
+                    </t>
+
+                    <t t-elif="hasStats">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Message Index:</strong></td>
+                                    <td class="text-end"><code t-out="indexCount"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>UI Cache:</strong></td>
+                                    <td class="text-end"><code t-out="cacheCount"/></td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td colspan="2"><strong>Email State (Overrides)</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3">Total:</td>
+                                    <td class="text-end"><code t-out="emailStateTotal"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 text-danger">Delete:</td>
+                                    <td class="text-end text-danger"><code t-out="deleteCount"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 text-warning">Move:</td>
+                                    <td class="text-end text-warning"><code t-out="moveCount"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 text-info">Flags:</td>
+                                    <td class="text-end text-info"><code t-out="flagCount"/></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>Visible (est):</strong></td>
+                                    <td class="text-end"><strong><code t-out="visibleEstimate"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="mt-2 small text-muted">
+                            <i class="fa fa-info-circle"/> Cache vs Visible difference is caused by email_state (delete/move)
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <div class="text-muted small">
+                            Click to load stats
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

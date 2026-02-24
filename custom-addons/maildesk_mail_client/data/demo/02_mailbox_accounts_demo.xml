@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+
+    <!-- Shared Support Mailbox (IMAP) -->
+    <record id="demo_mailbox_support" model="mailbox.account">
+        <field name="sequence">10</field>
+        <!-- Demo safety: keep provider sync crons from calling external services -->
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">Support Team</field>
+        <field name="email">support@example.com</field>
+        <field name="mail_server_id" ref="demo_imap_server_support"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_support"/>
+        <field name="owner_id" ref="base.user_admin"/>
+        <field name="is_shared" eval="True"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin'), ref('base.user_demo')])]"/>
+        <field name="signature"><![CDATA[<p>Best regards,<br/>Support Team<br/>YourCompany</p>]]></field>
+    </record>
+
+    <!-- Shared Sales Mailbox (Gmail) -->
+    <record id="demo_mailbox_sales" model="mailbox.account">
+        <field name="sequence">20</field>
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">Sales Department</field>
+        <field name="email">sales@example.com</field>
+        <field name="mail_server_id" ref="demo_gmail_server_sales"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_sales"/>
+        <field name="owner_id" ref="base.user_admin"/>
+        <field name="is_shared" eval="True"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin'), ref('base.user_demo')])]"/>
+        <field name="signature"><![CDATA[<p>Best regards,<br/>Sales Team<br/>YourCompany</p>]]></field>
+        <field name="is_gmail" eval="True"/>
+    </record>
+
+    <!-- Info Mailbox (IMAP) -->
+    <record id="demo_mailbox_info" model="mailbox.account">
+        <field name="sequence">30</field>
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">General Info</field>
+        <field name="email">info@example.com</field>
+        <field name="mail_server_id" ref="demo_imap_server_info"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_info"/>
+        <field name="owner_id" ref="base.user_admin"/>
+        <field name="is_shared" eval="False"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin')])]"/>
+        <field name="signature"><![CDATA[<p>Best regards,<br/>YourCompany</p>]]></field>
+    </record>
+
+    <!-- Admin Personal (Gmail) -->
+    <record id="demo_mailbox_admin" model="mailbox.account">
+        <field name="sequence">40</field>
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">Admin Personal</field>
+        <field name="email">admin@example.com</field>
+        <field name="mail_server_id" ref="demo_gmail_server_admin"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_admin"/>
+        <field name="owner_id" ref="base.user_admin"/>
+        <field name="is_shared" eval="False"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin')])]"/>
+        <field name="signature"><![CDATA[<p>Mitchell Admin<br/>Administrator</p>]]></field>
+        <field name="is_gmail" eval="True"/>
+    </record>
+
+    <!-- HR Department (IMAP) -->
+    <record id="demo_mailbox_hr" model="mailbox.account">
+        <field name="sequence">50</field>
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">HR Department</field>
+        <field name="email">hr@example.com</field>
+        <field name="mail_server_id" ref="demo_imap_server_hr"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_hr"/>
+        <field name="owner_id" ref="base.user_demo"/>
+        <field name="is_shared" eval="True"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin'), ref('base.user_demo')])]"/>
+        <field name="signature"><![CDATA[<p>Best regards,<br/>HR Department<br/>YourCompany</p>]]></field>
+    </record>
+
+    <!-- Finance Department (Outlook) -->
+    <record id="demo_mailbox_finance" model="mailbox.account">
+        <field name="sequence">60</field>
+        <field name="backoff_until" eval="datetime.now() + relativedelta(years=10)"/>
+        <field name="name">Finance Department</field>
+        <field name="email">finance@example.com</field>
+        <field name="mail_server_id" ref="demo_outlook_server_finance"/>
+        <field name="mail_send_server_id" ref="demo_smtp_server_finance"/>
+        <field name="owner_id" ref="base.user_admin"/>
+        <field name="is_shared" eval="True"/>
+        <field name="access_user_ids" eval="[(6, 0, [ref('base.user_admin')])]"/>
+        <field name="signature"><![CDATA[<p>Best regards,<br/>Finance Department<br/>YourCompany</p>]]></field>
+        <field name="is_outlook" eval="True"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_maildesk" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.maildesk</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority">50</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="MailDesk" string="MailDesk" name="maildesk_mail_client" groups="maildesk_mail_client.group_mailbox_admin">
+
+                    <!-- PHASE 4: Cache Settings -->
+                    <block title="Cache Settings" name="maildesk_cache_settings">
+                        <setting id="maildesk_cache_retention_setting" help="How long to keep cached email bodies. Longer retention = less provider fetches but more storage.">
+                            <label for="maildesk_cache_retention_days" string="Email Cache Retention (days)"/>
+                            <field name="maildesk_cache_retention_days" class="oe_inline ms-3"/>
+                        </setting>
+                    </block>
+
+                    <block title="Sync Settings" name="maildesk_sync_settings">
+                        <setting id="maildesk_sync_batch_size_setting" help="Maximum messages synced per batch operation">
+                            <label for="maildesk_sync_batch_size" string="Sync Batch Size"/>
+                            <field name="maildesk_sync_batch_size" class="oe_inline  ms-3"/>
+                        </setting>
+                        <setting id="maildesk_ingest_batch_size_setting" help="Maximum messages processed from ingest queue per cron run">
+                            <label for="maildesk_ingest_batch_size" string="Ingest Queue Batch Size"/>
+                            <field name="maildesk_ingest_batch_size" class="oe_inline  ms-3"/>
+                        </setting>
+                    </block>
+
+                    <block title="Performance Settings" name="maildesk_performance_settings">
+                        <setting id="maildesk_list_page_limit_setting" help="Number of messages loaded per page (affects pagination)">
+                            <label for="maildesk_list_page_limit" string="List Page Size"/>
+                            <field name="maildesk_list_page_limit" class="oe_inline  ms-3"/>
+                        </setting>
+                    </block>
+
+                    <block title="Folder Backfill" name="maildesk_backfill_block">
+                        <setting id="backfill_mode_setting" help="Choose how historical emails are fetched.">
+                            <field name="maildesk_backfill_mode" widget="radio"/>
+                        </setting>
+
+                        <setting id="backfill_bootstrap_setting" help="Number of recent messages to fetch immediately during bootstrap.">
+                            <label for="maildesk_backfill_bootstrap_max"/>
+                            <field name="maildesk_backfill_bootstrap_max" class="oe_inline  ms-3"/>
+                        </setting>
+
+                        <setting id="backfill_batch_setting" help="Number of messages to fetch in each background cron run.">
+                            <label for="maildesk_backfill_batch_size"/>
+                            <field name="maildesk_backfill_batch_size" class="oe_inline  ms-3"/>
+                        </setting>
+
+                        <setting id="backfill_budget_setting" help="Maximum time allowed per cron job executing backfill tasks.">
+                            <label for="maildesk_backfill_job_budget_seconds"/>
+                            <field name="maildesk_backfill_job_budget_seconds" widget="float_time" class="oe_inline  ms-3"/>
+                        </setting>
+
+                        <setting id="backfill_cap_setting" help="Absolute limit on total messages to store per folder to prevent database bloat.">
+                            <label for="maildesk_backfill_max_total_per_folder"/>
+                            <field name="maildesk_backfill_max_total_per_folder" class="oe_inline  ms-3"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

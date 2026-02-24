@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="maildesk_mail_client.ComposerInput" owl="1">
+
+  <!-- BODY -->
+  <div class="card-body card-body-composer d-flex flex-column overflow-auto">
+
+    <!-- From -->
+    <div class="mb-3">
+      <label class="form-label">From</label>
+      <select class="form-select line-h-composer"
+              t-att-value="composer.accountId"
+              t-on-change="onAccountChange">
+        <t t-foreach="accounts" t-as="a" t-key="a.id">
+          <option t-att-value="a.id" t-att-selected="a.id === composer.accountId">
+            <t t-out="a.name"/>
+          </option>
+        </t>
+      </select>
+    </div>
+
+    <!-- Sender Name -->
+    <div class="mb-3">
+      <label class="form-label">Sender Name</label>
+      <input type="text"
+             class="form-control line-h-composer"
+             placeholder="Sender Name"
+             t-att-value="composer.fromDisplay"
+             t-on-input="onFromDisplayChange"/>
+    </div>
+
+    <!-- TO -->
+    <EmailInputField
+      field="'To'"
+      state="composer"
+      addEmail="addEmail"
+      remove="removeEmail"
+      toggleCc="toggleCc"
+      toggleBcc="toggleBcc"
+    />
+
+    <!-- CC -->
+    <t t-if="composer.showCc">
+      <EmailInputField
+        field="'Cc'"
+        state="composer"
+        addEmail="addEmail"
+        remove="removeEmail"
+        toggleCc="toggleCc"
+        toggleBcc="toggleBcc"
+      />
+    </t>
+
+    <!-- BCC -->
+    <t t-if="composer.showBcc">
+      <EmailInputField
+        field="'Bcc'"
+        state="composer"
+        addEmail="addEmail"
+        remove="removeEmail"
+        toggleCc="toggleCc"
+        toggleBcc="toggleBcc"
+      />
+    </t>
+
+    <!-- SUBJECT -->
+    <div class="mb-2">
+      <label class="form-label">Subject</label>
+      <input type="text"
+             class="form-control subject-input line-h-composer"
+             placeholder="Subject"
+             t-att-value="composer.subject"
+             t-on-input="onSubjectChange"/>
+    </div>
+
+    <!-- WYSIWYG — Content synced to record on every change -->
+    <div class="flex-grow-1 mb-2">
+      <Wysiwyg
+        config="wysiwygConfig"
+        contentClass="o_wysiwyg_content"
+        onLoad="onEditorLoad"
+      />
+    </div>
+
+    <!-- ATTACHMENTS — Using Odoo Mail component -->
+    <t t-if="composer.attachments.length">
+      <t t-call="mail.MailComposerAttachmentList">
+        <t t-set="files" t-value="composer.attachments"/>
+        <t t-set="onFileRemove" t-value="onFileRemove"/>
+        <t t-set="getUrl" t-value="getUrl"/>
+      </t>
+    </t>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card-footer card-footer-composer d-flex justify-content-end align-items-center">
+
+    <!-- ATTACH -->
+    <FileInput
+      multiUpload="true"
+      onUpload.bind="onFileUploaded"
+      resModel="'mailbox.composer.wizard'"
+      resId="0">
+      <button class="btn me-2" data-tooltip="Attach a file to this email">
+        <img loading="lazy"
+             src="/maildesk_mail_client/static/src/icons/attachment.svg"/>
+      </button>
+    </FileInput>
+
+    <!-- SIGNATURE -->
+    <button class="btn me-2"
+            t-on-click="insertSignatureClick"
+            data-tooltip="Insert or update signature">
+      <img loading="lazy"
+           src="/maildesk_mail_client/static/src/icons/signatur.svg"/>
+    </button>
+
+    <!-- SAVE DRAFT -->
+    <button class="btn me-2"
+            t-on-click="saveDraftClick"
+            data-tooltip="Save this email as a Draft">
+      <img loading="lazy"
+           src="/maildesk_mail_client/static/src/icons/drafts.svg"
+           class="me-1"/>
+      Draft
+    </button>
+
+    <!-- SEND -->
+    <button class="btn btn-primary"
+            t-on-click="sendMail"
+            t-att-disabled="uiState.sending"
+            data-tooltip="Send this email now">
+      <img loading="lazy"
+           src="/maildesk_mail_client/static/src/icons/sent.svg"
+           class="me-1"/>
+      Send
+    </button>
+
+  </div>
+
+</t>
+</templates>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>README_DEMO.md</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+html,footer,header{
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Custom MD PDF CSS
+ */
+html,footer,header{
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+
+ }
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+<link rel="stylesheet" href="file:///Users/vinni/Projects/maildesk/modules/18/R%3A%5C2.Travail%5C1.Enseignement%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css"><link rel="stylesheet" href="file:///Users/vinni/Projects/maildesk/modules/18/D%3A%5Crdaros%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css">
+</head>
+
+<body>
+    <h1 id="maildesk-demo-data-odoo-18">MailDesk Demo Data (Odoo 18)</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This demo dataset is designed to make a fresh MailDesk database feel like a real, active corporate email system:</p>
+<ul>
+<li>convincing inbox content for sales and investor demos</li>
+<li>onboarding and training with realistic flows</li>
+<li>development and testing with reliable, consistent records</li>
+</ul>
+<h2 id="what-you-get-by-design">What You Get (By Design)</h2>
+<h3 id="mailboxes--providers">Mailboxes &amp; Providers</h3>
+<ul>
+<li>6 mailbox accounts across 3 providers:
+<ul>
+<li>IMAP: Support, Info, HR</li>
+<li>Gmail: Sales, Admin (Gmail labels incl. All Mail)</li>
+<li>Outlook: Finance (Graph folder ids)</li>
+</ul>
+</li>
+<li>36 folders total (6 per account): Inbox, Sent, Drafts, Archive, Spam, Trash</li>
+</ul>
+<h3 id="messages-3-tiers">Messages (3 Tiers)</h3>
+<ul>
+<li>Curated core dataset: <strong>138</strong> realistic, scenario-driven emails across all folders</li>
+<li>Pro dataset: <strong>3</strong> additional “enterprise-style” emails (invoice + design assets + project update)</li>
+<li>Bulk dataset: <strong>240</strong> additional emails (40 per mailbox) to simulate volume</li>
+</ul>
+<p>Total: <strong>381</strong> emails (<code>maildesk.message_index</code> + 1:1 <code>maildesk.ui_cache</code>).</p>
+<p>Note: due to manifest load order, the 3 Pro <code>maildesk.message_index</code> records are defined in <code>05_message_index_demo.xml</code> so that <code>08_attachments_demo.xml</code> can safely link attachments via <code>res_id</code>.</p>
+<h3 id="threads">Threads</h3>
+<ul>
+<li>6 realistic threaded conversations implemented via <strong>12</strong> <code>mail.message</code> records</li>
+<li>Replies carry RFC-like threading headers (In-Reply-To / References) in <code>maildesk.message_index</code></li>
+</ul>
+<h3 id="tags">Tags</h3>
+<ul>
+<li>7 human-readable hashtags (no numeric or cryptic names):
+<ul>
+<li><code>#urgent</code>, <code>#customer</code>, <code>#internal</code>, <code>#finance</code>, <code>#follow-up</code>, <code>#hr</code>, <code>#sales</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="attachments">Attachments</h3>
+<ul>
+<li><strong>58</strong> realistic attachments (PDF / PNG / XLSX)</li>
+<li>All attachments are real <code>ir.attachment</code> records linked to the correct message</li>
+<li>Attachment binaries reuse existing Odoo demo assets via <code>file=</code> (no giant inline blobs)</li>
+</ul>
+<h2 id="installation--upgrade-required-scripts-only">Installation / Upgrade (Required Scripts Only)</h2>
+<p>MailDesk demo data loads only when the database is created with demo data enabled.</p>
+<p>From <code>/Users/vinni/Projects/maildesk</code>:</p>
+<ul>
+<li>
+<p>Upgrade an existing database:</p>
+<pre class="hljs"><code><div>./scripts/run18.sh -d &lt;database&gt; -u maildesk_mail_client
+</div></code></pre>
+</li>
+<li>
+<p>Fresh install:</p>
+<ol>
+<li>Create a new database and enable “Load demonstration data”.</li>
+<li>Install <code>maildesk_mail_client</code> from Apps.</li>
+<li>(Optional) Run an update to ensure everything is up-to-date:<pre class="hljs"><code><div>./scripts/run18.sh -d &lt;database&gt; -u maildesk_mail_client
+</div></code></pre>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="verification-checklist">Verification Checklist</h2>
+<h3 id="mailbox-accounts">Mailbox Accounts</h3>
+<ul>
+<li>MailDesk → Configuration → Mailbox Accounts
+<ul>
+<li>6 accounts exist (Support, Sales, Info, Admin, HR, Finance)</li>
+<li>shared mailboxes show multiple users in the access list</li>
+</ul>
+</li>
+</ul>
+<h3 id="messages-cache-and-rendering">Messages, Cache, and Rendering</h3>
+<ul>
+<li>Open MailDesk and switch between accounts
+<ul>
+<li>inbox list shows realistic previews, read/unread, stars</li>
+<li>opening a message renders body from cache (fast, consistent)</li>
+</ul>
+</li>
+</ul>
+<h3 id="threading">Threading</h3>
+<ul>
+<li>Open a known thread (e.g., support or sales conversation)
+<ul>
+<li>replies expand correctly and are ordered chronologically</li>
+</ul>
+</li>
+</ul>
+<h3 id="attachments">Attachments</h3>
+<ul>
+<li>Open a message with attachments
+<ul>
+<li>PDFs preview/download</li>
+<li>PNG previews</li>
+<li>XLSX downloads</li>
+</ul>
+</li>
+</ul>
+<h3 id="tags">Tags</h3>
+<ul>
+<li>MailDesk → Configuration → Tags
+<ul>
+<li>hashtags render with consistent colors</li>
+<li>tagged messages show the tag badges in the list/detail</li>
+</ul>
+</li>
+</ul>
+<h2 id="technical-guarantees-ssot--correct-odoo-semantics">Technical Guarantees (SSOT + Correct Odoo Semantics)</h2>
+<h3 id="1-ssot">1) SSOT</h3>
+<ul>
+<li><code>maildesk.message_index</code> contains metadata only.</li>
+<li>No full email bodies (HTML/text) are stored in <code>maildesk.message_index</code>.</li>
+</ul>
+<h3 id="2-ui-cache-strict-11">2) UI Cache (Strict 1:1)</h3>
+<ul>
+<li><code>maildesk.ui_cache</code> exists <strong>1:1</strong> for every <code>maildesk.message_index</code> record.</li>
+<li>Linking is done strictly via <code>ui_cache.index_id</code>.</li>
+<li><code>ui_cache.json_cache</code> structure is always:<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"body"</span>: {
+    <span class="hljs-attr">"body_html"</span>: <span class="hljs-string">"…"</span>,
+    <span class="hljs-attr">"body_text"</span>: <span class="hljs-string">"…"</span>,
+    <span class="hljs-attr">"attachments"</span>: [
+      {<span class="hljs-attr">"id"</span>: <span class="hljs-number">123</span>, <span class="hljs-attr">"name"</span>: <span class="hljs-string">"…"</span>, <span class="hljs-attr">"filename"</span>: <span class="hljs-string">"…"</span>, <span class="hljs-attr">"mimetype"</span>: <span class="hljs-string">"…"</span>, <span class="hljs-attr">"type"</span>: <span class="hljs-string">"binary"</span>}
+    ]
+  }
+}
+</div></code></pre>
+</li>
+<li>TTL fields are consistent (<code>json_cache_until</code> and <code>cache_until</code>) and set to a sensible horizon.</li>
+</ul>
+<h3 id="3-attachments">3) Attachments</h3>
+<ul>
+<li>Attachments are real <code>ir.attachment</code> records and are linked to the correct message.</li>
+<li>The UI cache <code>attachments</code> list uses FileModel-compatible dict entries referencing the attachment id.</li>
+</ul>
+<h3 id="4-threading">4) Threading</h3>
+<ul>
+<li><code>mail.message</code> records are provided as a lightweight mirror for native Odoo linkage and threading.</li>
+<li>Each demo email has a corresponding <code>mail.message</code> with:
+<ul>
+<li><code>message_id</code> matching <code>maildesk.message_index.message_id</code></li>
+<li><code>parent_id</code> derived from <code>maildesk.message_index.in_reply_to</code> when applicable</li>
+<li><code>model='res.partner'</code> and <code>res_id</code> pointing to a reused demo partner (so messages are visible in partner chatter)</li>
+</ul>
+</li>
+<li><code>mail.message.body</code> remains a short placeholder (no body duplication); full content renders from <code>maildesk.ui_cache</code>.</li>
+</ul>
+<h3 id="5-folderprovider-realism">5) Folder/Provider Realism</h3>
+<ul>
+<li><code>maildesk.message_index.folder</code> matches the corresponding <code>mailbox.folder.imap_name</code>.</li>
+<li>Provider fields align with the mailbox account provider (IMAP/Gmail/Outlook).</li>
+</ul>
+<h3 id="6-demo-runtime-safety-no-external-calls">6) Demo Runtime Safety (No External Calls)</h3>
+<p>This demo database is meant to work out-of-the-box without real Gmail/IMAP/Outlook credentials:</p>
+<ul>
+<li>All provider sync crons remain enabled (production-like).</li>
+<li>Demo mailbox accounts are intentionally put into backoff (<code>mailbox.account.backoff_until</code> far in the future), so the cron domains select no accounts → no OAuth/IMAP/Graph calls and no noisy errors.</li>
+<li>Demo folders are marked as already backfilled (<code>mailbox.folder.backfill_completed_at</code> set), so progressive backfill cron has nothing to do.</li>
+</ul>
+<p>If you want to convert the demo mailboxes into real synced mailboxes, configure the provider credentials/hosts and then run the MailDesk “Reset sync state” action on the mailbox account(s) (admin-only). This clears backoff and reboots folders into backfill.</p>
+<h2 id="file-layout">File Layout</h2>
+<pre class="hljs"><code><div>data/
+├── 01_fetchmail_servers_demo.xml
+├── 02_mailbox_accounts_demo.xml
+├── 03_mailbox_folders_demo.xml
+├── 04_mail_tags_demo.xml
+├── 05_message_index_demo.xml
+├── 06_mail_message_threading_demo.xml
+├── 07_ui_cache_demo.xml
+├── 08_attachments_demo.xml
+├── 09_drafts_demo.xml
+├── 10_res_groups_demo.xml
+├── 11_message_index_demo_pro.xml
+├── 12_ui_cache_demo_pro.xml
+├── 13_message_index_bulk_demo.xml
+└── 14_ui_cache_bulk_demo.xml
+</div></code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="no-demo-emails-visible">No demo emails visible</h3>
+<ul>
+<li>Ensure the database was created with demo data enabled.</li>
+<li>Confirm the module is installed and updated (<code>./scripts/run18.sh -d &lt;db&gt; -u maildesk_mail_client</code>).</li>
+</ul>
+<h3 id="attachments-show-no-previewdownload">Attachments show no preview/download</h3>
+<ul>
+<li>Verify <code>08_attachments_demo.xml</code> loads and the message has <code>has_attachments=True</code>.</li>
+<li>Verify the UI cache <code>attachments</code> array contains dicts (not raw <code>ref()</code> values).</li>
+</ul>
+<h3 id="threading-does-not-expand">Threading does not expand</h3>
+<ul>
+<li>Verify <code>06_mail_message_threading_demo.xml</code> is loaded.</li>
+<li>Verify <code>maildesk.message_index</code> reply headers (<code>in_reply_to</code>, <code>references_hdr</code>) are present and consistent.</li>
+</ul>
+<hr>
+<p>MailDesk Demo Data | Odoo 18 | © 2025 Metzler IT GmbH</p>
+<p>&quot;demo&quot;: [<br>
+&quot;data/demo/01_fetchmail_servers_demo.xml&quot;,<br>
+&quot;data/demo/02_mailbox_accounts_demo.xml&quot;,<br>
+&quot;data/demo/03_mailbox_folders_demo.xml&quot;,<br>
+&quot;data/demo/04_mail_tags_demo.xml&quot;,<br>
+&quot;data/demo/05_message_index_demo.xml&quot;,<br>
+&quot;data/demo/06_mail_message_threading_demo.xml&quot;,<br>
+&quot;data/demo/07_ui_cache_demo.xml&quot;,<br>
+&quot;data/demo/08_attachments_demo.xml&quot;,<br>
+&quot;data/demo/09_drafts_demo.xml&quot;,<br>
+&quot;data/demo/10_res_groups_demo.xml&quot;,<br>
+&quot;data/demo/11_message_index_demo_pro.xml&quot;,<br>
+&quot;data/demo/12_ui_cache_demo_pro.xml&quot;,<br>
+&quot;data/demo/13_message_index_bulk_demo.xml&quot;,<br>
+&quot;data/demo/14_ui_cache_bulk_demo.xml&quot;,<br>
+],</p>
+
+</body>
+
+</html>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    ThreadMessage Component Template
+    Compact icon-only toolbar, body always visible (Gmail/Outlook style)
+-->
+<templates xml:space="preserve">
+
+    <t t-name="maildesk_mail_client.ThreadMessageComponent" owl="1">
+        <div class="mail-thread-entry shadow-sm mb-3 p-4 bg-white mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                <div class="d-flex gap-3">
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/reply.svg"
+                        width="16"
+                        height="16"
+                        class="cursor-pointer"
+                        t-on-click="() =&gt; this.openReplyComposer(message)"
+                        data-tooltip="Reply to sender"
+                    />
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/reply_all.svg"
+                        width="16"
+                        height="16"
+                        class="cursor-pointer"
+                        t-on-click="() =&gt; this.openReplyAllComposer(message)"
+                        data-tooltip="Reply to all recipients"
+                    />
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/forward.svg"
+                        width="16"
+                        height="16"
+                        class="cursor-pointer"
+                        t-on-click="() =&gt; this.openForwardComposer(message)"
+                        data-tooltip="Forward this message"
+                    />
+                </div>
+
+                <div class="d-flex align-items-center gap-3 text-primary-emphasis">
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/archive.svg"
+                        width="18"
+                        height="18"
+                        class="cursor-pointer"
+                        data-tooltip="Archive this message"
+                        t-on-click="() =&gt; this.archiveMessage(message)"
+                    />
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/trash.svg"
+                        width="18"
+                        height="18"
+                        class="cursor-pointer"
+                        data-tooltip="Move to Trash"
+                        t-on-click.stop="() =&gt; this.deleteSelected(message)"
+                    />
+                    <img
+                        src="/maildesk_mail_client/static/src/icons/starred.svg"
+                        width="18"
+                        height="18"
+                        t-att-class="'cursor-pointer' + (message?.is_starred ? ' star-active' : '')"
+                        data-tooltip="Toggle star"
+                        t-on-click="() =&gt; this.toggleStar(message)"
+                    />
+                </div>
+            </div>
+
+            <!-- Message Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-3">
+                        <div
+                            t-out="message.avatar_html"
+                            class="overflow-hidden sender-icon"
+                            style="width: 48px; height: 48px; cursor: pointer"
+                            t-on-click.stop="(ev) =&gt; this.onClickPartner(ev, message.avatar_partner_id)"
+                        />
+                    </div>
+                    <div>
+                        <h5
+                            class="mb-0 fw-semibold"
+                            t-out="message.sender_display_name || '?'"
+                            style="cursor: pointer;"
+                            t-on-click.stop="(ev) =&gt; this.onClickPartner(ev, message.avatar_partner_id)"
+                        />
+                        <div class="mb-1 info-container-bod">
+                            <t t-if="isSentFolder">
+                                <span class="text-muted small" title="Sent from account">
+                                    From mailbox: <t t-out="mailboxEmail"/>
+                                </span>
+                            </t>
+                            <t t-else="">
+                                <span class="text-muted small" t-out="message.email_from"/>
+                            </t>:
+                            <span t-out="message.subject || 'No Subject'"/>
+                        </div>
+                        <div class="text-muted small">
+                            <t t-if="message.to_display">
+                                <div><strong>To:</strong> <span t-out="message.to_display"/></div>
+                            </t>
+                            <t t-if="message.cc_display">
+                                <div><strong>Cc:</strong> <span t-out="message.cc_display"/></div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <div
+                        class="text-muted small small-formatted_date mb-2"
+                        t-out="formatUserDate(message.date)"
+                    />
+
+                    <!-- Folder & Mailbox Info -->
+                    <div class="d-flex align-items-end gap-1 mb-2">
+                         <t t-if="mailboxName">
+                            <span class="badge bg-light text-dark border fw-normal ms-auto" title="Mailbox">
+                                <i class="fa fa-inbox me-1 text-muted"/>
+                                <t t-out="mailboxName"/>
+                            </span>
+                        </t>
+                        <t t-if="folderName">
+                            <span class="badge bg-light text-dark border fw-normal ms-auto" title="Folder">
+                                <i class="fa fa-folder-open-o me-1 text-muted"/>
+                                <t t-out="folderName"/>
+                            </span>
+                        </t>
+                    </div>
+
+                    <t t-if="message.tag_ids">
+                        <div class="d-flex gap-1 mt-2 justify-content-end">
+                            <t t-foreach="message.tag_ids" t-as="tag" t-key="tag.id">
+                                <span
+                                    class="badge rounded-pill text-white fw-medium justify-content-end"
+                                    t-att-style="'background-color:' + tag.color + ';'"
+                                    t-out="tag.name"
+                                />
+                            </t>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <h3 t-out="message.subject || 'No Subject'" />
+            <!-- Safe Mode Warning -->
+            <t t-set="message.partner_trusted" t-value="message.content_trusted"/>
+            <t t-if="!message.force_show_content and !message.partner_trusted">
+                <div class="alert alert-warning d-block p-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <img
+                            src="/maildesk_mail_client/static/src/icons/security.svg"
+                            width="20"
+                            height="20"
+                            class="me-2"
+                        />
+                        <strong class="me-1">Safe Mode:</strong> Suspicious content has been blocked for your
+                        safety.
+                    </div>
+                    <p class="mb-2">
+                        To view the full content, we recommend checking this email or only trusting known
+                        senders.
+                    </p>
+                    <div class="d-flex gap-2 trust-buttons flex-wrap">
+                        <button
+                            class="btn rounded-pill d-flex align-items-center"
+                            t-on-click="() =&gt; this.trustEmailOnce(message)"
+                            accesskey="t"
+                            data-tooltip="Trust this email and display its full content."
+                        >
+                            <img
+                                src="/maildesk_mail_client/static/src/icons/show_once.svg"
+                                class="me-1"
+                                width="16"
+                                height="16"
+                            />
+                            Show Once
+                        </button>
+
+                        <button
+                            class="btn rounded-pill d-flex align-items-center"
+                            t-on-click="() =&gt; this.trustPartner(message)"
+                            accesskey="u"
+                            data-tooltip="Trust the sender of this email for all future communications."
+                        >
+                            <img
+                                src="/maildesk_mail_client/static/src/icons/security.svg"
+                                class="me-1"
+                                width="16"
+                                height="16"
+                            />
+                            Trust Sender
+                        </button>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Email Body (ALWAYS iframe, no lazy loading) -->
+            <div class="email-body lh-lg fs-6 border-top pt-2" t-if="message.body_html">
+                <iframe
+                    t-ref="iframe"
+                    class="email-preview-iframe w-100 border-0"
+                    style="height: auto; min-height: 100px;"
+                    t-att-srcdoc="state.iframeSrcdoc"
+                    t-att-sandbox="iframeSandbox"
+                    src="about:blank"
+                />
+            </div>
+
+            <!-- Attachments -->
+            <t t-if="message.attachments and message.attachments.length > 0">
+                <div class="mt-3 border-top pt-3 mb-4">
+                    <AttachmentList
+                        attachments="attachmentsForAttachmentList"
+                        unlinkAttachment="() =&gt; {}"
+                    />
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

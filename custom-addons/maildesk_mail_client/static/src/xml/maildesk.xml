@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+# You may use this file only in accordance with the license terms.
+# For more information, visit: https://www.odoo.com/documentation/19.0/legal/licenses/licenses.html#odoo-proprietary-license
+
+Main MailDesk action template
+-->
+<templates xml:space="preserve">
+    <t t-name="maildesk_mail_client.MailDesk" owl="1">
+        <div class="maildesk-mail-client">
+            <div class="maildesk-body d-flex bg-light">
+                <!-- Sidebar / Folder Tree -->
+                <FolderTree/>
+
+                <!-- Message List -->
+                <MailList currentFolderName="currentFolderName"/>
+
+                <!-- Message Detail -->
+                <MailDetail message="maildeskStore.selectedMessage"/>
+            </div>
+
+            <t t-if="state.undoToast">
+                <UndoToast t-props="state.undoToast" />
+            </t>
+        </div>
+    </t>
+
+</templates>

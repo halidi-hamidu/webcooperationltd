@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+-->
+<odoo>
+    <!-- list View -->
+    <record id="view_maildesk_ingest_queue_list" model="ir.ui.view">
+        <field name="name">maildesk.ingest_queue.list</field>
+        <field name="model">maildesk.ingest_queue</field>
+        <field name="arch" type="xml">
+            <list string="Ingest Queue"
+                  decoration-info="state=='pending'"
+                  decoration-warning="state=='in_progress'"
+                  decoration-success="state=='done'"
+                  decoration-danger="state=='failed'"
+                  decoration-muted="state=='skipped'">
+                <field name="state" widget="badge"
+                       decoration-info="state=='pending'"
+                       decoration-warning="state=='in_progress'"
+                       decoration-success="state=='done'"
+                       decoration-danger="state=='failed'"
+                       decoration-muted="state=='skipped'"/>
+                <field name="index_id"/>
+                <field name="retry_count"/>
+                <field name="next_try_at"/>
+                <field name="error_message"/>
+                <field name="priority"/>
+                <field name="started_at"/>
+                <field name="processed_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_maildesk_ingest_queue_form" model="ir.ui.view">
+        <field name="name">maildesk.ingest_queue.form</field>
+        <field name="model">maildesk.ingest_queue</field>
+        <field name="arch" type="xml">
+            <form string="Ingest Queue Entry" create="false">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                    <button name="action_requeue"
+                            string="Requeue"
+                            type="object"
+                            invisible="state not in ('failed', 'skipped')"
+                            groups="maildesk_mail_client.group_mailbox_admin"
+                            confirm="Reset this queue item to pending state?"/>
+                    <button name="action_clear_raw_body"
+                            string="Clear Raw Body"
+                            type="object"
+                            invisible="state not in ('done', 'skipped', 'failed')"
+                            groups="maildesk_mail_client.group_mailbox_admin"
+                            confirm="Clear the raw message body to free space?"/>
+                </header>
+                <sheet>
+                    <group name="main">
+                        <group name="queue_status" string="Queue Status">
+                            <field name="index_id" readonly="1"/>
+                            <field name="priority"/>
+                            <field name="retry_count" readonly="1"/>
+                            <field name="next_try_at" readonly="1"/>
+                        </group>
+                        <group name="processing" string="Processing Info">
+                            <field name="started_at" readonly="1"/>
+                            <field name="processed_at" readonly="1"/>
+                            <field name="processed_model" readonly="1"/>
+                            <field name="processed_res_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="error" string="Error Details">
+                        <field name="error_message" readonly="1" nolabel="1"/>
+                    </group>
+                    <group name="raw" string="Raw Body">
+                        <p>Raw body size: <field name="raw_body" readonly="1" widget="binary_size"/></p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_maildesk_ingest_queue" model="ir.actions.act_window">
+        <field name="name">Ingest Queue</field>
+        <field name="res_model">maildesk.ingest_queue</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No items in queue
+            </p>
+            <p>
+                Messages from the SSOT are queued here for ingestion into Odoo's mail.thread.
+                Failed items can be manually requeued.
+            </p>
+        </field>
+    </record>
+
+    <!-- Server Action: Delete Terminal States -->
+    <record id="action_delete_terminal_queue_items" model="ir.actions.server">
+        <field name="name">Delete Terminal Queue Items</field>
+        <field name="model_id" ref="model_maildesk_ingest_queue"/>
+        <field name="binding_model_id" ref="model_maildesk_ingest_queue"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('maildesk_mail_client.group_mailbox_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.action_delete_terminal()
+        </field>
+    </record>
+</odoo>

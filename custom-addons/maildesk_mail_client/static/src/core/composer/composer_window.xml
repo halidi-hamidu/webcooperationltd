@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+# Copyright (C) 2025 Metzler IT GmbH
+# License Odoo Proprietary License v1.0 (OPL-1)
+
+ComposerWindow Template
+Pattern mirrored from Odoo Mail: chat_window.xml
+-->
+<templates xml:space="preserve">
+<t t-name="maildesk_mail_client.ComposerWindow" owl="1">
+
+    <!-- FOLDED STATE = BUBBLE -->
+    <t t-if="isFolded">
+        <ComposerBubble composer="composer" onClick="onBubbleClick" onClose="close"/>
+    </t>
+
+    <!-- OPEN STATE = WINDOW -->
+    <t t-else="">
+        <div t-ref="root"
+             class="o-maildesk-composer-window o-mail-ChatWindow card shadow composer-wrapper-maildesk"
+             t-att-class="{'o-fullscreen': isFullscreen}"
+             t-att-style="windowStyleStr">
+
+            <!-- HEADER — Pattern mirrored from Odoo Mail: ChatWindow header -->
+            <div t-ref="header"
+                 class="o-mail-ChatWindow-header card-header d-flex align-items-center justify-content-between flex-shrink-0 bg-100 z-1 shadow-sm cursor-pointer"
+                 t-on-mousedown="onHeaderMouseDown"
+                 t-on-dblclick="toggleFullscreen">
+
+                <span class="fw-semibold text-truncate flex-grow-1" t-out="title"/>
+
+                <div class="d-flex gap-1 align-items-center">
+                    <!-- Minimize -->
+                    <button class="btn btn-sm btn-link p-1 text-muted"
+                            t-on-click.stop="toggleFold"
+                            t-on-mousedown.stop=""
+                            data-tooltip="Minimize window">
+                        <i class="fa fa-minus"/>
+                    </button>
+                    <!-- Fullscreen toggle -->
+                    <button class="btn btn-sm btn-link p-1 text-muted"
+                            t-on-click.stop="toggleFullscreen"
+                            t-on-mousedown.stop=""
+                            t-att-data-tooltip="isFullscreen ? 'Restore window size' : 'Expand to Fullscreen'">
+                        <i t-att-class="isFullscreen ? 'fa fa-compress' : 'fa fa-expand'"/>
+                    </button>
+                    <!-- Close -->
+                    <button class="btn btn-sm btn-link p-1 text-danger"
+                            t-on-click.stop="close"
+                            t-on-mousedown.stop=""
+                            data-tooltip="Close and discard unsaved changes">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BODY: ComposerInput -->
+            <ComposerInput composer="composer"/>
+
+            <!-- RESIZE HANDLES (hidden in fullscreen) -->
+            <t t-if="!isFullscreen">
+                <div class="o-resize-handle o-resize-n" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'n')"/>
+                <div class="o-resize-handle o-resize-s" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 's')"/>
+                <div class="o-resize-handle o-resize-e" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'e')"/>
+                <div class="o-resize-handle o-resize-w" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'w')"/>
+                <div class="o-resize-handle o-resize-ne" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'ne')"/>
+                <div class="o-resize-handle o-resize-nw" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'nw')"/>
+                <div class="o-resize-handle o-resize-se" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'se')"/>
+                <div class="o-resize-handle o-resize-sw" t-on-mousedown="(ev) => this.onResizeMouseDown(ev, 'sw')"/>
+            </t>
+        </div>
+    </t>
+
+</t>
+</templates>
