@@ -21,3 +21,4 @@ from . import mail_activity
 from . import account_asset
 from . import account_asset
 from . import account_asset_label
+from . import hr_version

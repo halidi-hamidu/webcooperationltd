@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="hr_employee_custom_allowances_form" model="ir.ui.view">
+            <field name="name">hr.employee.custom.allowances.form</field>
+            <!-- 1. Change the model to hr.employee -->
+            <field name="model">hr.employee</field>
+            <field name="priority" eval="20"/>
+            <!-- 2. Inherit the standard employee form instead of the deprecated contract form -->
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+
+                <!-- 3. The old <group name="salary"> no longer exists in the same way. 
+                     It is safest and cleanest to add a new tab (page) inside the Employee's notebook -->
+                <xpath expr="//notebook" position="inside">
+                    <page name="custom_payroll_deductions" string="Allowances &amp; Deductions">
+                        <group>
+                            <group name="allowance" string="Allowance">
+                                <field name="hra"/> 
+                            </group>
+
+                            <group name="heslb" string="Student Loan's Board">
+                                <field name="x_heslb"/>
+                                <field name="x_heslb_manual"/>
+                            </group>
+
+                            <group name="other_deductions" string="Manual Deductions">
+                                <field name="x_savings"/>
+                                <field name="x_sacco_loan"/>
+                                <field name="x_unpaid_leave"/>
+                                <field name="x_manual_deductions"/> 
+                            </group>
+
+                            <group name="security" string="Social Security Computation">
+                                <field name="x_security_calculation"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

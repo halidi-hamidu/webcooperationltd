@@ -23,6 +23,8 @@
         "stock",
         'approvals',
         # "contract",
+         'hr', 
+         'hr_payroll'
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -48,6 +50,7 @@
         "views/report_sale.xml",
         "views/report_purchase.xml",
         "views/approval_request_views.xml",
+        "views/hr_version.xml",
     ],
     "installable": True,
     "maintainers": ["ictpack"],
