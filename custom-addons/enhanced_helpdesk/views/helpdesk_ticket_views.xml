@@ -22,25 +22,50 @@
             <xpath expr="//field[@name='priority']" position="before">
                 <group colspan="4" col="4">
                     <field name="team_id"/>
-                     <field name="user_id" colspan="2"/>
-                    <!-- <field name="tag_ids" widget="many2many_tags" colspan="2"/> -->
-                   
+                    <field name="domain_user_ids" invisible="1"/>
+                    <field name="user_id" colspan="2"
+                           domain="[('id', 'in', domain_user_ids)]"
+                           options="{'no_open': True}"/>
                 </group>
             </xpath>
 
-            <!-- SLA description and info (unchanged placement) -->
+            <!-- Restrict tag_ids to only tags from SLA policies of the selected team -->
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="domain">sla_team_tag_domain</attribute>
+                <attribute name="options">{"no_create": True, "no_create_edit": True}</attribute>
+            </xpath>
+            <!-- hidden field so the domain expression resolves -->
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="sla_team_tag_domain" invisible="1"/>
+            </xpath>
+
+            <!-- SLA description and info -->
             <xpath expr="//group" position="inside">
                 <label for="sla_description" string="Description"/>
                 <field name="sla_description" widget="html" readonly="1"/>
-                
+
                 <group string="SLA Information" invisible="not sla_deadline">
-                    <field name="sla_status" widget="badge" 
+                    <field name="sla_status" widget="badge"
                            decoration-success="sla_status == 'safe'"
                            decoration-warning="sla_status == 'warning'"
-                           decoration-danger="sla_status in ('critical', 'breached')"/>
-                    <field name="sla_deadline"/>
-                    <field name="sla_breached" invisible="not sla_breached"/>
-                    <field name="sla_breach_time" invisible="not sla_breach_time"/>
+                           decoration-danger="sla_status in ('critical', 'breached')"
+                           decoration-muted="sla_status == 'paused'"/>
+                    <field name="sla_deadline" string="SLA Deadline" readonly="1"/>
+                    <field name="sla_breached"/>
+                    <field name="sla_breach_time" invisible="not sla_breach_time" readonly="1"/>
+                </group>
+
+                <!-- SLA Policies matching the ticket's tags -->
+                <group string="SLA Policies" colspan="2">
+                    <field name="sla_ids" nolabel="1" readonly="1" colspan="2">
+                        <list string="SLA Policies" editable="0" decoration-danger="sla_status == 'failed'" create="0" delete="0">
+                            <field name="name" string="Policy"/>
+                            <field name="tag_ids" widget="many2many_tags" string="Tags" optional="show"/>
+                            <field name="time" string="Target (hrs)" optional="show"/>
+                            <field name="stage_id" string="Target Stage" optional="show"/>
+                            <field name="priority" string="Priority" optional="show"/>
+                        </list>
+                    </field>
                 </group>
             </xpath>
 
@@ -70,4 +95,59 @@
             </xpath>
         </field>
     </record>
+
+    <!-- SLA countdown in list view — replaces remaining_days with live countdown -->
+    <record id="enhanced_helpdesk_sla_countdown_list" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.ticket.list.sla.countdown</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_tickets_view_tree"/>
+        <field name="arch" type="xml">
+            <!-- Replace the standard sla_deadline remaining_days widget with our countdown -->
+            <xpath expr="//list//field[@name='sla_deadline'][@widget='remaining_days']" position="replace">
+                <field name="is_on_hold" column_invisible="True"/>
+                <field name="sla_breached" column_invisible="True"/>
+                <field name="total_hold_time_hours" column_invisible="True"/>
+                <field name="sla_status" column_invisible="True"
+                       decoration-success="sla_status == 'safe'"
+                       decoration-warning="sla_status == 'warning'"
+                       decoration-danger="sla_status in ('critical', 'breached')"
+                       decoration-muted="sla_status == 'paused'"/>
+                <field name="sla_deadline"
+                       widget="sla_countdown"
+                       invisible="not use_sla or fold"
+                       optional="show"
+                       readonly="1"
+                       string="SLA Remaining"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- SLA countdown strip — between Tags and Description tabs on the form -->
+    <record id="enhanced_helpdesk_sla_inline_strip" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.ticket.form.sla.inline.strip</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <!-- hidden fields the widget reads from record.data -->
+                <field name="is_on_hold" invisible="1"/>
+                <field name="sla_breached" invisible="1"/>
+                <field name="total_hold_time_hours" invisible="1"/>
+                <field name="sla_status" invisible="1"/>
+
+                <div invisible="not sla_deadline"
+                     style="margin: 8px 0 12px 0; padding: 8px 12px; border-radius: 6px; background: #f5f5f5; border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 16px;">
+                    <strong style="font-size:0.8rem; color:#666; text-transform:uppercase; letter-spacing:.5px;">SLA</strong>
+                    <field name="sla_deadline" widget="sla_countdown" readonly="1" nolabel="1"/>
+                    <span style="font-size:0.82rem; color:#888;">
+                        Deadline: <field name="sla_deadline" readonly="1" nolabel="1" class="d-inline" style="font-size:0.82rem;"/>
+                    </span>
+                    <span invisible="total_hold_time_hours == 0.0" style="font-size:0.82rem; color:#888;">
+                        On-hold: <field name="total_hold_time_hours" widget="float_time" readonly="1" nolabel="1" class="d-inline" style="font-size:0.82rem;"/>h
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
