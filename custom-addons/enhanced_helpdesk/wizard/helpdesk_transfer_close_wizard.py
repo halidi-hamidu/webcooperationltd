@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from markupsafe import Markup, escape
 
 
 class HelpdeskTransferCloseWizard(models.TransientModel):
@@ -88,30 +89,35 @@ class HelpdeskTransferCloseWizard(models.TransientModel):
         
         time_string = ", ".join(time_parts)
         
-        message_body = f"""
+        message_body = Markup("""
             <div style="padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px;">
                 <h4 style="color: #155724; margin-top: 0;">✅ Assignment Closed</h4>
-                <p><b>{self.tagged_user_id.name}</b> completed the tag assignment from <b>{self.tag_transfer_id.tagged_by_user_id.name}</b></p>
-                <p><b>Closed At:</b> {now.strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p><b>{tagged}</b> completed the tag assignment from <b>{by}</b></p>
+                <p><b>Closed At:</b> {closed_at}</p>
                 <p><b>Resolution Time:</b> {time_string}</p>
-        """
+        """).format(
+            tagged=self.tagged_user_id.name,
+            by=self.tag_transfer_id.tagged_by_user_id.name,
+            closed_at=now.strftime('%Y-%m-%d %H:%M:%S'),
+            time_string=time_string,
+        )
         
         # Add work summary if provided
         if self.work_summary:
-            message_body += f"""
+            message_body += Markup("""
                 <hr style="border-color: #c3e6cb;"/>
                 <p><b>Work Summary:</b></p>
-                <p style="margin-left: 15px;">{self.work_summary}</p>
-            """
+                <p style="margin-left: 15px;">{summary}</p>
+            """).format(summary=self.work_summary)
         
         # Add closing notes if provided
         if self.closing_notes:
-            message_body += f"""
+            message_body += Markup("""
                 <p><b>Notes:</b></p>
-                <p style="margin-left: 15px;">{self.closing_notes}</p>
-            """
+                <p style="margin-left: 15px;">{notes}</p>
+            """).format(notes=self.closing_notes)
         
-        message_body += "</div>"
+        message_body += Markup("</div>")
         
         # Post message to ticket
         self.ticket_id.message_post(

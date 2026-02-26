@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError
 from odoo.tools.translate import _
 from datetime import datetime, timedelta
 from odoo.tools import html2plaintext
+from markupsafe import Markup, escape
 import math
 
 class HelpdeskTicket(models.Model):
@@ -105,13 +106,13 @@ class HelpdeskTicket(models.Model):
         
         # Post SLA pause notification
         self.message_post(
-            body=_(
+            body=Markup(
                 "<div class='alert alert-info'>"
                 "<h5><i class='fa fa-pause-circle text-warning'></i> SLA Timer Paused</h5>"
                 "<p>Ticket has been put on hold. SLA counting is now <strong>paused</strong> until the ticket is resumed.</p>"
-                "<p><small class='text-muted'>Hold started at: %s</small></p>"
+                "<p><small class='text-muted'>Hold started at: {ts}</small></p>"
                 "</div>"
-            ) % fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            ).format(ts=fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
             subtype_xmlid="mail.mt_note"
         )
         
@@ -354,22 +355,22 @@ class HelpdeskTicket(models.Model):
         
         # Create notification message in chatter only
         self.message_post(
-            body=_(
+            body=Markup(
                 "<div class='alert alert-danger'>"
                 "<h5><i class='fa fa-exclamation-triangle'></i> SLA Breach Alert</h5>"
                 "<p><strong>This ticket has exceeded its SLA deadline!</strong></p>"
                 "<ul>"
-                "<li><strong>Deadline:</strong> %s</li>"
-                "<li><strong>Breach Time:</strong> %s</li>"
-                "<li><strong>Priority:</strong> %s</li>"
-                "<li><strong>Stage:</strong> %s</li>"
+                "<li><strong>Deadline:</strong> {deadline}</li>"
+                "<li><strong>Breach Time:</strong> {breach}</li>"
+                "<li><strong>Priority:</strong> {priority}</li>"
+                "<li><strong>Stage:</strong> {stage}</li>"
                 "</ul>"
                 "</div>"
-            ) % (
-                self.sla_deadline.strftime('%Y-%m-%d %H:%M:%S') if self.sla_deadline else 'Not Set',
-                self.sla_breach_time.strftime('%Y-%m-%d %H:%M:%S') if self.sla_breach_time else fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                dict(self._fields['priority'].selection).get(self.priority, 'Normal'),
-                self.stage_id.name or 'Unknown'
+            ).format(
+                deadline=self.sla_deadline.strftime('%Y-%m-%d %H:%M:%S') if self.sla_deadline else 'Not Set',
+                breach=self.sla_breach_time.strftime('%Y-%m-%d %H:%M:%S') if self.sla_breach_time else fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                priority=escape(dict(self._fields['priority'].selection).get(self.priority, 'Normal')),
+                stage=escape(self.stage_id.name or 'Unknown'),
             ),
             subtype_xmlid="mail.mt_comment",
             partner_ids=recipients.mapped('partner_id').ids
@@ -404,19 +405,20 @@ class HelpdeskTicket(models.Model):
             
         # Post message in chatter
         self.message_post(
-            body=_(
+            body=Markup(
                 "<div class='alert alert-warning'>"
-                "<h5>%s %s: SLA Deadline Approaching</h5>"
-                "<p><strong>Time remaining:</strong> %.1f hours</p>"
-                "<p><strong>Adjusted Deadline:</strong> %s</p>"
-                "<p><strong>Hold Time Excluded:</strong> %.1f hours</p>"
+                "<h5>{icon} {msg_type}: SLA Deadline Approaching</h5>"
+                "<p><strong>Time remaining:</strong> {hours:.1f} hours</p>"
+                "<p><strong>Adjusted Deadline:</strong> {deadline}</p>"
+                "<p><strong>Hold Time Excluded:</strong> {hold:.1f} hours</p>"
                 "<p><em>Team members have been notified.</em></p>"
                 "</div>"
-            ) % (
-                icon, message_type,
-                hours_left,
-                adjusted_deadline.strftime('%Y-%m-%d %H:%M:%S') if adjusted_deadline else 'Not Set',
-                self.total_hold_time_hours
+            ).format(
+                icon=icon,
+                msg_type=message_type,
+                hours=hours_left,
+                deadline=adjusted_deadline.strftime('%Y-%m-%d %H:%M:%S') if adjusted_deadline else 'Not Set',
+                hold=self.total_hold_time_hours,
             ),
             subtype_xmlid="mail.mt_comment",
             partner_ids=recipients.mapped('partner_id').ids
@@ -437,16 +439,16 @@ class HelpdeskTicket(models.Model):
         recipients = self._get_sla_notification_recipients()
         
         # Post message in chatter
-        changes_html = '<br/>'.join([f'• {change}' for change in changes])
+        changes_html = Markup("<br/>").join(Markup("• {c}").format(c=escape(change)) for change in changes)
         self.message_post(
-            body=_(
+            body=Markup(
                 "<div class='alert alert-info'>"
                 "<h5><i class='fa fa-info-circle'></i> SLA Information Updated</h5>"
                 "<p><strong>The following changes were made:</strong></p>"
-                "<p>%s</p>"
+                "<p>{changes}</p>"
                 "<p><em>Relevant team members have been notified.</em></p>"
                 "</div>"
-            ) % changes_html,
+            ).format(changes=changes_html),
             subtype_xmlid="mail.mt_comment",
             partner_ids=recipients.mapped('partner_id').ids
         )
@@ -852,7 +854,9 @@ class HelpdeskTicket(models.Model):
                 
             # Post a message
             self.message_post(
-                body=f"⏯️ Ticket removed from hold by <b>{self.env.user.name}</b>. SLA timer resumed.",
+                body=Markup("⏯️ Ticket removed from hold by <b>{user}</b>. SLA timer resumed.").format(
+                    user=self.env.user.name,
+                ),
                 subtype_xmlid="mail.mt_note"
             )
             

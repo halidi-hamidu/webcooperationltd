@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from markupsafe import Markup
 from datetime import datetime
 
 
@@ -198,7 +199,11 @@ class HelpdeskTicketTagTransfer(models.Model):
         
         # Post a message to the ticket
         self.ticket_id.message_post(
-            body=f"🟢 <b>{self.tagged_user_id.name}</b> accepted the tag assignment from <b>{self.tagged_by_user_id.name}</b> at {now.strftime('%Y-%m-%d %H:%M:%S')}",
+            body=Markup("🟢 <b>{tagged}</b> accepted the tag assignment from <b>{by}</b> at {time}").format(
+                tagged=self.tagged_user_id.name,
+                by=self.tagged_by_user_id.name,
+                time=now.strftime('%Y-%m-%d %H:%M:%S'),
+            ),
             subtype_xmlid="mail.mt_note"
         )
         
@@ -331,7 +336,9 @@ class HelpdeskTicketTagTransfer(models.Model):
             
             # Post a message to the ticket
             self.ticket_id.message_post(
-                body=f"⏯️ Ticket removed from hold by <b>{self.env.user.name}</b>. SLA timer resumed.",
+                body=Markup("⏯️ Ticket removed from hold by <b>{user}</b>. SLA timer resumed.").format(
+                    user=self.env.user.name,
+                ),
                 subtype_xmlid="mail.mt_note"
             )
             

@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+from markupsafe import Markup
 from datetime import datetime
 
 
@@ -122,7 +123,12 @@ class HelpdeskTransferRejectWizard(models.TransientModel):
         
         # Post a message to the ticket
         self.tag_transfer_id.ticket_id.message_post(
-            body=f"🔴 <b>{self.tag_transfer_id.tagged_user_id.name}</b> rejected the tag assignment from <b>{self.tag_transfer_id.tagged_by_user_id.name}</b> at {now.strftime('%Y-%m-%d %H:%M:%S')}\n<br/><br/><b>Reason:</b> {reason_text}",
+            body=Markup("🔴 <b>{tagged}</b> rejected the tag assignment from <b>{by}</b> at {time}<br/><br/><b>Reason:</b> {reason}").format(
+                tagged=self.tag_transfer_id.tagged_user_id.name,
+                by=self.tag_transfer_id.tagged_by_user_id.name,
+                time=now.strftime('%Y-%m-%d %H:%M:%S'),
+                reason=reason_text,
+            ),
             subtype_xmlid="mail.mt_note"
         )
         

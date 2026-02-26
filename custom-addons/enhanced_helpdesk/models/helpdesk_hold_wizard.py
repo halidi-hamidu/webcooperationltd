@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from markupsafe import Markup, escape
 
 
 class HelpdeskTicketHoldWizard(models.TransientModel):
@@ -157,36 +158,38 @@ class HelpdeskTicketHoldWizard(models.TransientModel):
         
         # Create professional message structure
         message_parts = [
-            f"<div class='alert alert-warning'>",
-            f"<h5><i class='fa fa-pause-circle'></i> Assignment Put On Hold</h5>",
-            f"<p><strong>{user_name}</strong> put the tag assignment from <strong>{tagged_by_name}</strong> on hold</p>",
-            f"<small class='text-muted'><i class='fa fa-clock-o'></i> {timestamp_str}</small>",
-            f"</div>"
+            Markup("<div class='alert alert-warning'>"),
+            Markup("<h5><i class='fa fa-pause-circle'></i> Assignment Put On Hold</h5>"),
+            Markup("<p><strong>{user}</strong> put the tag assignment from <strong>{by}</strong> on hold</p>").format(
+                user=user_name, by=tagged_by_name),
+            Markup("<small class='text-muted'><i class='fa fa-clock-o'></i> {ts}</small>").format(ts=timestamp_str),
+            Markup("</div>")
         ]
         
         # Section 1: Hold Reasons
         if self.predefined_reasons:
-            message_parts.append("<div class='mt-3'>")
-            message_parts.append("<h6><i class='fa fa-list-check text-warning'></i> Selected Hold Reasons:</h6>")
-            message_parts.append("<ul class='mb-0'>")
+            message_parts.append(Markup("<div class='mt-3'>"))
+            message_parts.append(Markup("<h6><i class='fa fa-list-check text-warning'></i> Selected Hold Reasons:</h6>"))
+            message_parts.append(Markup("<ul class='mb-0'>"))
             for reason in self.predefined_reasons:
-                description = f" - {reason.description}" if reason.description else ""
-                message_parts.append(f"<li><strong>{reason.name}</strong>{description}</li>")
-            message_parts.append("</ul>")
-            message_parts.append("</div>")
+                description = Markup(" - {desc}").format(desc=reason.description) if reason.description else Markup("")
+                message_parts.append(Markup("<li><strong>{name}</strong>{desc}</li>").format(
+                    name=reason.name, desc=description))
+            message_parts.append(Markup("</ul>"))
+            message_parts.append(Markup("</div>"))
         
         # Section 2: Additional Details
         if self.hold_reason:
-            message_parts.append("<div class='mt-3'>")
-            message_parts.append("<h6><i class='fa fa-edit text-primary'></i> Additional Details:</h6>")
-            message_parts.append(f"<div class='border-left border-primary pl-3'>")
-            # Convert line breaks to HTML
-            formatted_details = self.hold_reason.replace('\n', '<br/>')
-            message_parts.append(f"<p>{formatted_details}</p>")
-            message_parts.append("</div>")
-            message_parts.append("</div>")
+            message_parts.append(Markup("<div class='mt-3'>"))
+            message_parts.append(Markup("<h6><i class='fa fa-edit text-primary'></i> Additional Details:</h6>"))
+            message_parts.append(Markup("<div class='border-left border-primary pl-3'>"))
+            # Convert line breaks to HTML, escaping user content first
+            formatted_details = Markup("<br/>").join(escape(line) for line in self.hold_reason.split('\n'))
+            message_parts.append(Markup("<p>{details}</p>").format(details=formatted_details))
+            message_parts.append(Markup("</div>"))
+            message_parts.append(Markup("</div>"))
         
-        message_body = "".join(message_parts)
+        message_body = Markup("").join(message_parts)
         
         # Get all involved users for notification
         tagged_users = self.ticket_id.tag_transfer_ids.mapped('tagged_user_id')
