@@ -7,14 +7,14 @@
             <field name="arch" type="xml">
                 <form string="VFD Receipt" create="false" edit="false">
                     <header>
-                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" invisible="state == 'draft'"
+                        <button name="send_receipt" string="SEND NOW" class="oe_highlight" invisible="state != 'draft'"
                                 type="object"/>
-                        <button name="verify_receipt" string="VERIFY NOW" class="oe_highlight" invisible="state == 'verified'" type="object"/>
-                        <button name="reset_receipt" string="Reset" invisible="state in ['reconcilled','diff','missing']" type="object"/>
-                        <button name="resend_receipt" string="Resend" invisible="state == 'error'" type="object"/>
-                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" invisible="state == ''"
+                        <button name="verify_receipt" string="VERIFY NOW" class="oe_highlight" invisible="state != 'verified'" type="object"/>
+                        <button name="reset_receipt" string="Reset" invisible="state not in ['reconcilled','diff','missing']" type="object"/>
+                        <button name="resend_receipt" string="Resend" invisible="state != 'error'" type="object"/>
+                        <button name="print_vfd_receipt" string="Print Receipt" class="oe_highlight" 
                                 type="object"/>
-                        <button name="cancel_receipt" string="Cancel" invisible="state in ['draft','sent']" type="object"/>
+                        <button name="cancel_receipt" string="Cancel" invisible="state not in ['draft','sent']" type="object"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,sent,verified,error,reconcilled,diff,missing,cancel"/>
                     </header>
                     <sheet>

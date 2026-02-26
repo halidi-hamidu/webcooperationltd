@@ -1,3 +1,4 @@
+import re
 import pytz
 import requests
 from bs4 import BeautifulSoup
@@ -257,41 +258,123 @@ class PaymentReceiptVfd(models.Model):
         for rec in self:
             rec.state = 'verified'
 
+    def _fetch_tra_totals(self, receipt_url):
+        """
+        Fetch TOTAL EXCL OF TAX, TOTAL TAX, TOTAL INCL OF TAX from TRA.
+
+        Flow (confirmed working):
+          1. GET /Home/Index  → grab SESSION cookie + CSRF token
+          2. POST /Home/Index with rctVcode → establishes session bound to that receipt
+          3. GET /Verify/Verified?Secret=HH:MM:SS → returns full receipt HTML
+
+        receipt_url format: https://verify.tra.go.tz/<VCODE>_<HHMMSS>
+        e.g.               https://verify.tra.go.tz/8735FB2084_111417
+
+        Returns dict {'total_excl_tax': float, 'total_tax': float, 'total_incl_tax': float}
+        or None if receipt not found / parsing failed.
+        """
+        from urllib.parse import quote
+
+        tra_base = 'https://verify.tra.go.tz'
+
+        # --- parse receipt_url ---
+        url_path = receipt_url.rstrip('/').split('/')[-1]  # "8735FB2084_111417"
+        parts    = url_path.split('_')
+        vcode    = parts[0]                                # "8735FB2084"
+        time_raw = parts[-1] if len(parts) > 1 else ''    # "111417"
+        secret   = ':'.join(time_raw[i:i+2] for i in range(0, 6, 2)) if len(time_raw) == 6 else ''
+
+        _logger.info("VFD verify | vcode=%s | secret=%s", vcode, secret)
+
+        session = requests.Session()
+        session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept':     'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        })
+
+        # Step 1 – GET home page to get SESSION cookie + CSRF token
+        home = session.get(tra_base + '/Home/Index', timeout=30)
+        home.raise_for_status()
+        csrf_token = ''
+        token_el = BeautifulSoup(home.text, 'html.parser').find(
+            'input', {'name': 'requestVerificationToken'})
+        if token_el:
+            csrf_token = token_el['value']
+
+        # Step 2 – POST vcode (no redirect follow) to bind session to this receipt
+        session.post(
+            tra_base + '/Home/Index',
+            data={'requestVerificationToken': csrf_token, 'rctVcode': vcode},
+            headers={'Referer': tra_base + '/Home/Index'},
+            allow_redirects=False,
+            timeout=30,
+        )
+
+        # Step 3 – GET /Verify/Verified?Secret=HH:MM:SS  (the actual receipt data endpoint)
+        verified_url = f'{tra_base}/Verify/Verified?Secret={quote(secret)}'
+        resp = session.get(verified_url, timeout=30, headers={'Referer': receipt_url})
+        resp.raise_for_status()
+
+        _logger.info("VFD verify | verified_url=%s | status=%s", verified_url, resp.status_code)
+
+        # --- keyword-based extraction (no table dependency) ---
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        # Check it is actually a receipt page, not "Missing Receipt"
+        if 'START OF LEGAL RECEIPT' not in resp.text:
+            _logger.warning("VFD verify | vcode=%s | receipt not found on TRA", vcode)
+            return None
+
+        def extract_value(keyword):
+            """Find <th>KEYWORD...</th><td ...>VALUE</td> and return float VALUE."""
+            th = soup.find(lambda t: t.name == 'th' and keyword in t.get_text(strip=True).upper())
+            if not th:
+                return None
+            td = th.find_next_sibling('td') or (th.parent.find('td') if th.parent else None)
+            if not td:
+                return None
+            raw = td.get_text(strip=True).replace(',', '')
+            try:
+                return float(re.sub(r'[^\d.\-]', '', raw))
+            except ValueError:
+                return None
+
+        toet = extract_value('TOTAL EXCL OF TAX')
+        tox  = extract_value('TOTAL TAX')
+        toit = extract_value('TOTAL INCL OF TAX')
+
+        _logger.info("VFD verify | vcode=%s | toet=%s | tox=%s | toit=%s", vcode, toet, tox, toit)
+
+        if toet is None or tox is None or toit is None:
+            _logger.warning("VFD verify | vcode=%s | could not parse one or more totals", vcode)
+            return None
+
+        return {'total_excl_tax': toet, 'total_tax': tox, 'total_incl_tax': toit}
+
     def post_receipt_efdms(self, obj):
         for rec in obj:
-            secrete_url = self.get_config_param('payment_receipt_vfd.verification_secrete_url')
-            session = HTMLSession()
-            resps = session.get(rec.receipt_url)
-            receipt_time = ':'.join(rec.receipt_url[-6:][i:i+2] for i in range(0, 6, 2))
-            if resps.status_code == 200:
-                resps = session.get(secrete_url+receipt_time)
-                if len(resps.html.find("table")) == 2:
-                    receipt_table = resps.html.find("table")[1]
-                    list_of_items = receipt_table.text.splitlines()
+            try:
+                totals = self._fetch_tra_totals(rec.receipt_url)
 
-                    if len(list_of_items) == 7:
-                        toet = float(list_of_items[1].replace(',', ''))
-                        tox = float(list_of_items[5].replace(',', ''))
-                        toit = float(list_of_items[7].replace(',', ''))
-                    else:
-                        toet = float(list_of_items[1].replace(',', ''))
-                        tox = float(list_of_items[3].replace(',', ''))
-                        toit = float(list_of_items[5].replace(',', ''))
-
-                    if (toet + tox) > 0:
-                        rec.total_excl_tax = toet
-                        rec.total_tax = tox
-                        rec.total_incl_tax = toet + tox
-
-                        rec.base_amount_diff = rec.amount_untaxed_signed - rec.total_excl_tax 
-                        rec.tax_amount_diff = rec.amount_tax_signed - rec.total_tax
-
-                        if rec.base_amount_diff == 0 and rec.tax_amount_diff == 0:
-                            rec.state = 'reconcilled'
-                        else:
-                            rec.state = 'diff'
-                else:
+                if totals is None:
                     rec.state = 'missing'
+                else:
+                    rec.total_excl_tax  = totals['total_excl_tax']
+                    rec.total_tax       = totals['total_tax']
+                    rec.total_incl_tax  = totals['total_incl_tax']
+
+                    rec.base_amount_diff = rec.amount_untaxed_signed - rec.total_excl_tax
+                    rec.tax_amount_diff  = rec.amount_tax_signed     - rec.total_tax
+
+                    if rec.base_amount_diff == 0 and rec.tax_amount_diff == 0:
+                        rec.state = 'reconcilled'
+                    else:
+                        rec.state = 'diff'
+
+            except Exception as e:
+                _logger.error("VFD verify | receipt=%s | error: %s", rec.receipt_no, e)
+                rec.state = 'error'
+
             rec.env.cr.commit()
 
 
