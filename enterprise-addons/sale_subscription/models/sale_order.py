@@ -2224,6 +2224,7 @@ class SaleOrder(models.Model):
             if subscription.user_pause_start and subscription.next_invoice_date <= today:
                 subscription.user_pause_start = False
 
+
     def _get_ratio_value(self, new_upsell=False):
         """ Compute ratio for a given order
         :param new_upsell: force the start date

@@ -58,3 +58,11 @@ class SaleOrder(models.Model):
                 'date_order': self.date_order_temp
             })
         return res
+
+    def _create_recurring_invoice(self, **kwargs):
+        # 1. Inject a custom flag into the context before the standard generation runs
+        self_with_context = self.with_context(leave_subscription_draft=True)
+        # 2. Call the original Odoo method, which will now carry our flag
+        return super(SaleOrder, self_with_context)._create_recurring_invoice(**kwargs)
+    
+    
