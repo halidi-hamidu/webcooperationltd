@@ -68,6 +68,54 @@ class HelpdeskTicket(models.Model):
         store=True,
         help='Total time spent in hold status'
     )
+    sla_team_tag_domain = fields.Char(
+        string='SLA Tag Domain',
+        compute='_compute_sla_team_tag_ids',
+        help='Odoo domain string restricting tags to those in team SLA policies'
+    )
+
+    @api.depends('team_id')
+    def _compute_sla_team_tag_ids(self):
+        for ticket in self:
+            if ticket.team_id:
+                sla_policies = self.env['helpdesk.sla'].search([
+                    ('team_id', '=', ticket.team_id.id),
+                    ('tag_ids', '!=', False),
+                ])
+                tag_ids = sla_policies.mapped('tag_ids').ids
+                if tag_ids:
+                    ticket.sla_team_tag_domain = "[('id', 'in', %s)]" % str(tag_ids)
+                else:
+                    ticket.sla_team_tag_domain = "[('id', 'in', [])]"
+            else:
+                ticket.sla_team_tag_domain = "[]"
+
+    @api.depends('team_id')
+    def _compute_domain_user_ids(self):
+        """Override: restrict Assigned To to members of the selected team only."""
+        for ticket in self:
+            if ticket.team_id and ticket.team_id.member_ids:
+                ticket.domain_user_ids = ticket.team_id.member_ids
+            else:
+                # Fallback: all helpdesk users when no team selected
+                user_ids = self.env.ref('helpdesk.group_helpdesk_user').all_user_ids
+                ticket.domain_user_ids = user_ids
+
+    @api.onchange('team_id')
+    def _onchange_team_id_clear_stale(self):
+        """Clear user_id and tag_ids if they no longer belong to the new team."""
+        if self.team_id:
+            # Clear user_id if not a member of the new team
+            if self.user_id and self.user_id not in self.team_id.member_ids:
+                self.user_id = False
+            # Clear tags not linked to any SLA policy of the new team
+            if self.tag_ids:
+                sla_policies = self.env['helpdesk.sla'].search([
+                    ('team_id', '=', self.team_id.id),
+                    ('tag_ids', '!=', False),
+                ])
+                valid_tag_ids = sla_policies.mapped('tag_ids').ids
+                self.tag_ids = self.tag_ids.filtered(lambda t: t.id in valid_tag_ids)
 
     @api.depends('stage_id')
     def _compute_is_on_hold(self):
@@ -130,14 +178,14 @@ class HelpdeskTicket(models.Model):
             
             # Post SLA resume notification
             self.message_post(
-                body=_(
+                body=Markup(
                     "<div class='alert alert-success'>"
                     "<h5><i class='fa fa-play-circle text-success'></i> SLA Timer Resumed</h5>"
                     "<p>Ticket has been removed from hold. SLA counting has <strong>resumed</strong>.</p>"
-                    "<p><strong>Hold Duration:</strong> %.2f hours</p>"
-                    "<p><small class='text-muted'>Resumed at: %s</small></p>"
+                    "<p><strong>Hold Duration:</strong> {hours:.2f} hours</p>"
+                    "<p><small class='text-muted'>Resumed at: {ts}</small></p>"
                     "</div>"
-                ) % (duration_hours, end_time.strftime('%Y-%m-%d %H:%M:%S')),
+                ).format(hours=duration_hours, ts=end_time.strftime('%Y-%m-%d %H:%M:%S')),
                 subtype_xmlid="mail.mt_note"
             )
     
@@ -692,11 +740,9 @@ class HelpdeskTicket(models.Model):
             'no_reset_password': True,        # Don't send reset password emails
         })
         
-        # Ensure no email notifications are sent
-        if 'subtype_xmlid' in kwargs:
-            # Force to internal note to disable external notifications
-            kwargs['subtype_xmlid'] = 'mail.mt_note'
-            
+        # Note: subtype_xmlid is left as-is to preserve mt_comment vs mt_note
+        # (forcing mt_note was causing SLA notification messages to be wrongly downgraded)
+
         import re
         import logging
         

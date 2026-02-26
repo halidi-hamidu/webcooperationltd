@@ -1,0 +1,166 @@
+/* =============================================================================
+   SLA Countdown Widget — enhanced_helpdesk
+   ============================================================================= */
+
+/* ── Base badge ─────────────────────────────────────────────────────────────── */
+.o_sla_countdown_widget {
+    font-family: inherit;
+    user-select: none;
+}
+
+.sla-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1.6;
+    border: 1px solid transparent;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* ── Status colours ─────────────────────────────────────────────────────────── */
+
+/* 🟢 Safe — > 24 h */
+.sla-safe {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+/* 🟡 At Risk — 2-24 h */
+.sla-warning {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+    animation: sla-pulse-warning 2s ease-in-out infinite;
+}
+
+/* 🔴 Near Breach — < 2 h */
+.sla-critical {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+    animation: sla-pulse-critical 1s ease-in-out infinite;
+}
+
+/* 💀 Breached */
+.sla-breached {
+    background-color: #343a40;
+    border-color: #212529;
+    color: #f8f9fa;
+    font-weight: 700;
+}
+
+/* ⏸ Paused */
+.sla-paused {
+    background-color: #e2e3e5;
+    border-color: #6c757d;
+    color: #383d41;
+}
+
+/* ⬜ No SLA */
+.sla-no-sla {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+/* ── Label (de-emphasised) ──────────────────────────────────────────────────── */
+.sla-badge .sla-label {
+    font-size: 0.74rem;
+    opacity: 0.75;
+}
+
+/* ── Thin progress bar ──────────────────────────────────────────────────────── */
+.sla-progress-bar-wrapper {
+    margin-top: 2px;
+}
+
+/* ── Pulse animations ───────────────────────────────────────────────────────── */
+@keyframes sla-pulse-warning {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.5); }
+    50%  { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+@keyframes sla-pulse-critical {
+    0%   { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6); }
+    50%  { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+/* ── List view cell — compact ───────────────────────────────────────────────── */
+.o_list_view .o_sla_countdown_widget .sla-badge {
+    font-size: 0.78rem;
+    padding: 1px 6px;
+}
+
+.o_list_view .o_sla_countdown_widget .sla-label {
+    display: none; /* hide label text in list; icon + time is enough */
+}
+
+/* ── Form view SLA panel ─────────────────────────────────────────────────────── */
+.o_sla_panel {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: #fafafa;
+    margin-bottom: 12px;
+}
+
+.o_sla_panel .o_sla_panel_header {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Status row ────────────────────────────────────────────────────────────── */
+.o_sla_status_row {
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* Remaining Time */
+.o_sla_remaining {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #333;
+}
+.o_sla_remaining_label {
+    color: #888;
+    font-size: 0.80rem;
+}
+.o_sla_remaining_value {
+    font-size: 0.90rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+/* SLA Target */
+.o_sla_target {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.80rem;
+    color: #999;
+}
+.o_sla_target_value {
+    font-weight: 600;
+    color: #666;
+}
+
+/* Compact in list view — hide target, smaller badge */
+.o_list_view .o_sla_remaining_label,
+.o_list_view .o_sla_target { display: none; }
+.o_list_view .o_sla_countdown_widget .sla-badge { font-size: 0.75rem; padding: 1px 6px; }
+.o_list_view .o_sla_remaining_value { font-size: 0.80rem; }
+.o_list_view .o_sla_progress { display: none; }

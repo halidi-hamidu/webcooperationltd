@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="enhanced_helpdesk.SlaCountdownWidget">
+        <div class="o_sla_countdown_widget">
+
+            <!-- ── Status row ─────────────────────────────────────── -->
+            <div class="o_sla_status_row d-flex align-items-center gap-2 flex-wrap">
+
+                <!-- Status badge -->
+                <span t-attf-class="sla-badge {{state.cssClass}}">
+                    <span t-esc="state.icon"/> <span t-esc="state.statusLabel"/>
+                </span>
+
+                <!-- Remaining time (only when deadline exists and not paused) -->
+                <t t-if="state.hasDeadline and state.cssClass !== 'sla-paused'">
+                    <span class="o_sla_remaining">
+                        <span class="o_sla_remaining_label">Remaining Time:</span>
+                        <span class="o_sla_remaining_value fw-semibold" t-esc="state.remaining"/>
+                    </span>
+                </t>
+
+                <!-- SLA Target -->
+                <t t-if="state.targetDisplay">
+                    <span class="o_sla_target text-muted">
+                        <span class="o_sla_target_label">SLA Target:</span>
+                        <span class="o_sla_target_value" t-esc="state.targetDisplay"/>
+                    </span>
+                </t>
+
+            </div>
+
+            <!-- ── Progress bar (only when active countdown) ─────── -->
+            <t t-if="state.progressPercent > 0 and state.cssClass !== 'sla-paused' and state.cssClass !== 'sla-no-sla'">
+                <div class="o_sla_progress mt-1" t-att-title="state.remaining + ' remaining'">
+                    <div class="progress" style="height:5px; border-radius:3px;">
+                        <div
+                            t-attf-class="progress-bar {{state.progressBarClass}}"
+                            role="progressbar"
+                            t-attf-style="width:{{state.progressPercent}}%"
+                            t-att-aria-valuenow="state.progressPercent"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        />
+                    </div>
+                </div>
+            </t>
+
+        </div>
+    </t>
+
+</templates>
