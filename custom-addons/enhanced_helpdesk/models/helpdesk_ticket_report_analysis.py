@@ -5,7 +5,7 @@ class HelpdeskTicketReportAnalysis(models.Model):
 
     aggregate_summary = fields.Float(
         string="Total Response Time",
-        group_operator="sum",
+        aggregator="sum",
         readonly=True,
         help="Sum of first response hours and tag transfer response durations"
     )

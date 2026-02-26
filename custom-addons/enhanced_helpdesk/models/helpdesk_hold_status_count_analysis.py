@@ -13,12 +13,12 @@ class HelpdeskHoldStatusCountAnalysis(models.Model):
     reason_description = fields.Text('Reason Description', readonly=True)
     
     # Count Statistics
-    usage_count = fields.Integer('Count', readonly=True, group_operator="sum",
+    usage_count = fields.Integer('Count', readonly=True, aggregator="sum",
                                 help='Number of times this hold reason was used')
     
     # Time Statistics
-    avg_hold_duration = fields.Float('Avg Hold Duration (Hours)', readonly=True, group_operator="avg")
-    total_hold_duration = fields.Float('Total Hold Duration (Hours)', readonly=True, group_operator="sum")
+    avg_hold_duration = fields.Float('Avg Hold Duration (Hours)', readonly=True, aggregator="avg")
+    total_hold_duration = fields.Float('Total Hold Duration (Hours)', readonly=True, aggregator="sum")
     
     # Date Information
     last_used_date = fields.Datetime('Last Used', readonly=True)

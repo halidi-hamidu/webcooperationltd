@@ -25,7 +25,7 @@ class HelpdeskHoldAnalysis(models.Model):
     # Hold Information
     hold_user_id = fields.Many2one('res.users', string='User Who Put on Hold', readonly=True)
     hold_date = fields.Datetime('Hold Date', readonly=True)
-    hold_duration_hours = fields.Float('Hold Duration (Hours)', readonly=True, group_operator="avg")
+    hold_duration_hours = fields.Float('Hold Duration (Hours)', readonly=True, aggregator="avg")
     hold_details = fields.Text('Hold Details', readonly=True)
     hold_reasons_text = fields.Char('Hold Reasons', readonly=True)
     
@@ -36,7 +36,7 @@ class HelpdeskHoldAnalysis(models.Model):
     
     # Status
     is_currently_on_hold = fields.Boolean('Currently on Hold', readonly=True)
-    hold_count = fields.Integer('Hold Count', readonly=True, group_operator="sum",
+    hold_count = fields.Integer('Hold Count', readonly=True, aggregator="sum",
                                help='Number of times this ticket was put on hold')
 
     def init(self):

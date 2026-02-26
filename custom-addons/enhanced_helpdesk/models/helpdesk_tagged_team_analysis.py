@@ -12,37 +12,37 @@ class HelpdeskTaggedTeamAnalysis(models.Model):
     team_id = fields.Many2one('helpdesk.team', string='Tagged Team', readonly=True)
     total_response_time = fields.Float(
         string='Total Response Time (Hours)', 
-        group_operator="sum",
+        aggregator="sum",
         readonly=True,
         help='Sum of all response times for tagged users in this team'
     )
     tag_count = fields.Integer(
         string='Number of Tags',
-        group_operator="sum",
+        aggregator="sum",
         readonly=True,
         help='Number of times users from this team were tagged'
     )
     avg_response_time = fields.Float(
         string='Average Response Time (Hours)',
-        group_operator="avg",
+        aggregator="avg",
         readonly=True,
         help='Average response time per tag for this team'
     )
     total_resolution_time = fields.Float(
         string='Total Resolution Time (Hours)', 
-        group_operator="sum",
+        aggregator="sum",
         readonly=True,
         help='Sum of all resolution times for tagged users in this team'
     )
     avg_resolution_time = fields.Float(
         string='Average Resolution Time (Hours)',
-        group_operator="avg",
+        aggregator="avg",
         readonly=True,
         help='Average resolution time per closed assignment for this team'
     )
     closed_count = fields.Integer(
         string='Closed Assignments',
-        group_operator="sum",
+        aggregator="sum",
         readonly=True,
         help='Number of assignments that were closed'
     )
@@ -52,8 +52,8 @@ class HelpdeskTaggedTeamAnalysis(models.Model):
     user_id = fields.Many2one('res.users', string='Assigned To', readonly=True)
     contributor_id = fields.Many2one('res.users', string='Contributor', readonly=True)
     contributor_type = fields.Char(string='Contribution Type', readonly=True)
-    hold_count = fields.Integer(string='Hold Count', readonly=True, group_operator="sum")
-    total_logged_hours = fields.Float(string='Total Logged Hours', readonly=True, group_operator="sum")
+    hold_count = fields.Integer(string='Hold Count', readonly=True, aggregator="sum")
+    total_logged_hours = fields.Float(string='Total Logged Hours', readonly=True, aggregator="sum")
     
     # Descriptive time fields - stored for pivot grouping
     total_response_time_desc = fields.Char(string='Total Response Time', readonly=True)
