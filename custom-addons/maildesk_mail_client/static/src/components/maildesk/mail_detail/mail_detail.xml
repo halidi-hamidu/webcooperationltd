@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     MailDetail Component Template
     Message viewer with iframe body, actions toolbar, and attachments
@@ -18,7 +18,7 @@
 
             <t t-else="">
 
-                <!-- Toolbar -->
+                    <!-- Toolbar -->
                 <div
                         class="maildesk-full-message-header scrollable-buttons d-flex justify-content-between align-items-center pb-3 d-flex gap-2"
                     >
@@ -129,6 +129,36 @@
                                     Open Contact
                                 </button>
                             </t>
+                            <!-- Create Task — always visible -->
+                            <button
+                                class="btn rounded-pill d-flex align-items-center"
+                                t-on-click="() => this.createTaskFromMessage(selectedMessage)"
+                                data-tooltip="Create a task from this message"
+                                accesskey="t"
+                            >
+                                <img
+                                    src="/maildesk_mail_client/static/src/icons/create_task.svg"
+                                    class="me-1"
+                                    width="16"
+                                    height="16"
+                                />
+                                Create Task
+                            </button>
+                            <!-- Create Ticket — always visible -->
+                            <button
+                                class="btn rounded-pill d-flex align-items-center"
+                                t-on-click="() => this.createTicketFromMessage(selectedMessage)"
+                                data-tooltip="Create a helpdesk ticket from this message"
+                                accesskey="k"
+                            >
+                                <img
+                                    src="/maildesk_mail_client/static/src/icons/create_ticket.svg"
+                                    class="me-1"
+                                    width="16"
+                                    height="16"
+                                />
+                                Create Ticket
+                            </button>
                             <t t-if="selectedMessage.model and selectedMessage.res_id">
                                 <button
                                     class="btn rounded-pill d-flex align-items-center"
@@ -199,7 +229,7 @@
                         </div>
                     </div>
 
-                <!-- Message Header -->
+                    <!-- Message Header -->
                 <div class="maildesk-detail-header p-3 border-bottom">
                     <div class="d-flex justify-content-between align-items-start flex-wrap mb-3 info-container">
                         <div class="d-flex align-items-start">
@@ -264,7 +294,7 @@
                                 class="text-muted small small-formatted_date mb-2"
                                 t-out="formatUserDate(selectedMessage.formatted_date)"
                             />
-                            <!-- Folder & Mailbox Info -->
+                                <!-- Folder & Mailbox Info -->
                             <div class="d-flex align-items-end gap-1 mb-2">
                                 <t t-if="mailboxName">
                                     <span class="badge bg-light text-dark border fw-normal ms-auto" title="Mailbox">
@@ -346,7 +376,7 @@
                     </t>
                 </div>
 
-                <!-- Email Body (iframe) -->
+                    <!-- Email Body (iframe) -->
                 <div class="maildesk-detail-body flex-grow-1 overflow-auto p-3">
                     <iframe
                         t-ref="iframe"
@@ -371,7 +401,7 @@
                         <div class="pb-4" />
                     </t>
 
-                <!-- Thread History (below selected message, Gmail/Outlook style) -->
+                    <!-- Thread History (below selected message, Gmail/Outlook style) -->
                 <t t-if="threadMessages.length > 0">
                     <div class="maildesk-thread-history border-top pt-3 mt-3">
                         <ThreadContainer messages="threadMessages"/>

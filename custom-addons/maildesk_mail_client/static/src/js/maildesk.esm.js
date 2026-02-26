@@ -126,6 +126,8 @@ export class MailDesk extends Component {
     this.maildeskStore.clearContactFilter = () => this.clearContactFilter();
     this.maildeskStore.trustPartner = (msg) => this.trustPartner(msg);
     this.maildeskStore.createPartnerFromMessage = (msg) => this.createPartnerFromMessage(msg);
+    this.maildeskStore.createTaskFromMessage = (msg) => this.createTaskFromMessage(msg);
+    this.maildeskStore.createTicketFromMessage = (msg) => this.createTicketFromMessage(msg);
     this.maildeskStore.openContactSelector = () => this.openContactSelector();
     this.maildeskStore.fetchThread = (threadId, accountId) => this.fetchThread(threadId, accountId);
 
@@ -1063,6 +1065,40 @@ export class MailDesk extends Component {
     } catch (e) {
       console.error("Failed to create partner from message:", e);
       this.notification.add(_t("Failed to open create partner form"), { type: "danger" });
+    }
+  };
+
+  createTaskFromMessage = async (msg) => {
+    try {
+      const action = await this.orm.call("mailbox.sync", "action_open_create_task", [], {
+        message_id: msg.id,
+        email_from: msg.email_from,
+        subject: msg.subject || "",
+        body: msg.body_original || msg.body_html || "",
+      });
+      if (action) {
+        await this.action.doAction(action);
+      }
+    } catch (e) {
+      console.error("Failed to create task from message:", e);
+      this.notification.add(_t("Failed to open create task form"), { type: "danger" });
+    }
+  };
+
+  createTicketFromMessage = async (msg) => {
+    try {
+      const action = await this.orm.call("mailbox.sync", "action_open_create_ticket", [], {
+        message_id: msg.id,
+        email_from: msg.email_from,
+        subject: msg.subject || "",
+        body: msg.body_original || msg.body_html || "",
+      });
+      if (action) {
+        await this.action.doAction(action);
+      }
+    } catch (e) {
+      console.error("Failed to create ticket from message:", e);
+      this.notification.add(_t("Failed to open create ticket form"), { type: "danger" });
     }
   };
 

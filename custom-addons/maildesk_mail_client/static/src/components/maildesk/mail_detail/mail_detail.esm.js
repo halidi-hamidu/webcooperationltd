@@ -310,6 +310,14 @@ export class MailDetail extends Component {
         this.maildeskStore.createPartnerFromMessage?.(msg || this.selectedMessage);
     };
 
+    createTaskFromMessage = (msg) => {
+        this.maildeskStore.createTaskFromMessage?.(msg || this.selectedMessage);
+    };
+
+    createTicketFromMessage = (msg) => {
+        this.maildeskStore.createTicketFromMessage?.(msg || this.selectedMessage);
+    };
+
     onClickViewProfile = (partnerId) => {
         if (partnerId) {
             this.action.doAction({

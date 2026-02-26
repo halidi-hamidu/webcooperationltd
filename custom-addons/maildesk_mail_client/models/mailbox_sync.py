@@ -423,6 +423,44 @@ class MailboxSync(models.AbstractModel):
         )
 
     @api.model
+    def action_open_create_task(
+        self, message_id=None, email_from=None, subject=None, body=None
+    ):
+        """
+        Open a new project.task form pre-filled with data from the email message.
+        """
+        context = {
+            "default_name": subject or "",
+            "default_description": body or "",
+        }
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "project.task",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": context,
+        }
+
+    @api.model
+    def action_open_create_ticket(
+        self, message_id=None, email_from=None, subject=None, body=None
+    ):
+        """
+        Open a new helpdesk.ticket form pre-filled with data from the email message.
+        """
+        context = {
+            "default_name": subject or "",
+            "default_description": body or "",
+        }
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "helpdesk.ticket",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": context,
+        }
+
+    @api.model
     def set_flags(self, ids, is_read=None, is_starred=None, folder_id=None):
         """
         Update the read and starred status of one or more messages.
