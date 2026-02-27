@@ -379,11 +379,9 @@ class HelpdeskTicketTagTransfer(models.Model):
         
     @api.model
     def create_transfer_from_mention(self, ticket_id, tagged_user_id, tagged_by_user_id, message_id=None):
-        """Create a transfer line when a user is mentioned"""
+        """Create a transfer line when a user is mentioned and notify them via Odoo bus popup."""
         import logging
         _logger = logging.getLogger(__name__)
-        
-        _logger.info(f"DEBUG: create_transfer_from_mention called with ticket_id={ticket_id}, tagged_user_id={tagged_user_id}, tagged_by_user_id={tagged_by_user_id}")
         
         # Check if transfer already exists for this combination
         existing = self.search([
@@ -393,19 +391,43 @@ class HelpdeskTicketTagTransfer(models.Model):
             ('action', '=', 'pending')
         ])
         
-        if not existing:
-            transfer = self.create({
-                'ticket_id': ticket_id,
-                'tagged_user_id': tagged_user_id,
-                'tagged_by_user_id': tagged_by_user_id,
-                'message_id': message_id,
-                'action': 'pending'
-            })
-            _logger.info(f"DEBUG: Created new transfer record with ID {transfer.id}")
-            return transfer
-        else:
-            _logger.info(f"DEBUG: Transfer already exists with ID {existing.id}")
+        if existing:
+            _logger.info(f"Transfer already exists with ID {existing.id}")
             return existing
+
+        transfer = self.create({
+            'ticket_id': ticket_id,
+            'tagged_user_id': tagged_user_id,
+            'tagged_by_user_id': tagged_by_user_id,
+            'message_id': message_id,
+            'action': 'pending'
+        })
+        _logger.info(f"Created tag assignment {transfer.id} for user {tagged_user_id} on ticket {ticket_id}")
+
+        # Send Odoo bus popup notification to the tagged user
+        try:
+            tagged_user = self.env['res.users'].browse(tagged_user_id)
+            tagged_by = self.env['res.users'].browse(tagged_by_user_id)
+            ticket = self.env['helpdesk.ticket'].browse(ticket_id)
+
+            self.env['bus.bus']._sendone(
+                tagged_user.partner_id,
+                'simple_notification',
+                {
+                    'title': '📌 You have been tagged in a ticket',
+                    'message': (
+                        f'{tagged_by.name} tagged you on ticket '
+                        f'#{ticket.id}: {ticket.name or ticket.display_name}'
+                    ),
+                    'sticky': True,
+                    'type': 'warning',
+                }
+            )
+            _logger.info(f"Sent bus notification to {tagged_user.name} for tag assignment {transfer.id}")
+        except Exception as e:
+            _logger.warning(f"Could not send tag notification: {e}")
+
+        return transfer
     
     @api.model
     def test_create_transfer(self, ticket_id):

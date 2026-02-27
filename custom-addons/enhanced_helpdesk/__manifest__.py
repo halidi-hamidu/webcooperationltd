@@ -32,6 +32,8 @@
         'views/helpdesk_hold_analysis_views.xml',
         'views/helpdesk_hold_status_count_analysis_views.xml',
         'views/helpdesk_analysis_dashboard.xml',
+        'views/helpdesk_sla_report_analysis_views.xml',
+        'views/helpdesk_ticket_analysis_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

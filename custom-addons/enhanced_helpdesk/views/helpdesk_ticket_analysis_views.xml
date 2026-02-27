@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Ticket Analysis Pivot: make Average Response Time a visible default measure -->
+    <record id="enhanced_helpdesk_ticket_analysis_pivot_avg_response" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.ticket.report.analysis.pivot.avg_response</field>
+        <field name="model">helpdesk.ticket.report.analysis</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_pivot_analysis"/>
+        <field name="arch" type="xml">
+            <!-- Insert avg_response_hours right after first_response_hours as an active measure -->
+            <xpath expr="//field[@name='avg_response_hours']" position="replace">
+                <field name="avg_response_hours" string="Avg Response Time (hrs)" widget="float_time" type="measure"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Ticket Analysis Graph: ensure avg_response_hours is a visible selectable measure -->
+    <record id="enhanced_helpdesk_ticket_analysis_graph_avg_response" model="ir.ui.view">
+        <field name="name">enhanced.helpdesk.ticket.report.analysis.graph.avg_response</field>
+        <field name="model">helpdesk.ticket.report.analysis</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_graph_analysis"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='avg_response_hours']" position="replace">
+                <field name="avg_response_hours" string="Avg Response Time (hrs)" widget="float_time" type="measure"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
