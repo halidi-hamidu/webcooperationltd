@@ -13,6 +13,7 @@
         "views/reasons_to_hold_ticket_menu.xml",
         "reports/ticket_report_template.xml",
         "reports/ticket_report_action.xml",
+        "views/helpdesk_tag_category_views.xml",
         "views/helpdesk_ticket_form.xml",
         "views/helpdesk_working_time_views.xml",
         "views/helpdesk_working_time_wizard_views.xml",

@@ -54,7 +54,59 @@ class HelpdeskTaggedTeamAnalysis(models.Model):
     contributor_type = fields.Char(string='Contribution Type', readonly=True)
     hold_count = fields.Integer(string='Hold Count', readonly=True, aggregator="sum")
     total_logged_hours = fields.Float(string='Total Logged Hours', readonly=True, aggregator="sum")
-    
+
+    # ── Collaboration Score Metrics ──────────────────────────────────────────
+    # All rates are stored as 0–100 percentages per row
+    participation_rate = fields.Float(
+        string='Participation Rate % (PR)',
+        aggregator="avg",
+        readonly=True,
+        digits=(5, 2),
+        help='(Responded Tags / Total Active Tags) × 100'
+    )
+    resolution_rate = fields.Float(
+        string='Resolution Rate % (CR)',
+        aggregator="avg",
+        readonly=True,
+        digits=(5, 2),
+        help='(Completed Tasks / Total Active Tags) × 100'
+    )
+    sla_compliance_rate = fields.Float(
+        string='SLA Compliance Rate % (SLA%)',
+        aggregator="avg",
+        readonly=True,
+        digits=(5, 2),
+        help='(Responses Within SLA / Total Active Tags) × 100'
+    )
+    rework_rate = fields.Float(
+        string='Rework Rate % (Penalty)',
+        aggregator="avg",
+        readonly=True,
+        digits=(5, 2),
+        help='(Re-Tagged Cases / Total Active Tags) × 100'
+    )
+    collaboration_score = fields.Float(
+        string='Collaboration Score % (CTCS)',
+        aggregator="avg",
+        readonly=True,
+        digits=(5, 2),
+        help='CTCS = 0.35×PR + 0.35×CR + 0.20×SLA% − 0.10×Rework%'
+    )
+    performance_rating = fields.Selection([
+        ('excellent', '⭐ Excellent (90–100%)'),
+        ('stable',    '✅ Stable (80–89%)'),
+        ('at_risk',   '⚠️ At Risk (70–79%)'),
+        ('critical',  '🔴 Critical (<70%)'),
+    ], string='Performance Rating', readonly=True,
+       help='Based on Collaboration Score: Excellent≥90, Stable≥80, At Risk≥70, Critical<70'
+    )
+    performance_rating_num = fields.Integer(
+        string='Performance Rating (Score)',
+        readonly=True,
+        aggregator="avg",
+        help='4=Excellent, 3=Stable, 2=At Risk, 1=Critical'
+    )
+
     # Descriptive time fields - stored for pivot grouping
     total_response_time_desc = fields.Char(string='Total Response Time', readonly=True)
     avg_response_time_desc = fields.Char(string='Average Response Time', readonly=True)
@@ -157,40 +209,165 @@ class HelpdeskTaggedTeamAnalysis(models.Model):
         # Create the view
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW {} AS (
-                -- Only contributions from tag transfers (tagged users) for clarity
+                -- ── Core: one row per (team, contributor) ────────────────────
+                -- Denominators use COUNT(DISTINCT ticket_id) so metrics match
+                -- the ticket count shown in the grouped list view header.
                 SELECT
-                    ROW_NUMBER() OVER (ORDER BY t.id, COALESCE(tag.team_id, t.team_id), tag.tagged_user_id) AS id,
-                    t.id AS ticket_id,
-                    t.name AS ticket_name,
-                    COALESCE(tag.team_id, t.team_id) AS team_id,
-                    COALESCE(SUM(tag.response_duration), 0) AS total_response_time,
-                    COALESCE(COUNT(tag.id), 0) AS tag_count,
-                    CASE WHEN COUNT(tag.id) > 0 THEN AVG(tag.response_duration) ELSE 0 END AS avg_response_time,
-                    COALESCE(SUM(tag.resolution_time), 0) AS total_resolution_time,
-                    CASE WHEN COUNT(CASE WHEN tag.closed_at IS NOT NULL THEN 1 END) > 0 
-                         THEN AVG(CASE WHEN tag.closed_at IS NOT NULL THEN tag.resolution_time END)
-                         ELSE 0 END AS avg_resolution_time,
-                    COALESCE(COUNT(CASE WHEN tag.closed_at IS NOT NULL THEN 1 END), 0) AS closed_count,
-                    t.stage_id AS ticket_stage_id,
-                    t.team_id AS ticket_team_id,
-                    t.partner_id AS partner_id,
-                    t.user_id AS user_id,
-                    t.create_date AS create_date,
-                    t.priority AS priority,
-                    tag.tagged_user_id AS contributor_id,
-                    'Tagged' AS contributor_type,
-                    COUNT(CASE WHEN tag.action = 'hold' THEN 1 END) AS hold_count,
-                    0.0 AS total_logged_hours,
-                    format_hours_to_desc(COALESCE(SUM(tag.response_duration), 0)) AS total_response_time_desc,
-                    format_hours_to_desc(CASE WHEN COUNT(tag.id) > 0 THEN AVG(tag.response_duration) ELSE 0 END) AS avg_response_time_desc,
-                    format_hours_to_desc(COALESCE(SUM(tag.resolution_time), 0)) AS total_resolution_time_desc,
-                    format_hours_to_desc(CASE WHEN COUNT(CASE WHEN tag.closed_at IS NOT NULL THEN 1 END) > 0 
-                                               THEN AVG(CASE WHEN tag.closed_at IS NOT NULL THEN tag.resolution_time END)
-                                               ELSE 0 END) AS avg_resolution_time_desc
-                FROM helpdesk_ticket t
-                JOIN helpdesk_ticket_tag_transfer tag ON tag.ticket_id = t.id
-                WHERE tag.tagged_user_id IS NOT NULL
-                GROUP BY t.id, t.name, t.stage_id, t.team_id, t.partner_id, t.user_id, 
-                         t.create_date, t.priority, tag.tagged_user_id, tag.team_id
+                    ROW_NUMBER() OVER (ORDER BY team_id, contributor_id) AS id,
+                    NULL::INTEGER                        AS ticket_id,
+                    NULL::VARCHAR                        AS ticket_name,
+                    team_id,
+                    total_response_time,
+                    tag_count,
+                    CASE WHEN tag_count > 0 THEN total_response_time / tag_count ELSE 0 END AS avg_response_time,
+                    total_resolution_time,
+                    CASE WHEN closed_count > 0 THEN total_resolution_time / closed_count ELSE 0 END AS avg_resolution_time,
+                    closed_count,
+                    NULL::INTEGER                        AS ticket_stage_id,
+                    NULL::INTEGER                        AS ticket_team_id,
+                    NULL::INTEGER                        AS partner_id,
+                    NULL::INTEGER                        AS user_id,
+                    MIN(create_date)                     AS create_date,
+                    NULL::VARCHAR                        AS priority,
+                    contributor_id,
+                    'Tagged'                             AS contributor_type,
+                    hold_count,
+                    0.0                                  AS total_logged_hours,
+                    format_hours_to_desc(total_response_time)  AS total_response_time_desc,
+                    format_hours_to_desc(
+                        CASE WHEN tag_count > 0 THEN total_response_time / tag_count ELSE 0 END
+                    ) AS avg_response_time_desc,
+                    format_hours_to_desc(total_resolution_time) AS total_resolution_time_desc,
+                    format_hours_to_desc(
+                        CASE WHEN closed_count > 0 THEN total_resolution_time / closed_count ELSE 0 END
+                    ) AS avg_resolution_time_desc,
+
+                    -- ── Collaboration Score Metrics ──────────────────────────
+                    -- Denominator = unique tickets this contributor was tagged on
+                    -- PR : tickets where contributor accepted / unique tickets × 100
+                    CASE WHEN unique_tickets > 0
+                        THEN ROUND((tickets_accepted::NUMERIC / unique_tickets::NUMERIC) * 100, 2)
+                        ELSE 0 END AS participation_rate,
+
+                    -- CR : tickets where contributor closed / unique tickets × 100
+                    CASE WHEN unique_tickets > 0
+                        THEN ROUND((tickets_closed::NUMERIC / unique_tickets::NUMERIC) * 100, 2)
+                        ELSE 0 END AS resolution_rate,
+
+                    -- SLA% : tickets responded within SLA / unique tickets × 100
+                    CASE WHEN unique_tickets > 0
+                        THEN ROUND((tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100, 2)
+                        ELSE 0 END AS sla_compliance_rate,
+
+                    -- Rework% : re-tagged tickets (tagged >1 time) / unique tickets × 100
+                    CASE WHEN unique_tickets > 0
+                        THEN ROUND((rework_tickets::NUMERIC / unique_tickets::NUMERIC) * 100, 2)
+                        ELSE 0 END AS rework_rate,
+
+                    -- CTCS = 0.35×PR + 0.35×CR + 0.20×SLA% − 0.10×Rework%
+                    CASE WHEN unique_tickets > 0
+                        THEN ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2)
+                        ELSE 0 END AS collaboration_score,
+
+                    -- Performance Rating text
+                    CASE
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 90 THEN 'excellent'
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 80 THEN 'stable'
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 70 THEN 'at_risk'
+                        ELSE 'critical'
+                    END AS performance_rating,
+
+                    -- Performance Rating numeric: 4=Excellent, 3=Stable, 2=At Risk, 1=Critical
+                    CASE
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 90 THEN 4
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 80 THEN 3
+                        WHEN unique_tickets > 0 AND ROUND(
+                            0.35 * (tickets_accepted::NUMERIC  / unique_tickets::NUMERIC) * 100
+                          + 0.35 * (tickets_closed::NUMERIC    / unique_tickets::NUMERIC) * 100
+                          + 0.20 * (tickets_within_sla::NUMERIC / unique_tickets::NUMERIC) * 100
+                          - 0.10 * (rework_tickets::NUMERIC    / unique_tickets::NUMERIC) * 100
+                        , 2) >= 70 THEN 2
+                        ELSE 1
+                    END AS performance_rating_num
+
+                FROM (
+                    SELECT
+                        COALESCE(tag.team_id, t.team_id)           AS team_id,
+                        tag.tagged_user_id                          AS contributor_id,
+                        MIN(t.create_date)                         AS create_date,
+
+                        -- Volume metrics
+                        COUNT(DISTINCT tag.ticket_id)              AS unique_tickets,
+                        COUNT(tag.id)                              AS tag_count,
+                        COUNT(CASE WHEN tag.action = 'hold' THEN 1 END) AS hold_count,
+
+                        -- Time metrics
+                        COALESCE(SUM(tag.response_duration), 0)   AS total_response_time,
+                        COALESCE(SUM(tag.resolution_time), 0)     AS total_resolution_time,
+
+                        -- For avg resolution (only closed)
+                        COUNT(DISTINCT CASE WHEN tag.closed_at IS NOT NULL
+                                            THEN tag.ticket_id END) AS closed_count,
+
+                        -- Collaboration numerators (per unique ticket)
+                        COUNT(DISTINCT CASE WHEN tag.accepted_at IS NOT NULL
+                                            THEN tag.ticket_id END) AS tickets_accepted,
+                        COUNT(DISTINCT CASE WHEN tag.closed_at IS NOT NULL
+                                            THEN tag.ticket_id END) AS tickets_closed,
+                        COUNT(DISTINCT CASE WHEN t.sla_deadline IS NOT NULL
+                                             AND tag.response_time IS NOT NULL
+                                             AND tag.response_time <= t.sla_deadline
+                                            THEN tag.ticket_id END) AS tickets_within_sla,
+                        -- Rework: tickets where this contributor was tagged more than once
+                        COUNT(DISTINCT CASE WHEN rework_sub.tag_count > 1
+                                            THEN tag.ticket_id END) AS rework_tickets
+
+                    FROM helpdesk_ticket_tag_transfer tag
+                    JOIN helpdesk_ticket t ON t.id = tag.ticket_id
+                    -- Sub-query to identify re-tagged tickets per contributor
+                    LEFT JOIN (
+                        SELECT ticket_id, tagged_user_id, COUNT(*) AS tag_count
+                        FROM helpdesk_ticket_tag_transfer
+                        WHERE tagged_user_id IS NOT NULL
+                        GROUP BY ticket_id, tagged_user_id
+                    ) rework_sub ON rework_sub.ticket_id = tag.ticket_id
+                                AND rework_sub.tagged_user_id = tag.tagged_user_id
+                    WHERE tag.tagged_user_id IS NOT NULL
+                    GROUP BY COALESCE(tag.team_id, t.team_id), tag.tagged_user_id
+                ) base
+                -- expose create_date for grouping
+                GROUP BY team_id, contributor_id, unique_tickets, tag_count, hold_count,
+                         total_response_time, total_resolution_time, closed_count,
+                         tickets_accepted, tickets_closed, tickets_within_sla, rework_tickets
             )
         """.format(self._table))

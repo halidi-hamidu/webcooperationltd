@@ -24,14 +24,40 @@
         <field name="reason_description_to_hold_ticket" invisible="not is_on_hold" placeholder="Briefly Describe" />
       </xpath>
       
-      <!-- Add label to Tags field -->
-      <xpath expr="//field[@name='tag_ids']" position="before">
-        <label for="tag_ids" string="Tags"/>
+      <!-- ── Field order: Team → Tags → Tag Category → SLA → Priority → Assignee ── -->
+
+      <!-- Step 1: Remove user_id and priority from original positions (re-added below) -->
+      <xpath expr="//group[@class='mb-0 mt-4']//field[@name='user_id']" position="replace"/>
+      <xpath expr="//group[@class='mb-0 mt-4']//field[@name='priority']" position="replace"/>
+
+      <!-- Step 2: Update tag_ids — filter by team, no create -->
+      <xpath expr="//group[@class='mb-0 mt-4']//field[@name='tag_ids']" position="attributes">
+        <attribute name="options">{'color_field': 'color', 'no_create': True, 'no_create_edit': True}</attribute>
+        <attribute name="domain">[('team_id', '=', team_id)]</attribute>
       </xpath>
-      <xpath expr="//field[@name='tag_ids']" position="attributes">
-        <attribute name="nolabel">0</attribute>
-        <attribute name="options">{'no_create': True, 'no_create_edit': True}</attribute>
-        <attribute name="domain">[('name', 'in', ['AS', 'ITMS', 'UIS', 'IOT'])]</attribute>
+
+      <!-- Step 3: After tag_ids → Tag Category → SLA → Priority → Assignee -->
+      <xpath expr="//group[@class='mb-0 mt-4']//field[@name='tag_ids']" position="after">
+        <field name="tag_category_id"
+               string="Tag Category"
+               domain="[('team_id', '=', team_id)]"
+               options="{'no_create': True, 'no_create_edit': True}"
+               context="{'default_team_id': team_id}"/>
+        <field name="sla_ids"
+               string="SLA"
+               required="1"
+               domain="[('team_id', '=', team_id)]"
+               options="{'no_create': True, 'no_create_edit': True, 'max_selection_size': 1}"
+               groups="helpdesk.group_use_sla"
+               widget="many2many_tags"/>
+        <field name="priority" widget="priority" readonly="1" invisible="1"/>
+        <field name="domain_user_ids" invisible="1"/>
+        <field name="user_id"
+               class="field_user_id"
+               string="Assignee"
+               domain="[('id', 'in', domain_user_ids)]"
+               widget="many2one_avatar_user"
+               options="{'no_open': True}"/>
       </xpath>
       
       <!-- Add Ticket Transfer History after description field -->
