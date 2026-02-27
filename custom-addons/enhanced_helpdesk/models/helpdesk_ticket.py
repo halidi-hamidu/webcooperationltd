@@ -751,92 +751,61 @@ class HelpdeskTicket(models.Model):
         # Call parent method with disabled email context
         message = super(HelpdeskTicket, self.with_context(context)).message_post(**kwargs)
         
-        # Check if body contains user mentions
-        body = kwargs.get('body', '')
-        _logger.info(f"DEBUG: message_post called for ticket {self.id}, body: {body}")
-        
-        if body and '@' in body:
-            mentioned_user_ids = []
-            
-            # Method 1: Extract mentioned user IDs from Odoo HTML format (when using @ mention dropdown)
-            mention_pattern = r'data-oe-id="(\d+)"[^>]*data-oe-model="res\.users"'
-            html_mentioned_ids = re.findall(mention_pattern, body)
-            mentioned_user_ids.extend(html_mentioned_ids)
-            _logger.info(f"DEBUG: HTML mentions found: {html_mentioned_ids}")
-            
-            # Method 2: Extract simple @username mentions from plain text
-            try:
-                
-                plain_body = html2plaintext(body) if body else ''
-            except:
-                # Fallback: simple HTML tag removal
-                plain_body = re.sub(r'<[^>]*>', '', body)
-            
-            username_pattern = r'@(\w+)'
-            usernames = re.findall(username_pattern, plain_body)
-            _logger.info(f"DEBUG: Plain text mentions found: {usernames}")
-            
-            if usernames:
-                # Look up users by login name or name
-                for username in usernames:
-                    # Try by login first
-                    user = self.env['res.users'].search([('login', '=', username)], limit=1)
-                    if not user:
-                        # Try by name (case insensitive)
-                        user = self.env['res.users'].search([('name', 'ilike', username)], limit=1)
-                    if user:
-                        mentioned_user_ids.append(str(user.id))
-                        _logger.info(f"DEBUG: Found user {user.name} (ID: {user.id}) for mention @{username}")
-            
-            # Method 3: Check if there are partner mentions in the message
-            if hasattr(message, 'partner_ids') and message.partner_ids:
-                for partner in message.partner_ids:
-                    user = self.env['res.users'].search([('partner_id', '=', partner.id)], limit=1)
-                    if user:
-                        mentioned_user_ids.append(str(user.id))
-                        _logger.info(f"DEBUG: Found user from partner_ids: {user.name} (ID: {user.id})")
-            
-            if mentioned_user_ids:
-                # Get the user who posted the message
+        # Detect @user mentions — Odoo chatter produces data-oe-model="res.partner"
+        # We resolve partner IDs → res.users, then create tag assignments.
+        # Only explicit dropdown selections are captured (no partial name guessing).
+        body = str(kwargs.get('body', '') or '')
+
+        if body and 'data-oe-model="res.partner"' in body:
+            partner_id_strs = re.findall(
+                r'data-oe-id="(\d+)"[^>]*data-oe-model="res\.partner"'
+                r'|data-oe-model="res\.partner"[^>]*data-oe-id="(\d+)"',
+                body
+            )
+            # Flatten and deduplicate — regex returns tuple groups
+            partner_ids = list({int(pid) for pair in partner_id_strs for pid in pair if pid})
+
+            if partner_ids:
                 author_id = kwargs.get('author_id') or self.env.user.partner_id.id
-                author_user = self.env['res.users'].search([('partner_id', '=', author_id)], limit=1)
-                
-                if not author_user:
-                    author_user = self.env.user
-                
-                _logger.info(f"DEBUG: Author user: {author_user.name} (ID: {author_user.id})")
-                
-                # Remove duplicates
-                mentioned_user_ids = list(set(mentioned_user_ids))
-                
-                for user_id in mentioned_user_ids:
-                    try:
-                        user_id = int(user_id)
-                        # Don't create transfer for self-mentions
-                        if user_id != author_user.id:
-                            # Check if transfer already exists for this ticket and user (not message specific)
-                            existing = self.env['helpdesk.ticket.tag.transfer'].search([
-                                ('ticket_id', '=', self.id),
-                                ('tagged_user_id', '=', user_id),
-                                ('action', '=', 'pending')
-                            ])
-                            if not existing:
-                                transfer = self.env['helpdesk.ticket.tag.transfer'].create_transfer_from_mention(
-                                    ticket_id=self.id,
-                                    tagged_user_id=user_id,
-                                    tagged_by_user_id=author_user.id,
-                                    message_id=message.id
-                                )
-                                _logger.info(f"DEBUG: Created transfer record {transfer.id} for user {user_id}")
-                            else:
-                                _logger.info(f"DEBUG: Transfer already exists for user {user_id}")
-                    except (ValueError, TypeError) as e:
-                        _logger.error(f"DEBUG: Error processing user_id {user_id}: {e}")
+                author_user = self.env['res.users'].search(
+                    [('partner_id', '=', author_id)], limit=1
+                ) or self.env.user
+
+                for partner_id in partner_ids:
+                    # Resolve partner → user (only internal users)
+                    user = self.env['res.users'].search(
+                        [('partner_id', '=', partner_id), ('share', '=', False)], limit=1
+                    )
+                    if not user:
+                        continue  # Portal/public partner, not a user — skip
+
+                    # Never self-assign
+                    if user.id == author_user.id:
                         continue
-            else:
-                _logger.info("DEBUG: No mentioned users found")
-        else:
-            _logger.info("DEBUG: No @ symbol in body or no body")
+
+                    # Skip if an open (pending) assignment already exists
+                    already_exists = self.env['helpdesk.ticket.tag.transfer'].search([
+                        ('ticket_id', '=', self.id),
+                        ('tagged_user_id', '=', user.id),
+                        ('action', '=', 'pending'),
+                    ], limit=1)
+                    if already_exists:
+                        _logger.info(
+                            f"Tag assignment already pending for {user.name} "
+                            f"(ID {user.id}) on ticket {self.id} — skipping."
+                        )
+                        continue
+
+                    transfer = self.env['helpdesk.ticket.tag.transfer'].create_transfer_from_mention(
+                        ticket_id=self.id,
+                        tagged_user_id=user.id,
+                        tagged_by_user_id=author_user.id,
+                        message_id=message.id,
+                    )
+                    _logger.info(
+                        f"Created tag assignment {transfer.id}: "
+                        f"{user.name} tagged by {author_user.name} on ticket {self.id}"
+                    )
         
         return message
 
