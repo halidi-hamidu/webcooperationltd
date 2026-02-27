@@ -16,6 +16,12 @@
                 <field name="avg_response_time" string="Avg Response Time" type="measure" widget="float_time"/>
                 <field name="total_resolution_time" string="Total Resolution Time" type="measure" widget="float_time"/>
                 <field name="avg_resolution_time" string="Avg Resolution Time" type="measure" widget="float_time"/>
+                <field name="participation_rate" string="Participation Rate % (PR)" type="measure"/>
+                <field name="resolution_rate" string="Resolution Rate % (CR)" type="measure"/>
+                <field name="sla_compliance_rate" string="SLA Compliance Rate %" type="measure"/>
+                <field name="rework_rate" string="Rework Rate % (Penalty)" type="measure"/>
+                <field name="collaboration_score" string="Collaboration Score % (CTCS)" type="measure"/>
+                <field name="performance_rating_num" string="Performance Rating (4=⭐ 3=✅ 2=⚠️ 1=🔴)" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -38,21 +44,31 @@
         <field name="name">helpdesk.tagged.team.analysis.tree</field>
         <field name="model">helpdesk.tagged.team.analysis</field>
         <field name="arch" type="xml">
-            <list string="Tagged Team Analysis" create="false" edit="false">
-                <field name="contributor_id" string="Tagged Member"/>
-                <field name="ticket_id"/>
-                <field name="ticket_name"/>
-                <field name="team_id" string="Tagged Team"/>
-                <field name="ticket_team_id" string="Ticket Team"/>
-                <field name="tag_count" string="Times Tagged"/>
+            <list string="Tagged Team Analysis" create="false" edit="false"
+                  default_order="team_id asc, contributor_id asc">
+                <field name="team_id" string="Team" optional="show"/>
+                <field name="contributor_id" string="Member"/>
+                <field name="tag_count" string="Times Tagged" sum="Total"/>
+                <field name="closed_count" string="Completed Tasks" sum="Total"/>
+                <field name="hold_count" string="Times Put on Hold" sum="Total"/>
                 <field name="total_response_time_desc" string="Total Response Time"/>
-                <field name="avg_response_time_desc" string="Average Response Time"/>
+                <field name="avg_response_time_desc" string="Avg Response Time"/>
                 <field name="total_resolution_time_desc" string="Total Resolution Time"/>
-                <field name="avg_resolution_time_desc" string="Average Resolution Time"/>
-                <field name="closed_count" string="Completed"/>
-                <field name="hold_count" string="Hold Count"/>
-                <field name="ticket_stage_id"/>
-                <field name="priority"/>
+                <field name="avg_resolution_time_desc" string="Avg Resolution Time"/>
+                <field name="participation_rate" string="Participation Rate % (PR)"/>
+                <field name="resolution_rate" string="Resolution Rate % (CR)"/>
+                <field name="sla_compliance_rate" string="SLA Compliance Rate %"/>
+                <field name="rework_rate" string="Rework Rate % (Penalty)"/>
+                <field name="collaboration_score" string="Collaboration Score % (CTCS)"
+                       decoration-success="collaboration_score >= 90"
+                       decoration-warning="collaboration_score >= 70 and collaboration_score &lt; 90"
+                       decoration-danger="collaboration_score &lt; 70"/>
+                <field name="performance_rating" string="Performance Rating"
+                       decoration-success="performance_rating == 'excellent'"
+                       decoration-info="performance_rating == 'stable'"
+                       decoration-warning="performance_rating == 'at_risk'"
+                       decoration-danger="performance_rating == 'critical'"/>                <field name="ticket_stage_id" optional="hide"/>
+                <field name="priority" optional="hide"/>
             </list>
         </field>
     </record>
@@ -78,9 +94,19 @@
                 <filter string="Has Hold Actions" name="has_holds"
                         domain="[('hold_count', '>', 0)]"/>
                 <separator/>
+                <filter string="⭐ Excellent (≥90%)" name="rating_excellent"
+                        domain="[('performance_rating', '=', 'excellent')]"/>
+                <filter string="✅ Stable (80–89%)" name="rating_stable"
+                        domain="[('performance_rating', '=', 'stable')]"/>
+                <filter string="⚠️ At Risk (70–79%)" name="rating_at_risk"
+                        domain="[('performance_rating', '=', 'at_risk')]"/>
+                <filter string="🔴 Critical (&lt;70%)" name="rating_critical"
+                        domain="[('performance_rating', '=', 'critical')]"/>
+                <separator/>
                 <filter string="Ticket" name="group_ticket" context="{'group_by': 'ticket_id'}"/>
                 <filter string="Tagged Team" name="group_team" context="{'group_by': 'team_id'}"/>
                 <filter string="Ticket Team" name="group_ticket_team" context="{'group_by': 'ticket_team_id'}"/>
+                <filter string="Performance Rating" name="group_rating" context="{'group_by': 'performance_rating'}"/>
                 <filter string="Stage" name="group_stage" context="{'group_by': 'ticket_stage_id'}"/>
                 <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
                 <filter string="Assigned To" name="group_user" context="{'group_by': 'user_id'}"/>
@@ -95,9 +121,13 @@
     <record id="action_helpdesk_tagged_team_analysis" model="ir.actions.act_window">
         <field name="name">Tagged Team Analysis</field>
         <field name="res_model">helpdesk.tagged.team.analysis</field>
-        <field name="view_mode">pivot,graph,list</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="view_id" ref="helpdesk_tagged_team_analysis_tree"/>
         <field name="search_view_id" ref="helpdesk_tagged_team_analysis_search"/>
-        <field name="context">{}</field>
+        <field name="context">{
+            'search_default_group_team': 1,
+            'search_default_group_contributor': 1
+        }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No data yet!

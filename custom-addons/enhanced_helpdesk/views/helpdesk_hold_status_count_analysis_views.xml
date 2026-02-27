@@ -5,18 +5,11 @@
         <field name="name">helpdesk.hold.status.count.analysis.tree</field>
         <field name="model">helpdesk.hold.status.count.analysis</field>
         <field name="arch" type="xml">
-            <list string="Reasons Counter" create="false" edit="false" 
-                  decoration-muted="not is_active" decoration-bf="usage_count > 0">
+            <list string="Reasons Counter" create="false" edit="false"
+                  decoration-muted="not is_active" decoration-bf="ticket_count > 0">
                 <field name="reason_name" string="Reason"/>
-                <field name="usage_count" sum="Total Count"/>
-            
-                <field name="avg_hold_duration" widget="float_time"/>
-                <field name="total_hold_duration" widget="float_time" sum="Total Duration"/>
-                <field name="last_used_date"/>
-                <field name="is_active"/>
-               
-                <field name="reason_description" optional="hide"/>
-                <field name="first_used_date" optional="hide"/>
+                <field name="ticket_count" string="Ticket Count" sum="Total Tickets"/>
+                <field name="is_active" string="Active" optional="show"/>
             </list>
         </field>
     </record>
@@ -28,12 +21,7 @@
         <field name="arch" type="xml">
             <pivot string="Hold Reasons Usage Analysis" display_quantity="1" disable_linking="1" sample="1">
                 <field name="reason_name" type="row"/>
-                <field name="is_active" type="col"/>
-                <field name="usage_count" type="measure"/>
-                <field name="unique_tickets_count" type="measure"/>
-                <field name="unique_users_count" type="measure"/>
-                <field name="avg_hold_duration" widget="float_time" type="measure"/>
-                <field name="total_hold_duration" widget="float_time" type="measure"/>
+                <field name="ticket_count" string="Ticket Count" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -45,7 +33,7 @@
         <field name="arch" type="xml">
             <graph string="Hold Reasons Usage" type="bar" sample="1">
                 <field name="reason_name"/>
-                <field name="usage_count" type="measure"/>
+                <field name="ticket_count" string="Ticket Count" type="measure"/>
             </graph>
         </field>
     </record>
@@ -61,28 +49,12 @@
                         <h1>
                             <field name="reason_name" readonly="1"/>
                         </h1>
-                        <h3>
-                            <field name="usage_count" readonly="1"/> times used
-                        </h3>
                     </div>
                     <group>
-                        <group string="Usage Statistics">
-                            <field name="usage_count"/>
-                            <field name="unique_tickets_count"/>
-                            <field name="unique_users_count"/>
+                        <group string="Statistics">
+                            <field name="ticket_count" string="Ticket Count"/>
                             <field name="is_active"/>
                         </group>
-                        <group string="Duration Statistics">
-                            <field name="avg_hold_duration" widget="float_time"/>
-                            <field name="total_hold_duration" widget="float_time"/>
-                        </group>
-                        <group string="Date Information" col="2">
-                            <field name="first_used_date"/>
-                            <field name="last_used_date"/>
-                        </group>
-                    </group>
-                    <group string="Description" col="1">
-                        <field name="reason_description" nolabel="1" readonly="1"/>
                     </group>
                 </sheet>
             </form>
@@ -96,26 +68,16 @@
         <field name="arch" type="xml">
             <search string="Hold Status Count Analysis">
                 <field name="reason_name"/>
-                <field name="reason_description"/>
-                
-                <separator/>
-                <filter string="Active Reasons" name="active_reasons" 
+
+                <filter string="Active Reasons" name="active_reasons"
                         domain="[('is_active', '=', True)]"/>
-                <filter string="Used Reasons" name="used_reasons" 
-                        domain="[('usage_count', '>', 0)]"/>
-                <filter string="Unused Reasons" name="unused_reasons" 
-                        domain="[('usage_count', '=', 0)]"/>
-                <filter string="Most Used" name="most_used" 
-                        domain="[('usage_count', '>', 5)]"/>
-                
+                <filter string="Used Reasons" name="used_reasons"
+                        domain="[('ticket_count', '>', 0)]"/>
+                <filter string="Unused Reasons" name="unused_reasons"
+                        domain="[('ticket_count', '=', 0)]"/>
+
                 <separator/>
-                <filter string="Recently Used (30 Days)" name="recent_usage"
-                        domain="[('last_used_date', '>=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
-                
-                <separator/>
-                <filter string="Status" name="group_status" context="{'group_by': 'is_active'}"/>
-                <filter string="Usage Count Range" name="group_usage" 
-                        context="{'group_by': 'usage_count'}"/>
+                <filter string="Group by Active" name="group_status" context="{'group_by': 'is_active'}"/>
             </search>
         </field>
     </record>
