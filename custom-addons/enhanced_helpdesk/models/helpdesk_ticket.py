@@ -122,25 +122,54 @@ class HelpdeskTicket(models.Model):
                 self.tag_ids = self.tag_ids.filtered(
                     lambda t: not t.team_id or t.team_id == self.team_id
                 )
+            # Clear SLA if not belonging to the new team
+            if self.sla_ids:
+                self.sla_ids = self.sla_ids.filtered(
+                    lambda s: s.team_id == self.team_id
+                )
 
-    @api.onchange('tag_category_id')
-    def _onchange_tag_category_id(self):
-        """When tag_category changes, clear tags that don't belong to the new category."""
-        if self.tag_category_id:
-            valid_tag_ids = self.tag_category_id.tag_ids.ids
-            if valid_tag_ids:
-                self.tag_ids = self.tag_ids.filtered(lambda t: t.id in valid_tag_ids)
-            else:
-                self.tag_ids = False
+    @api.onchange('sla_ids')
+    def _onchange_sla_ids_set_priority(self):
+        """Enforce exactly one SLA and auto-fill priority from it."""
+        if self.sla_ids:
+            # Keep only the last selected (most recently added)
+            last_sla = self.sla_ids[-1]
+            self.sla_ids = [(6, 0, [last_sla.id])]
+            if last_sla.priority:
+                self.priority = last_sla.priority
 
     @api.constrains('sla_ids')
     def _check_sla_required(self):
-        """Every ticket must have at least one SLA policy assigned."""
+        """Every ticket can only have ONE SLA policy assigned."""
         for ticket in self:
-            if not ticket.sla_ids:
+            if len(ticket.sla_ids) > 1:
                 raise ValidationError(_(
-                    'Ticket "%s" must have at least one SLA policy assigned before saving.'
+                    'Ticket "%s" can only have ONE SLA policy assigned. Please remove the extra SLA.'
                 ) % ticket.name)
+
+    def _sla_reset_trigger(self):
+        """Override: disable automatic SLA re-assignment when tags/priority/team change.
+        SLA is manually managed by the user on the ticket form."""
+        return []
+
+    def _sla_apply(self, keep_reached=False):
+        """Override: preserve manually assigned SLAs — do not auto-wipe and re-assign."""
+        for ticket in self:
+            if ticket.sla_ids:
+                # SLA already manually set — only regenerate SLA status rows, keep sla_ids intact
+                sla_status_to_remove = ticket.sla_status_ids
+                if keep_reached:
+                    sla_status_to_remove = sla_status_to_remove.filtered(
+                        lambda s: not s.reached_datetime
+                    )
+                sla_status_to_remove.unlink()
+                status_vals = ticket._sla_generate_status_values(
+                    ticket.sla_ids, keep_reached=keep_reached
+                )
+                if status_vals:
+                    self.env['helpdesk.sla.status'].create(status_vals)
+            # If no SLA set yet, do nothing — constraint will enforce on save
+        return self.env['helpdesk.sla.status']
 
     @api.depends('stage_id')
     def _compute_is_on_hold(self):
@@ -319,7 +348,7 @@ class HelpdeskTicket(models.Model):
                     'was_on_hold': record.is_on_hold,
                     'is_going_on_hold': new_stage.name == 'On Hold'
                 }
-        
+
         # Store old values for comparison
         old_values = {}
         if 'sla_deadline' in vals or 'user_id' in vals or 'team_id' in vals:
@@ -329,16 +358,13 @@ class HelpdeskTicket(models.Model):
                     'user_id': record.user_id,
                     'team_id': record.team_id
                 }
-        
+
         # Check if stage is being changed to "On Hold"
         if 'stage_id' in vals:
             new_stage = self.env['helpdesk.stage'].browse(vals['stage_id'])
             if new_stage.name == 'On Hold':
                 for record in self:
-                    # Check if common_reasons_to_hold_ticket is being set in this write
                     hold_reasons = vals.get('common_reasons_to_hold_ticket', record.common_reasons_to_hold_ticket)
-                    
-                    # If no hold reasons are provided, prevent the stage change
                     if not hold_reasons or (isinstance(hold_reasons, list) and not any(hold_reasons)):
                         raise ValidationError(
                             _("🚫 Cannot Move to On Hold Status\n\n"
@@ -349,32 +375,40 @@ class HelpdeskTicket(models.Model):
                               "This requirement ensures proper documentation and tracking of hold reasons "
                               "for reporting and ticket management purposes.") % record.name
                         )
-        
+
+        sla_changing = 'sla_ids' in vals
+
         # Execute the write
         result = super(HelpdeskTicket, self).write(vals)
-        
+
+        # When SLA is manually changed, fully regenerate SLA status (new deadline, new counter)
+        if sla_changing:
+            for ticket in self:
+                ticket.sudo().sla_status_ids.unlink()
+                status_vals = ticket._sla_generate_status_values(
+                    ticket.sla_ids, keep_reached=False
+                )
+                if status_vals:
+                    self.env['helpdesk.sla.status'].sudo().create(status_vals)
+
         # Handle hold status changes after write
         if 'stage_id' in vals:
             for record in self:
                 old_status = old_hold_status.get(record.id, {})
                 was_on_hold = old_status.get('was_on_hold', False)
                 is_now_on_hold = record.is_on_hold
-                
+
                 if not was_on_hold and is_now_on_hold:
-                    # Ticket put on hold - create hold log and immediately pause SLA
                     record._create_hold_log()
-                    # Force immediate SLA status update to 'paused'
                     record._compute_sla_status()
                 elif was_on_hold and not is_now_on_hold:
-                    # Ticket removed from hold - end hold log and resume SLA
                     record._end_hold_log()
-                    # Force immediate SLA status recalculation
                     record._compute_sla_status()
-        
+
         # Check for SLA-related changes and send notifications
         if 'sla_deadline' in vals or 'user_id' in vals or 'team_id' in vals:
             self._handle_sla_updates(old_values, vals)
-        
+
         return result
 
     def _handle_sla_updates(self, old_values, new_vals):

@@ -114,11 +114,27 @@
         <field name="model">helpdesk.sla</field>
         <field name="inherit_id" ref="helpdesk.helpdesk_sla_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='tag_ids']" position="before">
+            <xpath expr="//label[@for='partner_ids']" position="before">
                 <field name="tag_category_id"
+                       string="Tag Category"
                        domain="[('team_id', '=', team_id)]"
-                       options="{'no_create': True}"
+                       options="{'no_create': True, 'no_create_edit': True}"
                        context="{'default_team_id': team_id}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Inherit SLA list: add Tags + Tag Category columns ──────────────── -->
+    <record id="helpdesk_sla_list_inherit_tag_category" model="ir.ui.view">
+        <field name="name">helpdesk.sla.list.inherit.tag.category</field>
+        <field name="model">helpdesk.sla</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_sla_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="tag_category_id" optional="show" options="{'no_create': True}"/>
             </xpath>
         </field>
     </record>

@@ -46,11 +46,11 @@
         <field name="sla_ids"
                string="SLA"
                required="1"
-               domain="[('team_id', '=', team_id), ('tag_category_id', '=', tag_category_id)]"
-               options="{'no_create': True, 'no_create_edit': True}"
+               domain="[('team_id', '=', team_id)]"
+               options="{'no_create': True, 'no_create_edit': True, 'max_selection_size': 1}"
                groups="helpdesk.group_use_sla"
                widget="many2many_tags"/>
-        <field name="priority" widget="priority"/>
+        <field name="priority" widget="priority" readonly="1" invisible="1"/>
         <field name="domain_user_ids" invisible="1"/>
         <field name="user_id"
                class="field_user_id"
