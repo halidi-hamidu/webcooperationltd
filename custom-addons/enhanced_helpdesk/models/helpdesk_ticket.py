@@ -73,6 +73,12 @@ class HelpdeskTicket(models.Model):
         compute='_compute_sla_team_tag_ids',
         help='Odoo domain string restricting tags to those in team SLA policies'
     )
+    tag_category_id = fields.Many2one(
+        'helpdesk.tag.category',
+        string='Tag Category',
+        ondelete='set null',
+        help='Category of tags for this ticket — filtered by the selected team',
+    )
 
     @api.depends('team_id')
     def _compute_sla_team_tag_ids(self):
@@ -103,19 +109,29 @@ class HelpdeskTicket(models.Model):
 
     @api.onchange('team_id')
     def _onchange_team_id_clear_stale(self):
-        """Clear user_id and tag_ids if they no longer belong to the new team."""
+        """Clear user_id, tag_ids, tag_category_id and sla_ids if they no longer belong to the new team."""
         if self.team_id:
             # Clear user_id if not a member of the new team
             if self.user_id and self.user_id not in self.team_id.member_ids:
                 self.user_id = False
-            # Clear tags not linked to any SLA policy of the new team
+            # Clear tag_category_id if it doesn't belong to the new team
+            if self.tag_category_id and self.tag_category_id.team_id != self.team_id:
+                self.tag_category_id = False
+            # Clear tags not belonging to the new team
             if self.tag_ids:
-                sla_policies = self.env['helpdesk.sla'].search([
-                    ('team_id', '=', self.team_id.id),
-                    ('tag_ids', '!=', False),
-                ])
-                valid_tag_ids = sla_policies.mapped('tag_ids').ids
+                self.tag_ids = self.tag_ids.filtered(
+                    lambda t: not t.team_id or t.team_id == self.team_id
+                )
+
+    @api.onchange('tag_category_id')
+    def _onchange_tag_category_id(self):
+        """When tag_category changes, clear tags that don't belong to the new category."""
+        if self.tag_category_id:
+            valid_tag_ids = self.tag_category_id.tag_ids.ids
+            if valid_tag_ids:
                 self.tag_ids = self.tag_ids.filtered(lambda t: t.id in valid_tag_ids)
+            else:
+                self.tag_ids = False
 
     @api.depends('stage_id')
     def _compute_is_on_hold(self):
