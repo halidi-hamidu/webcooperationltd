@@ -133,6 +133,15 @@ class HelpdeskTicket(models.Model):
             else:
                 self.tag_ids = False
 
+    @api.constrains('sla_ids')
+    def _check_sla_required(self):
+        """Every ticket must have at least one SLA policy assigned."""
+        for ticket in self:
+            if not ticket.sla_ids:
+                raise ValidationError(_(
+                    'Ticket "%s" must have at least one SLA policy assigned before saving.'
+                ) % ticket.name)
+
     @api.depends('stage_id')
     def _compute_is_on_hold(self):
         for rec in self:
