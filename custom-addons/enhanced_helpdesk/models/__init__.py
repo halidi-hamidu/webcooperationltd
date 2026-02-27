@@ -8,6 +8,7 @@ from . import helpdesk_hold_confirmation_wizard
 from . import helpdesk_transfer_wizards
 from . import helpdesk_tags
 from . import helpdesk_ticket_report_analysis
+from . import helpdesk_sla_report_analysis
 from . import helpdesk_tagged_team_analysis
 from . import helpdesk_hold_analysis
 from . import helpdesk_hold_status_count_analysis
