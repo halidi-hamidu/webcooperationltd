@@ -15,6 +15,7 @@ class PaymentReceiptVfd(models.Model):
     _name = 'payment.receipt.vfd'
     _description = 'Description'
     _rec_name = 'receipt_no'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     receipt_id = fields.Integer('Receipt ID')
     receipt_no = fields.Char('Receipt No')
