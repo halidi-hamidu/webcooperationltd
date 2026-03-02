@@ -31,7 +31,8 @@
 
             <!-- Do not restrict tags by team; allow selecting any tag (but prevent creation from here) -->
             <xpath expr="//field[@name='tag_ids']" position="attributes">
-                <attribute name="options">{"no_create": True, "no_create_edit": True}</attribute>
+                <attribute name="options">{'no_create': True, 'no_create_edit': True}</attribute>
+                <attribute name="domain">['|',('team_id','=',team_id),('team_id','=',False)]</attribute>
             </xpath>
 
             <!-- SLA description and info -->
@@ -54,6 +55,19 @@
                 <group string="SLA Policies" colspan="2">
                     <field name="sla_ids" nolabel="1" readonly="1" colspan="2">
                         <list string="SLA Policies" editable="0" decoration-danger="sla_status == 'failed'" create="0" delete="0">
+                            <field name="name" string="Policy"/>
+                            <field name="tag_ids" widget="many2many_tags" string="Tags" optional="show"/>
+                            <field name="time" string="Target (hrs)" optional="show"/>
+                            <field name="stage_id" string="Target Stage" optional="show"/>
+                            <field name="priority" string="Priority" optional="show"/>
+                        </list>
+                    </field>
+                </group>
+
+                <!-- SLAs that match the currently selected tags (computed) -->
+                <group string="Matching SLA Policies" colspan="2">
+                    <field name="matching_sla_ids" nolabel="1" readonly="1" colspan="2">
+                        <list string="Matching SLA Policies" editable="0" create="0" delete="0">
                             <field name="name" string="Policy"/>
                             <field name="tag_ids" widget="many2many_tags" string="Tags" optional="show"/>
                             <field name="time" string="Target (hrs)" optional="show"/>
