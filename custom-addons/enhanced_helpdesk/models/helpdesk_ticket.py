@@ -73,6 +73,12 @@ class HelpdeskTicket(models.Model):
         compute='_compute_sla_team_tag_ids',
         help='Odoo domain string restricting tags to those in team SLA policies'
     )
+    matching_sla_ids = fields.Many2many(
+        'helpdesk.sla',
+        string='Matching SLAs',
+        compute='_compute_matching_sla_ids',
+        help='SLA policies that match the currently selected tags and team'
+    )
     tag_category_id = fields.Many2one(
         'helpdesk.tag.category',
         string='Tag Category',
@@ -95,6 +101,24 @@ class HelpdeskTicket(models.Model):
                     ticket.sla_team_tag_domain = "[('id', 'in', [])]"
             else:
                 ticket.sla_team_tag_domain = "[]"
+
+        @api.depends('tag_ids', 'team_id')
+        def _compute_matching_sla_ids(self):
+            """Compute SLAs that match the ticket's selected tags (and team when set).
+            Matches SLAs that have at least one of the ticket tags and belong to the ticket's team
+            (or are global, team_id False).
+            """
+            for ticket in self:
+                if not ticket.tag_ids:
+                    ticket.matching_sla_ids = [(5, 0, 0)]
+                    continue
+
+                tag_ids = ticket.tag_ids.ids
+                domain = [('tag_ids', 'in', tag_ids)]
+                if ticket.team_id:
+                    domain = [('team_id', 'in', [ticket.team_id.id, False]), ('tag_ids', 'in', tag_ids)]
+                slas = self.env['helpdesk.sla'].search(domain)
+                ticket.matching_sla_ids = [(6, 0, slas.ids)]
 
     @api.depends('team_id')
     def _compute_domain_user_ids(self):
@@ -123,10 +147,11 @@ class HelpdeskTicket(models.Model):
                     lambda t: not t.team_id or t.team_id == self.team_id
                 )
             # Clear SLA if not belonging to the new team
-            if self.sla_ids:
-                self.sla_ids = self.sla_ids.filtered(
-                    lambda s: s.team_id == self.team_id
-                )
+            # if self.sla_ids:
+            #     # Keep SLAs that belong to the selected team or global SLAs (team_id is False)
+            #     self.sla_ids = self.sla_ids.filtered(
+            #         lambda s: (not s.team_id) or s.team_id == self.team_id
+            #     )
 
     @api.onchange('sla_ids')
     def _onchange_sla_ids_set_priority(self):
