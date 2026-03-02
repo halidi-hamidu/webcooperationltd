@@ -29,14 +29,9 @@
                 </group>
             </xpath>
 
-            <!-- Restrict tag_ids to only tags from SLA policies of the selected team -->
+            <!-- Do not restrict tags by team; allow selecting any tag (but prevent creation from here) -->
             <xpath expr="//field[@name='tag_ids']" position="attributes">
-                <attribute name="domain">sla_team_tag_domain</attribute>
                 <attribute name="options">{"no_create": True, "no_create_edit": True}</attribute>
-            </xpath>
-            <!-- hidden field so the domain expression resolves -->
-            <xpath expr="//field[@name='tag_ids']" position="after">
-                <field name="sla_team_tag_domain" invisible="1"/>
             </xpath>
 
             <!-- SLA description and info -->

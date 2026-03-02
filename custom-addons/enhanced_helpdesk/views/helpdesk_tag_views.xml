@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- No custom tag views needed - using default Odoo tag views -->
+
+    <!-- Action to open Tags list/form -->
+    <record id="action_helpdesk_tag" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">helpdesk.tag</field>
+        <!-- Use 'list' to align with standard Odoo action view types and prefer existing tree view -->
+        <field name="view_mode">list,form</field>
+        <!-- Prefer the existing tree/list view from the base helpdesk module when available -->
+        <field name="view_id" ref="helpdesk.helpdesk_tag_view_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Manage helpdesk tags</p>
+            <p>Tags help classify tickets and can be linked to Tag Categories and SLA policies.</p>
+        </field>
+    </record>
+
+    <!-- Menu: add Tags under Helpdesk Configuration, visible to Helpdesk Manager -->
+    <menuitem
+        id="menu_helpdesk_tag"
+        name="Tags"
+        parent="helpdesk.helpdesk_menu_config"
+        action="action_helpdesk_tag"
+        sequence="34"
+        groups="helpdesk.group_helpdesk_manager"/>
+
 </odoo>
