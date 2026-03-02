@@ -138,11 +138,12 @@
         <field name="inherit_id" ref="helpdesk.helpdesk_tag_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="team_id" options="{'no_create': True}"/>
-                <field name="tag_category_id"
-                       domain="[('team_id', '=', team_id)]"
-                       options="{'no_create': True}"
-                       context="{'default_team_id': team_id}"/>
+          <field name="team_id" options="{'no_create': True}"/>
+          <field name="tag_category_ids"
+              widget="many2many_tags"
+              domain="[('team_id', '=', team_id)]"
+              options="{'no_create': True}"
+              context="{'default_team_id': team_id}"/>
             </xpath>
         </field>
     </record>
@@ -155,7 +156,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
                 <field name="team_id" optional="show" options="{'no_create': True}"/>
-                <field name="tag_category_id" optional="show" options="{'no_create': True}"/>
+                <field name="tag_category_ids" optional="show" options="{'no_create': True}" widget="many2many_tags"/>
             </xpath>
         </field>
     </record>

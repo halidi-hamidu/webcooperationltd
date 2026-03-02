@@ -10,9 +10,14 @@ class HelpdeskTag(models.Model):
         help='Restrict this tag to a specific helpdesk team',
         ondelete='set null',
     )
-    tag_category_id = fields.Many2one(
+    # A tag can belong to multiple categories and a category can contain
+    # multiple tags — use a Many2many relation. We define an explicit
+    # relation table so both sides reference the same relation.
+    tag_category_ids = fields.Many2many(
         'helpdesk.tag.category',
-        string='Tag Category',
-        help='Category this tag belongs to',
-        ondelete='set null',
+        'helpdesk_tag_category_rel',
+        'tag_id',
+        'category_id',
+        string='Tag Categories',
+        help='Categories this tag belongs to',
     )
