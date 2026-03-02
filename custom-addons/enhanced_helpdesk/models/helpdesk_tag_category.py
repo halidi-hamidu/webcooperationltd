@@ -20,9 +20,14 @@ class HelpdeskTagCategory(models.Model):
         string='SLA Policies',
         help='SLA Policies that reference this tag category',
     )
-    tag_ids = fields.One2many(
+    # Many2many: a category can contain many tags and a tag can belong
+    # to many categories. Use the same relation table as defined on
+    # the tag side ('helpdesk_tag_category_rel').
+    tag_ids = fields.Many2many(
         'helpdesk.tag',
-        'tag_category_id',
+        'helpdesk_tag_category_rel',
+        'category_id',
+        'tag_id',
         string='Tags',
         help='Tags that belong to this category',
     )
