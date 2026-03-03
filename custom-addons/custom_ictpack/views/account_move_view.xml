@@ -17,15 +17,15 @@
                     <field name="business_line"/>
                 </field>
                 <field name="business_line" position="after">
-                    <div class="o_td_label" invisible="[('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]">
+                    <div class="o_td_label" invisible="move_type not in ('out_invoice', 'out_refund')">
                         <label for="payment_reference" string="Payment Reference"/>
                     </div>
-                    <div class="d-flex" invisible="[('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]">
+                    <div class="d-flex" invisible="move_type not in ('out_invoice', 'out_refund')">
                         <field name="payment_reference" />
                         <field name="has_duplicate_payment_ref" invisible="1"/>
-                        <span class="o_form_label mx-3 oe_edit_only" invisible="[('has_duplicate_payment_ref', '=', False)]">  </span>
+                        <span class="o_form_label mx-3 oe_edit_only" invisible="not has_duplicate_payment_ref">  </span>
                         <div class="alert alert-warning" role="alert" 
-                                invisible="[('has_duplicate_payment_ref', '=', False)]"
+                                invisible="not has_duplicate_payment_ref"
                                 style="margin-bottom: 10px;">
                             <i class="fa fa-exclamation-triangle"/> 
                             <strong>Warning:</strong> This payment reference has been used in other invoices. 
