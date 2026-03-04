@@ -39,17 +39,15 @@ class AccountMove(models.Model):
 
     has_duplicate_payment_ref = fields.Boolean(string='Has Duplicate Payment Reference', compute='_compute_has_duplicate_payment_ref', store=False)
 
-    @api.depends('ref', 'payment_reference')
+    @api.depends('payment_reference')
     def _compute_has_duplicate_payment_ref(self):
         """Check if the payment reference has been used in other invoices."""
         for record in self:
-            ref = record.payment_reference or record.ref
+            ref = record.payment_reference
             record_id = record._origin.id
             if ref and isinstance(record_id, int) and record_id:
                 domain = [
-                    '|',
                     ('payment_reference', '=', ref),
-                    ('ref', '=', ref),
                     ('id', '!=', record_id),
                     ('state', '!=', 'cancel'),
                 ]

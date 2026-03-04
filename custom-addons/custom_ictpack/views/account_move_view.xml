@@ -16,28 +16,23 @@
                 <field name="payment_reference" position="before">
                     <field name="business_line"/>
                 </field>
-                <field name="business_line" position="after">
-                    <div class="o_td_label" invisible="move_type not in ('out_invoice', 'out_refund')">
-                        <label for="payment_reference" string="Payment Reference"/>
-                    </div>
-                    <div class="d-flex" invisible="move_type not in ('out_invoice', 'out_refund')">
-                        <field name="payment_reference" />
-                        <field name="has_duplicate_payment_ref" invisible="1"/>
-                        <span class="o_form_label mx-3 oe_edit_only" invisible="not has_duplicate_payment_ref">  </span>
-                        <div class="alert alert-warning" role="alert" 
-                                invisible="not has_duplicate_payment_ref"
-                                style="margin-bottom: 10px;">
-                            <i class="fa fa-exclamation-triangle"/> 
-                            <strong>Warning:</strong> This payment reference has been used in other invoices. 
-                            <button name="action_show_payment_reference_warning" 
+                <!-- Replace the payment_reference in the Other Info tab with our version that includes duplicate warning -->
+                <xpath expr="//page[@name='other_info']//group[@name='sale_info_group']/field[@name='payment_reference']" position="replace">
+                    <field name="payment_reference" invisible="move_type not in ('out_invoice', 'out_refund')" readonly="inalterable_hash" placeholder="Standard communication"/>
+                    <field name="has_duplicate_payment_ref" invisible="1"/>
+                    <div colspan="2" invisible="not has_duplicate_payment_ref">
+                        <div class="alert alert-warning mb-2" role="alert">
+                            <i class="fa fa-exclamation-triangle"/>
+                            <strong> Warning:</strong> This payment reference has been used in other invoices.
+                            <button name="action_show_payment_reference_warning"
                                     type="object"
-                                    class="btn btn-link" 
+                                    class="btn btn-link"
                                     style="padding: 0; margin-left: 5px;">
                                 <i class="fa fa-external-link"/> View details
                             </button>
                         </div>
                     </div>
-                </field>
+                </xpath>
                 <field name="ref" position="after">
                     <field name="po_no" invisible="[('move_type', '!=', 'out_invoice')]"/>
                     <field name="po_date" invisible="[('move_type', '!=', 'out_invoice')]"/>
