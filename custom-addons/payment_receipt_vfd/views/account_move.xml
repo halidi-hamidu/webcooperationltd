@@ -11,6 +11,9 @@
                     <button name="generate_vfd_receipt" type="object" string="Generate VFD Receipt" class="oe_highlight"
                             confirm="Are you sure you want to generate VFD receipt for this transaction? This action can't be undone."
                             invisible="is_vfd_receipt_generated == True or state in ('draft','authorize','cancel') or move_type != 'out_invoice'"/>
+                    <button name="regenerate_vfd_receipt" type="object" string="Regenerate VFD Receipt"
+                            confirm="This will update the VFD receipt with current invoice data and reset it to queue. Continue?"
+                            invisible="is_vfd_receipt_generated == False or state in ('draft','authorize','cancel') or move_type != 'out_invoice'"/>
                     <button name="print_vfd_receipt"  class="oe_highlight" type="object" string="Print VFD Receipt" invisible="is_vfd_receipt_generated == False or state in ('draft','authorize','cancel') or move_type != 'out_invoice'"/>
                     <button name="%(account.account_invoices)d"  class="oe_highlight" type="action" string="Print TAX Invoice" invisible="is_vfd_receipt_generated == False or state in ('draft','authorize','cancel')"/>
                 </xpath>

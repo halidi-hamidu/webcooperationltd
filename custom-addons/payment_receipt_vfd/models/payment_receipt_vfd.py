@@ -177,6 +177,16 @@ class PaymentReceiptVfd(models.Model):
             rec.state = 'draft'
             rec.message_post(body=Markup("🔁 <b>Resend</b> triggered by <b>%s</b> — receipt reset to In Queue") % rec.env.user.name)
 
+    def regenerate_from_invoice(self):
+        """Regenerate this VFD receipt by pulling fresh data from the linked invoice."""
+        for rec in self:
+            if rec.state != 'error':
+                continue
+            if not rec.invoice_id:
+                rec.message_post(body="Cannot regenerate: no linked invoice found.")
+                continue
+            rec.invoice_id.regenerate_vfd_receipt()
+
     def post_receipt(self, obj):
         vfd_base_url, vfd_api_key, vfd_api_secret, x_tin, vfd_token = self.get_api_credentials()
         headers = {

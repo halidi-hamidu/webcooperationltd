@@ -30,51 +30,81 @@ class AccountMove(models.Model):
         return res
 
 
+    def _prepare_vfd_receipt_vals(self):
+        """Prepare the VFD receipt values from the current invoice."""
+        self.ensure_one()
+        rec = self
+        if not rec.partner_id.phone:
+            raise exceptions.UserError('Customer Phone Number is not set.')
+
+        exchange_rate = 1
+        if rec.currency_id.name != 'TZS':
+            invoice_date = rec.invoice_date
+            exchange_rate = self._get_exchange_rate(rec.currency_id, invoice_date)
+
+        def clean_name(name):
+            name = name.replace('\n', ' ')
+            name = re.sub(r'[^A-Za-z0-9 /{}-]+', '', name)
+            return name.strip()
+
+        return {
+            "customer_name": rec.partner_id.name,
+            "customer_phone": rec.partner_id.phone,
+            "customer_vrn": rec.partner_id.vrn or "",
+            "customer_id": rec.partner_id.vat or "000000000",
+            "customer_id_type": rec.identity_type_id.key,
+            "payment_method": rec.payment_type_id.key,
+            "items": [
+                {
+                    'name': clean_name(x.name),
+                    'quantity': "1",
+                    'price': str(x.price_subtotal / exchange_rate),
+                    'tax': str((x.price_subtotal * rec.tax_type_id.rate) / exchange_rate),
+                    'tax_type': rec.tax_type_id.key,
+                    'discount': '0'
+                } for x in rec.invoice_line_ids
+            ],
+        }
+
     def generate_vfd_receipt(self):
         for rec in self:
-            if rec.partner_id.phone is False:
-                raise exceptions.UserError('Customer Phone Number is not set.')
+            vals = rec._prepare_vfd_receipt_vals()
             receipt_no_ = rec.get_receipt_no()
-            exchange_rate = 1
-            if rec.currency_id.name != 'TZS':
-                invoice_date = rec.invoice_date
-                exchange_rate = self._get_exchange_rate(rec.currency_id, invoice_date)
-
-            def clean_name(name):
-                name = name.replace('\n', ' ')
-                name = re.sub(r'[^A-Za-z0-9 /{}-]+', '', name)
-                return name.strip()
-            
-            vals = {
+            vals.update({
                 "invoice_id": rec.id,
                 "receipt_id": rec.get_receipt_id(),
                 "receipt_no": receipt_no_,
                 "receipt_date": fields.Date.today(),
                 "receipt_time": fields.Datetime.now(),
                 "receipt_z_no": rec.get_z_number(),
-                "customer_name": rec.partner_id.name,
-                "customer_phone": rec.partner_id.phone,
-                "customer_vrn": rec.partner_id.vrn or "",
-                "customer_id": rec.partner_id.vat or "000000000",
-                "customer_id_type": rec.identity_type_id.key,
                 "verification_code": receipt_no_,
                 "receipt_url": rec.get_receipt_url(receipt_no_),
-                "payment_method": rec.payment_type_id.key,
-                "items": [
-                    {
-                        'name': clean_name(x.name),
-                        'quantity': "1",
-                        'price': str(x.price_subtotal/exchange_rate),
-                        'tax': str((x.price_subtotal * rec.tax_type_id.rate)/exchange_rate),
-                        'tax_type': rec.tax_type_id.key,
-                        'discount': '0'
-                    } for x in rec.invoice_line_ids
-                ]
-            }
+            })
 
             res = rec.env['payment.receipt.vfd'].create(vals)
             if res:
                 rec.is_vfd_receipt_generated = True
+
+    def regenerate_vfd_receipt(self):
+        """Regenerate VFD receipt by updating existing error-state receipt
+        with fresh data from the invoice. Keeps receipt_no, receipt_id,
+        receipt_date, receipt_time, receipt_z_no, and verification_code unchanged."""
+        for rec in self:
+            error_receipt = rec.vfd_receipt_ids.filtered(lambda r: r.state == 'error')
+            if not error_receipt:
+                raise exceptions.UserError(
+                    'No VFD receipt in error state found for this invoice. '
+                    'Only receipts with errors can be regenerated.'
+                )
+            vals = rec._prepare_vfd_receipt_vals()
+            vals["receipt_url"] = rec.get_receipt_url(error_receipt[0].receipt_no)
+            vals["error_message"] = False
+            vals["state"] = 'draft'
+            for receipt in error_receipt:
+                receipt.write(vals)
+                receipt.message_post(
+                    body="VFD Receipt regenerated from invoice by %s" % rec.env.user.name
+                )
 
     def get_receipt_url(self, receipt_no_):
         tra_url = "https://verify.tra.go.tz/"
