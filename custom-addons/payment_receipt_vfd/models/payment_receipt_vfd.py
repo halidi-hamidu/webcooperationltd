@@ -14,7 +14,7 @@ _logger = logging.getLogger(__name__)
 
 class PaymentReceiptVfd(models.Model):
     _name = 'payment.receipt.vfd'
-    _description = 'Description'
+    _description = 'Payment Receipt VFD'
     _rec_name = 'receipt_no'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 

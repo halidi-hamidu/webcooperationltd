@@ -17,6 +17,7 @@
     "depends": [
         "account",
         "sale",
+        "sale_subscription",
         "sale_crm",
         "purchase",
         "project",

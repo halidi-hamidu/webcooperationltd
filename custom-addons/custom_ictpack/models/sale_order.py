@@ -59,10 +59,29 @@ class SaleOrder(models.Model):
             })
         return res
 
-    def _create_recurring_invoice(self, **kwargs):
-        # 1. Inject a custom flag into the context before the standard generation runs
-        self_with_context = self.with_context(leave_subscription_draft=True)
-        # 2. Call the original Odoo method, which will now carry our flag
-        return super(SaleOrder, self_with_context)._create_recurring_invoice(**kwargs)
+    def _handle_automatic_invoices(self, invoice, auto_commit):
+        """Override to leave subscription invoices in draft for accountant review.
+
+        The enterprise method has two paths that post invoices:
+          1. No payment token  → _process_auto_invoice() → action_post()
+          2. Payment token     → invoice._post()  (after successful payment)
+
+        Both are inside _handle_automatic_invoices, so we intercept here to
+        ensure subscription invoices always stay in *draft*, regardless of
+        whether the subscription uses a payment token or not.
+        Non-subscription invoices (if any) are forwarded to the standard flow.
+        """
+        for inv in invoice:
+            inv.message_post(
+                body=_(
+                    "Subscription invoice generated automatically and left "
+                    "in Draft for accountant review."
+                )
+            )
+        # Clear the payment_exception flag that _handle_automatic_invoices
+        # normally sets at the start — we intentionally skipped posting, so
+        # there is no actual exception.
+        self.with_context(mail_notrack=True).payment_exception = False
+        return invoice
     
     

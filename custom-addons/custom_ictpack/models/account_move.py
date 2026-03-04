@@ -150,28 +150,3 @@ class AccountMove(models.Model):
             except NotImplementedError:
                 record.amount_in_word = num2words(record.amount_total, to='currency', separator=' and', cents=True).title()
                 record.amount_in_word = record.amount_in_word.replace('Euro', 'Tanzanian Shillings')
-    
-    
-    def action_post(self):
-        # 1. Check if we are inside the automatic subscription cron job
-        if self.env.context.get('leave_subscription_draft'):
-
-            # 2. Ensure we only block invoices that are actually tied to a subscription
-            subscription_invoices = self.filtered(
-                lambda m: any(m.invoice_line_ids.sale_line_ids.order_id.mapped('is_subscription'))
-            )
-            other_invoices = self - subscription_invoices
-
-            # 3. Leave the subscription invoice in Draft and log a note for the accountant
-            for inv in subscription_invoices:
-                inv.message_post(body="🛑 Subscription invoice generated and left in Draft for accountant review.")
-
-            # 4. If by chance there are mixed invoices, post the non-subscription ones normally
-            if other_invoices:
-                return super(AccountMove, other_invoices).action_post()
-
-            # Abort the posting for our targeted invoices
-            return False
-
-        # Normal behavior for all manually clicked / standard invoices
-        return super().action_post()
