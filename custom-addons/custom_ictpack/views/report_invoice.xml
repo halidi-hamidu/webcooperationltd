@@ -558,28 +558,35 @@
                                             </span>
                                         </t>
                                     </td>
-                                    <td width="40%" class="table-head-bg">                                  
-                                        <div t-if="o.vfd_receipt_ids" class="row align-items-center">
-                                            <div class="col-6 align-self-center text-end pt-4">
-                                                <br/>
-                                                <strong class="text-primary-alt">Scan to Verify</strong>
-                                                <br/>
-                                                Tax Verification Code:
-                                                <br/>
-                                                <strong class="text-primary-alt">
-                                                    <span t-field="o.vfd_receipt_ids.verification_code"/>
-                                                </strong>
+                                    <td width="40%" class="table-head-bg">
+                                        <div t-if="o.vfd_receipt_ids" class="d-flex align-items-center justify-content-between p-3">
+
+                                            <!-- Left section -->
+                                            <div class="text-end pe-3">
+                                                <strong class="text-primary-alt d-block">Scan to Verify</strong>
+
+                                                <span>Tax Verification Code:</span>
+
+                                                <div class="fw-bold text-primary-alt">
+                                                    <span t-field="o.vfd_receipt_ids[:1].verification_code"/>
+                                                </div>
                                             </div>
-                                            <div class="col-6">
-                                                <img class="mt-2"
-                                                     t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.vfd_receipt_ids.receipt_url, 200, 200)"
-                                                     style="width:200px;height:200px" alt="QR Code"/>
+
+                                            <!-- QR Code -->
+                                            <div class="text-center">
+                                                <img t-if="o.vfd_receipt_ids[:1].receipt_url"
+                                                    t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.vfd_receipt_ids[:1].receipt_url, 200, 200)"
+                                                    style="width:150px;height:150px"
+                                                    alt="QR Code"/>
                                             </div>
+
                                         </div>
-                                        <div t-if="o.vfd_receipt_ids" class="row">
-                                            <div class="col-12 mt-2 text-center">
-                                                <span t-esc="str(o.vfd_receipt_ids.receipt_url)"/>
-                                            </div>
+
+                                        <!-- Verification URL -->
+                                        <div t-if="o.vfd_receipt_ids[:1].receipt_url" class="text-center mt-2">
+                                            <small>
+                                                <span t-esc="o.vfd_receipt_ids[:1].receipt_url"/>
+                                            </small>
                                         </div>
                                     </td>
                                 </tr>
