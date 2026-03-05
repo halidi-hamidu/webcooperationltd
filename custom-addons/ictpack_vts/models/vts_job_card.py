@@ -25,6 +25,7 @@ JOB_CARD_STATE = [
     ("submitted", "Submitted"),
     ("reviewed", "Reviewed"),
     ("approved", "Approved"),
+    ("done", "Done"),
     ("rejected", "Rejected"),
 ]
 
@@ -46,7 +47,7 @@ INSPECTION_PROPERTIES_VALUE = {
 
 DAILY_CHECK_UP_LIST_SELECTION = [
     ("draft", "Draft"),
-    ("submited", "Submited"),
+    ("submitted", "Submitted"),
 ]
 class VtsChecklistConfig(models.Model):
     _name = "vts.checklist.config"
@@ -244,7 +245,7 @@ class VtsJobCard(models.Model):
                     body_is_html=True,
                 )
         
-        return format_response('success', 'Job card submitted successfully.', record.id)
+        return format_response('success', 'Job card submitted successfully.', self.id)
     
     def action_create_project_from_job_card(self):
         for record in self:
@@ -594,6 +595,10 @@ class VtsJobCard(models.Model):
         for record in self:
             record.state = 'approved'
         return True
+    
+    def action_done(self):
+        for record in self:
+            record.state = 'done'
     
     def action_rejected(self):
         for record in self:

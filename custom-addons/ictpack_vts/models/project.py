@@ -84,6 +84,7 @@ class Project(models.Model):
         return format_response('success', 'Customer debts returned successfully.', {
             'customer_id': customer.id,
             'customer_name': customer.name,
+            'customer_phone': customer.phone,
             'debts': [{
                 'invoice_number': debt.name,
                 'date': debt.date,
@@ -145,22 +146,23 @@ class Task(models.Model):
     
     def return_empoyee_task_by_id(self, task_id, employee_id):
         task = self.search([('id', '=', task_id), ('vts_employee.id', '=', employee_id)], limit=1)
-        if task:
-            vals = {
-                'id': task.id,
-                'name': task.name,
-                'project': task.project_id.name,
-                'assigned_by': [manager.name for manager in task.user_ids],
-                'job_card_id': task.vts_job_card.id,
-                'job_card': task.vts_job_card.name,
-                'description': task.description,
-                'state': task.vts_state,
-                'state_desc': dict(TASK_STATES_SELECTION)[task.vts_state],
-                'customer_id': task.partner_id.id,
-                'customer': task.partner_id.name,
-                'license_plate': task.project_id.name,
-            }
-
+        if not task:
+            return format_response('error', 'Task not found.', [])
+        
+        vals = {
+            'id': task.id,
+            'name': task.name,
+            'project': task.project_id.name,
+            'assigned_by': [manager.name for manager in task.user_ids],
+            'job_card_id': task.vts_job_card.id,
+            'job_card': task.vts_job_card.name,
+            'description': task.description,
+            'state': task.vts_state,
+            'state_desc': dict(TASK_STATES_SELECTION)[task.vts_state],
+            'customer_id': task.partner_id.id,
+            'customer': task.partner_id.name,
+            'license_plate': task.project_id.name,
+        }
 
         return format_response('success', 'Employee task returned successfully.', vals)
 
