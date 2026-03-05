@@ -206,21 +206,10 @@ class VtsJobCard(models.Model):
         for record in self:
             record.state = 'submitted'
             
-            # Get all VTS operation teams
-            operation_teams = self.env['vts.operation.team'].search([])
-            
-            # Collect all users from teams (leaders + members)
-            user_ids = set()
-            for team in operation_teams:
-                if team.user_id:
-                    user_ids.add(team.user_id.id)
-                user_ids.update(team.member_ids.ids)
-            
-            # Get partner IDs for all users
+            # Get partner ID of the user assigned to the linked ticket
             partner_ids = []
-            if user_ids:
-                users = self.env['res.users'].browse(list(user_ids))
-                partner_ids = [user.partner_id.id for user in users if user.partner_id]
+            if record.ticket_id and record.ticket_id.user_id and record.ticket_id.user_id.partner_id:
+                partner_ids = [record.ticket_id.user_id.partner_id.id]
             
             # Create notification message
             if partner_ids:
