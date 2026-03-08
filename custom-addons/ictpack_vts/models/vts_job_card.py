@@ -739,7 +739,7 @@ class VtsDailyCheckupList(models.Model):
     
     def action_submit(self):
         for record in self:
-            record.state = 'submited'
+            record.state = 'submitted'
         return True
     
     def return_checklist(self, employee_id):
