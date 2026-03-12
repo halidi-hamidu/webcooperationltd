@@ -35,7 +35,4 @@ class HelpdeskTagCategory(models.Model):
     description = fields.Text(string='Description')
 
     # When team_id is optional we enforce uniqueness on name only
-    _sql_constraints = [
-        ('name_uniq', 'unique(name)',
-         'A tag category with this name already exists.'),
-    ]
+    _name_uniq = models.Constraint('unique(name)', 'A tag category with this name already exists.')
