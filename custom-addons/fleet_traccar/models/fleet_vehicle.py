@@ -30,9 +30,7 @@ class FleetVehicle(models.Model):
     create_traccer_vehicle = fields.Boolean("Create in Traccar Status", default=False)
     imported_vehicle = fields.Boolean("Imported vehicle", default=False)
 
-    _sql_constraints = [
-        ('vehicle_license_plate', 'unique (license_plate)', 'The Vehicle with this License plate already exists')
-    ]
+    _vehicle_license_plate = models.Constraint('unique (license_plate)', 'The Vehicle with this License plate already exists')
 
     @api.model
     @api.depends('license_plate')
