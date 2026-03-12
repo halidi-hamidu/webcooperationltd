@@ -27,6 +27,4 @@ class AccountAssetLabel(models.Model):
         help="Sequential number for this label"
     )
     
-    _sql_constraints = [
-        ('label_unique', 'unique(label)', 'Label must be unique!')
-    ]
+    _label_unique = models.Constraint('unique(label)', 'Label must be unique!')

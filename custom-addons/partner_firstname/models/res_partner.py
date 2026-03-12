@@ -222,4 +222,4 @@ class ResPartner(models.Model):
 
     # Disabling SQL constraint givint a more explicit error using a Python
     # contstraint
-    _sql_constraints = [("check_name", "CHECK( 1=1 )", "Contacts require a name.")]
+    _check_name = models.Constraint("CHECK( 1=1 )", "Contacts require a name.")

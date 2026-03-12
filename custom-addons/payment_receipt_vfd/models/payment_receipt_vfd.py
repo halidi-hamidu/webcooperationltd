@@ -414,7 +414,7 @@ class PaymentReceiptMissing(models.Model):
 
     name = fields.Char('Receipt No',required=True)
 
-    _sql_constraints = [('name_unique', 'unique(name)','Can not add same receipt Twice!')]
+    _name_unique = models.Constraint('unique(name)', 'Can not add same receipt Twice!')
 
     def get_missing_receipt_cron(self):
         records = self.env['payment.receipt.vfd'].search_read([],['receipt_sequence'])
