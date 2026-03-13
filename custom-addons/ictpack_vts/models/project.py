@@ -14,6 +14,21 @@ class Project(models.Model):
     
     computed_inspection_status = fields.Char(compute="_compute_vehicle_status")
     computed_inspection_remarks = fields.Char(compute="_compute_vehicle_status")
+    job_card_count = fields.Integer(string='Job Card Count', compute='_compute_job_card_count')
+
+    @api.depends('task_ids')
+    def _compute_job_card_count(self):
+        for project in self:
+            project.job_card_count = len(project.task_ids)
+
+    def open_job_cards(self):
+        return {
+            'name': 'Job Cards',
+            'type': 'ir.actions.act_window',
+            'res_model': 'vts.job.card',
+            'view_mode': 'list,form',
+            'domain': [('project_id', '=', self.id)],
+        }
 
     def _compute_vehicle_status(self):
         for project in self:
