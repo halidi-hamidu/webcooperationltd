@@ -11,15 +11,25 @@ TASK_STATES_SELECTION = [
 
 class Project(models.Model):
     _inherit = 'project.project'
-    
+
     computed_inspection_status = fields.Char(compute="_compute_vehicle_status")
     computed_inspection_remarks = fields.Char(compute="_compute_vehicle_status")
-    job_card_count = fields.Integer(string='Job Card Count', compute='_compute_job_card_count')
+    job_card_count = fields.Integer(string='Job Card Count', compute='_get_job_cards', store=True)
+    job_card_ids = fields.One2many(
+        "vts.job.card",
+        "project_id",
+        string="Job Cards",
+        compute="_get_job_cards",
+        store=True,
+        copy=False,
+    )
 
-    @api.depends('task_ids')
-    def _compute_job_card_count(self):
+    @api.depends('job_card_ids')
+    def _get_job_cards(self):
         for project in self:
-            project.job_card_count = len(project.task_ids)
+            project.job_card_ids = self.env['vts.job.card'].search([('project_id', '=', project.id)])
+            project.job_card_count = len(project.job_card_ids)
+
 
     def open_job_cards(self):
         return {
@@ -64,12 +74,12 @@ class Project(models.Model):
                 values.append(vals)
 
         return format_response('success', 'Projects returned successfully.', values)
-    
+
     def return_vts_project(self, project_id):
         project = self.search([('id', '=', project_id), ('business_line', '=', 'atras')], limit=1)
         values = []
         if project:
-           
+
             vals = {
                 'id': project.id,
                 'name': project.name,
@@ -81,7 +91,7 @@ class Project(models.Model):
             values.append(vals)
 
         return format_response('success', 'Project returned successfully.', values)
-    
+
     def return_customer_debts(self, project_name):
         project = self.search([('name', '=', project_name)], limit=1)
         if not project:
@@ -90,7 +100,7 @@ class Project(models.Model):
         customer = project.partner_id
         if not customer:
             return format_response('error', 'Customer not found.', [])
-    
+
         debts = customer.customer_report_ids
 
         total_debt = sum(amount.amount_residual_signed for amount in debts)
@@ -115,7 +125,7 @@ class Project(models.Model):
         """
         customer_id = vals.get('customer_id')
         message_body = vals.get('message_body')
-        
+
         # Use the generic helper function
         result = post_chatter_message(
             env=self.env,
@@ -124,7 +134,7 @@ class Project(models.Model):
             message_body=message_body,
             subject=f'Message regarding Project ID {vals.get("project_id")}',
         )
-        
+
         return result
 
 class Task(models.Model):
