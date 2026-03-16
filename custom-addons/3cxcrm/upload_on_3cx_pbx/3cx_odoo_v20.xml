@@ -1,16 +1,20 @@
 <?xml version="1.0"?>
-<Crm xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Country="[country]" Name="3cxodoo" Version="1" SupportsEmojis="true">
+<Crm xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  Country="[country]" Name="3cxodoo" Version="1" SupportsEmojis="true">
   <Number Prefix="AsIs" MaxLength="[MaxLength]" />
   <Connection MaxConcurrentRequests="4" />
   <Parameters>
-    <Parameter Name="apikey" Type="String" Editor="String" Title="ApiKey" Default="123A" />
-    <Parameter Name="hostodoo" Type="String" Editor="String" Title="Host odoo" Default="http://127.0.0.1:8069" ListValues="http://127.0.0.1:8069" />
-    <Parameter Name="country" Type="String" Editor="String" Title="Country" Default="IT" ListValues="IT;US;" />
+    <Parameter Name="apikey" Parent="General Configuration" Type="String" Editor="String" Title="ApiKey" Default="123A" />
+    <Parameter Name="hostodoo" Parent="General Configuration" Type="String" Editor="String" Title="Host odoo"
+      Default="http://127.0.0.1:8069" ListValues="http://127.0.0.1:8069" />
+    <Parameter Name="country" Parent="General Configuration" Type="String" Editor="String" Title="Country" Default="IT"
+      ListValues="IT;US;" />
   </Parameters>
   <Authentication Type="No" />
   <Scenarios>
     <Scenario Id="" Type="REST">
-      <Request SkipIf="" Url="[hostodoo]/api/3cx/crm" MessagePasses="0" Message="" RequestContentType="application/json" RequestEncoding="Json" RequestType="Post" ResponseType="Json">
+      <Request SkipIf="" Url="[hostodoo]/api/3cx/crm" MessagePasses="0" Message="" RequestContentType="application/json"
+        RequestEncoding="Json" RequestType="Post" ResponseType="Json">
         <Headers>
           <Value Key="apikey" Passes="1" Type="String">[apikey]</Value>
         </Headers>
