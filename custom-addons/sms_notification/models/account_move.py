@@ -96,9 +96,6 @@ class AccountMove(models.Model):
             rec.above_seven_days_sms_limit += 1
             rec.thirty_days_before_sms_limit += 1
         else:
-            if rec.invoice_date == rec.invoice_date_due:
-                rec.invoice_date_due = rec.invoice_date_due + timedelta(days=30)
-
             if (
                 self.check_validity(rec.invoice_date, rec.new_registration_sms_limit)
                 == "new"
