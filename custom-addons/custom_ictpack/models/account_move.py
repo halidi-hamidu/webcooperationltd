@@ -23,14 +23,6 @@ class AccountMove(models.Model):
     po_date = fields.Datetime('PO Date', copy=False, help="Purchase Order Date")
 
 
-    business_line = fields.Selection([
-        ('atras', 'IoT VTS'),
-        ('ects', 'IoT ECTS'),
-        ('itms', 'IT Management & Security Services'),
-        ('uis', 'Unified Infrastructure Solutions'),
-        ('ictpack', 'Application Software'),
-    ], string='Business Line',index=True, readonly=False, copy=False,states={'posted': [('readonly', True)],'cancel': [('readonly', True)]})
-
     amount_in_word = fields.Char(string='Amount in words', readonly=True,default=False, copy=False, compute='_compute_text')
 
     is_petty = fields.Boolean(string='Is Pettycash voucher', default=False)

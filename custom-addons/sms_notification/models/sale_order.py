@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    atras_project_ids = fields.One2many('project.project', 'sale_order_id', domain=[('business_line', '=', 'atras')])
+    atras_project_ids = fields.One2many('project.project', 'sale_order_id')
     registration_sms_limit = fields.Integer('Registration SMS Limit')
 
     def send_registration_sms(self):

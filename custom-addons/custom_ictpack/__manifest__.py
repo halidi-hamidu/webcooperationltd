@@ -23,7 +23,6 @@
         "project",
         "stock",
         'approvals',
-        # "contract",
          'hr', 
          'hr_payroll'
     ],
@@ -35,7 +34,6 @@
         "views/sale_order_view.xml",
         "views/company_form_view.xml",
         "views/partner_form_view.xml",
-        "views/purchase_form_view.xml",
         "views/account_payment.xml",
         "views/project_views.xml",
         "views/stock_picking_form_view.xml",

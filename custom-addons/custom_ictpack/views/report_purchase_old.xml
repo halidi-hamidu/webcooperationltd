@@ -509,7 +509,9 @@
                             <tbody>
                                 <tr>
                                     <td class="60%">
-                                         <t t-if="o.business_line == 'ictpack' or o.business_line == 'uis'">
+                                        <t t-set="is_atras" t-value="bool(o.invoice_line_ids.sale_line_ids.order_id.tag_ids.filtered(lambda t: 'ATRAS' in t.name.upper()))"/>
+                                        <t t-set="is_ects" t-value="bool(o.invoice_line_ids.sale_line_ids.order_id.tag_ids.filtered(lambda t: 'ECTS' in t.name.upper()))"/>
+                                        <t t-if="not is_atras">
                                             <strong>BANK DETAILS:</strong>
                                             <br/>
                                             <span>Account Number(TZS):
@@ -543,7 +545,7 @@
                                             </span>
                                             <br/>
                                         </t>
-                                        <t t-if="o.business_line == 'atras' or o.business_line == 'ects'">
+                                        <t t-if="is_atras or is_ects">
                                             <strong>PAYMENT DETAILS:</strong>
                                             <br/>
                                             <span>

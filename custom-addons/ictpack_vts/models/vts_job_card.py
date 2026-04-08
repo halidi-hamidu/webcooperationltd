@@ -259,7 +259,6 @@ class VtsJobCard(models.Model):
                 project = self.env['project.project'].sudo().create({
                     'name': record.license_plate,
                     'partner_id': record.customer_id.id,
-                    'business_line': 'atras',
                     'active': True,
                 })
                 record.project_id = project.id
@@ -630,7 +629,6 @@ class VtsJobCard(models.Model):
                 'partner_id': self.customer_id.id,
                 'date_order': fields.Datetime.now(),
                 'origin': self.name,
-                'business_line': 'atras',
                 'note': f'Created from Job Card: {self.name}\n'
                         f'Service Type: {dict(SERVICE_TYPE_SELECTION).get(self.service_type, "")}\n'
                         f'Vehicle No: {self.license_plate or ""}\n'

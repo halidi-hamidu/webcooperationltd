@@ -15,15 +15,6 @@ class SaleOrder(models.Model):
 
     date_order_temp = fields.Datetime(string='Order Date', readonly=True, store=False)
 
-    business_line = fields.Selection([
-        ('atras', 'IoT VTS'),
-        ('ects', 'IoT ECTS'),
-        ('itms', 'IT Management & Security Services'),
-        ('uis', 'Unified Infrastructure Solutions'),
-        ('ictpack', 'Application Software'),
-    ], string='Business Line', default='ictpack',index=True, readonly=False, required=True, copy=False,
-        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-
     @api.model
     def _get_currency_name(self):
         journal = self.env['account.journal'].browse(self._context.get('journal_id', False))
@@ -44,11 +35,6 @@ class SaleOrder(models.Model):
         except NotImplementedError:
             self.amount_in_word = num2words(self.amount_total, to='currency', separator=' and', cents=True).title()
             self.amount_in_word = self.amount_in_word.replace('Euro', 'Tanzanian Shillings')
-
-    def _prepare_invoice(self):
-         res = super(SaleOrder,self)._prepare_invoice()
-         res['business_line'] = self.business_line
-         return res
 
     def action_confirm(self):
         self.date_order_temp = self.date_order

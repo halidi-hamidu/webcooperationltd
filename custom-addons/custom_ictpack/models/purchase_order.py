@@ -44,16 +44,3 @@ class PurchaseOrder(models.Model):
     product_id = fields.Many2one('product.product', related='order_line.product_id', states=READONLY_STATES,
                                  string='Product')
 
-    business_line = fields.Selection([
-        ('atras', 'IoT VTS'),
-        ('ects', 'IoT ECTS'),
-        ('itms', 'IT Management & Security Services'),
-        ('uis', 'Unified Infrastructure Solutions'),
-        ('ictpack', 'Application Software'),
-    ], string='Business Line',index=True, readonly=False, required=True, copy=False,
-        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-
-    def _prepare_invoice(self):
-        result = super(PurchaseOrder, self)._prepare_invoice()
-        result['business_line'] = self.business_line
-        return result

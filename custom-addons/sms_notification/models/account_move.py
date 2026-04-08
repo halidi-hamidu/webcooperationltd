@@ -44,9 +44,9 @@ class AccountMove(models.Model):
             'sms_notification.sms_notification_template_above_7_days_after_due_day_reminder')
 
         domains = [
-            ('business_line', '=', 'atras'),
             ('move_type', '=', 'out_invoice'),
             ('state', '=', 'draft'),
+            ('invoice_line_ids.sale_line_ids.order_id.tag_ids.name', 'ilike', 'ATRAS'),
         ]
 
         draft_invoices = self.search(domains)
@@ -171,8 +171,8 @@ class AccountMove(models.Model):
 
     def reset_limits(self):
         domains = [
-            ('business_line', '=', 'atras'),
-            ('state', '=', 'draft')
+            ('state', '=', 'draft'),
+            ('invoice_line_ids.sale_line_ids.order_id.tag_ids.name', 'ilike', 'ATRAS'),
         ]
 
         draft_invoices = self.search(domains)

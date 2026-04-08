@@ -30,13 +30,6 @@ class PaymentReceiptVfd(models.Model):
     customer_vrn = fields.Char('Customer VRN')
     payment_method = fields.Char('Payment Method')
     invoice_id = fields.Many2one('account.move')
-    business_line = fields.Selection([
-        ('atras', 'IoT VTS'),
-        ('ects', 'IoT ECTS'),
-        ('itms', 'IT Management & Security Services'),
-        ('uis', 'Unified Infrastructure Solutions'),
-        ('ictpack', 'Application Software'),
-    ], string='Business Line',readonly=True, related="invoice_id.business_line")
     error_message = fields.Char('Error Message')
     verification_code = fields.Char('Verification Code')
     customer_id = fields.Char('Customer TIN')

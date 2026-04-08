@@ -10,13 +10,12 @@
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside">
                     <field name="registration_sms_limit" invisible="1"/>
-                     <field name="business_line" invisible="1"/>
                     <button name="send_registration_sms" string="GENERATE REGISTRATION SMS" class="oe_highlight"
-                            type="object" invisible="business_line != 'atras' or registration_sms_limit != 0"/>
+                            type="object" invisible="registration_sms_limit != 0"/>
                 </xpath>
                 <field name="payment_term_id" position="after">
                            <field name="atras_project_ids" string="Registered Cars" widget="many2many_tags" options="{'no_create_edit': True}"
-                           invisible="business_line != 'atras'"/>
+                           />
                 </field>
             </field>
         </record>

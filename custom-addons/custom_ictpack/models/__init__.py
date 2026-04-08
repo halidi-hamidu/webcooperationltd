@@ -11,7 +11,6 @@ from . import res_company
 from . import res_partner
 from . import purchase_order
 from . import account_payment
-from . import project
 from . import account
 from . import account_bank_statement
 from . import account_asset

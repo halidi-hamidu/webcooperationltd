@@ -59,7 +59,7 @@ class Project(models.Model):
             project.computed_inspection_remarks = remarks
 
     def return_all_vts_projects(self, name, limit=50):
-        projects = self.search([('business_line', '=', 'atras'), ('name', 'ilike', name)], limit=limit)
+        projects = self.search([('name', 'ilike', name)], limit=limit)
         values = []
         if projects:
             for project in projects:
@@ -67,7 +67,6 @@ class Project(models.Model):
                     'id': project.id,
                     'name': project.name,
                     'customer': project.partner_id.name,
-                    'business_line': project.business_line,
                     'active': project.active,
                 }
 
@@ -76,7 +75,7 @@ class Project(models.Model):
         return format_response('success', 'Projects returned successfully.', values)
 
     def return_vts_project(self, project_id):
-        project = self.search([('id', '=', project_id), ('business_line', '=', 'atras')], limit=1)
+        project = self.search([('id', '=', project_id)], limit=1)
         values = []
         if project:
 
@@ -85,7 +84,6 @@ class Project(models.Model):
                 'name': project.name,
                 'customer': project.partner_id.name,
                 'project_manager': project.user_id.name,
-                'business_line': project.business_line,
                 'active': project.active,
             }
             values.append(vals)
@@ -143,11 +141,6 @@ class Task(models.Model):
     vts_job_card = fields.Many2one('vts.job.card', string='Job Card')
     vts_employee = fields.Many2one('hr.employee', string='Technician', domain=[('is_vts_employee', '=', True)])
     vts_state = fields.Selection(TASK_STATES_SELECTION, default='new', tracking=True, string="VTS State")
-    project_business_line = fields.Char(
-        string='Project Business Line',
-        compute='_compute_project_business_line',
-    )
-
     def return_employee_tasks(self, employee_id, domain=[], limit=25):
         tasks = self.search([('vts_employee', '=', employee_id)] + domain, limit=limit)
         values = []
@@ -190,11 +183,6 @@ class Task(models.Model):
         }
 
         return format_response('success', 'Employee task returned successfully.', vals)
-
-    # @api.depends('project_id.business_line')
-    def _compute_project_business_line(self):
-        for task in self:
-            task.project_business_line = task.project_id.business_line
 
     def change_vts_task_state(self, vals):
         task = self.search([('id', '=', vals['task_id'])], limit=1)
