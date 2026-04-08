@@ -414,8 +414,8 @@
                                 <tbody>
                                     <tr>
                                         <td class="60%">
-                                        <t t-set="is_atras" t-value="bool(o.invoice_line_ids.sale_line_ids.order_id.tag_ids.filtered(lambda t: 'ATRAS' in t.name.upper()))"/>
-                                        <t t-set="is_ects" t-value="bool(o.invoice_line_ids.sale_line_ids.order_id.tag_ids.filtered(lambda t: 'ECTS' in t.name.upper()))"/>
+                                        <t t-set="is_atras" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ATRAS' in t.name.upper()))"/>
+                                        <t t-set="is_ects" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ECTS' in t.name.upper()))"/>
                                         <t t-if="not is_atras">
                                             <strong>BANK DETAILS:</strong>
                                             <br/>
