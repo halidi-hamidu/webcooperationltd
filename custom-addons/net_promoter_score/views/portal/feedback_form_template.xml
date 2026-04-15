@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="feedback_form_template" name="Customer Feedback Form">
+        <t t-call="website.layout">
+            <div class="outer_feedback_form_section">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="inner_feedback_form_section">
+                                <t t-foreach="error_list" t-as="error">
+                                    <div class="alert alert-danger" role="alert">
+                                        <t t-out="error" />
+                                    </div>
+                                </t>
+
+                                <div class="alert alert-success" role="alert" t-if="success">
+                                    <t t-out="success" />
+                                </div>
+
+                                <form class="nps-form" method="post" action="">
+                                    <input type="hidden" name="csrf_token"
+                                        t-att-value="request.csrf_token()" />
+
+                                    <div class="form_header_section">
+                                        <h2 class="form_title">Net Promoter Score (NPS)-Feedback</h2>
+                                        <p>Please provide your feedback to help us improve our
+                                            services.</p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="name">Name</label>
+                                        <input type="text" name="name" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email (Optional)</label>
+                                        <input type="email" name="email" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="score">Rate us From (0-10)</label>
+                                        <div class="radio-table">
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="0" />
+                                                <label>0</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="1" />
+                                                <label>1</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="2" />
+                                                <label>2</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="3" />
+                                                <label>3</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="4" />
+                                                <label>4</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="5" />
+                                                <label>5</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="6" />
+                                                <label>6</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="7" />
+                                                <label>7</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="8" />
+                                                <label>8</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="9" />
+                                                <label>9</label>
+                                            </div>
+                                            <div class="cell">
+                                                <input type="radio" name="number" value="10" />
+                                                <label>10</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="feedback">Feedback</label>
+                                        <textarea type="text" name="feedback" widget="text" max="500"
+                                         rows="5" resize="none"
+                                            class="form-control"
+                                            placeholder="Please provide your feedback here..." />
+                                    </div>
+
+                                    <input type="checkbox" name="is_submitted" readonly="1"
+                                        hidden="true" />
+
+                                    <button name="action_submit" type="submit"
+                                        class="btn btn-primary portal_submit_button">Submit Your
+                                        Feedback </button>
+
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

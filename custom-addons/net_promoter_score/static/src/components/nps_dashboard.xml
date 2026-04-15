@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="net_promoter_score.OwlNpsDashboard" owl="1">
+        <div class="vh-100 overflow-auto bg-muted">
+
+           
+            <div class="container-fluid">
+                <div class="row m-3">
+                    <div class="col-12">
+                        <div class="shadow-sm border p-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h1 class="text-primary fw-bold"> NPS SCORE : (<t t-esc="state.npsData.nps_score"/> )</h1>
+                            
+                                <div>
+                                     <div t-att-class="{'text-success': state.npsData.nps_status === 'Excellent', 'text-primary': state.npsData.nps_status === 'Good', 'text-warning': state.npsData.nps_status === 'Needs Improvement', 'text-danger': state.npsData.nps_status === 'Poor'}">
+                                        <h3>Remark: <t t-esc="state.npsData.nps_status" /></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="container-fluid">
+                <div class="row m-3">
+                    <div class="col-12">
+                        <div class="shadow-sm border p-4 bg-white">
+                            <NpsMetric npsData="state.npsData"/>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row m-3">
+                    <div class="col-8">
+                        <div class="shadow-sm border p-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h3 class="text-primary fw-bold">Monthly NPS Score</h3>
+                                <div class="px-3 py-1 bg-primary cursor-pointer">
+                                    <span class="fa fa-arrow-right text-white"/>
+                                </div>
+                            </div>
+                           <ChartRenderer chartData="state.npsData.chartData" />
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="shadow-sm border p-4 bg-white">
+                            <div class="d-flex align-items-center mb-5 justify-content-between">
+                                <h3 class="text-primary fw-bold">General Customer Rating Based on NPS</h3>
+                                <div class="px-3 py-1 bg-primary cursor-pointer">
+                                    <span class="fa fa-arrow-right text-white"/>
+                                </div>
+                            </div>
+                           <RenderPieChart chartData="state.npsData.pieChartData" />
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>
