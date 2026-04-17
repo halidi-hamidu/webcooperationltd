@@ -32,6 +32,27 @@ class AccountMove(models.Model):
     has_duplicate_payment_ref = fields.Boolean(string='Has Duplicate Payment Reference', compute='_compute_has_duplicate_payment_ref', store=False)
     order_tag_ids = fields.Many2many('crm.tag', string='Order Tags', compute='_compute_order_tag_ids', store=False, readonly=True)
 
+    # Selcom / CIPS payment display on invoice
+    company_partner_id = fields.Many2one(
+        'res.partner', related='company_id.partner_id', string='Company Partner', store=False)
+    partner_till_alias = fields.Char(
+        string='Lipa Namba (Till Alias)',
+        compute='_compute_partner_till_alias',
+        store=False,
+    )
+    invoice_bank_account_id = fields.Many2one(
+        'res.partner.bank',
+        string='Payment Bank Account',
+        copy=False,
+        help="Select the company bank account to show on the invoice printout. "
+             "Leave empty to use the partner's Lipa Namba (if available) or default bank details.",
+    )
+
+    @api.depends('partner_id', 'partner_id.till_alias')
+    def _compute_partner_till_alias(self):
+        for record in self:
+            record.partner_till_alias = record.partner_id.till_alias or False
+
     # @api.depends('invoice_line_ids.sale_line_ids.order_id.tag_ids')
     def _compute_order_tag_ids(self):
         for move in self:

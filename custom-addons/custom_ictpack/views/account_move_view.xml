@@ -69,6 +69,19 @@
                 <button name="button_draft" position="attributes">
                     <attribute name="groups">account.group_account_manager</attribute>
                 </button>
+
+                <!-- Payment display fields for invoice printout -->
+                <xpath expr="//page[@name='other_info']//group[@name='sale_info_group']" position="after">
+                    <group string="Invoice Payment Display"
+                           invisible="move_type != 'out_invoice'">
+                        <field name="company_partner_id" invisible="1"/>
+                        <field name="partner_till_alias" readonly="1"
+                               invisible="not partner_till_alias"/>
+                        <field name="invoice_bank_account_id"
+                               domain="[('partner_id', '=', company_partner_id)]"
+                               options="{'no_create': True, 'no_quick_create': True}"/>
+                    </group>
+                </xpath>
             </field>
         </record>
 

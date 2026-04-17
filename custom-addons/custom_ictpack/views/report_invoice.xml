@@ -461,103 +461,152 @@
                         <table class="table table-bordered table-sm">
                             <tbody>
                                 <tr>
-                                    <td class="60%">
-                                        <t t-set="is_atras" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ATRAS' in t.name.upper()))"/>
-                                        <t t-set="is_ects" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ECTS' in t.name.upper()))"/>
-                                        <t t-if="not is_atras">
+                                    <td width="60%">
+                                        <!-- Priority 1: A specific company bank account is selected on this invoice -->
+                                        <t t-if="o.invoice_bank_account_id">
                                             <strong>BANK DETAILS:</strong>
                                             <br/>
-                                            <span>Account Number(TZS):
+                                            <t t-if="o.invoice_bank_account_id.bank_id.name">
+                                                <span>Bank Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt" t-esc="o.invoice_bank_account_id.bank_id.name"/>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                            </t>
+                                            <span>Account Number:
                                                 <strong>
-                                                    <span class="text-primary-alt">0150259120400</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Account Number(USD):
-                                                <strong>
-                                                    <span class="text-primary-alt">0250259120400</span>
+                                                    <span class="text-primary-alt" t-esc="o.invoice_bank_account_id.acc_number"/>
                                                 </strong>
                                             </span>
                                             <br/>
                                             <span>Account Name:
                                                 <strong>
-                                                    <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
+                                                    <span class="text-primary-alt" t-esc="o.invoice_bank_account_id.acc_holder_name or o.company_id.name"/>
                                                 </strong>
                                             </span>
                                             <br/>
-                                            <span>Bank Name:
-                                                <strong>
-                                                    <span class="text-primary-alt">CRDB BANK PLC</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>SWIFTCODE:
-                                                <strong>
-                                                    <span class="text-primary-alt">CORUTZTZ</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
+                                            <t t-if="o.invoice_bank_account_id.bank_id.bic">
+                                                <span>SWIFT/BIC:
+                                                    <strong>
+                                                        <span class="text-primary-alt" t-esc="o.invoice_bank_account_id.bank_id.bic"/>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                            </t>
                                         </t>
-                                        <t t-if="is_atras or is_ects">
-                                            <strong>PAYMENT DETAILS:</strong>
+                                        <!-- Priority 2: No bank account selected but partner has a Lipa Namba (Selcom till alias) -->
+                                        <t t-elif="o.partner_till_alias">
+                                            <strong>LIPA NAMBA (SELCOM):</strong>
                                             <br/>
-                                            <span>
-                                                <strong>
-                                                    <span class="text-primary-alt">CRDB BANK PLC</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Bank Name:
-                                                <strong>
-                                                    <span class="text-primary-alt">CRDB BANK PLC</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Account Number(TZS):
-                                                <strong>
-                                                    <span class="text-primary-alt">0150259120402</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Account Name:
-                                                <strong>
-                                                    <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <br/>
-                                            <span>
-                                                <strong>TIGOPESA ACCOUNT - Namna ya kulipa kwa TIGOPESA</strong>
-                                            </span>
-                                            <br/>
-                                            <span>Hatua ya 1. Bonyeza <strong>*150*01#</strong> kisha Chagua
-                                                Namba 4:
-                                                <strong>LIPIA BILI</strong>
-                                            </span>
-                                            <br/>
-                                            <span>Hatua ya 2. Chagua Namba 3:
-                                                <strong>INGIZA NAMBA YA KAMPUNI</strong>
-                                            </span>
-                                            <br/>
-                                            <span>Hatua ya 3. Ingiza namba ya kampuni:
-                                                <strong>
-                                                    <span class="text-primary-alt">477477</span>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Hatua ya 4. Ingiza kumbukumbu Namba:
-                                                <strong>
-                                                    <span t-field="o.inv_reference"/>
-                                                </strong>
-                                            </span>
-                                            <br/>
-                                            <span>Hatua ya 5. Ingiza kiasi unacholipia:
-                                                <strong>
-                                                    <span t-field="o.amount_total"/>
-                                                </strong>
-                                                Kisha ngiza namba yako ya siri: <strong>****</strong> kukamilisha
-                                                muamala
-                                            </span>
+                                            <div class="text-center mt-2">
+                                                <img t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.partner_till_alias, 180, 180)"
+                                                     style="width:130px;height:130px" alt="Lipa Namba QR"/>
+                                                <div class="fw-bold text-primary-alt" style="font-size:1.4rem;letter-spacing:2px;">
+                                                    <t t-esc="o.partner_till_alias"/>
+                                                </div>
+                                                <small>Scan or enter this Lipa Namba to pay via Selcom</small>
+                                            </div>
+                                        </t>
+                                        <!-- Priority 3: Fallback to existing tag-based bank / Tigopesa details -->
+                                        <t t-else="">
+                                            <t t-set="is_atras" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ATRAS' in t.name.upper()))"/>
+                                            <t t-set="is_ects" t-value="bool(o.order_tag_ids.filtered(lambda t: 'ECTS' in t.name.upper()))"/>
+                                            <t t-if="not is_atras">
+                                                <strong>BANK DETAILS:</strong>
+                                                <br/>
+                                                <span>Account Number(TZS):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0150259120400</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Number(USD):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0250259120400</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Bank Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>SWIFTCODE:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CORUTZTZ</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                            </t>
+                                            <t t-if="is_atras or is_ects">
+                                                <strong>PAYMENT DETAILS:</strong>
+                                                <br/>
+                                                <span>
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Bank Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">CRDB BANK PLC</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Number(TZS):
+                                                    <strong>
+                                                        <span class="text-primary-alt">0150259120402</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Account Name:
+                                                    <strong>
+                                                        <span class="text-primary-alt">ICTPACK SOLUTIONS LIMITED</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <br/>
+                                                <span>
+                                                    <strong>TIGOPESA ACCOUNT - Namna ya kulipa kwa TIGOPESA</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 1. Bonyeza <strong>*150*01#</strong> kisha Chagua
+                                                    Namba 4:
+                                                    <strong>LIPIA BILI</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 2. Chagua Namba 3:
+                                                    <strong>INGIZA NAMBA YA KAMPUNI</strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 3. Ingiza namba ya kampuni:
+                                                    <strong>
+                                                        <span class="text-primary-alt">477477</span>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 4. Ingiza kumbukumbu Namba:
+                                                    <strong>
+                                                        <span t-field="o.inv_reference"/>
+                                                    </strong>
+                                                </span>
+                                                <br/>
+                                                <span>Hatua ya 5. Ingiza kiasi unacholipia:
+                                                    <strong>
+                                                        <span t-field="o.amount_total"/>
+                                                    </strong>
+                                                    Kisha ngiza namba yako ya siri: <strong>****</strong> kukamilisha
+                                                    muamala
+                                                </span>
+                                            </t>
                                         </t>
                                     </td>
                                     <td width="40%" class="table-head-bg">
