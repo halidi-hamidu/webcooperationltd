@@ -15,6 +15,42 @@ class ResPartner(models.Model):
     till_alias = fields.Char(string='Selcom Till Alias', readonly=True, copy=False)
     till_alias_synced = fields.Boolean(default=False, copy=False)
 
+    outstanding_payment_count = fields.Integer(
+        string='Outstanding Payments',
+        compute='_compute_outstanding_payment_count',
+    )
+
+    def _compute_outstanding_payment_count(self):
+        payment_data = self.env['account.payment'].read_group(
+            domain=[
+                ('partner_id', 'in', self.ids),
+                ('payment_type', '=', 'inbound'),
+                ('state', '=', 'posted'),
+                ('is_reconciled', '=', False),
+            ],
+            fields=['partner_id'],
+            groupby=['partner_id'],
+        )
+        counts = {row['partner_id'][0]: row['partner_id_count'] for row in payment_data}
+        for partner in self:
+            partner.outstanding_payment_count = counts.get(partner.id, 0)
+
+    def action_view_outstanding_payments(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Outstanding Payments'),
+            'res_model': 'account.payment',
+            'view_mode': 'list,form',
+            'domain': [
+                ('partner_id', '=', self.id),
+                ('payment_type', '=', 'inbound'),
+                ('state', '=', 'posted'),
+                ('is_reconciled', '=', False),
+            ],
+            'context': {'default_partner_id': self.id},
+        }
+
     def get_config_param(self, key):
         return self.env['ir.config_parameter'].sudo().get_param(key)
 
@@ -38,7 +74,7 @@ class ResPartner(models.Model):
         # This value is embedded in every Selcom callback so CIPS can route
         # payments back to the correct customer.
         payload = {
-            "name": self.name,
+            "name": f"{self.name} - ICPACK",
             "customer_id": str(self.id),
         }
 

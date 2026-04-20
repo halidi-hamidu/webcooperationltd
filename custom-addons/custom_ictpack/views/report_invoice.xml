@@ -497,15 +497,19 @@
                                         </t>
                                         <!-- Priority 2: No bank account selected but partner has a Lipa Namba (Selcom till alias) -->
                                         <t t-elif="o.partner_till_alias">
-                                            <strong>LIPA NAMBA (SELCOM):</strong>
-                                            <br/>
-                                            <div class="text-center mt-2">
-                                                <img t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.partner_till_alias, 180, 180)"
-                                                     style="width:130px;height:130px" alt="Lipa Namba QR"/>
-                                                <div class="fw-bold text-primary-alt" style="font-size:1.4rem;letter-spacing:2px;">
+                                            <div style="border:1px solid #bcd5ed; border-radius:6px; padding:12px 16px; display:inline-block; min-width:220px;">
+                                                <div style="font-size:0.7rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:4px;">
+                                                    LIPA NAMBA · (TANQR)
+                                                </div>
+                                                <div style="font-size:0.85rem; color:#444; margin-bottom:6px;">
+                                                    <t t-esc="o.partner_id.name"/> - ICTPACK
+                                                </div>
+                                                <div class="text-primary-alt" style="font-size:1.8rem; font-weight:700; letter-spacing:4px; line-height:1.1;">
                                                     <t t-esc="o.partner_till_alias"/>
                                                 </div>
-                                                <small>Scan or enter this Lipa Namba to pay via Selcom</small>
+                                                <!-- <div style="font-size:0.72rem; color:#888; margin-top:6px; border-top:1px solid #dee2e6; padding-top:6px;">
+                                                    Enter this Lipa Namba to pay via TANQR
+                                                </div> -->
                                             </div>
                                         </t>
                                         <!-- Priority 3: Fallback to existing tag-based bank / Tigopesa details -->

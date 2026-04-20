@@ -1,7 +1,7 @@
 import json
 import logging
 
-from odoo import http
+from odoo import http, SUPERUSER_ID
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -18,17 +18,22 @@ class CipsWebhookController(http.Controller):
         """
         body = request.httprequest.get_data()
         signature = request.httprequest.headers.get('X-CIPS-Signature', '')
+        timestamp = request.httprequest.headers.get('X-CIPS-Timestamp', '')
 
-        # Resolve the webhook secret from the active company
-        # Use sudo to read company config without user context
-        webhook_secret = request.env['ir.config_parameter'].sudo().get_param('custom_ictpack.cips_webhook_secret', default='')
+        # Read the webhook secret from system parameters (Settings > CIPS / Selcom)
+        webhook_secret = request.env['ir.config_parameter'].sudo().get_param(
+            'custom_ictpack.cips_webhook_secret', default=''
+        )
 
-        handler = request.env['cips.webhook.handler'].sudo()
+        handler = request.env['cips.webhook.handler'].with_user(SUPERUSER_ID)
 
-        if not handler.verify_hmac(body, signature, webhook_secret):
+        if not handler.verify_hmac(body, signature, timestamp, webhook_secret):
             _logger.warning(
-                "CIPS webhook: invalid HMAC signature from %s",
+                "CIPS webhook: invalid HMAC signature from %s — "
+                "received='%s' secret_configured=%s",
                 request.httprequest.remote_addr,
+                signature[:20] + '...' if len(signature) > 20 else signature,
+                bool(webhook_secret),
             )
             return request.make_response(
                 json.dumps({"status": "error", "message": "Invalid signature"}),

@@ -11,26 +11,53 @@ class CipsWebhookHandler(models.AbstractModel):
     _name = 'cips.webhook.handler'
     _description = 'CIPS Webhook Handler'
 
-    def verify_hmac(self, body, signature, secret):
+    def verify_hmac(self, body, signature, timestamp, secret):
         """
         Verify HMAC-SHA256 signature from CIPS.
-        CIPS signs with: HMAC-SHA256(secret, body)
-        Header: X-CIPS-Signature
+        CIPS signs: HMAC-SHA256(secret, "{timestamp}.{payload}")
+        and sends the result as "sha256=<hex>" in X-CIPS-Signature.
+        The secret is used as plain UTF-8 bytes.
         """
         if not signature or not secret:
+            _logger.warning("CIPS HMAC check: missing signature=%s or secret configured=%s",
+                            bool(signature), bool(secret))
             return False
-        expected = hmac.new(
+
+        if not timestamp:
+            _logger.warning("CIPS HMAC check: missing X-CIPS-Timestamp header")
+            return False
+
+        payload_str = body.decode() if isinstance(body, bytes) else body
+        message = "{}.{}".format(timestamp, payload_str)
+
+        # Secret is plain UTF-8 (as per CIPS: secret.encode())
+        expected_hex = hmac.new(
             secret.encode(),
-            body if isinstance(body, bytes) else body.encode(),
+            message.encode(),
             hashlib.sha256,
         ).hexdigest()
-        return hmac.compare_digest(expected, signature)
+
+        # CIPS sends "sha256=<hex>" — strip the prefix
+        normalized = signature.lower()
+        if normalized.startswith("sha256="):
+            normalized = normalized[len("sha256="):]
+
+        if hmac.compare_digest(expected_hex, normalized):
+            return True
+
+        _logger.warning(
+            "CIPS HMAC mismatch — expected=%s...  received=%s...",
+            expected_hex[:16],
+            normalized[:16],
+        )
+        return False
 
     def handle_till_alias_payment(self, data):
         """
         Process a till_alias.payment_received webhook event.
-        Finds the customer by customer_id (Odoo partner.id as string),
-        creates an inbound payment, and reconciles open invoices FIFO.
+        Finds the customer by customer_id (Odoo partner.id as string)
+        and creates a posted inbound payment. Reconciliation is left to
+        the accountant.
         """
         customer_id = data.get("customer_id")
         amount_paid = Decimal(str(data.get("amount", "0")))
@@ -38,9 +65,12 @@ class CipsWebhookHandler(models.AbstractModel):
         channel = data.get("channel", "")
         payer_phone = data.get("payer_phone", "")
 
-        # --- Guard: idempotency — reject duplicate callbacks ---
+        # Build memo upfront so the idempotency check uses the exact same value
+        memo = "Selcom {} — {} / {}".format(channel, payer_phone, gateway_ref)
+
+        # --- Guard: idempotency — reject duplicate callbacks using the dedicated gateway ref field ---
         existing = self.env["account.payment"].search(
-            [("ref", "=", gateway_ref)], limit=1
+            [("cips_gateway_ref", "=", gateway_ref)], limit=1
         )
         if existing:
             _logger.warning("Duplicate CIPS callback ignored: %s", gateway_ref)
@@ -58,7 +88,7 @@ class CipsWebhookHandler(models.AbstractModel):
             return
 
         partner = self.env["res.partner"].search(
-            [("id", "=", partner_id_int), ("customer_rank", ">", 0)], limit=1
+            [("id", "=", partner_id_int)], limit=1
         )
         if not partner:
             _logger.error(
@@ -68,117 +98,40 @@ class CipsWebhookHandler(models.AbstractModel):
             self._log_unmatched_callback(data, reason="customer not found")
             return
 
-        # --- Fetch open invoices FIFO (oldest due date first) ---
-        open_invoices = self.env["account.move"].search(
-            [
-                ("partner_id", "=", partner.id),
-                ("move_type", "=", "out_invoice"),
-                ("payment_state", "in", ["not_paid", "partial"]),
-                ("state", "=", "posted"),
-            ],
-            order="invoice_date_due asc, date asc",
-        )
-
-        if not open_invoices:
-            _logger.warning(
-                "CIPS webhook: payment %s for customer_id=%s but no open invoices. "
-                "Amount=%s TZS — posting as unallocated credit.",
-                gateway_ref, customer_id, amount_paid,
-            )
-            self._post_as_unallocated_credit(partner, amount_paid, gateway_ref, data)
-            return
-
-        # --- Register inbound payment ---
+        # --- Create and post the inbound payment ---
         tzs_currency = self.env.ref("base.TZS", raise_if_not_found=False)
-        selcom_journal = self._get_selcom_journal()
+        cips_journal = self._get_cips_journal()
 
-        payment = self.env["account.payment"].create({
+        payment = self.env["account.payment"].sudo().create({
+            "company_id": cips_journal.company_id.id,
             "payment_type": "inbound",
             "partner_type": "customer",
             "partner_id": partner.id,
             "amount": float(amount_paid),
             "currency_id": tzs_currency.id if tzs_currency else self.env.company.currency_id.id,
-            "journal_id": selcom_journal.id,
-            "ref": gateway_ref,
-            "memo": "Selcom {} — {}".format(channel, payer_phone),
+            "journal_id": cips_journal.id,
+            "memo": memo,
+            "cips_gateway_ref": gateway_ref,
             "date": fields.Date.today(),
         })
         payment.action_post()
 
-        # --- Apply to invoices FIFO ---
-        remaining = amount_paid
-
-        for invoice in open_invoices:
-            if remaining <= 0:
-                break
-
-            invoice_due = Decimal(str(invoice.amount_residual))
-
-            if remaining >= invoice_due:
-                lines = (payment.line_ids | invoice.line_ids).filtered(
-                    lambda l: l.account_id.account_type in (
-                        'asset_receivable', 'liability_payable'
-                    ) and not l.reconciled
-                )
-                if lines:
-                    lines.reconcile()
-                remaining -= invoice_due
-            else:
-                self._partial_reconcile(payment, invoice)
-                remaining = Decimal("0")
-
-        if remaining > 0:
-            _logger.info(
-                "CIPS webhook: overpayment of %s TZS for customer_id=%s ref=%s. "
-                "Remaining credit stays on account.",
-                remaining, customer_id, gateway_ref,
-            )
-
-        self._log_payment_event(partner, gateway_ref, amount_paid, remaining, data)
-
-    def _post_as_unallocated_credit(self, partner, amount, gateway_ref, raw_data):
-        """Post an advance payment when no open invoices exist."""
-        tzs_currency = self.env.ref("base.TZS", raise_if_not_found=False)
-        selcom_journal = self._get_selcom_journal()
-        channel = raw_data.get("channel", "")
-        payer_phone = raw_data.get("payer_phone", "")
-
-        payment = self.env["account.payment"].create({
-            "payment_type": "inbound",
-            "partner_type": "customer",
-            "partner_id": partner.id,
-            "amount": float(amount),
-            "currency_id": tzs_currency.id if tzs_currency else self.env.company.currency_id.id,
-            "journal_id": selcom_journal.id,
-            "ref": gateway_ref,
-            "memo": "Selcom {} — {} (unallocated)".format(channel, payer_phone),
-            "date": fields.Date.today(),
-        })
-        payment.action_post()
         _logger.info(
-            "CIPS webhook: unallocated credit payment posted for partner=%s ref=%s",
-            partner.id, gateway_ref,
+            "CIPS webhook: payment %s posted for partner=%s amount=%s TZS — awaiting manual reconciliation.",
+            gateway_ref, partner.id, amount_paid,
         )
+        self._log_payment_event(partner, gateway_ref, amount_paid, data)
 
-    def _partial_reconcile(self, payment, invoice):
-        """Reconcile payment against invoice using available credit lines."""
-        lines = (payment.line_ids | invoice.line_ids).filtered(
-            lambda l: l.account_id.account_type in (
-                'asset_receivable', 'liability_payable'
-            ) and not l.reconciled
-        )
-        if lines:
-            lines.reconcile()
-
-    def _get_selcom_journal(self):
-        """Return the dedicated Selcom journal (code=SELCOM, type=bank)."""
+    def _get_cips_journal(self):
+        """Return the journal flagged for CIPS/Selcom payments."""
         journal = self.env["account.journal"].search(
-            [("code", "=", "SELCOM"), ("type", "=", "bank")], limit=1
+            [("is_cips_journal", "=", True)], limit=1
         )
         if not journal:
             raise ValueError(
-                "No journal with code 'SELCOM' and type 'bank' found. "
-                "Please create it under Accounting > Journals."
+                "No journal is configured for CIPS/Selcom payments. "
+                "Please enable 'Used for CIPS / Selcom Payments' on a journal "
+                "under Accounting > Configuration > Journals."
             )
         return journal
 
@@ -202,7 +155,7 @@ class CipsWebhookHandler(models.AbstractModel):
         )
         company.message_post(body=message, subject="Unmatched CIPS Payment", body_is_html=True)
 
-    def _log_payment_event(self, partner, gateway_ref, amount, remaining, data):
+    def _log_payment_event(self, partner, gateway_ref, amount, data):
         """Post a chatter note on the partner after successful processing."""
         channel = data.get("channel", "")
         payer_phone = data.get("payer_phone", "")
@@ -211,12 +164,11 @@ class CipsWebhookHandler(models.AbstractModel):
             "Gateway Ref: {ref}<br/>"
             "Amount: {amount} TZS<br/>"
             "Channel: {channel} — {phone}<br/>"
-            "Unreconciled remainder: {remaining} TZS"
+            "Status: Payment posted. Awaiting manual reconciliation by accountant."
         ).format(
             ref=gateway_ref,
             amount=amount,
             channel=channel,
             phone=payer_phone,
-            remaining=remaining,
         )
         partner.message_post(body=message, subject="Selcom Payment Processed", body_is_html=True)

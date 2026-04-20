@@ -13,9 +13,16 @@ from num2words import num2words
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
-
     cheque_no = fields.Char(string='Cheque No.',
                             default=False, copy=False, help="Cheque Number")
+
+    cips_gateway_ref = fields.Char(
+        string='CIPS Gateway Reference',
+        copy=False,
+        readonly=True,
+        index=True,
+        help="Unique gateway transaction reference from CIPS/Selcom. Used for idempotency.",
+    )
 
 
     amount_in_word = fields.Char(string='Amount in words', readonly=True,
