@@ -43,6 +43,7 @@
         "views/report_sale.xml",
         "views/report_purchase.xml",
         "views/approval_request_views.xml",
+        "views/res_config_settings_view.xml",
         "views/hr_version.xml",
     ],
     "installable": True,
