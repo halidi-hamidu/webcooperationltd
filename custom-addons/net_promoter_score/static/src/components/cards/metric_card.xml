@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="net_promoter_score.nps_cards" owl="1">
+        <div class="dashboard_section">
+            <div class="row">
+                <div class="ms-3">
+                    <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+                    <p class="mb-4">
+                        Analyze customer satisfaction using NPS metrics.
+                    </p>
+                </div>
+
+                <!--  Total Voters -->
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card">
+                        <div class="card-header p-2 ps-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <p class="text-sm mb-0 text-capitalize">Total Voters</p>
+                                    <h4 class="mb-0">
+                                        <t t-esc="props.npsData.total_responses"/>
+                                    </h4>
+                                </div>
+                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0"/>
+                        <div class="card-footer p-2 ps-3">
+                            <p class="mb-0 text-sm">
+                                <span class="text-success font-weight-bolder">
+                                    <t t-esc="props.npsData.total_responses - (props.npsData.promoters + props.npsData.detractors + props.npsData.passives)"/>
+                                </span>
+                                Anonymous
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  Promoters -->
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card">
+                        <div class="card-header p-2 ps-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <p class="text-sm mb-0 text-capitalize">Promoters</p>
+                                    <h4 class="mb-0">
+                                        <t t-esc="props.npsData.promoters"/>
+                                    </h4>
+                                </div>
+                                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9 16.2l-4.2-4.2-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0"/>
+                        <div class="card-footer p-2 ps-3">
+                            <p class="mb-0 text-sm">
+                                <span class="text-success font-weight-bolder">9–10</span> NPS Range
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  Passives -->
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card">
+                        <div class="card-header p-2 ps-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <p class="text-sm mb-0 text-capitalize">Passives</p>
+                                    <h4 class="mb-0">
+                                        <t t-esc="props.npsData.passives"/>
+                                    </h4>
+                                </div>
+                                <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 15h-1v-1h2v1h-1zm1-4h-2V7h2v6z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0"/>
+                        <div class="card-footer p-2 ps-3">
+                            <p class="mb-0 text-sm">
+                                <span class="text-warning font-weight-bolder">7–8</span> NPS Range
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  Detractors -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="card">
+                        <div class="card-header p-2 ps-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <p class="text-sm mb-0 text-capitalize">Detractors</p>
+                                    <h4 class="mb-0">
+                                        <t t-esc="props.npsData.detractors"/>
+                                    </h4>
+                                </div>
+                                <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13H7v-2h10v2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0"/>
+                        <div class="card-footer p-2 ps-3">
+                            <p class="mb-0 text-sm">
+                                <span class="text-danger font-weight-bolder">0–6</span> NPS Range
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</templates>
