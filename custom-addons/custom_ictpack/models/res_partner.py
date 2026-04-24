@@ -74,7 +74,7 @@ class ResPartner(models.Model):
         # This value is embedded in every Selcom callback so CIPS can route
         # payments back to the correct customer.
         payload = {
-            "name": f"{self.name} - ICPACK",
+            "name": f"{self.name} - ICTPACK",
             "customer_id": str(self.id),
         }
 
