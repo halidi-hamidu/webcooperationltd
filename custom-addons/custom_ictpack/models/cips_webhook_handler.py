@@ -64,9 +64,10 @@ class CipsWebhookHandler(models.AbstractModel):
         gateway_ref = data.get("gateway_reference")
         channel = data.get("channel", "")
         payer_phone = data.get("payer_phone", "")
+        transid = data.get("gateway_transaction_id", "")
 
         # Build memo upfront so the idempotency check uses the exact same value
-        memo = "Selcom {} — {} / {}".format(channel, payer_phone, gateway_ref)
+        # memo = "Selcom {} — {} / {}".format(channel, payer_phone, gateway_ref)
 
         # --- Guard: idempotency — reject duplicate callbacks using the dedicated gateway ref field ---
         existing = self.env["account.payment"].search(
@@ -110,7 +111,7 @@ class CipsWebhookHandler(models.AbstractModel):
             "amount": float(amount_paid),
             "currency_id": tzs_currency.id if tzs_currency else self.env.company.currency_id.id,
             "journal_id": cips_journal.id,
-            "memo": memo,
+            "memo": transid,
             "cips_gateway_ref": gateway_ref,
             "date": fields.Date.today(),
         })
