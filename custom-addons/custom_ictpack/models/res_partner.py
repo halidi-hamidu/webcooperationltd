@@ -16,7 +16,7 @@ class ResPartner(models.Model):
     till_alias_synced = fields.Boolean(default=False, copy=False)
 
     outstanding_payment_count = fields.Integer(
-        string='Outstanding Payments',
+        string='Payments',
         compute='_compute_outstanding_payment_count',
     )
 
@@ -25,7 +25,7 @@ class ResPartner(models.Model):
             domain=[
                 ('partner_id', 'in', self.ids),
                 ('payment_type', '=', 'inbound'),
-                ('state', '=', 'posted'),
+                ('state', 'in', ['posted', 'in_process']),
                 ('is_reconciled', '=', False),
             ],
             fields=['partner_id'],
@@ -45,7 +45,7 @@ class ResPartner(models.Model):
             'domain': [
                 ('partner_id', '=', self.id),
                 ('payment_type', '=', 'inbound'),
-                ('state', '=', 'posted'),
+                ('state', '=', 'in_process'),
                 ('is_reconciled', '=', False),
             ],
             'context': {'default_partner_id': self.id},
