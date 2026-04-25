@@ -13,7 +13,7 @@
         <record id="sms_notification_template_15_days_before_reminder" model="sms.template">
             <field name="name">ATRAS Service Reminder[15 Days Before]: Send by SMS Text Message</field>
             <field name="model_id" ref="account.model_account_move"/>
-            <field name="body">Ndugu Mteja, huduma ya VTS ya kila mwezi ya gari namba {{object.car_plate_numbers}} itaisha tarehe {{object.invoice_date_due}}, baada ya muda huo unahitajika kufanya malipo {{format_amount(object.amount_total,object.currency_id)}} . Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba. Kwa mawasiliano zaidi piga 022 221 8830.
+            <field name="body">Ndugu Mteja, huduma ya VTS ya kila mwezi ya gari namba {{object.car_plate_numbers}} itaisha tarehe {{object.invoice_date_due}}, baada ya muda huo unahitajika kufanya malipo {{format_amount(object.amount_total,object.currency_id)}} . {% if object.partner_till_alias %}Lipa kupitia Lipa Namba {{object.partner_till_alias}}.{% else %}Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba.{% endif %} Kwa mawasiliano zaidi piga 022 221 8830.
             </field>
         </record>
     </data>
@@ -23,7 +23,7 @@
             <field name="name">ATRAS Service Reminder[30 Days Before]: Send by SMS Text Message</field>
             <field name="model_id" ref="account.model_account_move"/>
             <field name="body">
-                Ndugu Mteja, huduma ya VTS ya kila mwezi ya gari namba {{object.car_plate_numbers}} itaisha tarehe {{object.invoice_date_due}}, baada ya muda huo unahitajika kufanya malipo {{format_amount(object.amount_total,object.currency_id)}}. Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba. Kwa mawasiliano zaidi piga 022 221 8830.
+                Ndugu Mteja, huduma ya VTS ya kila mwezi ya gari namba {{object.car_plate_numbers}} itaisha tarehe {{object.invoice_date_due}}, baada ya muda huo unahitajika kufanya malipo {{format_amount(object.amount_total,object.currency_id)}}. {% if object.partner_till_alias %}Lipa kupitia Lipa Namba {{object.partner_till_alias}}.{% else %}Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba.{% endif %} Kwa mawasiliano zaidi piga 022 221 8830.
             </field>
         </record>
     </data>
@@ -33,7 +33,7 @@
             <field name="name">ATRAS Service Reminder[On Due Day]: Send by SMS Text Message</field>
             <field name="model_id" ref="account.model_account_move"/>
             <field name="body">
-                Ndugu Mteja, tunakukumbusha kufanya malipo ya huduma ya VTS kwa gari yako {{object.car_plate_numbers}} kiasi cha {{format_amount(object.amount_total,object.currency_id)}}. Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba. Kwa mawasiliano zaidi piga 022 221 8830.
+                Ndugu Mteja, tunakukumbusha kufanya malipo ya huduma ya VTS kwa gari yako {{object.car_plate_numbers}} kiasi cha {{format_amount(object.amount_total,object.currency_id)}}. {% if object.partner_till_alias %}Lipa kupitia Lipa Namba {{object.partner_till_alias}}.{% else %}Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba.{% endif %} Kwa mawasiliano zaidi piga 022 221 8830.
             </field>
         </record>
     </data>
@@ -43,7 +43,7 @@
             <field name="name">ATRAS Service Reminder[7 Days After Due]: Send by SMS Text Message</field>
             <field name="model_id" ref="account.model_account_move"/>
             <field name="body">
-                Ndugu Mteja, fanya malipo ya mwezi ya huduma ya VTS kwa gari yako {{object.car_plate_numbers}} sasa ili kuepuka usumbufu utakao jitokeza. Tumia namba ya gari kama kumbukumbu namba. Kwa mawasiliano zaidi piga 022 221 8830.
+                Ndugu Mteja, fanya malipo ya mwezi ya huduma ya VTS kwa gari yako {{object.car_plate_numbers}} sasa ili kuepuka usumbufu utakao jitokeza. {% if object.partner_till_alias %}Lipa kupitia Lipa Namba {{object.partner_till_alias}}.{% else %}Lipa kupitia CRDB Akaunti 0150259120402 au TigoPesa Namba ya Kampuni 477477. Tumia namba ya gari kama kumbukumbu namba.{% endif %} Kwa mawasiliano zaidi piga 022 221 8830.
             </field>
         </record>
     </data>
