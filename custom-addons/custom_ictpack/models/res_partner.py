@@ -25,7 +25,7 @@ class ResPartner(models.Model):
             domain=[
                 ('partner_id', 'in', self.ids),
                 ('payment_type', '=', 'inbound'),
-                ('state', 'in', ['posted', 'in_process']),
+                ('state', '=', 'in_process'),
                 ('is_reconciled', '=', False),
             ],
             fields=['partner_id'],
