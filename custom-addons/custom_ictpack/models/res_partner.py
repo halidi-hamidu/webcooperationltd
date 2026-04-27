@@ -20,6 +20,16 @@ class ResPartner(models.Model):
         compute='_compute_outstanding_payment_count',
     )
 
+    def _compute_customer_report_ids(self):
+        """ For computing 'invoices' of partner """
+        for rec in self:
+            inv_ids = self.env['account.move'].search(
+                [('partner_id', '=', rec.id),
+                 ('move_type', '=', 'out_invoice'),
+                 ('payment_state', '!=', 'paid'),
+                 ('state', 'in', ['posted', 'draft'])])
+            rec.customer_report_ids = inv_ids
+
     def _compute_outstanding_payment_count(self):
         payment_data = self.env['account.payment'].read_group(
             domain=[
