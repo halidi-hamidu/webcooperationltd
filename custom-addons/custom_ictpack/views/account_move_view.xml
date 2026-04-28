@@ -7,6 +7,10 @@
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
+                <field name="partner_shipping_id" position="before">
+                    <field name="po_no" readonly="state != 'draft'" />
+                    <field name="po_date" readonly="state != 'draft'" />
+                </field>
                 <field name="narration" position="before">
                     <field name="amount_in_word"/>
                 </field>
@@ -65,6 +69,16 @@
                 <button name="button_draft" position="attributes">
                     <attribute name="groups">account.group_account_manager</attribute>
                 </button>
+
+                <!-- Payment display fields for invoice printout -->
+                <xpath expr="//div[@name='journal_div']" position="after">
+                    <field name="company_partner_id" invisible="1"/>
+                    <field name="partner_till_alias" string="Lipa Namba" readonly="1"
+                           invisible="not partner_till_alias"/>
+                    <field name="invoice_bank_account_id"
+                           domain="[('partner_id', '=', company_partner_id)]"
+                           options="{'no_create': True, 'no_quick_create': True}"/>
+                </xpath>
             </field>
         </record>
 
@@ -119,6 +133,18 @@
                 parent="account.menu_finance_payables"
                 sequence="21"
         />
+
+        <!-- Journal: CIPS/Selcom checkbox -->
+        <record id="view_journal_form_cips" model="ir.ui.view">
+            <field name="name">account.journal.form.cips</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <field name="type" position="after">
+                    <field name="is_cips_journal"/>
+                </field>
+            </field>
+        </record>
         
     </data>
 </odoo>

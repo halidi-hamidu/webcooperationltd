@@ -17,3 +17,5 @@ from . import account_asset
 from . import account_asset
 from . import account_asset_label
 from . import hr_version
+from . import cips_webhook_handler
+from . import res_config_settings

@@ -9,7 +9,22 @@
             <field name="arch" type="xml">
                 <field name="payment_method_line_id" position="after">
                     <field name="cheque_no"/>
+                    <field name="cips_gateway_ref" readonly="1"
+                           invisible="not cips_gateway_ref"/>
                 </field>
+            </field>
+        </record>
+
+        <!-- Payment: Search view – add "Not Reconciled" filter -->
+        <record id="view_account_payment_search_not_reconciled" model="ir.ui.view">
+            <field name="name">account.payment.search.not_reconciled</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_search"/>
+            <field name="arch" type="xml">
+                <filter name="reconciled" position="after">
+                    <filter string="Not Reconciled" name="not_reconciled"
+                            domain="[('is_reconciled', '=', False), ('state', '=', 'in_process')]"/>
+                </filter>
             </field>
         </record>
 

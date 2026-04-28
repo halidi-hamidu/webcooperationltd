@@ -1,82 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <record id="paperformat_vfd" model="report.paperformat">
-            <field name="name">VFD Receipt Format</field>
-            <field name="default" eval="True"/>
-            <field name="format">custom</field>
-            <field name="page_height">370</field>
-            <field name="page_width">106</field>
-            <field name="orientation">Portrait</field>
-            <field name="margin_top">40</field>
-            <field name="margin_bottom">28</field>
-            <field name="margin_left">7</field>
-            <field name="margin_right">7</field>
-            <field name="header_line" eval="False"/>
-            <field name="header_spacing">35</field>
-            <field name="dpi">90</field>
-        </record>
+    <record id="report_payment_receipt_vfd_view" model="ir.ui.view">
+        <field name="name">report.payment.receipt.vfd.view</field>
+        <field name="type">qweb</field>
+        <field name="key">payment_receipt_vfd.report_payment_receipt_vfd_view</field>
+        <field name="arch" type="xml">
+            <t t-name="payment_receipt_vfd.report_payment_receipt_vfd_view">
+                <t t-call="web.html_container">
+                    <t t-foreach="docs" t-as="doc">
+                        <t t-call="web.basic_layout">
+                            <div align="center" t-attf-class="header"
+                                    t-att-style="report_header_style">
+                                <h4>
+                                    <strong><sup>***</sup>START OF LEGAL RECEIPT
+                                        <sup>***</sup>
+                                    </strong>
+                                </h4>
+                                <img src="/payment_receipt_vfd/static/description/icon.png" alt="Logo"/>
+                                <h4>
+                                    <strong>ICTPACK SOLUTIONS LIMITED</strong>
+                                </h4>
+                                <h4>
+                                    <strong>MOBILE:</strong>
+                                    +255 717 020 845
+                                </h4>
+                                <h4>
+                                    <strong>TIN:</strong>
+                                    122814149
+                                </h4>
+                                <h4>
+                                    <strong>VRN:</strong>
+                                    NOT REGISTERED
+                                </h4>
+                                <h4>
+                                    <strong>SERIAL NO:</strong>
+                                    10TZ130964
+                                </h4>
+                                <h4>
+                                    <strong>UIN:</strong>
+                                    09VFDWEBAPI-
+                                </h4>
+                                <h4>10131758712281414910TZ130964</h4>
+                                <h4>
+                                    <strong>TAX OFFICE:</strong>
+                                    Kinondoni
+                                </h4>
+                                <hr size="50"/>
+                            </div>
+                            <div class="article">
+                                START OF LEGAL RECEIPT
+                                <hr size="30"/>
 
-        <report
-                id="report_payment_receipt_vfd"
-                model="payment.receipt.vfd"
-                paperformat="payment_receipt_vfd.paperformat_vfd"
-                string="Payment Receipt"
-                name="payment_receipt_vfd.report_payment_receipt_vfd_view"
-                file="payment_receipt_vfd.report_payment_receipt_vfd"
-                report_type="qweb-pdf"/>
-
-        <template id="report_payment_receipt_vfd_view">
-            <t t-call="web.html_container">
-                <t t-foreach="docs" t-as="doc">
-                    <t t-call="web.basic_layout">
-                        <div align="center" t-attf-class="header"
-                             t-att-style="report_header_style">
-                            <h4>
-                                <strong><sup>***</sup>START OF LEGAL RECEIPT
-                                    <sup>***</sup>
-                                </strong>
-                            </h4>
-                            <img src="/payment_receipt_vfd/static/description/icon.png" alt="Logo"/>
-                            <h4>
-                                <strong>ICTPACK SOLUTIONS LIMITED</strong>
-                            </h4>
-                            <h4>
-                                <strong>MOBILE:</strong>
-                                +255 717 020 845
-                            </h4>
-                            <h4>
-                                <strong>TIN:</strong>
-                                122814149
-                            </h4>
-                            <h4>
-                                <strong>VRN:</strong>
-                                NOT REGISTERED
-                            </h4>
-                            <h4>
-                                <strong>SERIAL NO:</strong>
-                                10TZ130964
-                            </h4>
-                            <h4>
-                                <strong>UIN:</strong>
-                                09VFDWEBAPI-
-                            </h4>
-                            <h4>10131758712281414910TZ130964</h4>
-                            <h4>
-                                <strong>TAX OFFICE:</strong>
-                                Kinondoni
-                            </h4>
-                            <hr size="50"/>
-                        </div>
-                        <div class="article">
-                            START OF LEGAL RECEIPT
-                            <hr size="30"/>
-
-                        </div>
+                            </div>
+                        </t>
                     </t>
                 </t>
             </t>
-        </template>
+        </field>
+    </record>
 
-    </data>
+    <record id="report_payment_receipt_vfd" model="ir.actions.report">
+        <field name="name">Payment Receipt</field>
+        <field name="model">payment.receipt.vfd</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">payment_receipt_vfd.report_payment_receipt_vfd_view</field>
+        <field name="report_file">payment_receipt_vfd.report_payment_receipt_vfd</field>
+        <field name="paperformat_id" ref="payment_receipt_vfd.paperformat_vfd"/>
+    </record>
+
 </odoo>

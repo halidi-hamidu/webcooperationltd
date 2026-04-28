@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <template id="report_statement">
+    <record id="report_statement" model="ir.ui.view">
+        <field name="name">report.statement</field>
+        <field name="type">qweb</field>
+        <field name="key">custom_ictpack.report_statement</field>
+        <field name="arch" type="xml">
+            <t t-name="custom_ictpack.report_statement">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
                     <t t-call="web.internal_layout">
@@ -124,17 +128,16 @@
                     </t>
                 </t>
             </t>
-        </template>
+            </t>
+        </field>
+    </record>
 
-        <report
-            id="action_report_account_statement" 
-            model="account.bank.statement"
-            string="Bank Statement"
-            name="custom_ictpack.report_statement"
-            file="custom_ictpack.report_statement"
-            report_type="qweb-pdf"
-            menu="False"
-        />
+    <record id="action_report_account_statement" model="ir.actions.report">
+        <field name="name">Bank Statement</field>
+        <field name="model">account.bank.statement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_ictpack.report_statement</field>
+        <field name="report_file">custom_ictpack.report_statement</field>
+    </record>
 
-    </data>
 </odoo>
