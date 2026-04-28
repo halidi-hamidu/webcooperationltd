@@ -30,6 +30,7 @@ class PaymentReceiptVfd(models.Model):
     customer_vrn = fields.Char('Customer VRN')
     payment_method = fields.Char('Payment Method')
     invoice_id = fields.Many2one('account.move')
+    order_tag_ids = fields.Many2many('crm.tag', string='Order Tags', related='invoice_id.order_tag_ids')
     error_message = fields.Char('Error Message')
     verification_code = fields.Char('Verification Code')
     customer_id = fields.Char('Customer TIN')

@@ -25,6 +25,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/ir_cron_views.xml',
+        'views/vfd_paperformat.xml',
         'views/receipt_template.xml',
         'views/vfd_configurations.xml',
         'views/account_move.xml',

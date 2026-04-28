@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
         <record id="payment_receipt_vfd_form_view" model="ir.ui.view">
             <field name="name">payment.receipt.vfd.form</field>
             <field name="model">payment.receipt.vfd</field>
@@ -31,6 +30,7 @@
                                 <field name="receipt_date" readonly="1"/>
                                 <field name="receipt_time_str" readonly="1"/>
                                 <field name="invoice_id" readonly="1"/>
+                                <field name="order_tag_ids" readonly="1" widget="many2many_tags" string="Tags"/>
                                 <field name="receipt_id" readonly="1"/>
                                 <field name="receipt_z_no" readonly="1"/>
                                 <field name="verification_code" readonly="1"/>
@@ -88,6 +88,7 @@
                     <field name="receipt_time" string="Receipt Datetime"/>
                     <field name="receipt_time_str" optional="hide"/>
                     <field name="invoice_id"/>
+                    <field name="order_tag_ids" widget="many2many_tags" string="Tags" optional="show"/>
                     <field name="invoice_currency"/>
                     <field name="amount_untaxed_signed" sum="Untaxed"/>
                     <field name="amount_tax_signed" sum="Tax"/>
@@ -166,5 +167,4 @@
         <menuitem name="EFD Receipts" id="payment_receipt_vfd_menu" parent="account.menu_finance_receivables" sequence="4" action="payment_receipt_vfd_act_window"/>
         <menuitem name="Missing EFD Receipts" id="payment_receipt_missing_menu" parent="account.menu_finance_receivables" sequence="5" action="payment_receipt_missing_act_window" groups="base.group_user" />
 
-    </data>
 </odoo>

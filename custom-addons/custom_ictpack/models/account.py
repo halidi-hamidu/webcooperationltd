@@ -20,3 +20,10 @@ class AccountJournal(models.Model):
         "Select 'Cash' or 'Bank' for journals that are used in customer or vendor payments.\n"\
         "Select 'Imprest' for journals that are used in imprest payments.\n"\
         "Select 'General' for miscellaneous operations journals.")
+
+    is_cips_journal = fields.Boolean(
+        string='Used for CIPS / Selcom Payments',
+        default=False,
+        help="When enabled, this journal is used automatically for inbound payments "
+             "received via CIPS/Selcom webhooks.",
+    )
