@@ -9,7 +9,7 @@ export class ChartRenderer extends Component {
         this.chartRef = useRef("chart");
 
         onWillStart(async () => {
-            await loadJS("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js");
+            await loadJS("/net_promoter_score/static/src/lib/chart.umd.min.js");
         });
 
         onMounted(() => this.renderChart());
