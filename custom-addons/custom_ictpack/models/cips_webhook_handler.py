@@ -1,8 +1,11 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 import hmac
 import hashlib
 import logging
+import struct
 from decimal import Decimal
+from psycopg2 import IntegrityError
 
 _logger = logging.getLogger(__name__)
 
@@ -69,6 +72,14 @@ class CipsWebhookHandler(models.AbstractModel):
         # Build memo upfront so the idempotency check uses the exact same value
         # memo = "Selcom {} — {} / {}".format(channel, payer_phone, gateway_ref)
 
+        # --- Acquire a PostgreSQL advisory lock keyed on the gateway ref ---
+        # This serialises concurrent webhook deliveries for the same reference
+        # so only the first one proceeds past the duplicate check.
+        lock_key = struct.unpack("q", hashlib.sha256(
+            gateway_ref.encode()
+        ).digest()[:8])[0]
+        self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", (lock_key,))
+
         # --- Guard: idempotency — reject duplicate callbacks using the dedicated gateway ref field ---
         existing = self.env["account.payment"].search(
             [("cips_gateway_ref", "=", gateway_ref)], limit=1
@@ -103,19 +114,24 @@ class CipsWebhookHandler(models.AbstractModel):
         tzs_currency = self.env.ref("base.TZS", raise_if_not_found=False)
         cips_journal = self._get_cips_journal()
 
-        payment = self.env["account.payment"].sudo().create({
-            "company_id": cips_journal.company_id.id,
-            "payment_type": "inbound",
-            "partner_type": "customer",
-            "partner_id": partner.id,
-            "amount": float(amount_paid),
-            "currency_id": tzs_currency.id if tzs_currency else self.env.company.currency_id.id,
-            "journal_id": cips_journal.id,
-            "memo": transid,
-            "cips_gateway_ref": gateway_ref,
-            "date": fields.Date.today(),
-        })
-        payment.action_post()
+        try:
+            payment = self.env["account.payment"].sudo().create({
+                "company_id": cips_journal.company_id.id,
+                "payment_type": "inbound",
+                "partner_type": "customer",
+                "partner_id": partner.id,
+                "amount": float(amount_paid),
+                "currency_id": tzs_currency.id if tzs_currency else self.env.company.currency_id.id,
+                "journal_id": cips_journal.id,
+                "memo": transid,
+                "cips_gateway_ref": gateway_ref,
+                "date": fields.Date.today(),
+            })
+            payment.action_post()
+        except IntegrityError:
+            self.env.cr.rollback()
+            _logger.warning("Duplicate CIPS callback caught by DB constraint: %s", gateway_ref)
+            return
 
         _logger.info(
             "CIPS webhook: payment %s posted for partner=%s amount=%s TZS — awaiting manual reconciliation.",

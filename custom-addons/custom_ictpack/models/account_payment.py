@@ -24,6 +24,14 @@ class AccountPayment(models.Model):
         help="Unique gateway transaction reference from CIPS/Selcom. Used for idempotency.",
     )
 
+    _sql_constraints = [
+        (
+            'cips_gateway_ref_unique',
+            'UNIQUE(cips_gateway_ref)',
+            'A payment with this CIPS gateway reference already exists.',
+        ),
+    ]
+
 
     amount_in_word = fields.Char(string='Amount in words', readonly=True,
                                  default=False, copy=False, compute='_compute_text'
