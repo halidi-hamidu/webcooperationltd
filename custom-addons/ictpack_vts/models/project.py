@@ -108,6 +108,7 @@ class Project(models.Model):
             'customer_id': customer.id,
             'customer_name': customer.name,
             'customer_phone': customer.phone,
+            'lipa_namba': customer.till_alias or '',
             'debts': [{
                 'invoice_number': debt.name,
                 'date': debt.date,
