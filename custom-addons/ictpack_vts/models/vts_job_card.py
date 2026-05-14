@@ -450,7 +450,7 @@ class VtsJobCard(models.Model):
         completed_tasks_domain = [('vts_employee', '=', employee_id), ('vts_state', '=', 'completed')]
         vehicle_checklist_draft_domain = [('employee_id', '=', employee_id), ('state', '=', 'draft')]
         vehicle_checklist_submitted_domain = [('employee_id', '=', employee_id), ('state', '=', 'submited')]
-        ticket_domain = [('technician_id', '=', employee_id)]
+        ticket_domain = [('technician_ids', 'in', employee_id)]
 
         device_in_stock_count = self.env['stock.lot'].return_employee_vtds_instock(employee_id, [], True)
         new_tasks = self.env['project.task'].search_count(new_tasks_domain)
