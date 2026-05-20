@@ -79,6 +79,12 @@ class HelpdeskTicket(models.Model):
         compute='_compute_matching_sla_ids',
         help='SLA policies that match the currently selected tags and team'
     )
+    selected_sla_id = fields.Many2one(
+        'helpdesk.sla',
+        string='SLA',
+        store=True,
+        help='Manually selected SLA policy for this ticket',
+    )
     tag_category_id = fields.Many2one(
         'helpdesk.tag.category',
         string='Tag Category',
@@ -119,6 +125,21 @@ class HelpdeskTicket(models.Model):
                     domain = [('team_id', 'in', [ticket.team_id.id, False]), ('tag_ids', 'in', tag_ids)]
                 slas = self.env['helpdesk.sla'].search(domain)
                 ticket.matching_sla_ids = [(6, 0, slas.ids)]
+
+    def _sla_find(self):
+        """Override to use manually selected SLA instead of auto-detection."""
+        result = {}
+        tickets_without_sla = self.env['helpdesk.ticket']
+        for ticket in self:
+            if ticket.team_id.use_sla and ticket.sla_ids:
+                # Use the manually selected SLA(s)
+                result[ticket] = ticket.sla_ids
+            elif ticket.team_id.use_sla:
+                tickets_without_sla |= ticket
+        # For tickets without manual selection, fall back to default behavior
+        if tickets_without_sla:
+            result.update(super(HelpdeskTicket, tickets_without_sla)._sla_find())
+        return result
 
     @api.depends('team_id')
     def _compute_domain_user_ids(self):
