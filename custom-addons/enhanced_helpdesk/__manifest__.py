@@ -38,7 +38,7 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'enhanced_helpdesk/static/src/js/hold_wizard.js',
+            'enhanced_helpdesk/static/src/js/composer_patch.js',
             'enhanced_helpdesk/static/src/css/hold_wizard.css',
             'enhanced_helpdesk/static/src/css/sla_countdown.css',
             'enhanced_helpdesk/static/src/xml/sla_countdown_widget.xml',
