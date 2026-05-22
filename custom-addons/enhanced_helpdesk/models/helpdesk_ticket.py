@@ -79,6 +79,12 @@ class HelpdeskTicket(models.Model):
         compute='_compute_matching_sla_ids',
         help='SLA policies that match the currently selected tags and team'
     )
+    selected_sla_id = fields.Many2one(
+        'helpdesk.sla',
+        string='SLA',
+        store=True,
+        help='Manually selected SLA policy for this ticket',
+    )
     tag_category_id = fields.Many2one(
         'helpdesk.tag.category',
         string='Tag Category',
@@ -119,6 +125,10 @@ class HelpdeskTicket(models.Model):
                     domain = [('team_id', 'in', [ticket.team_id.id, False]), ('tag_ids', 'in', tag_ids)]
                 slas = self.env['helpdesk.sla'].search(domain)
                 ticket.matching_sla_ids = [(6, 0, slas.ids)]
+
+    def _sla_find(self):
+        """Override: return empty — SLA assignment is fully manual."""
+        return {}
 
     @api.depends('team_id')
     def _compute_domain_user_ids(self):
@@ -178,22 +188,12 @@ class HelpdeskTicket(models.Model):
         return []
 
     def _sla_apply(self, keep_reached=False):
-        """Override: preserve manually assigned SLAs — do not auto-wipe and re-assign."""
-        for ticket in self:
-            if ticket.sla_ids:
-                # SLA already manually set — only regenerate SLA status rows, keep sla_ids intact
-                sla_status_to_remove = ticket.sla_status_ids
-                if keep_reached:
-                    sla_status_to_remove = sla_status_to_remove.filtered(
-                        lambda s: not s.reached_datetime
-                    )
-                sla_status_to_remove.unlink()
-                status_vals = ticket._sla_generate_status_values(
-                    ticket.sla_ids, keep_reached=keep_reached
-                )
-                if status_vals:
-                    self.env['helpdesk.sla.status'].create(status_vals)
-            # If no SLA set yet, do nothing — constraint will enforce on save
+        """Override: completely disable automatic SLA application.
+        
+        SLA status records are managed manually in our create() and write() overrides.
+        The parent's _sla_apply would create bare/duplicate records in helpdesk_sla_status
+        (which backs the sla_ids Many2many), so we disable it entirely.
+        """
         return self.env['helpdesk.sla.status']
 
     @api.depends('stage_id')
@@ -402,19 +402,48 @@ class HelpdeskTicket(models.Model):
                         )
 
         sla_changing = 'sla_ids' in vals
+        # Extract sla_ids from vals to prevent ORM M2M write from creating
+        # bare rows (without deadline) in helpdesk_sla_status table.
+        # We'll handle SLA status creation ourselves.
+        sla_vals = vals.pop('sla_ids', None) if sla_changing else None
 
         # Execute the write
         result = super(HelpdeskTicket, self).write(vals)
 
-        # When SLA is manually changed, fully regenerate SLA status (new deadline, new counter)
-        if sla_changing:
+        # When SLA is manually changed, manage status records properly
+        if sla_changing and sla_vals is not None:
+            # Parse M2M commands to determine desired SLA ids
             for ticket in self:
-                ticket.sudo().sla_status_ids.unlink()
-                status_vals = ticket._sla_generate_status_values(
-                    ticket.sla_ids, keep_reached=False
+                desired_sla_ids = set()
+                # Process ORM M2M commands
+                current_ids = set(ticket.sla_status_ids.mapped('sla_id').ids)
+                for cmd in sla_vals:
+                    if cmd[0] == 6:  # (6, 0, [ids]) - replace all
+                        desired_sla_ids = set(cmd[2])
+                    elif cmd[0] == 4:  # (4, id) - add
+                        desired_sla_ids = current_ids | {cmd[1]}
+                    elif cmd[0] == 3:  # (3, id) - remove
+                        desired_sla_ids = current_ids - {cmd[1]}
+                    elif cmd[0] == 5:  # (5,) - clear all
+                        desired_sla_ids = set()
+
+                # Remove status records for SLAs no longer desired
+                to_remove = ticket.sla_status_ids.filtered(
+                    lambda s: s.sla_id.id not in desired_sla_ids
                 )
-                if status_vals:
-                    self.env['helpdesk.sla.status'].sudo().create(status_vals)
+                if to_remove:
+                    to_remove.sudo().unlink()
+
+                # Create status records for new SLAs that don't have one yet
+                existing_sla_ids = set(ticket.sla_status_ids.mapped('sla_id').ids)
+                missing_ids = desired_sla_ids - existing_sla_ids
+                if missing_ids:
+                    missing_slas = self.env['helpdesk.sla'].browse(list(missing_ids))
+                    status_vals = ticket._sla_generate_status_values(
+                        missing_slas, keep_reached=False
+                    )
+                    if status_vals:
+                        self.env['helpdesk.sla.status'].sudo().create(status_vals)
 
         # Handle hold status changes after write
         if 'stage_id' in vals:
@@ -758,8 +787,47 @@ class HelpdeskTicket(models.Model):
             
     @api.model
     def create(self, vals):
-        """Override create to set working time configuration and calculate SLA with working time"""
+        """Override create to set working time configuration and calculate SLA with working time.
+        
+        Extract sla_ids from vals to prevent the ORM from creating bare rows
+        in helpdesk_sla_status (which backs the M2M). We let _sla_apply handle
+        proper status record creation with deadlines.
+        """
+        # Extract sla_ids to handle manually — prevent ORM M2M bare insert
+        if isinstance(vals, dict):
+            vals = dict(vals)  # ensure mutable copy
+            sla_vals = vals.pop('sla_ids', None)
+        else:
+            sla_vals = None
+        
         ticket = super(HelpdeskTicket, self).create(vals)
+        
+        # Now manually create proper SLA status records for the selected SLAs
+        if sla_vals:
+            desired_sla_ids = set()
+            for cmd in sla_vals:
+                if cmd[0] == 6:  # (6, 0, [ids])
+                    desired_sla_ids = set(cmd[2])
+                elif cmd[0] == 4:  # (4, id)
+                    desired_sla_ids.add(cmd[1])
+            
+            if desired_sla_ids:
+                # Remove any status records that _sla_apply might have created
+                # for auto-detected SLAs (we want only the user-selected one)
+                ticket.sudo().sla_status_ids.filtered(
+                    lambda s: s.sla_id.id not in desired_sla_ids
+                ).unlink()
+                
+                # Create status records for desired SLAs if missing
+                existing_sla_ids = set(ticket.sla_status_ids.mapped('sla_id').ids)
+                missing_ids = desired_sla_ids - existing_sla_ids
+                if missing_ids:
+                    missing_slas = self.env['helpdesk.sla'].browse(list(missing_ids))
+                    status_vals = ticket._sla_generate_status_values(
+                        missing_slas, keep_reached=False
+                    )
+                    if status_vals:
+                        self.env['helpdesk.sla.status'].sudo().create(status_vals)
         
         # Set default working time configuration if not provided
         if not ticket.working_time_config_id:
