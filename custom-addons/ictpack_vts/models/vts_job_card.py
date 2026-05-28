@@ -377,7 +377,15 @@ class VtsJobCard(models.Model):
         return table_html
 
     def return_employee_job_cards(self, employee_id, domain=None, limit=25, offset=0):
-        search_domain = [('vts_employee', '=', employee_id)] + list(domain if domain else [])
+        extra_domain = list(domain if domain else [])
+        has_state_filter = any(
+            isinstance(leaf, (list, tuple)) and len(leaf) >= 1 and leaf[0] == 'state'
+            for leaf in extra_domain
+        )
+        base_domain = [('vts_employee', '=', employee_id)]
+        if not has_state_filter:
+            base_domain.append(('state', '!=', 'done'))
+        search_domain = base_domain + extra_domain
         
         # Get total count
         total_count = self.search_count(search_domain)
