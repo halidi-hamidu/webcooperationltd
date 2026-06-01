@@ -10,6 +10,8 @@ class NpsCrojOB(models.Model):
     def send_feedback_form_to_customers(self):
         # Only send to actual customers (has customer rank), with valid email, not companies
         customers = self.env['res.partner'].search([
+            ('customer_rank', '>', 0),
+            ('email', '!=', False),
             ('active', '=', True),
         ])
         
