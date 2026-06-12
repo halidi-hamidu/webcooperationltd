@@ -130,6 +130,27 @@ class VtsJobCard(models.Model):
     signed_date = fields.Date()
     attachments = fields.Many2many('ir.attachment', string="Attachments")
 
+    # Customer Feedback
+    customer_satisfaction_rating = fields.Selection(
+        selection=[
+            ('0', 'Hakuna'),
+            ('1', '⭐'),
+            ('2', '⭐⭐'),
+            ('3', '⭐⭐⭐'),
+            ('4', '⭐⭐⭐⭐'),
+            ('5', '⭐⭐⭐⭐⭐'),
+        ],
+        string="Umeridhishwa kwa kiwango gani na huduma uliyopokea?",
+        default='0',
+        help="Customer satisfaction rating from 1 to 5 stars"
+    )
+    customer_liked_most = fields.Text(
+        string="Ni jambo gani ulilolipenda zaidi kuhusu huduma yetu?"
+    )
+    customer_improvement_suggestions = fields.Text(
+        string="Ni maeneo gani unadhani tunaweza kuboresha ili kukuhudumia vizuri zaidi?"
+    )
+
     referee_id = fields.Many2one('hr.employee', string='Referee', domain=[('is_vts_employee', '=', True)])
     location = fields.Char('Location')
     general_remarks = fields.Text('General Remarks')
@@ -574,6 +595,9 @@ class VtsJobCard(models.Model):
             'customer_signature': job_card.customer_signature,
             'general_remarks': job_card.general_remarks,
             'location': job_card.location,
+            'customer_satisfaction_rating': job_card.customer_satisfaction_rating,
+            'customer_liked_most': job_card.customer_liked_most,
+            'customer_improvement_suggestions': job_card.customer_improvement_suggestions,
         }
 
         return format_response('success', 'Job card returned successfully.', values)
