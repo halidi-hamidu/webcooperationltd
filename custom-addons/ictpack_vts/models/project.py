@@ -111,6 +111,7 @@ class Project(models.Model):
             'lipa_namba': customer.till_alias or '',
             'debts': [{
                 'invoice_number': debt.name,
+                'invoice_id': debt.id,
                 'date': debt.date,
                 'amount_residual_signed': debt.amount_residual_signed,
             } for debt in debts],

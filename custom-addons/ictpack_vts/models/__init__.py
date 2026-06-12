@@ -10,3 +10,4 @@ from . import project
 from . import vts_job_card
 from . import helpdesk_ticket
 from . import vts_configurations
+from . import account_move
