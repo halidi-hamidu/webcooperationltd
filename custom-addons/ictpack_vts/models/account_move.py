@@ -46,10 +46,11 @@ class AccountMove(models.Model):
             )
             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
 
+            invoice_name = invoice.name or str(invoice.id)
             return format_response('success', 'Invoice PDF generated successfully.', {
-                'invoice_number': invoice.name,
+                'invoice_number': invoice_name,
                 'customer_name': invoice.partner_id.name,
-                'filename': f'Invoice_{invoice.name.replace("/", "-")}.pdf',
+                'filename': f'Invoice_{invoice_name.replace("/", "-")}.pdf',
                 'pdf_base64': pdf_base64,
                 'mime_type': 'application/pdf',
             })
