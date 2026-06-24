@@ -1,6 +1,6 @@
 from odoo import models, fields,api
 import json
-from .utils import format_response, post_chatter_message
+from .utils import format_response, post_chatter_message, get_chatter_messages, get_team_partner_ids
 
 CHECKLIST_TYPES_SELECTION = [
     ("action-taken", "Action Taken"),
@@ -226,28 +226,13 @@ class VtsJobCard(models.Model):
     def _action_submit(self):
         for record in self:
             record.state = 'submitted'
-            
-            # Get all VTS operation teams
-            operation_teams = self.env['vts.operation.team'].search([])
-            
-            # Collect all users from teams (leaders + members)
-            user_ids = set()
-            for team in operation_teams:
-                if team.user_id:
-                    user_ids.add(team.user_id.id)
-                user_ids.update(team.member_ids.ids)
-            
-            # Get partner IDs for all users
-            partner_ids = []
-            if user_ids:
-                users = self.env['res.users'].browse(list(user_ids))
-                partner_ids = [user.partner_id.id for user in users if user.partner_id]
-            
-            # Create notification message
+
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            job_card_url = f"{base_url}/web#id={record.id}&model=vts.job.card&view_type=form"
+
+            # --- Job card submitted notification ---
+            partner_ids = get_team_partner_ids(self.env, 'job_card_submitted')
             if partner_ids:
-                base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                job_card_url = f"{base_url}/web#id={record.id}&model=vts.job.card&view_type=form"
-                
                 message = f"""
                     <p>Job Card <a href="{job_card_url}">{record.name}</a> has been submitted.</p>
                     <p><strong>Technician:</strong> {record.vts_employee.name if record.vts_employee else 'N/A'}</p>
@@ -255,8 +240,6 @@ class VtsJobCard(models.Model):
                     <p><strong>Vehicle:</strong> {record.license_plate if record.license_plate else 'N/A'}</p>
                     <p><strong>Service Type:</strong> {dict(SERVICE_TYPE_SELECTION).get(record.service_type, 'N/A')}</p>
                 """
-                
-                # Post message to the job card
                 record.message_post(
                     body=message,
                     subject=f'Job Card {record.name} Submitted',
@@ -265,7 +248,34 @@ class VtsJobCard(models.Model):
                     subtype_xmlid='mail.mt_comment',
                     body_is_html=True,
                 )
-        
+
+            # --- Customer feedback notification (only when feedback was provided) ---
+            has_feedback = (
+                record.customer_satisfaction_rating and record.customer_satisfaction_rating != '0'
+            ) or record.customer_liked_most or record.customer_improvement_suggestions
+
+            if has_feedback:
+                feedback_partner_ids = get_team_partner_ids(self.env, 'feedback_submitted')
+                if feedback_partner_ids:
+                    rating_label = dict(record._fields['customer_satisfaction_rating'].selection).get(
+                        record.customer_satisfaction_rating, 'N/A'
+                    )
+                    feedback_message = f"""
+                        <p>Customer feedback was submitted with Job Card <a href="{job_card_url}">{record.name}</a>.</p>
+                        <p><strong>Customer:</strong> {record.customer_id.name if record.customer_id else 'N/A'}</p>
+                        <p><strong>Rating:</strong> {rating_label}</p>
+                        <p><strong>Liked most:</strong> {record.customer_liked_most or 'N/A'}</p>
+                        <p><strong>Improvement suggestions:</strong> {record.customer_improvement_suggestions or 'N/A'}</p>
+                    """
+                    record.message_post(
+                        body=feedback_message,
+                        subject=f'Customer Feedback on Job Card {record.name}',
+                        partner_ids=feedback_partner_ids,
+                        message_type='notification',
+                        subtype_xmlid='mail.mt_comment',
+                        body_is_html=True,
+                    )
+
         return format_response('success', 'Job card submitted successfully.', self.id)
     
     def action_create_project_from_job_card(self):
@@ -522,27 +532,7 @@ class VtsJobCard(models.Model):
         return format_response('success', 'Vehicle models returned successfully.', fleet_data)
     
     def _get_jobcard_chatter(self, jobcard_id):
-        messages = self.env['mail.message'].search([
-            ('res_id', '=', jobcard_id),
-            ('model', '=', 'vts.job.card'),
-            ('message_type', '=', 'comment')
-        ], order='date desc')
-
-        message_data = []
-        for message in messages:
-            sender_name = 'System'
-            if message.author_id:
-                sender_name = message.author_id.name
-            
-            message_data.append({
-                'id': message.id,
-                'sender': sender_name,
-                'message': message.body,
-                'timestamp': message.date,
-                'message_type': message.message_type,
-            })
-        
-        return message_data
+        return get_chatter_messages(self.env, 'vts.job.card', jobcard_id)
     
     def return_jobcard_by_id(self, job_card_id):
         job_card = self.search([('id', '=', job_card_id)])

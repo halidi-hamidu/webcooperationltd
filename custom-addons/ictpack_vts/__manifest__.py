@@ -37,6 +37,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/sequence.xml',
+        'data/notification_types.xml',
         'views/vts_job_card_view.xml',
         'views/hr_employee_views.xml',
         'views/product_template_view.xml',

@@ -23,8 +23,9 @@
         "project",
         "stock",
         'approvals',
-         'hr', 
-         'hr_payroll'
+        'hr',
+        'hr_payroll',
+        'hr_expense',
     ],
     "data": [
         "security/ir.model.access.csv",

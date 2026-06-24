@@ -1,6 +1,6 @@
 import re
 from odoo import models, fields, api
-from . utils import format_response
+from . utils import format_response, get_chatter_messages, post_chatter_message
 
 class HelpdeskTicket(models.Model):
     _inherit = 'helpdesk.ticket'
@@ -41,6 +41,7 @@ class HelpdeskTicket(models.Model):
             return format_response('error', 'Ticket not found.', [])
 
         current_technician = ticket.technician_ids.filtered(lambda t: t.id == technician_id) if technician_id else False
+        message_data = self._get_ticket_chatter(ticket.id)
         vals = {
             'id': ticket.id,
             'name': ticket.name,
@@ -50,6 +51,7 @@ class HelpdeskTicket(models.Model):
             'technician_id': technician_id or False,
             'stage': ticket.stage_id.name,
             'vts_job_cards': [(card.id, card.name) for card in ticket.vts_job_card_ids],
+            'message_data': message_data,
         }
 
         return format_response('success', 'Ticket details returned successfully.', vals)
@@ -86,3 +88,21 @@ class HelpdeskTicket(models.Model):
             'VTS Job Card created successfully.',
             jc_data,
         )
+
+    def ticket_chatter(self, vals):
+        ticket_id = vals.get('ticket_id')
+        message_body = vals.get('message_body')
+
+        # Use the generic helper function
+        result = post_chatter_message(
+            env=self.env,
+            model_name='helpdesk.ticket',
+            record_id=ticket_id,
+            message_body=message_body,
+            subject=f'New Message on Ticket {ticket_id}',
+        )
+        
+        return result
+    
+    def _get_ticket_chatter(self, ticket_id):
+        return get_chatter_messages(self.env, 'helpdesk.ticket', ticket_id, limit=5)

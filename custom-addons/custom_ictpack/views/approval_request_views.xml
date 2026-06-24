@@ -1,16 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- ── List view: add Date and Amount columns ─────────────────────────── -->
     <record id="approval_request_view_tree_inherit" model="ir.ui.view">
         <field name="name">approval.request.view.tree</field>
         <field name="model">approval.request</field>
         <field name="inherit_id" ref="approvals.approval_request_view_tree"/>
         <field name="arch" type="xml">
-        	<xpath expr="//field[@name='name']" position="before">
-                <field name="date" />
-        	</xpath>
-        	<xpath expr="//field[@name='activity_ids']" position="before">
-                <field name="amount" />
-        	</xpath>
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="date"/>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="before">
+                <field name="amount"/>
+            </xpath>
         </field>
     </record>
+
+    <!-- ── Form view: Create Expense button, smart button, Receipts tab ───── -->
+    <record id="approval_request_view_form_inherit_expense" model="ir.ui.view">
+        <field name="name">approval.request.view.form.expense</field>
+        <field name="model">approval.request</field>
+        <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+        <field name="arch" type="xml">
+            <widget name="attach_document" position="after">
+                <button name="action_view_expense"
+                    string="Attach Receipts"
+                    type="object"
+                    class="btn-secondary"
+                    invisible="not expense_id"
+                />
+            </widget>
+            <!-- Hidden fields needed for visibility conditions -->
+            <xpath expr="//sheet/field[@name='active']" position="before">
+                <field name="expense_id" invisible="1"/>
+                <field name="expense_state" invisible="1"/>
+            </xpath>
+
+            <!-- "Create Expense" primary button in the header,
+                 visible only when the request is approved and no expense exists yet.
+                 Restricted to HR Expense Officers and above. -->
+            <xpath expr="//header/button[@name='action_cancel']" position="after">
+                <button name="action_create_expense"
+                    string="Create Expense"
+                    type="object"
+                    class="btn-primary"
+                    invisible="request_status != 'approved' or expense_id"
+                    groups="hr_expense.group_hr_expense_user"
+                    data-hotkey="e"/>
+            </xpath>
+
+            <!-- Linked-expense stat button injected into the existing button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_expense"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-file-text-o"
+                    invisible="not expense_id">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Expense</span>
+                        <field name="expense_state" widget="badge"
+                            class="o_stat_value"
+                            decoration-secondary="expense_state == 'draft'"
+                            decoration-warning="expense_state == 'submitted'"
+                            decoration-success="expense_state in ('approved', 'posted', 'in_payment', 'paid')"
+                            decoration-danger="expense_state == 'refused'"/>
+                    </div>
+                </button>
+            </xpath>
+
+        </field>
+    </record>
+
 </odoo>
