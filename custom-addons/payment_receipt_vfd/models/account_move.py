@@ -8,6 +8,8 @@ from odoo.tools import html_escape, html_sanitize
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+    VFD_TIMEZONE = 'Africa/Dar_es_Salaam'
+
     is_vfd_receipt_generated = fields.Boolean("VFD Generated", default=False, copy=False)
     vfd_receipt_ids = fields.One2many('payment.receipt.vfd', 'invoice_id', copy=False)
     payment_type_id = fields.Many2one('payment.receipt.payment.type','Payment Type', copy=False)
@@ -70,12 +72,13 @@ class AccountMove(models.Model):
         for rec in self:
             vals = rec._prepare_vfd_receipt_vals()
             receipt_no_ = rec.get_receipt_no()
+            now_local = rec._get_local_now()
             vals.update({
                 "invoice_id": rec.id,
                 "receipt_id": rec.get_receipt_id(),
                 "receipt_no": receipt_no_,
-                "receipt_date": fields.Date.today(),
-                "receipt_time": fields.Datetime.now(),
+                "receipt_date": now_local.date(),
+                "receipt_time": now_local.astimezone(pytz.utc).replace(tzinfo=None),
                 "receipt_z_no": rec.get_z_number(),
                 "verification_code": receipt_no_,
                 "receipt_url": rec.get_receipt_url(receipt_no_),
@@ -112,8 +115,13 @@ class AccountMove(models.Model):
         receipt_url = tra_url + str(receipt_no_) + '_' + str(receipt_time)
         return receipt_url
 
+    def _get_local_now(self):
+        """Return the current datetime in the Tanzanian (EAT, UTC+3) timezone.
+        """
+        return datetime.now(pytz.timezone(self.VFD_TIMEZONE))
+
     def get_receipt_time(self):
-        return datetime.now(pytz.timezone('Africa/Dar_es_salaam')).strftime('%H%M%S')
+        return self._get_local_now().strftime('%H%M%S')
 
     def print_vfd_receipt(self):
         for rec in self:
@@ -129,7 +137,7 @@ class AccountMove(models.Model):
     def get_receipt_id(self):
         vfd_daily_counter = self.get_config_param('payment_receipt_vfd.vfd_daily_counter')
         counter_latest_update = self.get_config_param('payment_receipt_vfd.counter_latest_update')
-        today = date.today().strftime('%Y%m%d')
+        today = self._get_local_now().strftime('%Y%m%d')
 
         if counter_latest_update == today:
             next_counter = int(vfd_daily_counter) + 1
@@ -145,7 +153,7 @@ class AccountMove(models.Model):
             return 1
 
     def get_z_number(self):
-        return date.today().strftime('%Y%m%d')
+        return self._get_local_now().strftime('%Y%m%d')
 
     def get_receipt_no(self):
         vfd_receipt_count = self.get_config_param('payment_receipt_vfd.vfd_receipt_count')
