@@ -201,11 +201,151 @@
             </field>
         </record>
 
+        <!-- ============================= -->
+        <!-- Customer Feedback Views      -->
+        <!-- ============================= -->
+
+        <record id="view_vts_job_card_feedback_tree" model="ir.ui.view">
+            <field name="name">vts.job.card.feedback.tree</field>
+            <field name="model">vts.job.card</field>
+            <field name="arch" type="xml">
+                <list string="Customer Feedback" create="false" edit="false" delete="false">
+                    <field name="name"/>
+                    <field name="customer_id"/>
+                    <field name="vts_employee"/>
+                    <field name="license_plate"/>
+                    <field name="service_type"/>
+                    <field name="customer_satisfaction_rating" widget="priority" string="Rating"/>
+                    <field name="customer_liked_most" optional="show"/>
+                    <field name="customer_improvement_suggestions" optional="hide"/>
+                    <field name="create_date" string="Service Date"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_vts_job_card_feedback_form" model="ir.ui.view">
+            <field name="name">vts.job.card.feedback.form</field>
+            <field name="model">vts.job.card</field>
+            <field name="priority">30</field>
+            <field name="arch" type="xml">
+                <form string="Customer Feedback" create="false" edit="false" delete="false">
+                    <header>
+                        <button name="action_get_report" type="object" string="Print Job Card" class="oe_highlight"/>
+                        <field name="state" widget="statusbar" readonly="1"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Customer">
+                                <field name="customer_id" readonly="1"/>
+                                <field name="customer_mobile" readonly="1"/>
+                                <field name="business_name" readonly="1"/>
+                            </group>
+                            <group string="Vehicle">
+                                <field name="license_plate" readonly="1"/>
+                                <field name="vehicle_model" readonly="1"/>
+                                <field name="vehicle_make" readonly="1"/>
+                            </group>
+                            <group string="Service">
+                                <field name="service_type" readonly="1"/>
+                                <field name="vts_employee" readonly="1"/>
+                                <field name="service_date" readonly="1"/>
+                            </group>
+                            <group string="Device">
+                                <field name="serial_number" readonly="1"/>
+                                <field name="imei" readonly="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Customer Feedback" autofocus="autofocus">
+                                <group>
+                                    <group string="1. Umeridhishwa kwa kiwango gani na huduma uliyopokea?">
+                                        <field name="customer_satisfaction_rating" widget="priority" nolabel="1" colspan="2" readonly="1" options="{'horizontal': true}"/>
+                                    </group>
+                                    <group string="2. Ni jambo gani ulilolipenda zaidi kuhusu huduma yetu?">
+                                        <field name="customer_liked_most" nolabel="1" colspan="2" readonly="1"/>
+                                    </group>
+                                </group>
+                                <group string="3. Ni maeneo gani unadhani tunaweza kuboresha ili kukuhudumia vizuri zaidi?">
+                                    <field name="customer_improvement_suggestions" nolabel="1" colspan="2" readonly="1"/>
+                                </group>
+                            </page>
+                            <page string="General Remarks">
+                                <field name="general_remarks" nolabel="1" colspan="2" readonly="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_vts_job_card_feedback_search" model="ir.ui.view">
+            <field name="name">vts.job.card.feedback.search</field>
+            <field name="model">vts.job.card</field>
+            <field name="arch" type="xml">
+                <search string="Customer Feedback">
+                    <field name="name"/>
+                    <field name="customer_id"/>
+                    <field name="vts_employee"/>
+                    <field name="license_plate"/>
+                    <separator/>
+                    <filter name="rating_positive" string="Rated (1-5)" domain="[('customer_satisfaction_rating', 'in', ['1','2','3','4','5'])]"/>
+                    <filter name="has_liked" string="Has 'Liked Most'" domain="[('customer_liked_most', '!=', False)]"/>
+                    <filter name="has_suggestions" string="Has Improvement Suggestions" domain="[('customer_improvement_suggestions', '!=', False)]"/>
+                    <separator/>
+                    <group>
+                        <filter string="Rating" name="rating_group" context="{'group_by':'customer_satisfaction_rating'}"/>
+                        <filter string="Service Type" name="service_type_group" context="{'group_by':'service_type'}"/>
+                        <filter string="Employee" name="employee_group" context="{'group_by':'vts_employee'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="vts_job_card_feedback_act_window" model="ir.actions.act_window">
+            <field name="name">Customer Feedback</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">vts.job.card</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">['|', '|',
+                ('customer_satisfaction_rating', 'in', ['1','2','3','4','5']),
+                ('customer_liked_most', '!=', False),
+                ('customer_improvement_suggestions', '!=', False)
+            ]</field>
+            <field name="search_view_id" ref="view_vts_job_card_feedback_search"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    No customer feedback records found.
+                </p>
+            </field>
+        </record>
+
+        <record id="vts_job_card_feedback_act_window_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_vts_job_card_feedback_tree"/>
+            <field name="act_window_id" ref="vts_job_card_feedback_act_window"/>
+        </record>
+
+        <record id="vts_job_card_feedback_act_window_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_vts_job_card_feedback_form"/>
+            <field name="act_window_id" ref="vts_job_card_feedback_act_window"/>
+        </record>
+
         <menuitem id="vts_root_menu" name="VTS" web_icon="ictpack_vts,static/description/icon.png"/>
         <menuitem name="Job Cards" sequence="2" id="vts_job_card_menu" parent="vts_root_menu" action="vts_job_card_act_window"/>
         <menuitem name="New Installations" sequence="2" id="vts_new_installation_job_card_menu" parent="vts_job_card_menu" action="vts_new_installation_job_card_act_window"/>
         <menuitem name="Service Routine" sequence="3" id="vts_service_routine_job_card_menu" parent="vts_job_card_menu" action="vts_service_routine_job_card_act_window"/>
         <menuitem name="Driver Registration" sequence="4" id="vts_driver_registration_job_card_menu" parent="vts_job_card_menu" action="vts_driver_registration_job_card_act_window"/>
+        <menuitem name="Customer Feedback" sequence="5" id="vts_customer_feedback_menu" parent="vts_root_menu" action="vts_job_card_feedback_act_window"/>
         <menuitem name="Configuration" id="vts_config_menu" parent="vts_root_menu"/>
     </data>
 </odoo>
