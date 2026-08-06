@@ -30,7 +30,11 @@ class AccountMove(models.Model):
                         _('The invoice date must be equal to today\'s date (%s). '
                           'Please adjust the invoice date before posting.') % today
                     )
-                rec.generate_vfd_receipt()
+                try:
+                    rec.generate_vfd_receipt()
+                except Exception as e:
+                    # Log the error but don't block the posting
+                    rec.message_post(body=f"VFD Receipt generation failed: {str(e)}")
         return res
 
 
@@ -72,12 +76,6 @@ class AccountMove(models.Model):
 
     def generate_vfd_receipt(self):
         for rec in self:
-            today = rec._get_local_now().date()
-            if rec.invoice_date != today:
-                raise exceptions.UserError(
-                    _('The invoice date must be equal to today\'s date (%s). '
-                      'Please adjust the invoice date before posting.') % today
-                )
             vals = rec._prepare_vfd_receipt_vals()
             receipt_no_ = rec.get_receipt_no()
             now_local = rec._get_local_now()
