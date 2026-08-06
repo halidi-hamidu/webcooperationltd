@@ -21,22 +21,16 @@ class AccountMove(models.Model):
             return rate.rate if rate else 1
     
     def action_post(self):
+        res = super(AccountMove, self).action_post()
         for rec in self:
-            if rec.move_type in ['out_invoice', 'out_refund']:
+            if rec.move_type in ['out_invoice', 'out_refund'] and not rec.is_vfd_receipt_generated:
                 today = rec._get_local_now().date()
                 if rec.invoice_date != today:
                     raise exceptions.UserError(
                         _('The invoice date must be equal to today\'s date (%s). '
                           'Please adjust the invoice date before posting.') % today
                     )
-        res = super(AccountMove, self).action_post()
-        for rec in self:
-            if rec.move_type in ['out_invoice', 'out_refund'] and not rec.is_vfd_receipt_generated:
-                try:
-                    rec.generate_vfd_receipt()
-                except Exception as e:
-                    # Log the error but don't block the posting
-                    rec.message_post(body=f"VFD Receipt generation failed: {str(e)}")
+                rec.generate_vfd_receipt()
         return res
 
 
@@ -78,6 +72,12 @@ class AccountMove(models.Model):
 
     def generate_vfd_receipt(self):
         for rec in self:
+            today = rec._get_local_now().date()
+            if rec.invoice_date != today:
+                raise exceptions.UserError(
+                    _('The invoice date must be equal to today\'s date (%s). '
+                      'Please adjust the invoice date before posting.') % today
+                )
             vals = rec._prepare_vfd_receipt_vals()
             receipt_no_ = rec.get_receipt_no()
             now_local = rec._get_local_now()
