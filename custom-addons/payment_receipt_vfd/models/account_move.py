@@ -21,6 +21,14 @@ class AccountMove(models.Model):
             return rate.rate if rate else 1
     
     def action_post(self):
+        for rec in self:
+            if rec.move_type in ['out_invoice', 'out_refund']:
+                today = rec._get_local_now().date()
+                if rec.invoice_date != today:
+                    raise exceptions.UserError(
+                        _('The invoice date must be equal to today\'s date (%s). '
+                          'Please adjust the invoice date before posting.') % today
+                    )
         res = super(AccountMove, self).action_post()
         for rec in self:
             if rec.move_type in ['out_invoice', 'out_refund'] and not rec.is_vfd_receipt_generated:
