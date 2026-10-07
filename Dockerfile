@@ -6,7 +6,8 @@ RUN apt update -y && apt install -y build-essential libssl-dev libffi-dev python
 
 COPY requirements.txt .
 RUN rm -f /usr/lib/python*/EXTERNALLY-MANAGED
-RUN pip install -r requirements.txt --ignore-installed urllib3
+RUN pip install -r requirements.txt --ignore-installed urllib3 && \
+    pip install --ignore-installed --no-cache-dir "pyOpenSSL>=24.1.0" "cryptography>=43.0.0"
 
 COPY ./enterprise-addons /mnt/extra-addons/enterprise-addons
 COPY ./custom-addons /mnt/extra-addons/custom-addons

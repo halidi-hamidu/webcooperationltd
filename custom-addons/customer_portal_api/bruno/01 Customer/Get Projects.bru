@@ -1,0 +1,36 @@
+meta {
+  name: Get Projects
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/v1/customer/projects?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  page: 1
+  limit: 20
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.eql(200);
+  });
+  test("pagination metadata present", function() {
+    expect(res.body.pagination).to.have.all.keys("page", "limit", "total", "pages");
+  });
+}
+
+docs {
+  Returns all projects belonging to the authenticated portal customer.
+  Pagination: `page` (default 1) and `limit` (default 20, max 100).
+  Only the customer's own projects are returned (no partner_id accepted).
+
+  Errors: 400 VALIDATION_ERROR, 401 UNAUTHORIZED
+}

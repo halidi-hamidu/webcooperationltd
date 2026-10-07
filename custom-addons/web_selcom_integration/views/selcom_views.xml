@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_selcom_order_list" model="ir.ui.view">
+        <field name="name">selcom.order.list</field>
+        <field name="model">selcom.order</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="order_id"/>
+                <field name="partner_id"/>
+                <field name="amount"/>
+                <field name="currency_id" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paid'"
+                       decoration-info="state in ('pending','processing')"
+                       decoration-danger="state == 'failed' or mismatch_flag"/>
+                <field name="gateway_reference"/>
+                <field name="create_date" string="Created"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_selcom_order_form" model="ir.ui.view">
+        <field name="name">selcom.order.form</field>
+        <field name="model">selcom.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="order_id"/>
+                            <field name="partner_id"/>
+                            <field name="move_id"/>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                        </group>
+                        <group>
+                            <field name="gateway_reference"/>
+                            <field name="payment_token"/>
+                            <field name="channel"/>
+                            <field name="phone"/>
+                            <field name="mismatch_flag"/>
+                            <field name="payment_gateway_url" widget="url"/>
+                            <field name="qr"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_selcom_orders" model="ir.actions.act_window">
+        <field name="name">Selcom Orders</field>
+        <field name="res_model">selcom.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_selcom_root" name="Selcom" sequence="70"/>
+    <menuitem id="menu_selcom_orders" name="Orders" parent="menu_selcom_root"
+              action="action_selcom_orders"/>
+</odoo>

@@ -1,3 +1,10 @@
+# pyOpenSSL / cryptography must be kept in sync. Odoo's base image ships a
+# stale system pyOpenSSL (in dist-packages) that references GEN_EMAIL, which
+# modern cryptography (>=43) removed. Installing a current pyOpenSSL via pip
+# shadows the broken system one and restores compatibility.
+cryptography>=43.0.0
+pyOpenSSL>=24.1.0
+
 infobip-api-python-client==5.1.1
 paramiko==3.5.0
 requests-html==0.10.0

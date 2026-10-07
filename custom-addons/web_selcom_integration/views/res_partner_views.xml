@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_selcom" model="ir.ui.view">
+        <field name="name">res.partner.form.selcom</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="Selcom" name="selcom">
+                    <group>
+                        <field name="selcom_till_alias"/>
+                        <field name="selcom_customer_id"/>
+                        <field name="selcom_gateway_buyer_uuid"/>
+                    </group>
+                    <button name="action_generate_selcom_till_alias"
+                            string="Generate Till Alias" type="object"
+                            class="btn-secondary"
+                            invisible="selcom_till_alias"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

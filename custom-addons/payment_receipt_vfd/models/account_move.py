@@ -1,8 +1,12 @@
 from odoo import fields, models, api, exceptions, _
 from datetime import datetime, date
+import json
+import logging
 import pytz
 import re
 from odoo.tools import html_escape, html_sanitize
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMove(models.Model):
@@ -20,7 +24,56 @@ class AccountMove(models.Model):
             rate = self.env['res.currency.rate'].search([('currency_id', '=', currency.id), ('name', '<=', date)], limit=1, order='name desc')
             return rate.rate if rate else 1
     
+    def _sanitize_analytic_distribution(self):
+        """Fix corrupted analytic_distribution keys on move lines.
+
+        Some move lines have analytic_distribution keys that are
+        JSON-stringified dicts (e.g. '{"1": 8399}') instead of plain
+        analytic account IDs (e.g. "8399").  This extracts valid account
+        IDs from such corrupted keys so that posting does not crash in
+        Odoo core with ``ValueError: invalid literal for int()``.
+        """
+        for line in self.line_ids.filtered('analytic_distribution'):
+            distribution = line.analytic_distribution
+            if not isinstance(distribution, dict):
+                continue
+            fixed = {}
+            needs_fix = False
+            for key, pct in distribution.items():
+                # A valid key is a comma-separated list of integer IDs.
+                try:
+                    for part in str(key).split(','):
+                        int(part.strip())
+                    fixed[str(key)] = pct
+                except (ValueError, AttributeError):
+                    needs_fix = True
+                    _logger.warning(
+                        "Corrupted analytic_distribution key %r on "
+                        "account.move.line id=%s — attempting repair.",
+                        key, line.id,
+                    )
+                    # Try to extract account IDs from the JSON string.
+                    try:
+                        parsed = json.loads(str(key))
+                    except (json.JSONDecodeError, TypeError):
+                        # Last resort: pull out bare integers with regex.
+                        numbers = re.findall(r'\d+', str(key))
+                        if numbers:
+                            fixed[','.join(numbers)] = pct
+                        continue
+                    if isinstance(parsed, dict):
+                        for val in parsed.values():
+                            if isinstance(val, (list, tuple)):
+                                fixed[','.join(str(v) for v in val)] = pct
+                            else:
+                                fixed[str(val)] = pct
+                    elif isinstance(parsed, (int, float)):
+                        fixed[str(int(parsed))] = pct
+            if needs_fix:
+                line.sudo().analytic_distribution = fixed or False
+
     def action_post(self):
+        self._sanitize_analytic_distribution()
         res = super(AccountMove, self).action_post()
         for rec in self:
             if rec.move_type in ['out_invoice', 'out_refund'] and not rec.is_vfd_receipt_generated:

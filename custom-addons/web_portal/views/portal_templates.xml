@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Primary inheritor of portal.portal_layout: replaces #wrap entirely
+        with the dark-mode web_portal dashboard.
+    -->
+    <template id="custom_portal_dashboard_layout"
+              name="Web Portal Fleet &amp; Invoice View"
+              inherit_id="portal.portal_layout" primary="True">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <!-- Global Theme Outer Isolation Sandbox Wrapper -->
+            <div id="wrap" class="o_portal_wrap" style="background-color: #FFFFFF; color: #111827; min-height: 100vh; font-family: sans-serif; padding: 20px;">
+                <div class="container mt-3">
+
+                    <!-- Welcome Profile Banner -->
+                    <div class="mb-4">
+                        <h2 style="font-weight: 700; color: #111827;">Welcome back, <t t-out="partner.name"/></h2>
+                        <p style="color: #9CA3AF; font-size: 14px;">Here's an overview of your vehicles, invoices and payments.</p>
+                    </div>
+
+                    <!-- Metrics Grid (4 Columns) -->
+                    <div class="row g-3 mb-4">
+                        <!-- Total Vehicles -->
+                        <div class="col-12 col-md-3">
+                            <div class="p-3" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6B7280; font-size: 12px; font-weight: 600;">Total Vehicles</span>
+                                    <i class="fa fa-car" style="color: #6B7280;"/>
+                                </div>
+                                <h3 class="my-2" style="font-weight: 700; color: #111827;"><t t-out="total_vehicles"/></h3>
+                                <div style="color: #00FF66; font-size: 11px;"><t t-out="active_vehicles"/> active on the road</div>
+                            </div>
+                        </div>
+                        <!-- Paid Invoices -->
+                        <div class="col-12 col-md-3">
+                            <div class="p-3" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6B7280; font-size: 12px; font-weight: 600;">Paid Invoices</span>
+                                    <i class="fa fa-money" style="color: #6B7280;"/>
+                                </div>
+                                <h3 class="my-2" style="font-weight: 700; color: #111827;">
+                                    <t t-out="paid_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                </h3>
+                                <div style="color: #9CA3AF; font-size: 11px;">Settled to date</div>
+                            </div>
+                        </div>
+                        <!-- Unpaid Invoices -->
+                        <div class="col-12 col-md-3">
+                            <div class="p-3" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6B7280; font-size: 12px; font-weight: 600;">Unpaid Invoices</span>
+                                    <i class="fa fa-file-text" style="color: #6B7280;"/>
+                                </div>
+                                <h3 class="my-2" style="font-weight: 700; color: #111827;">
+                                    <t t-out="unpaid_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                </h3>
+                                <div style="color: #FF3B30; font-size: 11px;">Includes overdue entries</div>
+                            </div>
+                        </div>
+                        <!-- Pending Payments -->
+                        <div class="col-12 col-md-3">
+                            <div class="p-3" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6B7280; font-size: 12px; font-weight: 600;">Pending Payments</span>
+                                    <i class="fa fa-clock-o" style="color: #6B7280;"/>
+                                </div>
+                                <h3 class="my-2" style="font-weight: 700; color: #111827;">
+                                    <t t-out="pending_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                </h3>
+                                <div style="color: #007AFF; font-size: 11px;">Awaiting confirmation</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <ul class="nav mb-3" style="border-bottom: 1px solid #E0E0E0;">
+                        <li class="nav-item">
+                            <a class="nav-link" t-att-href="'/web_portal/dashboard?tab=vehicles'" t-att-style="tab == 'vehicles' and 'color: #00CC66; border-bottom: 2px solid #00CC66; font-weight: 600; padding-left: 0;' or 'color: #6B7280; padding-left: 0;'">Vehicles / Projects</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" t-att-href="'/web_portal/dashboard?tab=invoices'" t-att-style="tab == 'invoices' and 'color: #00CC66; border-bottom: 2px solid #00CC66; font-weight: 600;' or 'color: #6B7280;'">Invoices</a>
+                        </li>
+                    </ul>
+
+                    <!-- Search Filter Strip (tab-aware) -->
+                    <form method="get" action="/web_portal/dashboard" class="row g-2 mb-4 align-items-end">
+                        <input type="hidden" name="tab" t-att-value="tab"/>
+                        <div class="col-12 col-md-3">
+                            <label style="font-size: 11px; color: #6B7280; font-weight:600;"><t t-if="tab == 'vehicles'">Search Project</t><t t-else="">Search Invoice</t></label>
+                            <input type="text" name="name" t-att-value="filters['name']" placeholder="Search..." class="form-control form-control-sm" style="background-color: #FFFFFF; color: #111827; border: 1px solid #E0E0E0;"/>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label style="font-size: 11px; color: #6B7280; font-weight:600;">Status</label>
+                            <select name="status" class="form-select form-select-sm" style="background-color: #FFFFFF; color: #111827; border: 1px solid #E0E0E0;">
+                                <t t-if="tab == 'vehicles'">
+                                    <t t-foreach="project_status_options" t-as="opt">
+                                        <option t-att-value="opt" t-att-selected="filters['status'] == opt" t-out="opt.title().replace('_', ' ')"/>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <option value="all" t-att-selected="filters['status'] == 'all'">All</option>
+                                    <option value="paid" t-att-selected="filters['status'] == 'paid'">Paid</option>
+                                    <option value="pending" t-att-selected="filters['status'] == 'pending'">Posted</option>
+                                    <option value="unpaid" t-att-selected="filters['status'] == 'unpaid'">Unpaid</option>
+                                    <option value="overdue" t-att-selected="filters['status'] == 'overdue'">Overdue</option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label style="font-size: 11px; color: #6B7280; font-weight:600;">From Date</label>
+                            <input type="date" name="date_from" t-att-value="filters['date_from']" class="form-control form-control-sm" style="background-color: #FFFFFF; color: #111827; border: 1px solid #E0E0E0;"/>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label style="font-size: 11px; color: #6B7280; font-weight:600;">To Date</label>
+                            <input type="date" name="date_to" t-att-value="filters['date_to']" class="form-control form-control-sm" style="background-color: #FFFFFF; color: #111827; border: 1px solid #E0E0E0;"/>
+                        </div>
+                        <div class="col-12 col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm w-50" style="background-color: #00CC66; color: #000000; font-weight: 600;">Filter</button>
+                            <a t-attf-href="/web_portal/dashboard?tab={{tab}}" class="btn btn-sm btn-light w-50" style="border: 1px solid #E0E0E0; color: #111827;">Reset</a>
+                        </div>
+                    </form>
+
+                    <!-- Vehicles / Projects Table -->
+                    <t t-if="tab == 'vehicles'">
+                        <div class="table-responsive" style="border: 1px solid #E0E0E0; border-radius: 8px; background-color: #FFFFFF;">
+                            <table class="table align-middle mb-0" style="color: #111827; background-color: transparent;">
+                                <thead style="background-color: #FFFFFF; color: #6B7280; font-size: 11px; text-transform: uppercase;">
+                                    <tr>
+                                        <th style="border-bottom: 1px solid #E0E0E0; padding: 12px;">Project / Vehicle</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0;">Reference</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0;">Status</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0;">Start Date</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0;">Expected Completion</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0;">Description</th>
+                                        <th style="border-bottom: 1px solid #E0E0E0; text-align: center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 13px;">
+                                    <t t-foreach="projects" t-as="p">
+                                        <tr>
+                                            <td style="border-bottom: 1px solid #EEEEEE; color: #111827; font-weight: 600;">
+                                                <t t-out="p['name']"/>
+                                                <div style="font-size: 11px; color: #9CA3AF; font-weight: 400;"><t t-out="p['vehicle_plate']"/> — <t t-out="p['vehicle_model']"/></div>
+                                            </td>
+                                            <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="p['ref']"/></td>
+                                            <td style="border-bottom: 1px solid #EEEEEE;">
+                                                <span t-attf-style="display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; {{ p['status_style'] }}"><t t-out="p['status']"/></span>
+                                            </td>
+                                            <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="p['start_date'] or '—'"/></td>
+                                            <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="p['end_date'] or '—'"/></td>
+                                            <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563; max-width: 260px;"><t t-out="p['description']"/></td>
+                                            <td style="border-bottom: 1px solid #EEEEEE; text-align: center;">
+                                                <a t-attf-href="/web_portal/project/#{p['id']}" style="color: #6B7280; text-decoration: none; font-size: 13px;">👁 View</a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not projects">
+                                        <tr><td colspan="7" style="text-align: center; color: #9CA3AF; padding: 40px;">No projects match your filters.</td></tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+
+                    <!-- Invoices Data Table -->
+                    <t t-if="tab == 'invoices'">
+                    <div class="table-responsive" style="border: 1px solid #E0E0E0; border-radius: 8px; background-color: #FFFFFF;">
+                        <table class="table align-middle mb-0" style="color: #111827; background-color: transparent;">
+                            <thead style="background-color: #FFFFFF; color: #6B7280; font-size: 11px; text-transform: uppercase;">
+                                <tr>
+                                    <th style="border-bottom: 1px solid #E0E0E0; padding: 12px;">Invoice Number</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Invoice Date</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Description</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Amount</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Due Date</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Status</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0;">Payment Status</th>
+                                    <th style="border-bottom: 1px solid #E0E0E0; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size: 13px;">
+                                <t t-foreach="invoices" t-as="inv">
+                                    <tr>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #111827; font-weight: 600;"><t t-out="inv['name']"/></td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="inv['invoice_date'] or '—'"/></td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="inv['ref'] or '—'"/></td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #111827;">
+                                            <t t-out="inv['amount_total']" t-options="{'widget': 'monetary', 'display_currency': inv['currency']}"/>
+                                        </td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="inv['invoice_date_due'] or '—'"/></td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; color: #4B5563;"><t t-out="inv['state']"/></td>
+                                        <td style="border-bottom: 1px solid #EEEEEE;">
+                                            <span t-attf-style="display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; {{ inv['badge_style'] }}"><t t-out="inv['badge_label']"/></span>
+                                        </td>
+                                        <td style="border-bottom: 1px solid #EEEEEE; text-align: center;">
+                                            <div class="d-inline-flex gap-2">
+                                                <a t-attf-href="/web_portal/invoice/#{inv['id']}" style="color: #6B7280; text-decoration: none; font-size: 13px;" title="View">👁 View</a>
+                                                <t t-if="inv['amount_due'] &gt; 0 and inv['status'] != 'Cancelled'">
+                                                    <a t-attf-href="/web_portal/invoice/#{inv['id']}" style="color: #00CC66; border: 1px solid #00CC66; border-radius: 6px; padding: 2px 10px; text-decoration: none; font-size: 12px; font-weight: 600;">💳 Pay Invoice</a>
+                                                </t>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="not invoices">
+                                    <tr>
+                                        <td colspan="8" style="border-bottom: none; text-align: center; color: #9CA3AF; padding: 40px;">No invoices match your filters.</td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    </t>
+
+                    <!-- Pagination -->
+                    <t t-if="pages &gt; 1">
+                        <nav class="mt-3">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item" t-att-class="page &lt;= 1 and 'disabled' or ''">
+                                    <a class="page-link" t-att-href="'/web_portal/dashboard?tab=%s&amp;page=%s&amp;name=%s&amp;status=%s&amp;date_from=%s&amp;date_to=%s' % (tab, page - 1, filters['name'], filters['status'], filters['date_from'], filters['date_to'])" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; color: #4B5563;">Previous</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; color: #111827;"><t t-out="page"/> / <t t-out="pages"/></span>
+                                </li>
+                                <li class="page-item" t-att-class="page &gt;= pages and 'disabled' or ''">
+                                    <a class="page-link" t-att-href="'/web_portal/dashboard?tab=%s&amp;page=%s&amp;name=%s&amp;status=%s&amp;date_from=%s&amp;date_to=%s' % (tab, page + 1, filters['name'], filters['status'], filters['date_from'], filters['date_to'])" style="background-color: #FFFFFF; border: 1px solid #E0E0E0; color: #4B5563;">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </t>
+
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

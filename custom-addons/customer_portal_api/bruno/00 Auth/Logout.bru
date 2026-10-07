@@ -1,0 +1,32 @@
+meta {
+  name: Logout
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/v1/auth/logout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("token", "");
+  }
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.eql(200);
+  });
+}
+
+docs {
+  Invalidates the current Bearer token.
+
+  Errors: 401 UNAUTHORIZED (missing/expired token)
+}
