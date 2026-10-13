@@ -5,6 +5,24 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="selcom_till_alias" widget="statinfo"
+                       string="Selcom Till Alias"
+                       invisible="not selcom_till_alias"/>
+                <button name="action_create_selcom_till_alias"
+                        type="object" class="oe_stat_button" icon="fa-credit-card"
+                        invisible="selcom_till_alias">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Create Selcom</span>
+                        <span class="o_stat_text">Till Alias</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="selcom_till_alias" readonly="1"/>
+                <field name="selcom_customer_id" readonly="1"
+                       invisible="not selcom_customer_id"/>
+            </xpath>
             <xpath expr="//page[@name='internal_notes']" position="before">
                 <page string="Selcom" name="selcom">
                     <group>
@@ -17,6 +35,18 @@
                             class="btn-secondary"
                             invisible="selcom_till_alias"/>
                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_selcom" model="ir.ui.view">
+        <field name="name">res.partner.list.selcom</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="selcom_till_alias" optional="show"
+                       string="Selcom Till Alias"/>
             </xpath>
         </field>
     </record>

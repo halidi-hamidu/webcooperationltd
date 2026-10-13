@@ -1,8 +1,10 @@
 import secrets
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 from .selcom_client import Selcom
+from ..selcom import Client
 
 
 class ResPartner(models.Model):
@@ -28,3 +30,35 @@ class ResPartner(models.Model):
             alias = Selcom(partner.env).generate_till_alias(
                 partner.id, existing=partner.selcom_till_alias)
             partner.write({"selcom_till_alias": alias})
+
+    def action_create_selcom_till_alias(self):
+        """Create the till alias on Selcom (POST /checkout/create-till-alias)
+        and store the returned alias + customer reference."""
+        icp = self.env["ir.config_parameter"].sudo()
+        vendor = icp.get_param("web_selcom_integration.vendor_till", "")
+        if not vendor:
+            raise UserError(_("Vendor Till is not configured in Settings > Selcom."))
+        client = Client.from_env(self.env)
+        for partner in self:
+            if not partner.name:
+                raise UserError(_("The customer must have a name."))
+            memo = partner.selcom_till_alias or "CUST-%s" % partner.id
+            payload = {
+                "vendor": vendor,
+                "name": partner.name[:80],
+                "memo": memo,
+            }
+            try:
+                response = client.postFunc("/checkout/create-till-alias", payload)
+            except Exception as exc:
+                raise UserError(_("Selcom till alias creation failed: %s") % exc)
+            if response.get("resultcode") != "000":
+                raise UserError(_(
+                    "Selcom till alias creation failed: %s") % response.get(
+                        "message", response.get("result")))
+            data = (response.get("data") or [{}])[0]
+            partner.write({
+                "selcom_till_alias": data.get("till_alias") or memo,
+                "selcom_customer_id": data.get("till_alias")
+                and response.get("reference") or partner.selcom_customer_id,
+            })

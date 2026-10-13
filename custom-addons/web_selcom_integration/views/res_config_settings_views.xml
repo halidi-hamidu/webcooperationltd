@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_selcom" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.selcom</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="90"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Selcom" string="Selcom" name="web_selcom_integration" groups="base.group_system">
+                    <block title="Selcom API Credentials" name="selcom_credentials">
+                        <setting string="API Connection" help="Credentials used to sign requests to the Selcom API.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="selcom_base_url" class="col-lg-3 o_light_label"/>
+                                    <field name="selcom_base_url" placeholder="https://apigw.selcommobile.com/v1"/>
+                                </div>
+                                <div class="row">
+                                    <label for="selcom_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="selcom_api_key"/>
+                                </div>
+                                <div class="row">
+                                    <label for="selcom_api_secret" class="col-lg-3 o_light_label"/>
+                                    <field name="selcom_api_secret" password="True"/>
+                                </div>
+                                <div class="row">
+                                    <label for="selcom_vendor_till" class="col-lg-3 o_light_label"/>
+                                    <field name="selcom_vendor_till"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_selcom_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'web_selcom_integration', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_selcom_config" name="Configuration" parent="menu_selcom_root"
+              sequence="100" groups="base.group_system"/>
+    <menuitem id="menu_selcom_settings" name="Settings" parent="menu_selcom_config"
+              action="action_selcom_config_settings" sequence="1"/>
+</odoo>
