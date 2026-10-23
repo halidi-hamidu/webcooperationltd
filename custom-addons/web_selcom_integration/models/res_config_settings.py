@@ -21,3 +21,8 @@ class ResConfigSettings(models.TransientModel):
         string="Vendor Till",
         config_parameter="web_selcom_integration.vendor_till",
     )
+    selcom_create_till_alias_endpoint = fields.Char(
+        string="Create Till Alias Endpoint",
+        config_parameter="web_selcom_integration.create_till_alias_endpoint",
+        default="/checkout/create-till-alias",
+    )

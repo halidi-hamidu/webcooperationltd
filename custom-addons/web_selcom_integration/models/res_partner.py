@@ -38,6 +38,9 @@ class ResPartner(models.Model):
         vendor = icp.get_param("web_selcom_integration.vendor_till", "")
         if not vendor:
             raise UserError(_("Vendor Till is not configured in Settings > Selcom."))
+        endpoint = icp.get_param(
+            "web_selcom_integration.create_till_alias_endpoint",
+            "/checkout/create-till-alias") or "/checkout/create-till-alias"
         client = Client.from_env(self.env)
         for partner in self:
             if not partner.name:
@@ -52,12 +55,13 @@ class ResPartner(models.Model):
             error_message = False
             http_status = 0
             try:
-                response = client.postFunc("/checkout/create-till-alias", payload)
+                response = client.postFunc(endpoint, payload)
             except Exception as exc:
                 error_message = str(exc)
                 self.env["selcom.till.alias.response"].sudo().create({
                     "partner_id": partner.id,
                     "memo": memo,
+                    "endpoint": endpoint,
                     "state": "failed",
                     "request_payload": payload,
                     "error_message": error_message,
@@ -67,6 +71,7 @@ class ResPartner(models.Model):
             self.env["selcom.till.alias.response"].sudo().create({
                 "partner_id": partner.id,
                 "memo": memo,
+                "endpoint": endpoint,
                 "state": "success" if success else "failed",
                 "request_payload": payload,
                 "response_payload": response,
