@@ -1,10 +1,10 @@
 from odoo import fields, models
 
 
-class SelcomOrder(models.Model):
-    """Local record of every Selcom checkout order."""
-    _name = "selcom.order"
-    _description = "Selcom Order"
+class SelcomWebhook(models.Model):
+    """Local record of every Selcom checkout webhook/order."""
+    _name = "selcom.webhook"
+    _description = "Selcom Webhook"
     _order = "id desc"
 
     name = fields.Char(default="New", copy=False, readonly=True)
@@ -36,5 +36,5 @@ class SelcomOrder(models.Model):
 
     _sql_constraints = [
         ("order_id_uniq", "unique(order_id)",
-         "A Selcom order with this order id already exists."),
+         "A Selcom webhook with this order id already exists."),
     ]

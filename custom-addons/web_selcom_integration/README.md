@@ -11,7 +11,7 @@ web_selcom_integration/
 │   ├── selcom_client.py     ← the single Selcom class (all endpoints)
 │   ├── exceptions.py        ← Selcom* exception hierarchy
 │   ├── res_partner.py       ← unique persistent till aliases
-│   ├── selcom_order.py      ← local order/payment records
+│   ├── selcom_webhook.py    ← local order/payment records
 │   └── payment_transaction.py ← acquirer pipeline hook
 ├── controllers/main.py      ← /web_selcom/webhook (idempotent)
 ├── security/ir.model.access.csv
@@ -46,7 +46,7 @@ web_selcom_integration/
 
 ## Webhook
 
-`POST /web_selcom/webhook` — updates `selcom.order`, idempotent by
+`POST /web_selcom/webhook` — updates `selcom.webhook`, idempotent by
 order_id + gateway reference, verifies amount & currency before marking paid
 (mismatches set `mismatch_flag` and keep the order pending).
 

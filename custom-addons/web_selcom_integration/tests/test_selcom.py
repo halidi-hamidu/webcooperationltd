@@ -5,7 +5,7 @@ from odoo import exceptions, tests
 from ..models.exceptions import (
     SelcomApiException,
     SelcomAuthenticationException,
-    SelcomOrderException,
+    SelcomWebhookOrderException,
     SelcomValidationException,
 )
 from ..models.selcom_client import Selcom
@@ -136,7 +136,7 @@ class TestSelcomEndpoints(tests.TransactionCase):
         status = {"data": [{"payment_status": "COMPLETED"}]}
         with mock.patch.object(Selcom, "get_order_status",
                                return_value=status):
-            with self.assertRaises(SelcomOrderException):
+            with self.assertRaises(SelcomWebhookOrderException):
                 self._selcom().cancel_order("ORD-TEST-001")
 
     def test_cancel_order_success(self):
@@ -196,7 +196,7 @@ class TestSelcomWebhook(tests.TransactionCase):
         super().setUp()
         self.partner = self.env["res.partner"].create({
             "name": "Webhook Customer", "email": "wh@example.com"})
-        self.order = self.env["selcom.order"].create({
+        self.order = self.env["selcom.webhook"].create({
             "order_id": "ORD-WH-001",
             "partner_id": self.partner.id,
             "amount": 10_000.0,

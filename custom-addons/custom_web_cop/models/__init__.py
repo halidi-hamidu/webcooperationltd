@@ -20,3 +20,4 @@ from . import hr_version
 from . import cips_webhook_handler
 from . import approval_request
 from . import res_config_settings
+from . import res_partner_portal

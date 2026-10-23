@@ -17,7 +17,7 @@ import requests
 from .exceptions import (
     SelcomApiException,
     SelcomAuthenticationException,
-    SelcomOrderException,
+    SelcomWebhookOrderException,
     SelcomTimeoutException,
     SelcomValidationException,
 )
@@ -204,7 +204,7 @@ class Selcom:
     # ------------------------------------------------------------------
     def create_order(self, order):
         """POST /v1/checkout/create-order — full order (card-capable).
-        `order` must be a dict (SelcomOrderRequest payload)."""
+        `order` must be a dict (Selcom webhook order payload)."""
         required = ("order_id", "buyer_email", "buyer_name", "buyer_phone",
                     "amount", "currency")
         missing = [f for f in required if not order.get(f)]
@@ -241,7 +241,7 @@ class Selcom:
         items = status.get("data") or []
         current = (items[0].get("payment_status") if items else "") or ""
         if current in ("COMPLETED", "CANCELLED", "USERCANCELLED"):
-            raise SelcomOrderException(
+            raise SelcomWebhookOrderException(
                 "Cannot cancel order in status %s" % current,
                 endpoint="cancel-order")
         return self._make_request("DELETE", "/checkout/cancel-order",
@@ -277,10 +277,10 @@ class Selcom:
     def handle_webhook(self, payload):
         """Process a Selcom payment notification (idempotent).
 
-        Returns (selcom.order.record, status_string). Amount/currency are
+        Returns (selcom.webhook record, status_string). Amount/currency are
         verified against the local record before marking paid.
         """
-        from .selcom_order import SelcomOrder  # local import to avoid cycle
+        from .selcom_webhook import SelcomWebhook  # local import to avoid cycle
 
         order_id = payload.get("order_id") or payload.get("transid")
         if not order_id:
@@ -289,7 +289,7 @@ class Selcom:
                          or payload.get("payment_status") or "").upper()
         app_status = self.map_payment_status(selcom_status)
 
-        order = self.env["selcom.order"].sudo().search(
+        order = self.env["selcom.webhook"].sudo().search(
             [("order_id", "=", order_id)], limit=1)
         if not order:
             raise SelcomWebhookNotFound(order_id)

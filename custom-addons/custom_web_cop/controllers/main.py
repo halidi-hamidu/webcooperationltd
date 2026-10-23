@@ -197,7 +197,7 @@ class WebPortalDashboard(http.Controller):
             values.update({"invoices": paged, "projects": []})
 
         values.update({"page": page, "pages": pages, "total": total})
-        return request.render("web_portal.custom_portal_dashboard_layout", values)
+        return request.render("custom_web_cop.custom_portal_dashboard_layout", values)
 
     # ------------------------------------------------------------------
     # detail pages
@@ -212,7 +212,7 @@ class WebPortalDashboard(http.Controller):
         project = next((p for p in projects if p["id"] == project_id), None)
         if not project:
             return request.not_found()
-        return request.render("web_portal.portal_project_detail", {
+        return request.render("custom_web_cop.portal_project_detail", {
             "partner": partner,
             "portal_project": project,
         })
@@ -227,7 +227,7 @@ class WebPortalDashboard(http.Controller):
         invoice = next((i for i in invoices if i["id"] == invoice_id), None)
         if not invoice:
             return request.not_found()
-        return request.render("web_portal.portal_invoice_detail", {
+        return request.render("custom_web_cop.portal_invoice_detail", {
             "partner": partner,
             "portal_invoice": invoice,
         })

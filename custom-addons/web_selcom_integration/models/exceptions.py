@@ -37,7 +37,7 @@ class SelcomTimeoutException(SelcomException):
     """Request timed out."""
 
 
-class SelcomOrderException(SelcomException):
+class SelcomWebhookOrderException(SelcomException):
     """Order operation not allowed (e.g. cancelling a completed order)."""
 
 

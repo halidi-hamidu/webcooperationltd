@@ -6,7 +6,7 @@
 #################################################################################
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -28,6 +28,42 @@ class ResPartner(models.Model):
         default=False,
         help="Whether the till alias has been registered/synced with the "
              "Selcom gateway.")
+
+    outstanding_payment_count = fields.Integer(
+        string='Outstanding Payments',
+        compute='_compute_outstanding_payment_count')
+
+    def _compute_outstanding_payment_count(self):
+        payment_data = self.env['account.payment'].read_group(
+            domain=[
+                ('partner_id', 'in', self.ids),
+                ('payment_type', '=', 'inbound'),
+                ('state', '=', 'in_process'),
+                ('is_reconciled', '=', False),
+            ],
+            fields=['partner_id'],
+            groupby=['partner_id'],
+        )
+        counts = {row['partner_id'][0]: row['partner_id_count']
+                  for row in payment_data}
+        for partner in self:
+            partner.outstanding_payment_count = counts.get(partner.id, 0)
+
+    def action_view_outstanding_payments(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Outstanding Payments'),
+            'res_model': 'account.payment',
+            'view_mode': 'list,form',
+            'domain': [
+                ('partner_id', '=', self.id),
+                ('payment_type', '=', 'inbound'),
+                ('state', '=', 'in_process'),
+                ('is_reconciled', '=', False),
+            ],
+            'context': {'default_partner_id': self.id},
+        }
 
     def action_create_till_alias(self):
         """Create/register a till alias for the partner.

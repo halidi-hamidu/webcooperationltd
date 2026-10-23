@@ -5,6 +5,9 @@
     "category": "Accounting/Payment",
     "author": "WebCoP",
     "license": "LGPL-3",
+    "images": [
+        "selcom.jpeg",
+    ],
     "depends": [
         "base",
         "account",
