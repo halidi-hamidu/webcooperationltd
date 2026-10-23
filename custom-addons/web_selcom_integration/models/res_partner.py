@@ -48,11 +48,32 @@ class ResPartner(models.Model):
                 "name": partner.name[:80],
                 "memo": memo,
             }
+            response = None
+            error_message = False
+            http_status = 0
             try:
                 response = client.postFunc("/checkout/create-till-alias", payload)
             except Exception as exc:
+                error_message = str(exc)
+                self.env["selcom.till.alias.response"].sudo().create({
+                    "partner_id": partner.id,
+                    "memo": memo,
+                    "state": "failed",
+                    "request_payload": payload,
+                    "error_message": error_message,
+                })
                 raise UserError(_("Selcom till alias creation failed: %s") % exc)
-            if response.get("resultcode") != "000":
+            success = response.get("resultcode") == "000"
+            self.env["selcom.till.alias.response"].sudo().create({
+                "partner_id": partner.id,
+                "memo": memo,
+                "state": "success" if success else "failed",
+                "request_payload": payload,
+                "response_payload": response,
+                "error_message": False if success else response.get(
+                    "message", response.get("result")),
+            })
+            if not success:
                 raise UserError(_(
                     "Selcom till alias creation failed: %s") % response.get(
                         "message", response.get("result")))

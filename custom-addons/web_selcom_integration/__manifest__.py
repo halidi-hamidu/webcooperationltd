@@ -16,6 +16,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/selcom_views.xml",
+        "views/selcom_response_views.xml",
         "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
     ],

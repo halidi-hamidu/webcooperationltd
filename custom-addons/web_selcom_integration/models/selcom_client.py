@@ -202,37 +202,90 @@ class Selcom:
     # ------------------------------------------------------------------
     # Endpoints
     # ------------------------------------------------------------------
+    def _log_order_response(self, endpoint, order_id, payload, data=None,
+                            error_message=False, http_status=0):
+        """Store the exact request payload and response JSON in
+        selcom.order.response for auditing (success and failure)."""
+        vals = {
+            "order_id": order_id,
+            "endpoint": endpoint,
+            "request_payload": payload,
+            "error_message": error_message,
+            "http_status": http_status,
+        }
+        if data is not None:
+            vals["response_payload"] = data
+            vals["state"] = "success" if data.get("resultcode") == SUCCESS_CODE else "failed"
+            vals["error_message"] = (
+                None if vals["state"] == "success"
+                else data.get("message", data.get("result")))
+            items = data.get("data") or []
+            if items and isinstance(items, list):
+                vals["gateway_reference"] = (items[0] or {}).get(
+                    "reference") or data.get("reference")
+        else:
+            vals["state"] = "failed"
+        try:
+            self.env["selcom.order.response"].sudo().create(vals)
+        except Exception:
+            _logger.exception("Failed to store Selcom order response log")
+
     def create_order(self, order):
         """POST /v1/checkout/create-order — full order (card-capable).
         `order` must be a dict (Selcom webhook order payload)."""
+        endpoint = "/checkout/create-order"
         required = ("order_id", "buyer_email", "buyer_name", "buyer_phone",
                     "amount", "currency")
         missing = [f for f in required if not order.get(f)]
         if missing:
             raise SelcomValidationException(
                 "Missing required fields: %s" % ", ".join(missing),
-                endpoint="create-order")
+                endpoint=endpoint)
         payload = {"vendor": self.vendor}
         payload.update(order)
         for key in ("redirect_url", "cancel_url", "webhook"):
             if payload.get(key):
                 payload[key] = self.encode_url(payload[key])
-        data = self._make_request("POST", "/checkout/create-order", payload)
+        try:
+            data = self._make_request("POST", endpoint, payload)
+        except SelcomApiException as exc:
+            self._log_order_response(
+                endpoint, order.get("order_id"), payload,
+                error_message=str(exc), http_status=exc.http_status or 0)
+            raise
+        except (SelcomTimeoutException, SelcomValidationException) as exc:
+            self._log_order_response(
+                endpoint, order.get("order_id"), payload, error_message=str(exc))
+            raise
+        self._log_order_response(
+            endpoint, order.get("order_id"), payload, data=data)
         return self._handle_response(data)
 
     def create_minimal_order(self, order):
         """POST /v1/checkout/create-order-minimal — non-card payments only."""
+        endpoint = "/checkout/create-order-minimal"
         required = ("order_id", "buyer_email", "buyer_name", "buyer_phone",
                     "amount", "currency")
         missing = [f for f in required if not order.get(f)]
         if missing:
             raise SelcomValidationException(
                 "Missing required fields: %s" % ", ".join(missing),
-                endpoint="create-order-minimal")
+                endpoint=endpoint)
         payload = {"vendor": self.vendor}
         payload.update(order)
-        data = self._make_request("POST", "/checkout/create-order-minimal",
-                                  payload)
+        try:
+            data = self._make_request("POST", endpoint, payload)
+        except SelcomApiException as exc:
+            self._log_order_response(
+                endpoint, order.get("order_id"), payload,
+                error_message=str(exc), http_status=exc.http_status or 0)
+            raise
+        except (SelcomTimeoutException, SelcomValidationException) as exc:
+            self._log_order_response(
+                endpoint, order.get("order_id"), payload, error_message=str(exc))
+            raise
+        self._log_order_response(
+            endpoint, order.get("order_id"), payload, data=data)
         return self._handle_response(data)
 
     def cancel_order(self, order_id):
