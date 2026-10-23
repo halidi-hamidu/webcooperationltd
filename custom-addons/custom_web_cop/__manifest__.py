@@ -16,6 +16,7 @@
     "website": "https://webcorporation.com",
     "depends": [
         "account",
+        "account_asset",
         "sale",
         "sale_subscription",
         "sale_crm",
