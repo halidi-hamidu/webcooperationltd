@@ -33,6 +33,13 @@ class SelcomWebhook(models.Model):
     channel = fields.Char(copy=False)
     phone = fields.Char(copy=False)
     move_id = fields.Many2one("account.move", string="Invoice", copy=False)
+    # Exact data exchanged with Selcom, kept verbatim for auditing.
+    request_payload = fields.Json(
+        "Request Payload JSON", copy=False, readonly=True,
+        help="Complete JSON payload exactly as exchanged with Selcom.")
+    response_payload = fields.Json(
+        "Response JSON", copy=False, readonly=True,
+        help="Complete JSON response exactly as returned by Selcom.")
 
     _sql_constraints = [
         ("order_id_uniq", "unique(order_id)",

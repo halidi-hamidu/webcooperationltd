@@ -377,6 +377,8 @@ class Selcom:
             "gateway_reference": gateway_ref or order.gateway_reference,
             "channel": payload.get("channel") or order.channel,
             "phone": payload.get("phone") or order.phone,
+            # Keep the exact inbound webhook JSON verbatim.
+            "request_payload": payload,
         })
         _logger.info("Selcom order %s updated to %s", order_id, app_status)
         return order, app_status

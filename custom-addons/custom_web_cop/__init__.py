@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #################################################################################
 #
-#Copyright (c) 2013-Present IctPack Solutions LTD. (<http://ictpack.com>)
+#Copyright (c) 2013-Present web corporation (<http://webcorporation.com>)
 #
 #################################################################################
 

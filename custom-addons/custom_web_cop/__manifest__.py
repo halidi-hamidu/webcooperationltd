@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #################################################################################
 #
-# Copyright (c) 2013-Present IctPack Solutions LTD. (<http://ictpack.com>)
+# Copyright (c) 2013-Present web corporation (<http://webcorporation.com>)
 #
 #################################################################################
 {
-    "name": "Custom IctPack Module",
+    "name": "Custom webcorporation Module",
     "summary": "Invoice UI, Sales Order, Quotations "
                "Receipt Printouts.",
     "version": "1.0.0",
-    "author": "IctPack Solutions LTD",
+    "author": "web corporation",
     "license": "OPL-1",
-    "support": "projects@ictpack.com",
+    "support": "projects@webcorporation.com",
     "category": "Tools",
-    "website": "https://ictpack.com",
+    "website": "https://webcorporation.com",
     "depends": [
         "account",
         "sale",
