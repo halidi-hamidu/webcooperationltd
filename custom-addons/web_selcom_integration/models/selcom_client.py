@@ -130,6 +130,7 @@ class Selcom:
             url = self.base_url + path
             payload = dict(params)
         headers = self._signed_headers(method, path, payload)
+        _logger.info("Selcom %s %s request payload: %s", method, path, payload)
         try:
             if method == "GET":
                 resp = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
@@ -148,22 +149,25 @@ class Selcom:
                 "Selcom request failed: %s" % exc.__class__.__name__,
                 endpoint=path) from exc
 
-        if resp.status_code in (401, 403):
-            raise SelcomAuthenticationException(
-                "Selcom authentication failed", endpoint=path,
-                http_status=resp.status_code)
         try:
             data = resp.json()
         except ValueError:
             data = {"resultcode": str(resp.status_code), "result": "ERROR",
                     "message": resp.text[:200]}
+        _logger.info("Selcom %s %s response (http=%s): %s",
+                     method, path, resp.status_code, data)
+
+        if resp.status_code in (401, 403):
+            raise SelcomAuthenticationException(
+                "Selcom authentication failed", endpoint=path,
+                http_status=resp.status_code, response_data=data)
         if resp.status_code >= 400 or data.get("resultcode") != SUCCESS_CODE:
             _logger.error("Selcom API error on %s: http=%s code=%s",
                           path, resp.status_code, data.get("resultcode"))
             raise SelcomApiException(
                 data.get("message", "Selcom API error"),
                 endpoint=path, http_status=resp.status_code,
-                result_code=data.get("resultcode"))
+                result_code=data.get("resultcode"), response_data=data)
         _logger.info("Selcom %s succeeded (ref=%s)", path,
                      data.get("reference"))
         return data
@@ -251,6 +255,7 @@ class Selcom:
         except SelcomApiException as exc:
             self._log_order_response(
                 endpoint, order.get("order_id"), payload,
+                data=exc.response_data,
                 error_message=str(exc), http_status=exc.http_status or 0)
             raise
         except (SelcomTimeoutException, SelcomValidationException) as exc:
@@ -278,6 +283,7 @@ class Selcom:
         except SelcomApiException as exc:
             self._log_order_response(
                 endpoint, order.get("order_id"), payload,
+                data=exc.response_data,
                 error_message=str(exc), http_status=exc.http_status or 0)
             raise
         except (SelcomTimeoutException, SelcomValidationException) as exc:

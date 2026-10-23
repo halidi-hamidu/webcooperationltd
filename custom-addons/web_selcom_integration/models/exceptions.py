@@ -4,11 +4,13 @@
 class SelcomException(Exception):
     """Base exception for all Selcom integration errors."""
     def __init__(self, message, endpoint=None, http_status=None,
-                 result_code=None):
+                 result_code=None, response_data=None):
         super().__init__(message)
         self.endpoint = endpoint
         self.http_status = http_status
         self.result_code = result_code
+        # Raw JSON body returned by Selcom, if any was received.
+        self.response_data = response_data
 
     def __str__(self):
         parts = [super().__str__()]

@@ -28,6 +28,7 @@
         'hr_expense',
         'portal',
         'fleet',
+        'web_selcom_integration',
     ],
     "data": [
         "security/ir.model.access.csv",

@@ -1,3 +1,4 @@
+import logging
 import secrets
 
 from odoo import _, api, fields, models
@@ -5,6 +6,8 @@ from odoo.exceptions import UserError
 
 from .selcom_client import Selcom
 from ..selcom import Client
+
+_logger = logging.getLogger(__name__)
 
 
 class ResPartner(models.Model):
@@ -54,8 +57,14 @@ class ResPartner(models.Model):
             response = None
             error_message = False
             http_status = 0
+            _logger.info(
+                "Selcom create-till-alias request to %s: %s",
+                endpoint, payload)
             try:
                 response = client.postFunc(endpoint, payload)
+                _logger.info(
+                    "Selcom create-till-alias response from %s: %s",
+                    endpoint, response)
             except Exception as exc:
                 error_message = str(exc)
                 self.env["selcom.till.alias.response"].sudo().create({
@@ -66,6 +75,9 @@ class ResPartner(models.Model):
                     "request_payload": payload,
                     "error_message": error_message,
                 })
+                # Persist the audit log before the raise rolls back the transaction.
+                self.env.flush_all()
+                self.env.cr.commit()
                 raise UserError(_("Selcom till alias creation failed: %s") % exc)
             success = response.get("resultcode") == "000"
             self.env["selcom.till.alias.response"].sudo().create({
@@ -79,6 +91,9 @@ class ResPartner(models.Model):
                     "message", response.get("result")),
             })
             if not success:
+                # Persist the audit log before the raise rolls back the transaction.
+                self.env.flush_all()
+                self.env.cr.commit()
                 raise UserError(_(
                     "Selcom till alias creation failed: %s") % response.get(
                         "message", response.get("result")))
