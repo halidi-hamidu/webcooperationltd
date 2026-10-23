@@ -1,0 +1,37 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ] # Triggers the workflow on pushes to the main branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Check out the repository code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Set up Docker Buildx (enables advanced caching and multi-platform support)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # 3. Authenticate with Docker Hub using the secrets created in Step 2
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # 4. Build the image and push it to your Docker Hub repository
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/webcooperationltd:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/webcooperationltd:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
