@@ -22,6 +22,11 @@ class ResPartner(models.Model):
         string="Selcom Customer ID", index=True)
     selcom_gateway_buyer_uuid = fields.Char(
         string="Selcom Gateway Buyer UUID")
+    till_alias_synced = fields.Boolean(
+        string="Till Alias Synced",
+        default=False,
+        help="True when the Selcom till alias has been created/synced on the "
+             "gateway for this customer.")
 
     _sql_constraints = [
         ("selcom_till_alias_uniq", "unique(selcom_till_alias)",
