@@ -51,7 +51,7 @@ class ResPartner(models.Model):
             memo = partner.selcom_till_alias or "CUST-%s" % partner.id
             payload = {
                 "vendor": vendor,
-                "name": partner.name[:80],
+                "name": "%s - WEB_COOPERATION" % partner.name[:80 - len(" - WEB_COOPERATION")],
                 "memo": memo,
             }
             response = None

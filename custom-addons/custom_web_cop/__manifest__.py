@@ -30,6 +30,7 @@
         'portal',
         'fleet',
         'web_selcom_integration',
+        'payment_receipt_vfd',
     ],
     "data": [
         "security/ir.model.access.csv",

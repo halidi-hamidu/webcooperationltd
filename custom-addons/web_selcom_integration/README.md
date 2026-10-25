@@ -13,7 +13,7 @@ web_selcom_integration/
 │   ├── res_partner.py       ← unique persistent till aliases
 │   ├── selcom_webhook.py    ← local order/payment records
 │   └── payment_transaction.py ← acquirer pipeline hook
-├── controllers/main.py      ← /web_selcom/webhook (idempotent)
+├── controllers/main.py      ← /selcom-to-webcop/webhook (idempotent)
 ├── security/ir.model.access.csv
 ├── views/                   ← Selcom Orders menu + partner tab
 └── tests/test_selcom.py
@@ -46,9 +46,16 @@ web_selcom_integration/
 
 ## Webhook
 
-`POST /web_selcom/webhook` — updates `selcom.webhook`, idempotent by
+`POST /selcom-to-webcop/webhook` — updates `selcom.webhook`, idempotent by
 order_id + gateway reference, verifies amount & currency before marking paid
 (mismatches set `mismatch_flag` and keep the order pending).
+
+Every inbound notification is first saved verbatim in
+`selcom.order.response` (direction `inbound`, Settings > Selcom > Selcom
+Responses > Order Responses), including notifications for unknown orders.
+After processing, the same record is updated with the outcome, our JSON
+reply and HTTP status. Register this URL with Selcom as the webhook:
+`https://<your-domain>/selcom-to-webcop/webhook`.
 
 ## Security
 

@@ -69,6 +69,13 @@ class SelcomOrderResponse(models.Model):
     endpoint = fields.Char(
         string="Endpoint", readonly=True,
         help="Selcom endpoint that was called, e.g. /checkout/create-order.")
+    direction = fields.Selection(
+        [("outbound", "Sent to Selcom"),
+         ("inbound", "Received from Selcom (Webhook)")],
+        string="Direction", required=True, default="outbound", index=True)
+    payment_status = fields.Char(
+        string="Payment Status",
+        help="Payment status reported by Selcom in a webhook notification.")
     state = fields.Selection(
         [("success", "Success"), ("failed", "Failed")],
         string="Status", required=True, index=True, default="success",
