@@ -21,6 +21,6 @@ API credentials to start sending SMS messages.
         'python': ['infobip_api_client'],
     },
     'installable': True,
-    'author': 'IctPack Solutions LTD',
+    'author': 'WebCoop Solutions LTD',
     'license': 'LGPL-3',
 }

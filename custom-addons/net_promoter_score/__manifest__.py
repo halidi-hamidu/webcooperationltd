@@ -3,7 +3,7 @@
     "version": "1.0",
     "category": "Survey",
     "summary": "Custom Net Promoter Score (NPS) module integrated with Survey",
-    "author": "ictpack Solution",
+    "author": "webcoop Solution",
     "depends": ["survey", "web", "base"], 
     "data": [
     "security/ir.model.access.csv",

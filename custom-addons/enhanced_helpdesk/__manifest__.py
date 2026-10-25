@@ -4,7 +4,7 @@
     "summary": "Enhanced Helpdesk Functionality",
     "description": "Adds extended features to the Helpdesk module.",
     "category": "Services/Helpdesk",
-    "author": "ictpack",
+    "author": "webcoop",
     "license": "LGPL-3",
     "depends": ["base", "helpdesk"],
     "data": [

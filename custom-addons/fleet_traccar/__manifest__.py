@@ -11,8 +11,8 @@
        Also, check the summary,events,trips for a particular custom period
     """,
 
-    'author': "IctPack Solutions LTD",
-    'website': "http://www.ictpack.com",
+    'author': "WebCoop Solutions LTD",
+    'website': "http://www.webcooperationltd.com",
 
     #Categories can be used to filter modules in modules listing
     #Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml

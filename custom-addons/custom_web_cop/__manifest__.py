@@ -55,7 +55,7 @@
         "views/navbar_layout.xml",
     ],
     "installable": True,
-    "maintainers": ["ictpack"],
+    "maintainers": ["webcoop"],
     "images": [
         "static/description/invoicensales.png"
     ],

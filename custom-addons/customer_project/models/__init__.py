@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #############################################################################
 #
-#    IctPack Solutions Ltd.
+#    WebCoop Solutions Ltd.
 #
-#    Copyright (C) 2022-TODAY IctPack Solutions Ltd
-#    Author: IctPack Solutions Ltd
+#    Copyright (C) 2022-TODAY WebCoop Solutions Ltd
+#    Author: WebCoop Solutions Ltd
 #
 #    You can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.

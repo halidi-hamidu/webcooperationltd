@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "ICTPACK VTS",
+    'name': "WEBCOOP VTS",
 
     'summary': """
         Vehicle Tracking Services (VTS)
@@ -10,8 +10,8 @@
         Vehicle Tracking Services (VTS)
     """,
 
-    'author': "IctPack Solutions LTD",
-    'website': "https://www.ictpack.com",
+    'author': "WebCoop Solutions LTD",
+    'website': "https://www.webcooperationltd.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/16.0/odoo/addons/base/data/ir_module_category_data.xml
