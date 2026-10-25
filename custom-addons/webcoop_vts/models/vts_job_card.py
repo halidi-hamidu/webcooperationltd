@@ -322,7 +322,7 @@ class VtsJobCard(models.Model):
         return True
 
     def action_get_report(self):
-        return self.env.ref('ictpack_vts.action_report_job_card').report_action(self)
+        return self.env.ref('webcoop_vts.action_report_job_card').report_action(self)
     
     def _compute_inspection_html_table(self):
         for record in self:            

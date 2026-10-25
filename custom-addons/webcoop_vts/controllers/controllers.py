@@ -3,7 +3,7 @@ from odoo.http import request
 from odoo.exceptions import UserError
 # from odoo import http
 
-RESET_PASSWORD_TEMPLATE = 'ictpack_vts.reset_password_template'
+RESET_PASSWORD_TEMPLATE = 'webcoop_vts.reset_password_template'
 
 class ResetPasswordController(http.Controller):
 
@@ -22,7 +22,7 @@ class ResetPasswordController(http.Controller):
                     'token': token,
                     'new_password': new_password
                 })
-                return request.render('ictpack_vts.reset_password_success')
+                return request.render('webcoop_vts.reset_password_success')
             except Exception as e:
                 return request.render(RESET_PASSWORD_TEMPLATE, {'error': str(e)})
         
@@ -33,13 +33,13 @@ class ResetPasswordController(http.Controller):
 #     @http.route('/my/jobcards', type='http', auth='user', website=True)
 #     def portal_my_jobcards(self, **kw):
 #         jobcards = request.env['vts.job.card'].search([('vts_employee.user_id', '=', request.env.user.id)])
-#         return request.render('ictpack_vts.portal_my_jobcards', {
+#         return request.render('webcoop_vts.portal_my_jobcards', {
 #             'jobcards': jobcards,
 #         })
 
 #     @http.route('/my/jobcard/<int:jobcard_id>', type='http', auth='user', website=True)
 #     def portal_my_jobcard(self, jobcard_id, **kw):
 #         jobcard = request.env['vts.job.card'].browse(jobcard_id)
-#         return request.render('ictpack_vts.portal_my_jobcard', {
+#         return request.render('webcoop_vts.portal_my_jobcard', {
 #             'jobcard': jobcard,
 #         })
