@@ -30,7 +30,13 @@ class PaymentReceiptVfd(models.Model):
     customer_vrn = fields.Char('Customer VRN')
     payment_method = fields.Char('Payment Method')
     invoice_id = fields.Many2one('account.move')
-    order_tag_ids = fields.Many2many('crm.tag', string='Order Tags', related='invoice_id.order_tag_ids')
+    order_tag_ids = fields.Many2many('crm.tag', string='Order Tags', compute='_compute_order_tag_ids')
+
+    @api.depends('invoice_id')
+    def _compute_order_tag_ids(self):
+        for rec in self:
+            rec.order_tag_ids = rec.invoice_id.order_tag_ids if (
+                rec.invoice_id and 'order_tag_ids' in rec.invoice_id._fields) else False
     error_message = fields.Char('Error Message')
     verification_code = fields.Char('Verification Code')
     customer_id = fields.Char('Customer TIN')
